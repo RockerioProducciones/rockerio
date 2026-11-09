@@ -10,7 +10,9 @@ function sembrar() {
   g.post({ accion: 'resena', codigo: cods[2], telefono: '56922221111', nombre: 'Dani', estrellas: 5, comentario: 'Excelente sala, muy buen sonido' });
   g.post({ accion: 'honor', banda: 'Mañaneros', telefono: '56922221111', correo: 'd@d.cl', resena: 'Grabamos nuestro primer disco aquí', instagram: '@mananeros' });
   g.post({ accion: 'cotizacion', tipo: 'produccion', nombre: 'Eva Mora', telefono: '56911223344', correo: 'eva@correo.cl', mensaje: 'Necesito mezcla de 3 canciones' });
-  const p = g.admin('adminResumen').productos; g.admin('adminVender', 'musica', p[0].fila, 2, 'Venta efectivo'); g.admin('adminVender', 'musica', p[1].fila, 1, 'Entregado en sesión (pago pendiente)');
+  [['Set 1046', 'Cuerdas 10-46 Ernie Ball', 12000, 6], ['Uñeta Fender', 'Heavy', 1000, 40], ['Baqueta 5A', 'Madera', 6000, 10]].forEach((x) => g.admin('adminGuardarProducto', { tipo: 'musica', categoria: 'Tienda', nombre: x[0], detalle: x[1], precio: x[2], stock: x[3], visible: true }));
+  const p = g.admin('adminResumen').productos, pf = (n) => p.find((x) => x.nombre === n); g.admin('adminVenderCarrito', 'musica', [{ fila: pf('Set 1046').fila, cantidad: 1 }, { fila: pf('Uñeta Fender').fila, cantidad: 2 }], 'Venta efectivo'); g.admin('adminVenderCarrito', 'musica', [{ fila: pf('Uñeta Fender').fila, cantidad: 1 }], 'Entregado en sesión (pago pendiente)');
+  const bb = g.admin('adminResumen').bebestibles; g.admin('adminReponer', bb[0].fila, 20, 'bebestible'); g.admin('adminVenderCarrito', 'bebestible', [{ fila: bb[0].fila, cantidad: 2 }, { fila: bb[3].fila, cantidad: 1 }], 'Venta transferencia');
   g.admin('adminCrearSocio', 'Gabriela Martelli');
   g.admin('adminGuardarCostos', { mes: hoy.slice(0, 7), luz: 60000, aporte: 10000, caja: 20000, otros: 0, luzFactura: true });
   g.admin('adminGuardarCompra', { fecha: hoy, proveedor: 'Distribuidora Sur', rut: '76.123.456-7', tipo: 'Factura', numero: '123', detalle: 'Cuerdas y unetas', categoria: 'Mercadería', total: 11900 });

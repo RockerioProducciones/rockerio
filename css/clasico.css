@@ -10,7 +10,7 @@ h1,h2,h3{font-family:Inter,system-ui,sans-serif;letter-spacing:.02em}
 .top nav a{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
 .top nav a:hover{color:var(--oro)}
 /* hero enmarcado */
-.hero{max-width:1180px;margin:16px auto 0;min-height:300px!important;border:1px solid var(--borde);border-radius:18px;background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.78)),url(../assets/fotos/control-panoramica.jpg) center/cover;padding:28px 16px 18px!important;align-content:end}
+.hero{max-width:1180px;margin:16px auto 0;min-height:300px!important;border:1px solid var(--borde);border-radius:18px;background:linear-gradient(180deg,rgba(0,0,0,.18),rgba(0,0,0,.62)),url(../assets/portada-estudio.jpg) center/cover no-repeat;padding:28px 16px 18px!important;align-content:end}
 .hero-marca{display:none}
 .hero-in{display:flex;flex-direction:column;align-items:center;gap:.6rem;max-width:none;width:100%}
 .hero-logo{width:300px;max-width:70%;background:rgba(0,0,0,.72);border:1px solid var(--borde);border-radius:14px;padding:14px 22px;filter:none;order:-1}
@@ -99,3 +99,24 @@ footer img{height:32px}
 .pa-hero{text-align:center;border:1px solid #6b1f1a;background:#120909;padding:22px 16px;margin:14px 0}
 .pa-logo img{max-width:min(420px,90%);height:auto;border-radius:6px;margin-bottom:12px}
 #proaudix .pa-bloque{border-color:#3a1512}
+
+/* Portada: collage del estudio detrás del logo */
+.hero{min-height:360px!important;display:grid;align-items:end}
+.hero-logo{box-shadow:0 8px 30px rgba(0,0,0,.6)}
+@media(max-width:699px){.hero{min-height:300px!important}}
+
+/* cuadro de honor: invitación y formulario */
+.honor-cta{margin:.2rem 0 1rem}
+.honor-pasos{list-style:none;display:flex;gap:.6rem;flex-wrap:wrap;padding:0;margin:.8rem 0}
+.honor-pasos li{display:flex;align-items:center;gap:.45rem;font-size:.85rem;color:var(--txt)}
+.honor-pasos b{width:22px;height:22px;border-radius:50%;background:var(--oro);color:#111;display:grid;place-items:center;font-size:.78rem}
+.honor-mas{margin:.6rem 0;border:1px dashed var(--borde);border-radius:10px;padding:.5rem .8rem}
+.honor-mas summary{cursor:pointer;color:var(--oro);font-weight:700;font-size:.88rem}
+.honor-mas label{margin-top:.6rem}
+.contador{display:block;text-align:right;color:#b5afa6;font-size:.75rem}
+.honor-gracias{text-align:center;padding:1.2rem;border:1px solid var(--oro);border-radius:14px;background:rgba(227,154,45,.08)}
+.honor-gracias b{display:block;font-size:1.1rem;color:var(--oro);margin-bottom:.3rem}
+.honor-banda{display:flex;align-items:center;gap:.8rem;margin:1rem 0;padding:.9rem 1rem;border:1px solid var(--oro);border-radius:14px;background:rgba(227,154,45,.08);color:var(--txt);text-decoration:none}
+.honor-banda span{font-size:1.6rem}.honor-banda div{flex:1}.honor-banda b{display:block}.honor-banda small{color:#b5afa6}
+.honor-banda i{font-style:normal;font-weight:800;color:var(--oro);white-space:nowrap}
+body.con-vistas:not([data-vista="inicio"]) .honor-banda{display:none}

@@ -9,7 +9,7 @@ const { sembrar } = require('./demo.js');
     const ctx = await b.newContext({ viewport: vw, deviceScaleFactor: esc, isMobile: nombre === 'movil' }); const p = await ctx.newPage();
     p.on('pageerror', (e) => errs.push(e.message)); p.on('dialog', (d) => d.accept());
     await p.goto('http://localhost:8098/admin'); await p.waitForSelector('.area'); await p.waitForTimeout(400);
-    ok(await p.locator('.area').count() === 9, nombre + ': 9 tarjetas de áreas');
+    ok(await p.locator('.area').count() === 10, nombre + ': 10 tarjetas de áreas');
     ok(!(await p.locator('#sec-wa').isVisible()) && await p.locator('#sec-jor').isVisible(), nombre + ': arranca en Reservas y jornadas con la barra de pestañas');
     await p.screenshot({ path: 'a-' + nombre + '-inicio.png' });
     if (nombre === 'pc') {
@@ -50,9 +50,47 @@ const { sembrar } = require('./demo.js');
       await p.fill('#jbarra input', 'Hierro'); await p.waitForTimeout(150); ok(await p.locator('#jhis tbody tr').count() === 1, 'buscador filtra por banda');
       await p.screenshot({ path: 'j-historial.png' });
       await p.click('#jtabs button[data-v=cli]'); await p.waitForTimeout(200); ok(await p.locator('.cli').count() >= 4, 'tarjetas de clientes');
+      // nuevo cliente desde el formulario (cada pasada usa datos distintos)
+      const sx = nombre.replace(/\W/g, '');
+      await p.click('#cli-nuevo'); await p.waitForSelector('.rm-form');
+      const fi = p.locator('.rm-form input'); await fi.nth(0).fill('Camila'); await fi.nth(1).fill('Rojas'); await fi.nth(2).fill('cami@correo.cl'); await fi.nth(3).fill(nombre === 'pc' ? '+56 9 6000 1111' : '+56 9 6000 2222'); await fi.nth(4).fill('Las Nuevas ' + sx); await fi.nth(5).fill('https://drive.google.com/drive/folders/zzz');
+      await p.getByRole('button', { name: 'Guardar', exact: true }).click(); await p.waitForTimeout(400);
+      ok(g.admin('adminJornadas').clientes.some((c) => c.banda === 'Las Nuevas ' + sx && c.apellido === 'Rojas' && /drive/.test(c.enlace)), 'cliente nuevo guardado desde el portal');
+      await p.fill('#jbarra input', 'rojas'); await p.waitForTimeout(150); ok(await p.locator('.cli').count() >= 1, 'buscador de clientes filtra por apellido');
+      await p.fill('#jbarra input', 'Las Nuevas ' + sx); await p.waitForTimeout(150); ok(await p.locator('.cli').count() === 1, 'y por banda');
+      await p.fill('#jbarra input', '');
+      // reserva manual en horario inusual
+      await p.click('#rm-nueva'); await p.waitForSelector('.rm-serv'); await p.getByRole('button', { name: 'Sala de ensayo' }).click();
+      await p.locator('.rm-cal button').nth(14).click(); await p.waitForSelector('.rm-horas');
+      ok(await p.locator('.rm-horas button').count() >= 20, 'hay bloques para casi todas las horas del día (sin restricción)');
+      await p.locator('.rm-horas button', { hasText: '02:00 – 03:00' }).first().click(); await p.waitForSelector('.rm-form');
+      const ins = p.locator('.rm-form input'); await ins.nth(1).fill('Las Nuevas ' + sx); await ins.nth(2).fill('Camila Rojas'); await ins.nth(3).fill(nombre === 'pc' ? '+56 9 6000 1111' : '+56 9 6000 2222');
+      await p.getByRole('button', { name: 'Continuar ›' }).click(); await p.waitForSelector('.rm-res'); await p.screenshot({ path: 'j-reserva-manual.png' });
+      await p.click('#rm-guardar'); await p.waitForTimeout(500);
+      ok(g.admin('adminJornadas').reservas.some((r) => r.banda === 'Las Nuevas ' + sx && r.inicio === '02:00'), 'reserva manual a las 02:00 guardada desde el portal');
       await p.locator('.cli').first().getByText('Ver jornadas').click(); await p.waitForSelector('.ficha-j'); await p.screenshot({ path: 'j-cliente.png' }); await p.keyboard.press('Escape');
       await p.screenshot({ path: 'j-clientes.png', fullPage: true });
     }
+      // punto de venta de bebestibles: tocar, carrito, pago y confirmar
+      await p.goto('http://localhost:8098/admin'); await p.waitForSelector('.area'); await p.waitForTimeout(300);
+      await p.locator('.area', { hasText: 'Bebestibles' }).click(); await p.waitForSelector('#sec-beb .pos-p');
+      ok(await p.locator('#sec-beb .pos-p').count() >= 4, 'bebestibles muestra sus productos como tarjetas');
+      ok(await p.getByText('Cuenta aparte · no suma al balance').count() >= 1, 'se informa como cuenta aparte');
+      await p.locator('#sec-beb .pos-p', { hasText: 'Cerveza' }).click(); await p.locator('#sec-beb .pos-p', { hasText: 'Cerveza' }).click(); await p.locator('#sec-beb .pos-p', { hasText: 'Jugo' }).click();
+      ok((await p.locator('#sec-beb .pos-tot').innerText()).replace(/\D/g, '') === '3000', 'el carrito suma $3.000');
+      await p.locator('#sec-beb .pos-ok').click(); await p.waitForTimeout(200); ok(/Elige cómo/.test(await p.locator('#msg').innerText()), 'pide elegir cómo se paga');
+      await p.locator('#sec-beb .pos-pago button', { hasText: 'Entregado en sala' }).click(); await p.screenshot({ path: 'j-pos-bebestibles-' + nombre + '.png', fullPage: true });
+      const antes = g.admin('adminResumen').ventas.pendientes.length;
+      await p.locator('#sec-beb .pos-ok').click(); await p.waitForTimeout(500);
+      ok(g.admin('adminResumen').ventas.pendientes.length === antes + 2, 'la venta «entregado en sala» queda por cobrar');
+      // tienda de música: producto nuevo desde el formulario
+      await p.goto('http://localhost:8098/admin'); await p.waitForSelector('.area'); await p.waitForTimeout(300);
+      await p.locator('.area', { hasText: 'Tienda de música' }).click(); await p.waitForSelector('#sec-musica .pos-p');
+      await p.locator('#sec-musica').getByRole('button', { name: '+ Producto' }).click(); await p.waitForSelector('.rm-form');
+      const pf = p.locator('.rm-form input'); await pf.nth(0).fill('Cuerdas Nuevas ' + nombre); await pf.nth(1).fill('Set 10-46'); await pf.nth(2).fill('12000'); await pf.nth(3).fill('5');
+      await p.getByRole('button', { name: 'Guardar', exact: true }).last().click(); await p.waitForTimeout(400);
+      ok(g.admin('adminResumen').productos.some((x) => x.nombre === 'Cuerdas Nuevas ' + nombre && x.precio === 12000), 'producto de música creado desde el portal');
+      await p.screenshot({ path: 'j-pos-musica-' + nombre + '.png', fullPage: true });
     await ctx.close();
   }
   console.log('errores JS:', errs); await b.close(); srv.close();

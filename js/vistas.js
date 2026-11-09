@@ -19,10 +19,11 @@
     primera = false;
   }
   function tarjetas() {
-    [].forEach.call(document.querySelectorAll('.tarjeta[data-vista]'), function (a) { var s = porId(a.getAttribute('data-vista')); a.hidden = !s || s.hidden; });
+    [].forEach.call(document.querySelectorAll('.tarjeta[data-vista], .honor-banda[data-vista]'), function (a) { var s = porId(a.getAttribute('data-vista')); a.hidden = !s || s.hidden; });
   }
   var mo = new MutationObserver(function () { tarjetas(); mostrar(); });
   secs.forEach(function (s) { mo.observe(s, { attributes: true, attributeFilter: ['hidden'] }); });
   window.addEventListener('hashchange', mostrar);
+  var ir = document.getElementById('honor-ir'); if (ir) ir.addEventListener('click', function (e) { e.preventDefault(); var f = document.getElementById('honor-form'); if (f) f.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
   tarjetas(); mostrar();
 })();

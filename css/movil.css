@@ -77,8 +77,8 @@ input,select,textarea{font-size:16px}  /* evita el zoom automático en iPhone */
 footer{flex-wrap:wrap;justify-content:center;padding-bottom:5.5rem}
 body.con-vistas #reservar .sub{display:none}
 @media(max-width:600px){
-  .hero{min-height:0!important;padding:18px 16px 4px!important}
-  .hero-logo{display:none}
+  .hero{min-height:260px!important;padding:18px 16px 4px!important}
+  .hero-logo{display:block}
   .hero-marca{opacity:.05}
   .hero h1{font-size:1.9rem;margin:.2rem 0}
   .hero p{font-size:.95rem;margin:.3rem 0}

@@ -54,7 +54,15 @@ const { sembrar } = require('./demo.js');
     ok(await p.locator(sel).first().isVisible(), 'vista ' + id); await p.screenshot({ path: 'v-' + id + '.png' });
   }
   await p.goto('http://localhost:8099/#bandas'); await p.waitForTimeout(700);
-  ok(await p.locator('#bandas.activa').count() === 1 || true, 'honor (si hay datos aprobados)');
+  ok(await p.locator('#bandas.activa').count() === 1, 'cuadro de honor abre');
+  ok(await p.locator('#honor-form').isVisible(), 'formulario de honor visible');
+  await p.fill('#f-honor [name=banda]', 'Banda Prueba'); await p.fill('#f-honor [name=telefono]', '+56 9 7777 6666'); await p.fill('#f-honor [name=correo]', 'bp@correo.cl'); await p.fill('#f-honor [name=resena]', 'Grabamos nuestro EP en la sala');
+  ok((await p.textContent('#honor-cont')).startsWith('30'), 'contador de caracteres');
+  await p.screenshot({ path: 'v-honor.png', fullPage: true });
+  await p.click('#f-honor button[type=submit]'); await p.waitForTimeout(800);
+  ok(await p.locator('.honor-gracias').isVisible(), 'mensaje de gracias tras enviar');
+  await p.goto('http://localhost:8099/'); await p.waitForTimeout(500);
+  ok(await p.locator('#cta-honor').isVisible(), 'invitación al cuadro de honor en el inicio');
   // secciones nuevas del sitio
   for (const [id, sel, txt] of [['nosotros', '#nosotros-in p', /Rocker/], ['proaudix', '#pa-texto', /ProAudix/], ['contacto', '#redes .enlace', /Instagram|Mi canal/], ['opiniones', '#resenas', null]]) {
     await p.goto('http://localhost:8099/#' + id); await p.waitForTimeout(600);

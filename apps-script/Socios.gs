@@ -4,7 +4,7 @@
  * Los tokens viven en Propiedades del script (no en GitHub ni en la hoja). El socio NUNCA ve teléfonos, correos ni montos de reservas.
  */
 
-var SOCIOS_INICIALES = ['Jaime Encina', 'Gabriela Martelli'];
+var SOCIOS_INICIALES = ['Jaime y Gabriela']; // un solo enlace compartido: ambos ven lo mismo
 
 function leerTokens_() {
   try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('TOKENS_SOCIOS') || '{}'); } catch (e) { return {}; }
@@ -96,12 +96,32 @@ function agendaDetalle_() {
   return out;
 }
 
+/** Resumen general del mes para los socios: jornadas e ingresos por servicio (sin datos de clientes) y el balance cerrado de meses anteriores. */
+function resumenGeneral_(mes) {
+  mes = mesValido_(mes) ? mes : mesActual_();
+  var o = { mes: mes, jornadas: 0, horas: 0, sala: 0, estudio: 0, extras: 0, video: 0, bruto: 0, pendientes: 0 };
+  var sr = abrirBd_().getSheetByName(HOJAS.reservas), n = sr.getLastRow();
+  if (n > 1) sr.getRange(2, 1, n - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r) {
+    var f = aFechaIso_(r[RES.fecha - 1]), e = estadoNorm_(r[RES.estado - 1]);
+    if (!r[RES.codigo - 1] || f.slice(0, 7) !== mes) return;
+    if (e === EST.SIN_ABONO || e === EST.CON_ABONO) { o.pendientes++; return; }
+    if (e !== EST.FINALIZADA) return;
+    o.jornadas++; o.horas += Number(r[RES.horas - 1]) || 0;
+    var base = Number(r[RES.base - 1]) || 0;
+    if (String(r[RES.servicio - 1]) === ETIQUETA_SERVICIO.grabacion) o.estudio += base; else o.sala += base;
+    o.extras += Number(r[RES.extrasM - 1]) || 0; o.video += Number(r[RES.videoM - 1]) || 0; o.bruto += Number(r[RES.rawM - 1]) || 0;
+  });
+  o.total = o.sala + o.estudio + o.extras + o.video + o.bruto;
+  o.historial = leerHistorial_();
+  return o;
+}
+
 function sociosDatos_(token, mes) {
   var nombre = socioDe_(token);
   if (!nombre) return { ok: false, codigo: 'ENLACE', error: 'Este enlace no es válido o fue desactivado. Pide uno nuevo.' };
   var v = datosVentas_(mes);
   return { ok: true, socio: nombre, ahora: ahoraChile_(), agenda: agendaDetalle_(), musica: catalogoSocios_('musica'), bebestibles: catalogoSocios_('bebestible'),
-    resumen: v.resumen, ventas: v.ventas, pendientes: v.pendientes };
+    resumen: v.resumen, ventas: v.ventas, pendientes: v.pendientes, general: resumenGeneral_(mes) };
 }
 
 function sociosVender_(sol) {
@@ -111,6 +131,17 @@ function sociosVender_(sol) {
   try {
     var id = conBloqueo_(function () { return registrarVenta_(tipoCatalogo_(sol.tipo), sol.fila, sol.cantidad, sol.pago, nombre, sol.nota); });
     return { ok: true, id: id };
+  } catch (e) { return { ok: false, codigo: 'DATOS', error: String(e.message || e) }; }
+}
+
+/** Venta por carrito desde el enlace de socios: sol = {t, tipo, items:[{fila,cantidad}], pago, nota}. */
+function sociosCarrito_(sol) {
+  var nombre = socioDe_(sol.t);
+  if (!nombre) return { ok: false, codigo: 'ENLACE', error: 'Enlace no válido.' };
+  if (limiteGlobal_('socios_venta', 200)) return { ok: false, codigo: 'TASA', error: 'Demasiadas ventas seguidas. Intenta más tarde.' };
+  try {
+    var ids = conBloqueo_(function () { return registrarCarrito_(tipoCatalogo_(sol.tipo), sol.items, sol.pago, nombre, sol.nota); });
+    return { ok: true, ids: ids };
   } catch (e) { return { ok: false, codigo: 'DATOS', error: String(e.message || e) }; }
 }
 

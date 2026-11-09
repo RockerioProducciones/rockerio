@@ -632,6 +632,7 @@ function doPost(e) {
       case 'cotizacion': return json_(registrarCotizacion_(sol));
       case 'plan': return json_(reservarPlan_(sol));
       case 'socios_vender': return json_(sociosVender_(sol));
+      case 'socios_carrito': return json_(sociosCarrito_(sol));
       case 'socios_cobrar': return json_(sociosCobrar_(sol));
       default: return json_({ ok: false, codigo: 'DATOS', error: 'Acción no válida.' });
     }
@@ -1145,7 +1146,7 @@ function instalar() {
   prepararSimple_(ss, HOJAS.inhabiles, ['Fecha', 'Motivo'], [], { 1: 'yyyy-mm-dd' });
   prepararReservas_(ss);
   ss.getSheetByName(HOJAS.reservas).getRange(1, RES.recordatorio).setValue('Recordatorio WhatsApp').setFontWeight('bold');
-  prepararSimple_(ss, HOJAS.clientes, ['Teléfono', 'Correo', 'Banda', 'Contacto', 'Reservas', 'Primera reserva', 'Última reserva', 'Carpeta de material (Drive)'], [], { 1: '@', 6: 'yyyy-mm-dd', 7: 'yyyy-mm-dd' });
+  prepararSimple_(ss, HOJAS.clientes, ['Teléfono', 'Correo', 'Banda', 'Contacto', 'Reservas', 'Primera reserva', 'Última reserva', 'Carpeta de material (Drive)', 'Nombre', 'Apellido'], [], { 1: '@', 6: 'yyyy-mm-dd', 7: 'yyyy-mm-dd' });
   prepararSimple_(ss, HOJAS.bloqueos, ['Fecha', 'Desde (hora)', 'Hasta (hora)', 'Motivo'], [], { 1: 'yyyy-mm-dd', 2: '@', 3: '@' });
   prepararTienda_(ss);
   prepararBebestibles_(ss);
@@ -1331,40 +1332,54 @@ function prepararReservas_(ss) {
   sh.getRange(2, RES.estado, 5000, 1).setDataValidation(regla);
 }
 
+/** Catálogo base (fotos en assets/tienda). Precio '' = el dueño lo define desde el portal. */
+var BASE_TIENDA = [
+  ['Cuerdas', 'Alice 1ª (individual)', 'Cuerda suelta Alice, 1ª', '', 9, 'SI', 'assets/tienda/alice-1.jpg'],
+  ['Cuerdas', 'Alice 2ª (individual)', 'Cuerda suelta Alice, 2ª', '', 10, 'SI', 'assets/tienda/alice-2.jpg'],
+  ['Cuerdas', 'Alice 3ª (individual)', 'Cuerda suelta Alice, 3ª', '', 10, 'SI', 'assets/tienda/alice-3.jpg'],
+  ['Cuerdas', 'Alice 4ª (individual)', 'Cuerda suelta Alice, 4ª', '', 10, 'SI', 'assets/tienda/alice-4.jpg'],
+  ['Cuerdas', 'Alice 5ª (individual)', 'Cuerda suelta Alice, 5ª', '', 10, 'SI', 'assets/tienda/alice-5.jpg'],
+  ['Cuerdas', 'Alice 6ª (individual)', 'Cuerda suelta Alice, 6ª', '', 7, 'SI', 'assets/tienda/alice-6.jpg'],
+  ['Cuerdas', 'Ernie Ball Power Slinky 11-48', 'Set guitarra eléctrica (2220)', 12000, '', 'SI', 'assets/tienda/ernie-power.jpg'],
+  ['Cuerdas', 'Ernie Ball Hybrid Slinky 9-46', 'Set guitarra eléctrica (2222)', 12000, '', 'SI', 'assets/tienda/ernie-hybrid.jpg'],
+  ['Cuerdas', 'Ernie Ball Super Slinky 9-42', 'Set guitarra eléctrica (2223)', 12000, '', 'SI', 'assets/tienda/ernie-super.jpg'],
+  ['Cuerdas', 'BlackSmith Electric Medium 11/49', 'Set guitarra eléctrica', '', '', 'SI', 'assets/tienda/blacksmith-1149.jpg'],
+  ['Percusión', 'Baquetas de madera', 'Par de baquetas', '', '', 'SI', 'assets/tienda/baquetas-madera.jpg'],
+  ['Percusión', 'Baquetas de plástico neón', 'Par, rosado y blanco', '', '', 'SI', 'assets/tienda/baquetas-neon.jpg'],
+  ['Accesorios', 'Correa Fender', 'Strap de guitarra, roja o mostaza', 12000, 5, 'SI', 'assets/tienda/correas-fender.jpg'],
+  ['Accesorios', 'Baterías 9V', 'Pilas para pedales y activos', '', 18, 'SI', ''],
+  ['Accesorios', 'Strap locks', 'Set de 2 unidades', '', 23, 'SI', ''],
+  ['Accesorios', 'Uñetas Gibson', 'Uñeta suelta', '', 18, 'SI', 'assets/tienda/unetas-gibson-fotos.jpg'],
+  ['Accesorios', 'Uñetas Alice', '0.58 a 1.20 mm', 1000, 47, 'SI', 'assets/tienda/unetas-alice-fotos.jpg'],
+  ['Accesorios', 'Uñetas Fender Heavy', 'Uñeta suelta', 1000, 42, 'SI', 'assets/tienda/unetas-fender-fotos.jpg']
+];
+var BASE_BEBESTIBLES = [
+  ['Bebestibles', 'Agua mineral', 'Botella 600 cc', 1000, 11, 'SI', 'assets/tienda/beb-agua.jpg'],
+  ['Bebestibles', 'Jugo', 'Botella 470 cc', 1000, 7, 'SI', 'assets/tienda/beb-jugo.jpg'],
+  ['Bebestibles', 'Bebida', 'Lata 330 cc', 1000, 47, 'SI', 'assets/tienda/beb-bebida.jpg'],
+  ['Bebestibles', 'Cerveza', 'Lata 330 cc', 1000, 76, 'SI', 'assets/tienda/beb-cerveza.jpg']
+];
+
 function prepararTienda_(ss) {
   var sh = hoja_(ss, HOJAS.tienda);
   if (sh.getLastRow() > 0) return;
   var enc = ['Categoría', 'Nombre', 'Detalle', 'Precio', 'Stock', 'Visible', 'Foto (ruta del sitio o enlace https)'];
-  var filas = [
-    ['Cuerdas', 'Cuerdas guitarra eléctrica Ernie Ball 9-42', 'Super Slinky', 12000, '', 'SI'],
-    ['Cuerdas', 'Cuerdas guitarra eléctrica Ernie Ball 9-46', 'Hybrid Slinky', 12000, '', 'SI'],
-    ['Cuerdas', 'Cuerdas guitarra eléctrica Ernie Ball 10-46', 'Regular Slinky', 12000, '', 'SI'],
-    ['Cuerdas', 'Cuerdas guitarra eléctrica Ernie Ball 11-48', 'Power Slinky', 12000, '', 'SI'],
-    ['Cuerdas', 'Cuerdas guitarra eléctrica Black Smith 11/49', 'Medium', '', '', 'NO'],
-    ['Cuerdas', 'Cuerdas sueltas Alice', 'Se venden por número de cuerda, de la 1 a la 6', '', '', 'NO', 'assets/tienda/cuerdas-alice.jpg'],
-    ['Accesorios', 'Uñetas Fender Heavy', '', 1000, '', 'SI', 'assets/tienda/unetas-fender.jpg'],
-    ['Accesorios', 'Uñetas Alice', 'Grosores de 0,58 a 1,20 mm', 1000, '', 'SI', 'assets/tienda/unetas-alice.jpg'],
-    ['Accesorios', 'Uñetas Gibson', 'Medianas y gruesas', '', '', 'NO', 'assets/tienda/unetas-gibson.jpg'],
-    ['Accesorios', 'Straplocks de goma (pack)', '', 5000, '', 'SI'],
-    ['Accesorios', 'Correa para guitarra o bajo', 'Fender y otras marcas', 12000, '', 'NO'],
-    ['Accesorios', 'Batería alcalina 9V', 'Para pedales y micrófonos activos', 4500, '', 'SI'],
-    ['Percusión', 'Baquetas de madera', '', '', '', 'NO'],
-    ['Percusión', 'Baquetas de plástico', '', '', '', 'NO'],
-    ['Monitoreo', 'Audífonos in-ear KZ', '', 15000, '', 'SI']
-  ];
+  var filas = BASE_TIENDA.map(function (f) { return f.slice(); });
   filas = filas.map(function (f) { while (f.length < 7) f.push(''); return f; });
   sh.getRange(1, 1, 1, 7).setValues([enc]).setFontWeight('bold');
-  sh.getRange(2, 1, filas.length, 7).setValues(filas);
+  if (filas.length) sh.getRange(2, 1, filas.length, 7).setValues(filas);
   sh.getRange(2, 4, 500, 1).setNumberFormat('$#,##0');
   sh.setFrozenRows(1);
   sh.setColumnWidth(1, 110); sh.setColumnWidth(2, 340); sh.setColumnWidth(3, 330);
-  sh.getRange('I1').setValue('Cómo usarla: Visible = SI muestra el producto en el sitio. Stock vacío = sin control de stock; 0 = agotado. Los productos sin precio quedaron en NO hasta que los definas.');
+  sh.getRange('I1').setValue('Cómo usarla: Visible = SI muestra el producto en el sitio. Stock vacío = sin control de stock; 0 = agotado. Los productos se agregan desde el portal (Tienda de música).');
 }
 
 function prepararBebestibles_(ss) {
   var sh = hoja_(ss, HOJAS.bebestibles);
   if (sh.getLastRow() > 0) return;
   sh.getRange(1, 1, 1, 7).setValues([['Categoría', 'Nombre', 'Detalle', 'Precio', 'Stock', 'Visible', 'Foto (ruta del sitio o enlace https)']]).setFontWeight('bold');
+  var base = BASE_BEBESTIBLES;
+  sh.getRange(2, 1, base.length, 7).setValues(base);
   sh.getRange(2, 4, 500, 1).setNumberFormat('$#,##0');
   sh.setFrozenRows(1);
   sh.setColumnWidth(2, 300); sh.setColumnWidth(3, 300);
@@ -1373,7 +1388,6 @@ function prepararBebestibles_(ss) {
 
 function prepararBalance_(ss) {
   var sh = hoja_(ss, HOJAS.balance);
-  if (sh.getLastRow() > 0) return;
   var mes = '$B$2&"-01"';
   var fechas = 'Reservas!$E:$E,">="&DATEVALUE(' + mes + '),Reservas!$E:$E,"<"&EDATE(DATEVALUE(' + mes + '),1)';
   var sf = function (col, servicio, estado) {
@@ -1383,6 +1397,12 @@ function prepararBalance_(ss) {
     var rango = colFecha + ',">="&DATEVALUE(' + mes + '),' + colFecha + ',"<"&EDATE(DATEVALUE(' + mes + '),1),' + colCobro + ',' + cond;
     return 'SUMIFS(Ventas!$E:$E,Ventas!$G:$G,"' + PAGO.EFECTIVO + '",' + rango + ')+SUMIFS(Ventas!$E:$E,Ventas!$G:$G,"' + PAGO.TRANSFERENCIA + '",' + rango + ')';
   };
+  var anexoVentas = ventasMes('Ventas!$A:$A', 'Ventas!$J:$J', '""') + '+' + ventasMes('Ventas!$J:$J', 'Ventas!$J:$J', '"<>"');
+  if (sh.getLastRow() > 0) { // hojas de versiones anteriores: la tienda pasa a ser un anexo que no suma
+    sh.getRange('A11:C11').setValues([['(no se usa) Tienda y bebestibles', 'NO', 'Tienda y bebestibles son una cuenta aparte: nunca suman al balance']]);
+    sh.getRange('A23:C24').setValues([['ANEXO · Tienda y bebestibles (cuenta aparte)', '=' + anexoVentas, 'Informativo: NO suma al balance ni a los impuestos. Ventas cobradas del mes.'], ['Ingresos brutos', '=B18+B21+B22', 'Sala + estudio + material en bruto (sin tienda ni bebestibles)']]);
+    return;
+  }
   var cn = function (clave, def) { return 'IFERROR(VALUE(INDEX(Configuracion!$B:$B,MATCH("' + clave + '",Configuracion!$A:$A,0))),' + def + ')'; };
   var costo = function (col, def) { return '=IFERROR(INDEX(CostosMes!$' + col + ':$' + col + ',MATCH($B$2,CostosMes!$A:$A,0)),' + def + ')'; };
   var si = function (celda, expr) { return '=IF($B$' + celda + '="SI",' + expr + ',0)'; };
@@ -1397,7 +1417,7 @@ function prepararBalance_(ss) {
     /* 8 */ ['Material en bruto (100% Juan Carlos)', 'SI', ''],
     /* 9 */ ['Abonos retenidos por inasistencia', 'SI', 'Estado «No asiste»: se retiene el abono'],
     /* 10 */ ['Retenciones por anulación', 'SI', 'Estado «Anulada» con abono: se retiene lo que corresponde'],
-    /* 11 */ ['Tienda y bebestibles', 'NO', 'Los registra ProAudix: fuera de tu balance'],
+    /* 11 */ ['(no se usa) Tienda y bebestibles', 'NO', 'Tienda y bebestibles son una cuenta aparte: nunca suman al balance'],
     /* 12 */ ['', '', ''],
     /* 13 */ ['INGRESOS DEL MES', '', ''],
     /* 14 */ ['Sala: horas de ensayo', si(4, sf('W', 'Ensayo', EST.FINALIZADA)), ''],
@@ -1409,8 +1429,8 @@ function prepararBalance_(ss) {
     /* 20 */ ['Estudio: abonos retenidos', '=IF($B$9="SI",' + sf('AB', 'Grabación', EST.NO_ASISTE) + ',0)+IF($B$10="SI",' + sf('AB', 'Grabación', EST.ANULADA) + ',0)', ''],
     /* 21 */ ['Total estudio', '=B19+B20', ''],
     /* 22 */ ['Material en bruto', si(8, sf('Z', '', EST.FINALIZADA)), 'Va 100% a Juan Carlos'],
-    /* 23 */ ['Tienda y bebestibles', si(11, ventasMes('Ventas!$A:$A', 'Ventas!$J:$J', '""') + '+' + ventasMes('Ventas!$J:$J', 'Ventas!$J:$J', '"<>"')), 'Ventas cobradas (efectivo + transferencia). Lo pendiente no cuenta hasta cobrarlo.'],
-    /* 24 */ ['Ingresos brutos', '=B18+B21+B22+B23', ''],
+    /* 23 */ ['ANEXO · Tienda y bebestibles (cuenta aparte)', '=' + anexoVentas, 'Informativo: NO suma al balance ni a los impuestos. Ventas cobradas del mes.'],
+    /* 24 */ ['Ingresos brutos', '=B18+B21+B22', 'Sala + estudio + material en bruto (sin tienda ni bebestibles)'],
     /* 25 */ ['IVA 19% incluido (referencial)', '=B24-B24/1.19', 'Confirmar con tu contador'],
     /* 26 */ ['Ingresos netos', '=B24/1.19', ''],
     /* 27 */ ['', '', ''],
@@ -1630,10 +1650,11 @@ function adminRespaldar() {
 function leerClientes_() {
   var sh = abrirBd_().getSheetByName(HOJAS.clientes), n = sh.getLastRow(), out = [];
   if (n < 2) return out;
-  sh.getRange(2, 1, n - 1, 8).getValues().forEach(function (r) {
+  sh.getRange(2, 1, n - 1, 10).getValues().forEach(function (r) {
     if (!r[0]) return;
-    out.push({ telefono: String(r[0]), correo: String(r[1] || ''), banda: String(r[2] || ''), contacto: String(r[3] || ''),
-      reservas: Number(r[4]) || 0, enlace: String(r[7] || '') });
+    var nom = String(r[8] || ''), ape = String(r[9] || '');
+    out.push({ telefono: String(r[0]), correo: String(r[1] || ''), banda: String(r[2] || ''), contacto: (nom || ape) ? (nom + ' ' + ape).trim() : String(r[3] || ''),
+      nombre: nom || String(r[3] || ''), apellido: ape, reservas: Number(r[4]) || 0, enlace: String(r[7] || '') });
   });
   return out;
 }
@@ -1665,6 +1686,127 @@ function adminGuardarEnlace(telefono, enlace) {
       if (i === fila || (banda && String(r[2] || '').trim().toLowerCase() === banda)) sh.getRange(i + 2, 8).setValue(enlace);
     });
     return adminResumen();
+  });
+}
+
+/* ---------- Base de datos de clientes (alta, edición y baja manual desde el portal) ---------- */
+
+/** Crea o edita un cliente. d: { clave (vacía si es nuevo), nombre, apellido, correo, banda, telefono (opcional), enlace (Drive, opcional) }.
+ *  La clave interna es el teléfono normalizado; si no hay teléfono se crea una clave «MAN-…» y al reservar con otro teléfono se crea otro registro. */
+function adminGuardarCliente(d) {
+  exigirAdmin_();
+  d = d || {};
+  var nombre = limpiar_(d.nombre, 60), apellido = limpiar_(d.apellido, 60), correo = limpiar_(d.correo, 120).toLowerCase(), banda = limpiar_(d.banda, 80);
+  var enlace = String(d.enlace || '').trim(), clave = String(d.clave || '');
+  if (!nombre) throw new Error('Escribe el nombre.');
+  if (!banda) throw new Error('Escribe el nombre de la banda o proyecto.');
+  if (correo && !Reglas.correoValido(correo)) throw new Error('Revisa el correo.');
+  if (enlace && !/^https:\/\/(drive|docs)\.google\.com\/[^\s]+$/.test(enlace)) throw new Error('El enlace debe ser de Google Drive (https://drive.google.com/...).');
+  var tel = d.telefono ? Reglas.normalizarTelefono(String(d.telefono)) : '';
+  if (d.telefono && !Reglas.telefonoValido(tel)) throw new Error('Revisa el teléfono. Ejemplo: +56 9 1234 5678.');
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.clientes), n = sh.getLastRow();
+    if (!sh.getRange(1, 9).getValue()) sh.getRange(1, 9, 1, 2).setValues([['Nombre', 'Apellido']]).setFontWeight('bold');
+    var datos = n > 1 ? sh.getRange(2, 1, n - 1, 3).getValues() : [], fila = -1, dup = -1;
+    datos.forEach(function (r, i) {
+      if (clave && String(r[0]) === clave) fila = i;
+      var otro = !clave || String(r[0]) !== clave;
+      if (otro && ((tel && String(r[0]) === tel) || (correo && String(r[1] || '').toLowerCase() === correo))) dup = i;
+    });
+    if (clave && fila < 0) throw new Error('Cliente no encontrado.');
+    if (dup >= 0) throw new Error('Ya existe un cliente con ese ' + (tel && String(datos[dup][0]) === tel ? 'teléfono' : 'correo') + ' (' + (datos[dup][2] || 'sin banda') + ').');
+    var f;
+    if (fila < 0) {
+      var llave = tel || ('MAN-' + Utilities.formatDate(new Date(), 'America/Santiago', 'yyMMddHHmmss') + Math.floor(Math.random() * 90 + 10));
+      var hoy = new Date();
+      sh.appendRow([llave, '', '', '', 0, hoy, '', '', '', '']);
+      f = sh.getLastRow();
+      sh.getRange(f, 1).setNumberFormat('@').setValue(llave);
+    } else {
+      f = fila + 2;
+      if (tel && /^MAN-/.test(clave)) sh.getRange(f, 1).setNumberFormat('@').setValue(tel);
+    }
+    sh.getRange(f, 2).setValue(textoSeguro_(correo));
+    sh.getRange(f, 3).setValue(textoSeguro_(banda));
+    sh.getRange(f, 4).setValue(textoSeguro_((nombre + ' ' + apellido).trim()));
+    sh.getRange(f, 9, 1, 2).setValues([[textoSeguro_(nombre), textoSeguro_(apellido)]]);
+    // El enlace de Drive es de la banda: se aplica a todos los clientes con la misma banda.
+    var todos = sh.getLastRow() > 1 ? sh.getRange(2, 1, sh.getLastRow() - 1, 3).getValues() : [], b = banda.toLowerCase();
+    todos.forEach(function (r, i) {
+      if (i + 2 === f || (enlace && String(r[2] || '').trim().toLowerCase() === b)) sh.getRange(i + 2, 8).setValue(enlace);
+    });
+    return { ok: true };
+  });
+}
+
+/** Quita el cliente de la base. Sus reservas pasadas se conservan en la hoja Reservas. */
+function adminEliminarCliente(clave) {
+  exigirAdmin_();
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.clientes), n = sh.getLastRow(), fila = -1;
+    if (n > 1) sh.getRange(2, 1, n - 1, 1).getValues().forEach(function (r, i) { if (String(r[0]) === String(clave)) fila = i + 2; });
+    if (fila < 0) throw new Error('Cliente no encontrado.');
+    sh.deleteRow(fila);
+    return { ok: true };
+  });
+}
+
+/* ---------- Reserva manual (sin restricción de horario, anticipación ni días abiertos) ---------- */
+
+/** p: { servicio: ensayo|grabacion, fecha, inicio (0-23), horas (1-24), banda, nombre, telefono, correo (opcional), estado,
+ *       total (opcional: reemplaza el cálculo), extras, video, raw, comentario, forzar }.
+ *  Solo se avisa si el horario choca con otra reserva o bloqueo; con forzar=true se guarda igual. */
+function adminReservaManual(p) {
+  exigirAdmin_();
+  p = p || {};
+  var cfg = getCfg_();
+  var servicio = p.servicio === 'grabacion' ? 'grabacion' : 'ensayo';
+  var fecha = String(p.fecha || ''), inicio = Number(p.inicio), horas = Number(p.horas);
+  if (!Reglas.fechaValida(fecha)) throw new Error('Elige una fecha válida.');
+  if (!(inicio >= 0 && inicio <= 23 && inicio === Math.floor(inicio))) throw new Error('Elige la hora de inicio.');
+  if (!(horas >= 1 && horas <= 24 && horas === Math.floor(horas)) || inicio + horas > 24) throw new Error('La duración debe ser de 1 a 24 horas y terminar antes de medianoche.');
+  var banda = limpiar_(p.banda, 80), nombre = limpiar_(p.nombre, 80), correo = limpiar_(p.correo, 120).toLowerCase();
+  var tel = Reglas.normalizarTelefono(String(p.telefono || ''));
+  if (!banda) throw new Error('Escribe la banda o proyecto.');
+  if (!nombre) throw new Error('Escribe el nombre del contacto.');
+  if (!Reglas.telefonoValido(tel)) throw new Error('Revisa el teléfono. Ejemplo: +56 9 1234 5678.');
+  if (correo && !Reglas.correoValido(correo)) throw new Error('Revisa el correo.');
+  var estado = estadoNorm_(p.estado) || EST.CON_ABONO;
+  var extras = Math.max(0, Math.min(6, Number(p.extras) || 0));
+  var d = { servicio: servicio, fecha: fecha, inicio: inicio, horas: horas, extras: extras, video: !!p.video, raw: !!p.raw };
+  var c = Reglas.calcularPrecio(cfg, d);
+  var total = c.total, abono = c.abono;
+  if (p.total !== undefined && p.total !== null && String(p.total).trim() !== '') {
+    total = Number(String(p.total).replace(/[^\d]/g, ''));
+    if (isNaN(total)) throw new Error('Revisa el total.');
+    abono = Math.min(total, abono);
+  }
+  return conBloqueo_(function () {
+    if (!p.forzar) {
+      var oc = ocupadasRango_(fecha, 1)[fecha] || [], choca = [];
+      for (var h = inicio; h < inicio + horas; h++) if (oc.indexOf(h) >= 0) choca.push(h + ':00');
+      if (choca.length) throw new Error('CHOQUE: ese horario ya está ocupado o bloqueado (' + choca.join(', ') + ').');
+    }
+    var codigo = siguienteCodigo_();
+    var evento = getCalendar_().createEvent(tituloEvento_(estado, banda, servicio, horas, codigo), fechaHora_(fecha, inicio), fechaHora_(fecha, inicio + horas),
+      { description: 'Reserva manual #' + codigo + '\nBanda: ' + banda + '\nContacto: ' + nombre + '\nTeléfono: +' + tel + (correo ? '\nCorreo: ' + correo : '') +
+        (p.comentario ? '\nComentarios: ' + limpiar_(p.comentario, 300) : '') + '\nTotal ' + Reglas.clp(total), location: cfg.direccion });
+    var sh = abrirBd_().getSheetByName(HOJAS.reservas), fila = new Array(ENCABEZADO_RESERVAS.length);
+    fila[RES.codigo - 1] = codigo; fila[RES.creada - 1] = new Date(); fila[RES.estado - 1] = estado;
+    fila[RES.servicio - 1] = ETIQUETA_SERVICIO[servicio]; fila[RES.fecha - 1] = fechaHora_(fecha, 0);
+    fila[RES.inicio - 1] = Reglas.horaTxt(inicio); fila[RES.fin - 1] = Reglas.horaTxt(inicio + horas); fila[RES.horas - 1] = horas;
+    fila[RES.banda - 1] = textoSeguro_(banda); fila[RES.contacto - 1] = textoSeguro_(nombre); fila[RES.telefono - 1] = tel; fila[RES.correo - 1] = textoSeguro_(correo);
+    fila[RES.extras - 1] = extras; fila[RES.video - 1] = d.video ? 'SI' : 'NO'; fila[RES.raw - 1] = d.raw ? 'SI' : 'NO';
+    fila[RES.total - 1] = total; fila[RES.abono - 1] = abono; fila[RES.saldo - 1] = total - abono;
+    fila[RES.zurdo - 1] = 'NO'; fila[RES.voces - 1] = 0; fila[RES.comentarios - 1] = textoSeguro_('Reserva manual' + (p.comentario ? ' · ' + limpiar_(p.comentario, 300) : ''));
+    fila[RES.evento - 1] = evento.getId();
+    fila[RES.base - 1] = c.base; fila[RES.extrasM - 1] = c.extras; fila[RES.videoM - 1] = c.video; fila[RES.rawM - 1] = c.raw; fila[RES.abonoRecibido - 1] = 'NO';
+    sh.appendRow(fila);
+    var f = sh.getLastRow();
+    sh.getRange(f, RES.telefono).setNumberFormat('@').setValue(tel);
+    if (estado !== EST.SIN_ABONO) sincronizarEstado_(sh, f);
+    registrarCliente_({ telefono: tel, correo: correo, banda: banda, nombre: nombre });
+    return { ok: true, codigo: codigo };
   });
 }
 
@@ -1703,7 +1845,7 @@ function adminJornadas() {
   if (k > 1) si.getRange(2, 1, k - 1, 2).getValues().forEach(function (r) { var f = aFechaIso_(r[0]); if (f) inhabiles.push({ fecha: f, motivo: String(r[1] || '') }); });
 
   var cl = leerClientes_(), porTel = {};
-  cl.forEach(function (c) { porTel[c.telefono] = { telefono: c.telefono, correo: c.correo, banda: c.banda, contacto: c.contacto, enlace: c.enlace, jornadas: 0, finalizadas: 0, gastado: 0, ultima: '', proxima: '' }; });
+  cl.forEach(function (c) { porTel[c.telefono] = { telefono: c.telefono, correo: c.correo, banda: c.banda, contacto: c.contacto, nombre: c.nombre, apellido: c.apellido, enlace: c.enlace, jornadas: 0, finalizadas: 0, gastado: 0, ultima: '', proxima: '' }; });
   reservas.forEach(function (r) {
     var c = porTel[r.telefono] || (porTel[r.telefono] = { telefono: r.telefono, correo: r.correo, banda: r.banda, contacto: r.contacto, enlace: '', jornadas: 0, finalizadas: 0, gastado: 0, ultima: '', proxima: '' });
     if (r.estado === EST.ANULADA) return;
@@ -2350,6 +2492,14 @@ function leerProductos_(tipo) {
 
 /* ---------- catálogo (administrador) ---------- */
 
+var CARPETA_PRODUCTOS = 'Rockerío · Fotos de productos';
+function guardarFotoProducto_(b64, nombre) {
+  var bytes = decodificar_(b64, 500 * 1024), t = tipoImagen_(bytes);
+  if (!t) throw new Error('La foto debe ser una imagen PNG, JPG o WebP.');
+  var id = guardarPublico_(carpetaDrive_(CARPETA_PRODUCTOS), 'prod-' + String(nombre).replace(/[^\w\- ]/g, '').slice(0, 30) + '-' + Date.now() + '.' + t[1], t[0], bytes);
+  return 'https://lh3.googleusercontent.com/d/' + id;
+}
+
 /** p = {tipo, fila (vacío = nuevo), categoria, nombre, detalle, precio, stock, visible}. Precio y stock vacíos son válidos. */
 function adminGuardarProducto(p) {
   exigirAdmin_();
@@ -2361,6 +2511,7 @@ function adminGuardarProducto(p) {
   if (stock !== '' && !(Number(stock) >= 0 && Number(stock) % 1 === 0)) throw new Error('El stock debe ser un número entero.');
   var foto = String(p.foto || '').trim();
   if (foto && !fotoValida_(foto)) throw new Error('La foto debe ser una ruta del sitio (assets/…jpg) o un enlace https.');
+  if (p.fotoB64) foto = guardarFotoProducto_(p.fotoB64, nombre); // foto subida desde el portal: se guarda en tu Drive
   var fila = [
     textoSeguro_(limpiar_(p.categoria, 40) || 'Otros'), textoSeguro_(nombre), textoSeguro_(limpiar_(p.detalle, 150)),
     precio === '' ? '' : Number(precio), stock === '' ? '' : Number(stock), p.visible ? 'SI' : 'NO', foto
@@ -2368,6 +2519,22 @@ function adminGuardarProducto(p) {
   return conBloqueo_(function () {
     var sh = hojaCatalogo_(p.tipo);
     if (p.fila) sh.getRange(filaProducto_(sh, p.fila), 1, 1, 7).setValues([fila]); else sh.appendRow(fila);
+    return adminResumen();
+  });
+}
+
+/** Agrega al catálogo los productos base que falten (por nombre) y les pone foto si no tenían. No toca precios ni stock existentes. */
+function adminCargarBase(tipo) {
+  exigirAdmin_();
+  return conBloqueo_(function () {
+    var base = tipoCatalogo_(tipo) === 'bebestible' ? BASE_BEBESTIBLES : BASE_TIENDA, sh = hojaCatalogo_(tipo), n = sh.getLastRow();
+    var datos = n > 1 ? sh.getRange(2, 1, n - 1, 7).getValues() : [];
+    base.forEach(function (b) {
+      var i = -1;
+      datos.forEach(function (r, k) { if (String(r[1]).toLowerCase() === b[1].toLowerCase() && String(r[2]).toLowerCase() === b[2].toLowerCase()) i = k; });
+      if (i < 0) { sh.appendRow(b); datos.push(b.slice()); }
+      else if (!datos[i][6]) sh.getRange(i + 2, 7).setValue(b[6]);
+    });
     return adminResumen();
   });
 }
@@ -2419,6 +2586,24 @@ function registrarVenta_(tipo, fila, cantidad, pago, vendedor, nota) {
   abrirBd_().getSheetByName(HOJAS.ventas).appendRow([new Date(), textoSeguro_(String(r[1])), cantidad, precio, precio * cantidad,
     ETIQUETA_TIPO[tipoCatalogo_(tipo)], pago, textoSeguro_(limpiar_(vendedor, 40)), textoSeguro_(limpiar_(nota, 120)), '', id]);
   return id;
+}
+
+/** Registra un carrito completo (varios productos) con una sola forma de pago. Valida todo antes de descontar nada.
+ *  items = [{fila, cantidad}]. Debe llamarse dentro de conBloqueo_. Devuelve los ids de venta. */
+function registrarCarrito_(tipo, items, pago, vendedor, nota) {
+  if (!items || !items.length) throw new Error('El carrito está vacío.');
+  if (items.length > 40) throw new Error('Demasiados productos en una venta.');
+  pago = pagoNorm_(pago);
+  if (PAGOS_VENTA.indexOf(pago) < 0) throw new Error('Elige cómo se pagó: efectivo, transferencia o entregado en sala.');
+  var sh = hojaCatalogo_(tipo), juntos = {};
+  items.forEach(function (it) { var f = Number(it.fila); juntos[f] = (juntos[f] || 0) + Number(it.cantidad); });
+  Object.keys(juntos).forEach(function (k) {
+    var f = filaProducto_(sh, Number(k)), r = sh.getRange(f, 1, 1, 6).getValues()[0], c = juntos[k];
+    if (!(c >= 1 && c <= 99 && c % 1 === 0)) throw new Error('Cantidad inválida.');
+    if (!r[1] || Reglas.aNumero(r[3], null) === null) throw new Error('«' + r[1] + '» no tiene precio.');
+    if (r[4] !== '' && Number(r[4]) < c) throw new Error('Stock insuficiente de «' + r[1] + '»: quedan ' + r[4] + '.');
+  });
+  return Object.keys(juntos).map(function (k) { return registrarVenta_(tipo, Number(k), juntos[k], pago, vendedor, nota); });
 }
 
 /** Cambia una venta «pendiente» a efectivo o transferencia. Debe llamarse dentro de conBloqueo_. */
@@ -2494,6 +2679,11 @@ function datosVentas_(mes) {
 function adminVender(tipo, fila, cantidad, pago, nota) {
   exigirAdmin_();
   return conBloqueo_(function () { registrarVenta_(tipo, fila, cantidad, pago, 'Administración', nota || ''); return adminResumen(); });
+}
+/** Venta por carrito desde el portal: items = [{fila, cantidad}], pago = una de PAGOS_VENTA. */
+function adminVenderCarrito(tipo, items, pago, nota) {
+  exigirAdmin_();
+  return conBloqueo_(function () { var ids = registrarCarrito_(tipo, items, pago, 'Administración', nota || ''); var r = adminResumen(); r.idsVenta = ids; return r; });
 }
 function adminCobrar(id, pago) {
   exigirAdmin_();
@@ -2594,7 +2784,7 @@ function adminCerrarMes(mes) {
  * Los tokens viven en Propiedades del script (no en GitHub ni en la hoja). El socio NUNCA ve teléfonos, correos ni montos de reservas.
  */
 
-var SOCIOS_INICIALES = ['Jaime Encina', 'Gabriela Martelli'];
+var SOCIOS_INICIALES = ['Jaime y Gabriela']; // un solo enlace compartido: ambos ven lo mismo
 
 function leerTokens_() {
   try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('TOKENS_SOCIOS') || '{}'); } catch (e) { return {}; }
@@ -2686,12 +2876,32 @@ function agendaDetalle_() {
   return out;
 }
 
+/** Resumen general del mes para los socios: jornadas e ingresos por servicio (sin datos de clientes) y el balance cerrado de meses anteriores. */
+function resumenGeneral_(mes) {
+  mes = mesValido_(mes) ? mes : mesActual_();
+  var o = { mes: mes, jornadas: 0, horas: 0, sala: 0, estudio: 0, extras: 0, video: 0, bruto: 0, pendientes: 0 };
+  var sr = abrirBd_().getSheetByName(HOJAS.reservas), n = sr.getLastRow();
+  if (n > 1) sr.getRange(2, 1, n - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r) {
+    var f = aFechaIso_(r[RES.fecha - 1]), e = estadoNorm_(r[RES.estado - 1]);
+    if (!r[RES.codigo - 1] || f.slice(0, 7) !== mes) return;
+    if (e === EST.SIN_ABONO || e === EST.CON_ABONO) { o.pendientes++; return; }
+    if (e !== EST.FINALIZADA) return;
+    o.jornadas++; o.horas += Number(r[RES.horas - 1]) || 0;
+    var base = Number(r[RES.base - 1]) || 0;
+    if (String(r[RES.servicio - 1]) === ETIQUETA_SERVICIO.grabacion) o.estudio += base; else o.sala += base;
+    o.extras += Number(r[RES.extrasM - 1]) || 0; o.video += Number(r[RES.videoM - 1]) || 0; o.bruto += Number(r[RES.rawM - 1]) || 0;
+  });
+  o.total = o.sala + o.estudio + o.extras + o.video + o.bruto;
+  o.historial = leerHistorial_();
+  return o;
+}
+
 function sociosDatos_(token, mes) {
   var nombre = socioDe_(token);
   if (!nombre) return { ok: false, codigo: 'ENLACE', error: 'Este enlace no es válido o fue desactivado. Pide uno nuevo.' };
   var v = datosVentas_(mes);
   return { ok: true, socio: nombre, ahora: ahoraChile_(), agenda: agendaDetalle_(), musica: catalogoSocios_('musica'), bebestibles: catalogoSocios_('bebestible'),
-    resumen: v.resumen, ventas: v.ventas, pendientes: v.pendientes };
+    resumen: v.resumen, ventas: v.ventas, pendientes: v.pendientes, general: resumenGeneral_(mes) };
 }
 
 function sociosVender_(sol) {
@@ -2701,6 +2911,17 @@ function sociosVender_(sol) {
   try {
     var id = conBloqueo_(function () { return registrarVenta_(tipoCatalogo_(sol.tipo), sol.fila, sol.cantidad, sol.pago, nombre, sol.nota); });
     return { ok: true, id: id };
+  } catch (e) { return { ok: false, codigo: 'DATOS', error: String(e.message || e) }; }
+}
+
+/** Venta por carrito desde el enlace de socios: sol = {t, tipo, items:[{fila,cantidad}], pago, nota}. */
+function sociosCarrito_(sol) {
+  var nombre = socioDe_(sol.t);
+  if (!nombre) return { ok: false, codigo: 'ENLACE', error: 'Enlace no válido.' };
+  if (limiteGlobal_('socios_venta', 200)) return { ok: false, codigo: 'TASA', error: 'Demasiadas ventas seguidas. Intenta más tarde.' };
+  try {
+    var ids = conBloqueo_(function () { return registrarCarrito_(tipoCatalogo_(sol.tipo), sol.items, sol.pago, nombre, sol.nota); });
+    return { ok: true, ids: ids };
   } catch (e) { return { ok: false, codigo: 'DATOS', error: String(e.message || e) }; }
 }
 

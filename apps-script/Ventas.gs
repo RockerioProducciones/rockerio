@@ -36,6 +36,14 @@ function leerProductos_(tipo) {
 
 /* ---------- catálogo (administrador) ---------- */
 
+var CARPETA_PRODUCTOS = 'Rockerío · Fotos de productos';
+function guardarFotoProducto_(b64, nombre) {
+  var bytes = decodificar_(b64, 500 * 1024), t = tipoImagen_(bytes);
+  if (!t) throw new Error('La foto debe ser una imagen PNG, JPG o WebP.');
+  var id = guardarPublico_(carpetaDrive_(CARPETA_PRODUCTOS), 'prod-' + String(nombre).replace(/[^\w\- ]/g, '').slice(0, 30) + '-' + Date.now() + '.' + t[1], t[0], bytes);
+  return 'https://lh3.googleusercontent.com/d/' + id;
+}
+
 /** p = {tipo, fila (vacío = nuevo), categoria, nombre, detalle, precio, stock, visible}. Precio y stock vacíos son válidos. */
 function adminGuardarProducto(p) {
   exigirAdmin_();
@@ -47,6 +55,7 @@ function adminGuardarProducto(p) {
   if (stock !== '' && !(Number(stock) >= 0 && Number(stock) % 1 === 0)) throw new Error('El stock debe ser un número entero.');
   var foto = String(p.foto || '').trim();
   if (foto && !fotoValida_(foto)) throw new Error('La foto debe ser una ruta del sitio (assets/…jpg) o un enlace https.');
+  if (p.fotoB64) foto = guardarFotoProducto_(p.fotoB64, nombre); // foto subida desde el portal: se guarda en tu Drive
   var fila = [
     textoSeguro_(limpiar_(p.categoria, 40) || 'Otros'), textoSeguro_(nombre), textoSeguro_(limpiar_(p.detalle, 150)),
     precio === '' ? '' : Number(precio), stock === '' ? '' : Number(stock), p.visible ? 'SI' : 'NO', foto
@@ -54,6 +63,22 @@ function adminGuardarProducto(p) {
   return conBloqueo_(function () {
     var sh = hojaCatalogo_(p.tipo);
     if (p.fila) sh.getRange(filaProducto_(sh, p.fila), 1, 1, 7).setValues([fila]); else sh.appendRow(fila);
+    return adminResumen();
+  });
+}
+
+/** Agrega al catálogo los productos base que falten (por nombre) y les pone foto si no tenían. No toca precios ni stock existentes. */
+function adminCargarBase(tipo) {
+  exigirAdmin_();
+  return conBloqueo_(function () {
+    var base = tipoCatalogo_(tipo) === 'bebestible' ? BASE_BEBESTIBLES : BASE_TIENDA, sh = hojaCatalogo_(tipo), n = sh.getLastRow();
+    var datos = n > 1 ? sh.getRange(2, 1, n - 1, 7).getValues() : [];
+    base.forEach(function (b) {
+      var i = -1;
+      datos.forEach(function (r, k) { if (String(r[1]).toLowerCase() === b[1].toLowerCase() && String(r[2]).toLowerCase() === b[2].toLowerCase()) i = k; });
+      if (i < 0) { sh.appendRow(b); datos.push(b.slice()); }
+      else if (!datos[i][6]) sh.getRange(i + 2, 7).setValue(b[6]);
+    });
     return adminResumen();
   });
 }
@@ -105,6 +130,24 @@ function registrarVenta_(tipo, fila, cantidad, pago, vendedor, nota) {
   abrirBd_().getSheetByName(HOJAS.ventas).appendRow([new Date(), textoSeguro_(String(r[1])), cantidad, precio, precio * cantidad,
     ETIQUETA_TIPO[tipoCatalogo_(tipo)], pago, textoSeguro_(limpiar_(vendedor, 40)), textoSeguro_(limpiar_(nota, 120)), '', id]);
   return id;
+}
+
+/** Registra un carrito completo (varios productos) con una sola forma de pago. Valida todo antes de descontar nada.
+ *  items = [{fila, cantidad}]. Debe llamarse dentro de conBloqueo_. Devuelve los ids de venta. */
+function registrarCarrito_(tipo, items, pago, vendedor, nota) {
+  if (!items || !items.length) throw new Error('El carrito está vacío.');
+  if (items.length > 40) throw new Error('Demasiados productos en una venta.');
+  pago = pagoNorm_(pago);
+  if (PAGOS_VENTA.indexOf(pago) < 0) throw new Error('Elige cómo se pagó: efectivo, transferencia o entregado en sala.');
+  var sh = hojaCatalogo_(tipo), juntos = {};
+  items.forEach(function (it) { var f = Number(it.fila); juntos[f] = (juntos[f] || 0) + Number(it.cantidad); });
+  Object.keys(juntos).forEach(function (k) {
+    var f = filaProducto_(sh, Number(k)), r = sh.getRange(f, 1, 1, 6).getValues()[0], c = juntos[k];
+    if (!(c >= 1 && c <= 99 && c % 1 === 0)) throw new Error('Cantidad inválida.');
+    if (!r[1] || Reglas.aNumero(r[3], null) === null) throw new Error('«' + r[1] + '» no tiene precio.');
+    if (r[4] !== '' && Number(r[4]) < c) throw new Error('Stock insuficiente de «' + r[1] + '»: quedan ' + r[4] + '.');
+  });
+  return Object.keys(juntos).map(function (k) { return registrarVenta_(tipo, Number(k), juntos[k], pago, vendedor, nota); });
 }
 
 /** Cambia una venta «pendiente» a efectivo o transferencia. Debe llamarse dentro de conBloqueo_. */
@@ -180,6 +223,11 @@ function datosVentas_(mes) {
 function adminVender(tipo, fila, cantidad, pago, nota) {
   exigirAdmin_();
   return conBloqueo_(function () { registrarVenta_(tipo, fila, cantidad, pago, 'Administración', nota || ''); return adminResumen(); });
+}
+/** Venta por carrito desde el portal: items = [{fila, cantidad}], pago = una de PAGOS_VENTA. */
+function adminVenderCarrito(tipo, items, pago, nota) {
+  exigirAdmin_();
+  return conBloqueo_(function () { var ids = registrarCarrito_(tipo, items, pago, 'Administración', nota || ''); var r = adminResumen(); r.idsVenta = ids; return r; });
 }
 function adminCobrar(id, pago) {
   exigirAdmin_();

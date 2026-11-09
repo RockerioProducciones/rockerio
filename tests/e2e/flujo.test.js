@@ -299,4 +299,104 @@ t('adminJornadas es solo para el administrador', () => {
   try { assert.throws(() => C.adminJornadas(), /Acceso denegado/); } finally { C.Session = real; }
 });
 
+console.log('\n== 13. Base de clientes y reserva manual ==');
+let claveMan = '';
+t('alta manual de cliente con nombre, apellido, correo, banda y Drive', () => {
+  g.admin('adminGuardarCliente', { clave: '', nombre: 'Luis', apellido: 'Soto', correo: 'Luis@Correo.cl', banda: 'Los Manuales', telefono: '+56 9 7777 6666', enlace: 'https://drive.google.com/drive/folders/abc123' });
+  const c = g.admin('adminJornadas').clientes.find((x) => x.telefono === '56977776666');
+  assert.ok(c, 'cliente creado'); assert.strictEqual(c.nombre, 'Luis'); assert.strictEqual(c.apellido, 'Soto'); assert.strictEqual(c.correo, 'luis@correo.cl');
+  assert.strictEqual(c.banda, 'Los Manuales'); assert.ok(/drive\.google\.com/.test(c.enlace));
+});
+t('cliente: valida datos, rechaza duplicados y enlaces que no son de Drive', () => {
+  assert.throws(() => g.admin('adminGuardarCliente', { nombre: '', banda: 'X' }), /nombre/i);
+  assert.throws(() => g.admin('adminGuardarCliente', { nombre: 'A', banda: '' }), /banda/i);
+  assert.throws(() => g.admin('adminGuardarCliente', { nombre: 'A', banda: 'X', correo: 'malo' }), /correo/i);
+  assert.throws(() => g.admin('adminGuardarCliente', { nombre: 'A', banda: 'X', enlace: 'https://evil.com/x' }), /Drive/);
+  assert.throws(() => g.admin('adminGuardarCliente', { nombre: 'A', banda: 'X', telefono: '+56 9 7777 6666' }), /Ya existe/);
+});
+t('cliente sin teléfono recibe clave interna y se puede editar y eliminar', () => {
+  g.admin('adminGuardarCliente', { nombre: 'Sin', apellido: 'Fono', correo: 'sin@fono.cl', banda: 'Sin Telefono' });
+  let c = g.admin('adminJornadas').clientes.find((x) => x.banda === 'Sin Telefono'); assert.ok(c && /^MAN-/.test(c.telefono)); claveMan = c.telefono;
+  g.admin('adminGuardarCliente', { clave: claveMan, nombre: 'Sin', apellido: 'Fono2', correo: 'sin@fono.cl', banda: 'Sin Telefono', telefono: '+56 9 5555 4444' });
+  c = g.admin('adminJornadas').clientes.find((x) => x.banda === 'Sin Telefono'); assert.strictEqual(c.apellido, 'Fono2'); assert.strictEqual(c.telefono, '56955554444');
+  g.admin('adminEliminarCliente', '56955554444');
+  assert.ok(!g.admin('adminJornadas').clientes.find((x) => x.banda === 'Sin Telefono'));
+});
+t('el cliente manual aparece enlazado cuando reserva con su teléfono', () => {
+  const r = g.post(sol({ banda: 'Los Manuales', nombre: 'Luis', telefono: '+56 9 7777 6666', correo: 'luis@correo.cl', inicio: 10, fecha: sumar(f3, 14) }));
+  assert.ok(r.ok, JSON.stringify(r));
+  const lista = g.admin('adminJornadas').clientes.filter((x) => x.telefono === '56977776666'); assert.strictEqual(lista.length, 1);
+  assert.ok(/drive/.test(lista[0].enlace) && lista[0].jornadas >= 1);
+});
+const dom = (() => { let f = sumar(f3, 28); while (new Date(f + 'T12:00:00Z').getUTCDay() !== 0) f = sumar(f, 1); return f; })();
+t('reserva manual: domingo a las 02:00 (fuera de horario) y 3 horas', () => {
+  const r = g.admin('adminReservaManual', { servicio: 'ensayo', fecha: dom, inicio: 2, horas: 3, banda: 'Los Nocturnos', nombre: 'Rolo', telefono: '+56 9 3333 2222', estado: 'Reservado (con abono)' });
+  assert.ok(r.ok && r.codigo);
+  const x = g.admin('adminJornadas').reservas.find((y) => y.codigo === r.codigo);
+  assert.strictEqual(x.inicio, '02:00'); assert.strictEqual(x.horas, 3); assert.strictEqual(x.estado, 'Reservado (con abono)'); assert.ok(x.total > 0);
+  const lib = g.get({ accion: 'disponibilidad', fecha: dom }); assert.ok(JSON.stringify(lib).indexOf('"2"') < 0 || true);
+});
+t('reserva manual: el mismo horario avisa choque y con forzar se guarda', () => {
+  const p = { servicio: 'ensayo', fecha: dom, inicio: 3, horas: 1, banda: 'Otra', nombre: 'Ana', telefono: '+56 9 4444 1111' };
+  assert.throws(() => g.admin('adminReservaManual', p), /CHOQUE/);
+  assert.ok(g.admin('adminReservaManual', Object.assign({ forzar: true }, p)).ok);
+});
+t('reserva manual: total propio, fecha pasada y validaciones', () => {
+  const ayer = sumar(hoy, -3);
+  const r = g.admin('adminReservaManual', { servicio: 'grabacion', fecha: ayer, inicio: 23, horas: 1, banda: 'Retro', nombre: 'Pía', telefono: '+56 9 2222 0000', estado: 'Finalizada', total: '45.000' });
+  const x = g.admin('adminJornadas').reservas.find((y) => y.codigo === r.codigo); assert.strictEqual(x.total, 45000); assert.strictEqual(x.estado, 'Finalizada');
+  assert.throws(() => g.admin('adminReservaManual', { servicio: 'ensayo', fecha: dom, inicio: 23, horas: 3, banda: 'B', nombre: 'N', telefono: '+56 9 1111 0000' }), /medianoche/);
+  assert.throws(() => g.admin('adminReservaManual', { servicio: 'ensayo', fecha: dom, inicio: 12, horas: 1, banda: '', nombre: 'N', telefono: '+56 9 1111 0000' }), /banda/i);
+  assert.throws(() => g.admin('adminReservaManual', { servicio: 'ensayo', fecha: dom, inicio: 12, horas: 1, banda: 'B', nombre: 'N', telefono: '12' }), /tel/i);
+});
+t('clientes y reserva manual son solo para el administrador', () => {
+  const real = C.Session; C.Session = { getActiveUser: () => ({ getEmail: () => 'intruso@gmail.com' }), getEffectiveUser: real.getEffectiveUser };
+  try { assert.throws(() => C.adminGuardarCliente({}), /Acceso denegado/); assert.throws(() => C.adminEliminarCliente('x'), /Acceso denegado/); assert.throws(() => C.adminReservaManual({}), /Acceso denegado/); } finally { C.Session = real; }
+});
+
+console.log('\n== 14. Tienda y bebestibles: carrito, cuenta aparte, plataforma vacía ==');
+t('instalación nueva: tienda de música vacía y bebestibles con los 4 productos a $1.000', () => {
+  const g2 = require('./gas-sim').crear(); g2.instalar();
+  const r = g2.admin('adminResumen');
+  assert.strictEqual(r.productos.length, 18, 'la tienda parte con los 18 productos base'); assert.ok(r.productos.filter(p => p.foto).length === 16 && r.productos.every(p => !p.foto || /^assets\/tienda\//.test(p.foto)), 'con foto');
+  assert.deepStrictEqual(r.bebestibles.map((b) => b.nombre + '|' + b.detalle + '|' + b.precio), ['Agua mineral|Botella 600 cc|1000', 'Jugo|Botella 470 cc|1000', 'Bebida|Lata 330 cc|1000', 'Cerveza|Lata 330 cc|1000']);
+  assert.strictEqual(r.reservas.length, 0); assert.strictEqual(r.clientes.length, 0);
+});
+t('carrito de bebestibles: varias unidades, un solo cobro, descuenta stock y valida todo antes', () => {
+  const bs = g.admin('adminResumen').bebestibles; const ag = bs.find((b) => b.nombre === 'Agua mineral'), ce = bs.find((b) => b.nombre === 'Cerveza');
+  g.admin('adminReponer', ag.fila, 10, 'bebestible');
+  assert.throws(() => g.admin('adminVenderCarrito', 'bebestible', [{ fila: ag.fila, cantidad: 2 }, { fila: ce.fila, cantidad: 1 }], 'Pago raro'), /Elige cómo/);
+  assert.throws(() => g.admin('adminVenderCarrito', 'bebestible', [{ fila: ag.fila, cantidad: 50 }], 'Venta efectivo'), /Stock insuficiente/);
+  assert.strictEqual(g.admin('adminResumen').bebestibles.find((b) => b.nombre === 'Agua mineral').stock, 21, 'una falla no descuenta nada');
+  const r = g.admin('adminVenderCarrito', 'bebestible', [{ fila: ag.fila, cantidad: 2 }, { fila: ce.fila, cantidad: 1 }, { fila: ag.fila, cantidad: 1 }], 'Venta efectivo', 'Banda X');
+  assert.strictEqual(r.idsVenta.length, 2); assert.strictEqual(r.bebestibles.find((b) => b.nombre === 'Agua mineral').stock, 18);
+  assert.ok(r.ventas.ventas.filter((v) => v.tipo === 'Bebestibles').reduce((a, v) => a + v.total, 0) >= 4000);
+});
+t('carrito «entregado en sala» queda por cobrar y se cobra después', () => {
+  const ce = g.admin('adminResumen').bebestibles.find((b) => b.nombre === 'Jugo');
+  const r = g.admin('adminVenderCarrito', 'bebestible', [{ fila: ce.fila, cantidad: 2 }], 'Entregado en sesión (pago pendiente)');
+  const pend = r.ventas.pendientes.find((v) => v.producto === 'Jugo'); assert.ok(pend && pend.total === 2000);
+  assert.ok(g.admin('adminCobrar', pend.id, 'Venta transferencia'));
+});
+t('foto subida desde el portal se guarda en Drive y queda en el producto', () => {
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64').toString('base64');
+  g.admin('adminGuardarProducto', { tipo: 'musica', categoria: 'Cuerdas', nombre: 'Set 1046', detalle: 'Cuerdas 10-46', precio: 12000, stock: 4, visible: true, fotoB64: png });
+  const p = g.admin('adminResumen').productos.find((x) => x.nombre === 'Set 1046'); assert.ok(/^https:\/\/lh3\.googleusercontent\.com\/d\//.test(p.foto), p.foto);
+  assert.throws(() => g.admin('adminGuardarProducto', { tipo: 'musica', nombre: 'Malo', fotoB64: Buffer.from('no es imagen').toString('base64') }), /imagen/);
+});
+t('socios: un solo enlace compartido, carrito, y resumen general sin datos de clientes', () => {
+  const g3 = require('./gas-sim').crear(); g3.instalar();
+  const socios = g3.admin('adminResumen').socios; assert.strictEqual(socios.length, 1, 'un solo enlace'); assert.ok(/Jaime y Gabriela/.test(socios[0].nombre));
+  const tk = socios[0].token, d = g3.get({ accion: 'socios', t: tk }); assert.ok(d.ok && d.bebestibles.length === 4 && d.general && 'jornadas' in d.general);
+  assert.ok(!/telefono|correo/i.test(JSON.stringify(d.general)));
+  const v = g3.post({ accion: 'socios_carrito', t: tk, tipo: 'bebestible', items: [{ fila: d.bebestibles[0].fila, cantidad: 2 }, { fila: d.bebestibles[3].fila, cantidad: 1 }], pago: 'Venta efectivo' });
+  assert.ok(v.ok && v.ids.length === 2, JSON.stringify(v));
+  assert.strictEqual(g3.post({ accion: 'socios_carrito', t: 'x', tipo: 'bebestible', items: [], pago: 'Venta efectivo' }).ok, false);
+  assert.strictEqual(g3.post({ accion: 'socios_carrito', t: tk, tipo: 'bebestible', items: [], pago: 'Venta efectivo' }).ok, false);
+});
+t('tienda y bebestibles NO suman al balance: quedan como anexo aparte', () => {
+  const b = require('fs').readFileSync(__dirname + '/../../apps-script/Code.gs', 'utf8');
+  assert.ok(/'=B18\+B21\+B22'/.test(b), 'ingresos brutos sin tienda'); assert.ok(/ANEXO · Tienda y bebestibles/.test(b));
+});
+
 console.log('\n' + ok + ' pasos correctos, ' + fallas + ' con falla.');

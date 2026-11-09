@@ -173,10 +173,11 @@ function adminRespaldar() {
 function leerClientes_() {
   var sh = abrirBd_().getSheetByName(HOJAS.clientes), n = sh.getLastRow(), out = [];
   if (n < 2) return out;
-  sh.getRange(2, 1, n - 1, 8).getValues().forEach(function (r) {
+  sh.getRange(2, 1, n - 1, 10).getValues().forEach(function (r) {
     if (!r[0]) return;
-    out.push({ telefono: String(r[0]), correo: String(r[1] || ''), banda: String(r[2] || ''), contacto: String(r[3] || ''),
-      reservas: Number(r[4]) || 0, enlace: String(r[7] || '') });
+    var nom = String(r[8] || ''), ape = String(r[9] || '');
+    out.push({ telefono: String(r[0]), correo: String(r[1] || ''), banda: String(r[2] || ''), contacto: (nom || ape) ? (nom + ' ' + ape).trim() : String(r[3] || ''),
+      nombre: nom || String(r[3] || ''), apellido: ape, reservas: Number(r[4]) || 0, enlace: String(r[7] || '') });
   });
   return out;
 }
@@ -208,6 +209,127 @@ function adminGuardarEnlace(telefono, enlace) {
       if (i === fila || (banda && String(r[2] || '').trim().toLowerCase() === banda)) sh.getRange(i + 2, 8).setValue(enlace);
     });
     return adminResumen();
+  });
+}
+
+/* ---------- Base de datos de clientes (alta, edición y baja manual desde el portal) ---------- */
+
+/** Crea o edita un cliente. d: { clave (vacía si es nuevo), nombre, apellido, correo, banda, telefono (opcional), enlace (Drive, opcional) }.
+ *  La clave interna es el teléfono normalizado; si no hay teléfono se crea una clave «MAN-…» y al reservar con otro teléfono se crea otro registro. */
+function adminGuardarCliente(d) {
+  exigirAdmin_();
+  d = d || {};
+  var nombre = limpiar_(d.nombre, 60), apellido = limpiar_(d.apellido, 60), correo = limpiar_(d.correo, 120).toLowerCase(), banda = limpiar_(d.banda, 80);
+  var enlace = String(d.enlace || '').trim(), clave = String(d.clave || '');
+  if (!nombre) throw new Error('Escribe el nombre.');
+  if (!banda) throw new Error('Escribe el nombre de la banda o proyecto.');
+  if (correo && !Reglas.correoValido(correo)) throw new Error('Revisa el correo.');
+  if (enlace && !/^https:\/\/(drive|docs)\.google\.com\/[^\s]+$/.test(enlace)) throw new Error('El enlace debe ser de Google Drive (https://drive.google.com/...).');
+  var tel = d.telefono ? Reglas.normalizarTelefono(String(d.telefono)) : '';
+  if (d.telefono && !Reglas.telefonoValido(tel)) throw new Error('Revisa el teléfono. Ejemplo: +56 9 1234 5678.');
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.clientes), n = sh.getLastRow();
+    if (!sh.getRange(1, 9).getValue()) sh.getRange(1, 9, 1, 2).setValues([['Nombre', 'Apellido']]).setFontWeight('bold');
+    var datos = n > 1 ? sh.getRange(2, 1, n - 1, 3).getValues() : [], fila = -1, dup = -1;
+    datos.forEach(function (r, i) {
+      if (clave && String(r[0]) === clave) fila = i;
+      var otro = !clave || String(r[0]) !== clave;
+      if (otro && ((tel && String(r[0]) === tel) || (correo && String(r[1] || '').toLowerCase() === correo))) dup = i;
+    });
+    if (clave && fila < 0) throw new Error('Cliente no encontrado.');
+    if (dup >= 0) throw new Error('Ya existe un cliente con ese ' + (tel && String(datos[dup][0]) === tel ? 'teléfono' : 'correo') + ' (' + (datos[dup][2] || 'sin banda') + ').');
+    var f;
+    if (fila < 0) {
+      var llave = tel || ('MAN-' + Utilities.formatDate(new Date(), 'America/Santiago', 'yyMMddHHmmss') + Math.floor(Math.random() * 90 + 10));
+      var hoy = new Date();
+      sh.appendRow([llave, '', '', '', 0, hoy, '', '', '', '']);
+      f = sh.getLastRow();
+      sh.getRange(f, 1).setNumberFormat('@').setValue(llave);
+    } else {
+      f = fila + 2;
+      if (tel && /^MAN-/.test(clave)) sh.getRange(f, 1).setNumberFormat('@').setValue(tel);
+    }
+    sh.getRange(f, 2).setValue(textoSeguro_(correo));
+    sh.getRange(f, 3).setValue(textoSeguro_(banda));
+    sh.getRange(f, 4).setValue(textoSeguro_((nombre + ' ' + apellido).trim()));
+    sh.getRange(f, 9, 1, 2).setValues([[textoSeguro_(nombre), textoSeguro_(apellido)]]);
+    // El enlace de Drive es de la banda: se aplica a todos los clientes con la misma banda.
+    var todos = sh.getLastRow() > 1 ? sh.getRange(2, 1, sh.getLastRow() - 1, 3).getValues() : [], b = banda.toLowerCase();
+    todos.forEach(function (r, i) {
+      if (i + 2 === f || (enlace && String(r[2] || '').trim().toLowerCase() === b)) sh.getRange(i + 2, 8).setValue(enlace);
+    });
+    return { ok: true };
+  });
+}
+
+/** Quita el cliente de la base. Sus reservas pasadas se conservan en la hoja Reservas. */
+function adminEliminarCliente(clave) {
+  exigirAdmin_();
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.clientes), n = sh.getLastRow(), fila = -1;
+    if (n > 1) sh.getRange(2, 1, n - 1, 1).getValues().forEach(function (r, i) { if (String(r[0]) === String(clave)) fila = i + 2; });
+    if (fila < 0) throw new Error('Cliente no encontrado.');
+    sh.deleteRow(fila);
+    return { ok: true };
+  });
+}
+
+/* ---------- Reserva manual (sin restricción de horario, anticipación ni días abiertos) ---------- */
+
+/** p: { servicio: ensayo|grabacion, fecha, inicio (0-23), horas (1-24), banda, nombre, telefono, correo (opcional), estado,
+ *       total (opcional: reemplaza el cálculo), extras, video, raw, comentario, forzar }.
+ *  Solo se avisa si el horario choca con otra reserva o bloqueo; con forzar=true se guarda igual. */
+function adminReservaManual(p) {
+  exigirAdmin_();
+  p = p || {};
+  var cfg = getCfg_();
+  var servicio = p.servicio === 'grabacion' ? 'grabacion' : 'ensayo';
+  var fecha = String(p.fecha || ''), inicio = Number(p.inicio), horas = Number(p.horas);
+  if (!Reglas.fechaValida(fecha)) throw new Error('Elige una fecha válida.');
+  if (!(inicio >= 0 && inicio <= 23 && inicio === Math.floor(inicio))) throw new Error('Elige la hora de inicio.');
+  if (!(horas >= 1 && horas <= 24 && horas === Math.floor(horas)) || inicio + horas > 24) throw new Error('La duración debe ser de 1 a 24 horas y terminar antes de medianoche.');
+  var banda = limpiar_(p.banda, 80), nombre = limpiar_(p.nombre, 80), correo = limpiar_(p.correo, 120).toLowerCase();
+  var tel = Reglas.normalizarTelefono(String(p.telefono || ''));
+  if (!banda) throw new Error('Escribe la banda o proyecto.');
+  if (!nombre) throw new Error('Escribe el nombre del contacto.');
+  if (!Reglas.telefonoValido(tel)) throw new Error('Revisa el teléfono. Ejemplo: +56 9 1234 5678.');
+  if (correo && !Reglas.correoValido(correo)) throw new Error('Revisa el correo.');
+  var estado = estadoNorm_(p.estado) || EST.CON_ABONO;
+  var extras = Math.max(0, Math.min(6, Number(p.extras) || 0));
+  var d = { servicio: servicio, fecha: fecha, inicio: inicio, horas: horas, extras: extras, video: !!p.video, raw: !!p.raw };
+  var c = Reglas.calcularPrecio(cfg, d);
+  var total = c.total, abono = c.abono;
+  if (p.total !== undefined && p.total !== null && String(p.total).trim() !== '') {
+    total = Number(String(p.total).replace(/[^\d]/g, ''));
+    if (isNaN(total)) throw new Error('Revisa el total.');
+    abono = Math.min(total, abono);
+  }
+  return conBloqueo_(function () {
+    if (!p.forzar) {
+      var oc = ocupadasRango_(fecha, 1)[fecha] || [], choca = [];
+      for (var h = inicio; h < inicio + horas; h++) if (oc.indexOf(h) >= 0) choca.push(h + ':00');
+      if (choca.length) throw new Error('CHOQUE: ese horario ya está ocupado o bloqueado (' + choca.join(', ') + ').');
+    }
+    var codigo = siguienteCodigo_();
+    var evento = getCalendar_().createEvent(tituloEvento_(estado, banda, servicio, horas, codigo), fechaHora_(fecha, inicio), fechaHora_(fecha, inicio + horas),
+      { description: 'Reserva manual #' + codigo + '\nBanda: ' + banda + '\nContacto: ' + nombre + '\nTeléfono: +' + tel + (correo ? '\nCorreo: ' + correo : '') +
+        (p.comentario ? '\nComentarios: ' + limpiar_(p.comentario, 300) : '') + '\nTotal ' + Reglas.clp(total), location: cfg.direccion });
+    var sh = abrirBd_().getSheetByName(HOJAS.reservas), fila = new Array(ENCABEZADO_RESERVAS.length);
+    fila[RES.codigo - 1] = codigo; fila[RES.creada - 1] = new Date(); fila[RES.estado - 1] = estado;
+    fila[RES.servicio - 1] = ETIQUETA_SERVICIO[servicio]; fila[RES.fecha - 1] = fechaHora_(fecha, 0);
+    fila[RES.inicio - 1] = Reglas.horaTxt(inicio); fila[RES.fin - 1] = Reglas.horaTxt(inicio + horas); fila[RES.horas - 1] = horas;
+    fila[RES.banda - 1] = textoSeguro_(banda); fila[RES.contacto - 1] = textoSeguro_(nombre); fila[RES.telefono - 1] = tel; fila[RES.correo - 1] = textoSeguro_(correo);
+    fila[RES.extras - 1] = extras; fila[RES.video - 1] = d.video ? 'SI' : 'NO'; fila[RES.raw - 1] = d.raw ? 'SI' : 'NO';
+    fila[RES.total - 1] = total; fila[RES.abono - 1] = abono; fila[RES.saldo - 1] = total - abono;
+    fila[RES.zurdo - 1] = 'NO'; fila[RES.voces - 1] = 0; fila[RES.comentarios - 1] = textoSeguro_('Reserva manual' + (p.comentario ? ' · ' + limpiar_(p.comentario, 300) : ''));
+    fila[RES.evento - 1] = evento.getId();
+    fila[RES.base - 1] = c.base; fila[RES.extrasM - 1] = c.extras; fila[RES.videoM - 1] = c.video; fila[RES.rawM - 1] = c.raw; fila[RES.abonoRecibido - 1] = 'NO';
+    sh.appendRow(fila);
+    var f = sh.getLastRow();
+    sh.getRange(f, RES.telefono).setNumberFormat('@').setValue(tel);
+    if (estado !== EST.SIN_ABONO) sincronizarEstado_(sh, f);
+    registrarCliente_({ telefono: tel, correo: correo, banda: banda, nombre: nombre });
+    return { ok: true, codigo: codigo };
   });
 }
 
@@ -246,7 +368,7 @@ function adminJornadas() {
   if (k > 1) si.getRange(2, 1, k - 1, 2).getValues().forEach(function (r) { var f = aFechaIso_(r[0]); if (f) inhabiles.push({ fecha: f, motivo: String(r[1] || '') }); });
 
   var cl = leerClientes_(), porTel = {};
-  cl.forEach(function (c) { porTel[c.telefono] = { telefono: c.telefono, correo: c.correo, banda: c.banda, contacto: c.contacto, enlace: c.enlace, jornadas: 0, finalizadas: 0, gastado: 0, ultima: '', proxima: '' }; });
+  cl.forEach(function (c) { porTel[c.telefono] = { telefono: c.telefono, correo: c.correo, banda: c.banda, contacto: c.contacto, nombre: c.nombre, apellido: c.apellido, enlace: c.enlace, jornadas: 0, finalizadas: 0, gastado: 0, ultima: '', proxima: '' }; });
   reservas.forEach(function (r) {
     var c = porTel[r.telefono] || (porTel[r.telefono] = { telefono: r.telefono, correo: r.correo, banda: r.banda, contacto: r.contacto, enlace: '', jornadas: 0, finalizadas: 0, gastado: 0, ultima: '', proxima: '' });
     if (r.estado === EST.ANULADA) return;

@@ -107,6 +107,7 @@ function doPost(e) {
       case 'cotizacion': return json_(registrarCotizacion_(sol));
       case 'plan': return json_(reservarPlan_(sol));
       case 'socios_vender': return json_(sociosVender_(sol));
+      case 'socios_carrito': return json_(sociosCarrito_(sol));
       case 'socios_cobrar': return json_(sociosCobrar_(sol));
       default: return json_({ ok: false, codigo: 'DATOS', error: 'Acción no válida.' });
     }
@@ -620,7 +621,7 @@ function instalar() {
   prepararSimple_(ss, HOJAS.inhabiles, ['Fecha', 'Motivo'], [], { 1: 'yyyy-mm-dd' });
   prepararReservas_(ss);
   ss.getSheetByName(HOJAS.reservas).getRange(1, RES.recordatorio).setValue('Recordatorio WhatsApp').setFontWeight('bold');
-  prepararSimple_(ss, HOJAS.clientes, ['Teléfono', 'Correo', 'Banda', 'Contacto', 'Reservas', 'Primera reserva', 'Última reserva', 'Carpeta de material (Drive)'], [], { 1: '@', 6: 'yyyy-mm-dd', 7: 'yyyy-mm-dd' });
+  prepararSimple_(ss, HOJAS.clientes, ['Teléfono', 'Correo', 'Banda', 'Contacto', 'Reservas', 'Primera reserva', 'Última reserva', 'Carpeta de material (Drive)', 'Nombre', 'Apellido'], [], { 1: '@', 6: 'yyyy-mm-dd', 7: 'yyyy-mm-dd' });
   prepararSimple_(ss, HOJAS.bloqueos, ['Fecha', 'Desde (hora)', 'Hasta (hora)', 'Motivo'], [], { 1: 'yyyy-mm-dd', 2: '@', 3: '@' });
   prepararTienda_(ss);
   prepararBebestibles_(ss);
@@ -806,40 +807,54 @@ function prepararReservas_(ss) {
   sh.getRange(2, RES.estado, 5000, 1).setDataValidation(regla);
 }
 
+/** Catálogo base (fotos en assets/tienda). Precio '' = el dueño lo define desde el portal. */
+var BASE_TIENDA = [
+  ['Cuerdas', 'Alice 1ª (individual)', 'Cuerda suelta Alice, 1ª', '', 9, 'SI', 'assets/tienda/alice-1.jpg'],
+  ['Cuerdas', 'Alice 2ª (individual)', 'Cuerda suelta Alice, 2ª', '', 10, 'SI', 'assets/tienda/alice-2.jpg'],
+  ['Cuerdas', 'Alice 3ª (individual)', 'Cuerda suelta Alice, 3ª', '', 10, 'SI', 'assets/tienda/alice-3.jpg'],
+  ['Cuerdas', 'Alice 4ª (individual)', 'Cuerda suelta Alice, 4ª', '', 10, 'SI', 'assets/tienda/alice-4.jpg'],
+  ['Cuerdas', 'Alice 5ª (individual)', 'Cuerda suelta Alice, 5ª', '', 10, 'SI', 'assets/tienda/alice-5.jpg'],
+  ['Cuerdas', 'Alice 6ª (individual)', 'Cuerda suelta Alice, 6ª', '', 7, 'SI', 'assets/tienda/alice-6.jpg'],
+  ['Cuerdas', 'Ernie Ball Power Slinky 11-48', 'Set guitarra eléctrica (2220)', 12000, '', 'SI', 'assets/tienda/ernie-power.jpg'],
+  ['Cuerdas', 'Ernie Ball Hybrid Slinky 9-46', 'Set guitarra eléctrica (2222)', 12000, '', 'SI', 'assets/tienda/ernie-hybrid.jpg'],
+  ['Cuerdas', 'Ernie Ball Super Slinky 9-42', 'Set guitarra eléctrica (2223)', 12000, '', 'SI', 'assets/tienda/ernie-super.jpg'],
+  ['Cuerdas', 'BlackSmith Electric Medium 11/49', 'Set guitarra eléctrica', '', '', 'SI', 'assets/tienda/blacksmith-1149.jpg'],
+  ['Percusión', 'Baquetas de madera', 'Par de baquetas', '', '', 'SI', 'assets/tienda/baquetas-madera.jpg'],
+  ['Percusión', 'Baquetas de plástico neón', 'Par, rosado y blanco', '', '', 'SI', 'assets/tienda/baquetas-neon.jpg'],
+  ['Accesorios', 'Correa Fender', 'Strap de guitarra, roja o mostaza', 12000, 5, 'SI', 'assets/tienda/correas-fender.jpg'],
+  ['Accesorios', 'Baterías 9V', 'Pilas para pedales y activos', '', 18, 'SI', ''],
+  ['Accesorios', 'Strap locks', 'Set de 2 unidades', '', 23, 'SI', ''],
+  ['Accesorios', 'Uñetas Gibson', 'Uñeta suelta', '', 18, 'SI', 'assets/tienda/unetas-gibson-fotos.jpg'],
+  ['Accesorios', 'Uñetas Alice', '0.58 a 1.20 mm', 1000, 47, 'SI', 'assets/tienda/unetas-alice-fotos.jpg'],
+  ['Accesorios', 'Uñetas Fender Heavy', 'Uñeta suelta', 1000, 42, 'SI', 'assets/tienda/unetas-fender-fotos.jpg']
+];
+var BASE_BEBESTIBLES = [
+  ['Bebestibles', 'Agua mineral', 'Botella 600 cc', 1000, 11, 'SI', 'assets/tienda/beb-agua.jpg'],
+  ['Bebestibles', 'Jugo', 'Botella 470 cc', 1000, 7, 'SI', 'assets/tienda/beb-jugo.jpg'],
+  ['Bebestibles', 'Bebida', 'Lata 330 cc', 1000, 47, 'SI', 'assets/tienda/beb-bebida.jpg'],
+  ['Bebestibles', 'Cerveza', 'Lata 330 cc', 1000, 76, 'SI', 'assets/tienda/beb-cerveza.jpg']
+];
+
 function prepararTienda_(ss) {
   var sh = hoja_(ss, HOJAS.tienda);
   if (sh.getLastRow() > 0) return;
   var enc = ['Categoría', 'Nombre', 'Detalle', 'Precio', 'Stock', 'Visible', 'Foto (ruta del sitio o enlace https)'];
-  var filas = [
-    ['Cuerdas', 'Cuerdas guitarra eléctrica Ernie Ball 9-42', 'Super Slinky', 12000, '', 'SI'],
-    ['Cuerdas', 'Cuerdas guitarra eléctrica Ernie Ball 9-46', 'Hybrid Slinky', 12000, '', 'SI'],
-    ['Cuerdas', 'Cuerdas guitarra eléctrica Ernie Ball 10-46', 'Regular Slinky', 12000, '', 'SI'],
-    ['Cuerdas', 'Cuerdas guitarra eléctrica Ernie Ball 11-48', 'Power Slinky', 12000, '', 'SI'],
-    ['Cuerdas', 'Cuerdas guitarra eléctrica Black Smith 11/49', 'Medium', '', '', 'NO'],
-    ['Cuerdas', 'Cuerdas sueltas Alice', 'Se venden por número de cuerda, de la 1 a la 6', '', '', 'NO', 'assets/tienda/cuerdas-alice.jpg'],
-    ['Accesorios', 'Uñetas Fender Heavy', '', 1000, '', 'SI', 'assets/tienda/unetas-fender.jpg'],
-    ['Accesorios', 'Uñetas Alice', 'Grosores de 0,58 a 1,20 mm', 1000, '', 'SI', 'assets/tienda/unetas-alice.jpg'],
-    ['Accesorios', 'Uñetas Gibson', 'Medianas y gruesas', '', '', 'NO', 'assets/tienda/unetas-gibson.jpg'],
-    ['Accesorios', 'Straplocks de goma (pack)', '', 5000, '', 'SI'],
-    ['Accesorios', 'Correa para guitarra o bajo', 'Fender y otras marcas', 12000, '', 'NO'],
-    ['Accesorios', 'Batería alcalina 9V', 'Para pedales y micrófonos activos', 4500, '', 'SI'],
-    ['Percusión', 'Baquetas de madera', '', '', '', 'NO'],
-    ['Percusión', 'Baquetas de plástico', '', '', '', 'NO'],
-    ['Monitoreo', 'Audífonos in-ear KZ', '', 15000, '', 'SI']
-  ];
+  var filas = BASE_TIENDA.map(function (f) { return f.slice(); });
   filas = filas.map(function (f) { while (f.length < 7) f.push(''); return f; });
   sh.getRange(1, 1, 1, 7).setValues([enc]).setFontWeight('bold');
-  sh.getRange(2, 1, filas.length, 7).setValues(filas);
+  if (filas.length) sh.getRange(2, 1, filas.length, 7).setValues(filas);
   sh.getRange(2, 4, 500, 1).setNumberFormat('$#,##0');
   sh.setFrozenRows(1);
   sh.setColumnWidth(1, 110); sh.setColumnWidth(2, 340); sh.setColumnWidth(3, 330);
-  sh.getRange('I1').setValue('Cómo usarla: Visible = SI muestra el producto en el sitio. Stock vacío = sin control de stock; 0 = agotado. Los productos sin precio quedaron en NO hasta que los definas.');
+  sh.getRange('I1').setValue('Cómo usarla: Visible = SI muestra el producto en el sitio. Stock vacío = sin control de stock; 0 = agotado. Los productos se agregan desde el portal (Tienda de música).');
 }
 
 function prepararBebestibles_(ss) {
   var sh = hoja_(ss, HOJAS.bebestibles);
   if (sh.getLastRow() > 0) return;
   sh.getRange(1, 1, 1, 7).setValues([['Categoría', 'Nombre', 'Detalle', 'Precio', 'Stock', 'Visible', 'Foto (ruta del sitio o enlace https)']]).setFontWeight('bold');
+  var base = BASE_BEBESTIBLES;
+  sh.getRange(2, 1, base.length, 7).setValues(base);
   sh.getRange(2, 4, 500, 1).setNumberFormat('$#,##0');
   sh.setFrozenRows(1);
   sh.setColumnWidth(2, 300); sh.setColumnWidth(3, 300);
@@ -848,7 +863,6 @@ function prepararBebestibles_(ss) {
 
 function prepararBalance_(ss) {
   var sh = hoja_(ss, HOJAS.balance);
-  if (sh.getLastRow() > 0) return;
   var mes = '$B$2&"-01"';
   var fechas = 'Reservas!$E:$E,">="&DATEVALUE(' + mes + '),Reservas!$E:$E,"<"&EDATE(DATEVALUE(' + mes + '),1)';
   var sf = function (col, servicio, estado) {
@@ -858,6 +872,12 @@ function prepararBalance_(ss) {
     var rango = colFecha + ',">="&DATEVALUE(' + mes + '),' + colFecha + ',"<"&EDATE(DATEVALUE(' + mes + '),1),' + colCobro + ',' + cond;
     return 'SUMIFS(Ventas!$E:$E,Ventas!$G:$G,"' + PAGO.EFECTIVO + '",' + rango + ')+SUMIFS(Ventas!$E:$E,Ventas!$G:$G,"' + PAGO.TRANSFERENCIA + '",' + rango + ')';
   };
+  var anexoVentas = ventasMes('Ventas!$A:$A', 'Ventas!$J:$J', '""') + '+' + ventasMes('Ventas!$J:$J', 'Ventas!$J:$J', '"<>"');
+  if (sh.getLastRow() > 0) { // hojas de versiones anteriores: la tienda pasa a ser un anexo que no suma
+    sh.getRange('A11:C11').setValues([['(no se usa) Tienda y bebestibles', 'NO', 'Tienda y bebestibles son una cuenta aparte: nunca suman al balance']]);
+    sh.getRange('A23:C24').setValues([['ANEXO · Tienda y bebestibles (cuenta aparte)', '=' + anexoVentas, 'Informativo: NO suma al balance ni a los impuestos. Ventas cobradas del mes.'], ['Ingresos brutos', '=B18+B21+B22', 'Sala + estudio + material en bruto (sin tienda ni bebestibles)']]);
+    return;
+  }
   var cn = function (clave, def) { return 'IFERROR(VALUE(INDEX(Configuracion!$B:$B,MATCH("' + clave + '",Configuracion!$A:$A,0))),' + def + ')'; };
   var costo = function (col, def) { return '=IFERROR(INDEX(CostosMes!$' + col + ':$' + col + ',MATCH($B$2,CostosMes!$A:$A,0)),' + def + ')'; };
   var si = function (celda, expr) { return '=IF($B$' + celda + '="SI",' + expr + ',0)'; };
@@ -872,7 +892,7 @@ function prepararBalance_(ss) {
     /* 8 */ ['Material en bruto (100% Juan Carlos)', 'SI', ''],
     /* 9 */ ['Abonos retenidos por inasistencia', 'SI', 'Estado «No asiste»: se retiene el abono'],
     /* 10 */ ['Retenciones por anulación', 'SI', 'Estado «Anulada» con abono: se retiene lo que corresponde'],
-    /* 11 */ ['Tienda y bebestibles', 'NO', 'Los registra ProAudix: fuera de tu balance'],
+    /* 11 */ ['(no se usa) Tienda y bebestibles', 'NO', 'Tienda y bebestibles son una cuenta aparte: nunca suman al balance'],
     /* 12 */ ['', '', ''],
     /* 13 */ ['INGRESOS DEL MES', '', ''],
     /* 14 */ ['Sala: horas de ensayo', si(4, sf('W', 'Ensayo', EST.FINALIZADA)), ''],
@@ -884,8 +904,8 @@ function prepararBalance_(ss) {
     /* 20 */ ['Estudio: abonos retenidos', '=IF($B$9="SI",' + sf('AB', 'Grabación', EST.NO_ASISTE) + ',0)+IF($B$10="SI",' + sf('AB', 'Grabación', EST.ANULADA) + ',0)', ''],
     /* 21 */ ['Total estudio', '=B19+B20', ''],
     /* 22 */ ['Material en bruto', si(8, sf('Z', '', EST.FINALIZADA)), 'Va 100% a Juan Carlos'],
-    /* 23 */ ['Tienda y bebestibles', si(11, ventasMes('Ventas!$A:$A', 'Ventas!$J:$J', '""') + '+' + ventasMes('Ventas!$J:$J', 'Ventas!$J:$J', '"<>"')), 'Ventas cobradas (efectivo + transferencia). Lo pendiente no cuenta hasta cobrarlo.'],
-    /* 24 */ ['Ingresos brutos', '=B18+B21+B22+B23', ''],
+    /* 23 */ ['ANEXO · Tienda y bebestibles (cuenta aparte)', '=' + anexoVentas, 'Informativo: NO suma al balance ni a los impuestos. Ventas cobradas del mes.'],
+    /* 24 */ ['Ingresos brutos', '=B18+B21+B22', 'Sala + estudio + material en bruto (sin tienda ni bebestibles)'],
     /* 25 */ ['IVA 19% incluido (referencial)', '=B24-B24/1.19', 'Confirmar con tu contador'],
     /* 26 */ ['Ingresos netos', '=B24/1.19', ''],
     /* 27 */ ['', '', ''],

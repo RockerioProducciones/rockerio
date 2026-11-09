@@ -39,7 +39,7 @@
     mics.forEach(function (g) { $('mics').appendChild(tarjeta(g)); });
     otros.forEach(function (g) { $('escucha').appendChild(tarjeta(g)); });
 
-    var K = window.RK.cfg(); $('bandas').hidden = !K.verHonor; $('nav-bandas').hidden = !K.verHonor;
+    var K = window.RK.cfg(); $('bandas').hidden = !K.verHonor; $('nav-bandas').hidden = !K.verHonor; var ch = $('cta-honor'); if (ch) ch.hidden = !K.verHonor;
     var host = function (u) { var m = /^https:\/\/(?:www\.)?([^\/]+)/.exec(u || ''); return m ? m[1] : ''; };
     var etiq = function (u) { var h = host(u); return /spotify/.test(h) ? 'Spotify' : /bandcamp/.test(h) ? 'Bandcamp' : /youtu/.test(h) ? 'YouTube' : /instagram/.test(h) ? 'Instagram' : /soundcloud/.test(h) ? 'SoundCloud' : 'Enlace'; };
     c.honor.forEach(function (h) {
@@ -95,7 +95,7 @@
         if (b64) datos.logoB64 = b64;
         return RK.pedir(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(datos) });
       })
-        .then(function (d) { if (d.ok) { ok.textContent = d.mensaje; ok.hidden = false; f.reset(); } else { err.textContent = d.error || 'No se pudo enviar.'; err.hidden = false; } })
+        .then(function (d) { if (d.ok) { ok.textContent = d.mensaje; ok.hidden = false; f.reset(); if (formId === 'f-honor') { var g = document.createElement('div'); g.className = 'honor-gracias'; var gb = document.createElement('b'); gb.textContent = '¡Gracias! Recibimos tu banda 🤘'; g.appendChild(gb); g.appendChild(document.createTextNode(d.mensaje || 'La revisaremos y pronto aparecerá en el cuadro de honor.')); f.hidden = true; f.parentNode.appendChild(g); } } else { err.textContent = d.error || 'No se pudo enviar.'; err.hidden = false; } })
         .catch(function (e) { err.textContent = e && e.message && /logo|imagen|PNG/.test(e.message) ? e.message : 'No pudimos enviar el formulario. Escríbenos por WhatsApp.'; err.hidden = false; })
         .finally(function () { btn.disabled = false; });
     });
@@ -111,6 +111,7 @@
       });
       return;
     }
+    var rs = document.querySelector('#f-honor textarea[name=resena]'), ct = $('honor-cont'); if (rs && ct) rs.addEventListener('input', function () { ct.textContent = rs.value.length + ' / 500'; });
     enviar('f-cot', 'cotizacion'); enviar('f-honor', 'honor'); enviar('f-resena', 'resena');
     RK.listo.then(function () { return RK.pedir(API + '?accion=contenido'); }).then(function (d) { if (d.ok) pintar(d.contenido); }).catch(function () { /* sin contenido dinámico */ });
   });

@@ -12,7 +12,7 @@ function iniciar(puerto, g) {
       if (req.method === 'POST') { let b = ''; req.on('data', (c) => { b += c; }); req.on('end', () => { try { json(JSON.parse(g.ctx.doPost({ postData: { contents: b } }).getContent())); } catch (e) { json({ ok: false, error: String(e) }); } }); return; }
       return json(g.get(Object.fromEntries(u.searchParams)));
     }
-    if (u.pathname === '/rpc') { let b = ''; req.on('data', (c) => { b += c; }); req.on('end', () => { const { fn, args } = JSON.parse(b); try { json({ ok: JSON.parse(JSON.stringify(g.ctx[fn](...args) === undefined ? null : g.ctx[fn](...args))) }); } catch (e) { json({ error: String(e.message || e) }); } }); return; }
+    if (u.pathname === '/rpc') { let b = ''; req.on('data', (c) => { b += c; }); req.on('end', () => { const { fn, args } = JSON.parse(b); try { const rr = g.ctx[fn](...args); json({ ok: JSON.parse(JSON.stringify(rr === undefined ? null : rr)) }); } catch (e) { json({ error: String(e.message || e) }); } }); return; }
     if (u.pathname === '/admin') { const h = fs.readFileSync(path.join(RAIZ, 'apps-script/Admin.html'), 'utf8').replace('<script>', SHIM + '<script>'); res.writeHead(200, { 'Content-Type': TIPOS['.html'] }); return res.end(h); }
     if (u.pathname === '/js/config.js') { res.writeHead(200, { 'Content-Type': TIPOS['.js'] }); return res.end("window.ROCKERIO={APPS_SCRIPT_URL:'/exec',SITIO_URL:''};"); }
     let p = path.join(RAIZ, u.pathname === '/' ? 'index.html' : decodeURIComponent(u.pathname));
