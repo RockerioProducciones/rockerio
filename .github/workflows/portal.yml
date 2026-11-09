@@ -1,0 +1,29 @@
+name: Publicar portal (Apps Script)
+on:
+  push:
+    branches: [main]
+    paths: ['apps-script/**']
+  workflow_dispatch:
+jobs:
+  desplegar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Pruebas (si fallan, NO se publica nada)
+        run: sh scripts/verificar.sh
+      - run: npm install -g @google/clasp@2
+      - name: Credenciales
+        run: echo '${{ secrets.CLASPRC_JSON }}' > ~/.clasprc.json
+      - name: Subir código
+        run: |
+          cd apps-script
+          echo '{"scriptId":"${{ vars.SCRIPT_ID }}","rootDir":"."}' > .clasp.json
+          clasp push -f
+      - name: Nueva versión en cada implementación existente (la URL no cambia)
+        run: |
+          cd apps-script
+          clasp version "auto ${{ github.sha }}" | tee v.txt
+          V=$(grep -o '[0-9]\+' v.txt | tail -1)
+          for ID in ${{ vars.DEPLOY_ID_PUBLICO }} ${{ vars.DEPLOY_ID_ADMIN }}; do clasp deploy -i "$ID" -V "$V" -d "auto $V"; done
