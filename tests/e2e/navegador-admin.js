@@ -50,6 +50,11 @@ const { sembrar } = require('./demo.js');
       await p.fill('#jbarra input', 'Hierro'); await p.waitForTimeout(150); ok(await p.locator('#jhis tbody tr').count() === 1, 'buscador filtra por banda');
       await p.screenshot({ path: 'j-historial.png' });
       await p.click('#jtabs button[data-v=cli]'); await p.waitForTimeout(200); ok(await p.locator('.cli').count() >= 4, 'tarjetas de clientes');
+      await p.click('#cli-import'); await p.waitForSelector('.ficha-j textarea');
+      ok((await p.inputValue('.ficha-j textarea')).split('\n').length === 36, 'la lista de 36 clientes viene cargada');
+      await p.getByRole('button', { name: 'Importar', exact: true }).click(); await p.waitForTimeout(600);
+      await p.fill('#jbusca, #jbarra input', 'Mapochossippi').catch(() => {}); 
+      ok(await p.locator('#jdet').isHidden(), 'importación cerrada tras importar');
       // nuevo cliente desde el formulario (cada pasada usa datos distintos)
       const sx = nombre.replace(/\W/g, '');
       await p.click('#cli-nuevo'); await p.waitForSelector('.rm-form');

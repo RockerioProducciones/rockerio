@@ -44,12 +44,12 @@
   <a class="tarjeta principal" href="#reservar" data-vista="reservar" data-ico="📅"><b>Reservar</b><span>Sala o estudio en 6 pasos rápidos</span></a>
   <a class="tarjeta" href="#nosotros" data-vista="nosotros" data-ico="🎚️"><b>Producción</b><span>Enfoque y presentación</span></a>
   <a class="tarjeta" href="#ficha" data-vista="ficha" data-ico="🎛️"><b>Ficha técnica</b><span>Micrófonos, backline y más</span></a>
-  <a class="tarjeta" href="#planes" data-vista="planes" data-ico="🏷️"><b>Planes mensuales</b><span>4 sesiones al mes</span></a>
+  <a class="tarjeta" href="#planes" data-vista="planes" data-ico="🏷️"><b>Planes mensuales</b><span>Pack de 4 reservas</span></a>
   <a class="tarjeta" href="#galeria" data-vista="galeria" data-ico="🖼️"><b>Galería</b><span>Fotos y videos</span></a>
   <a class="tarjeta" href="#opiniones" data-vista="opiniones" data-ico="⭐"><b>Evaluaciones</b><span>Lo que dicen las bandas</span></a>
   <a class="tarjeta" href="#proaudix" data-vista="proaudix" data-ico="🛡️"><b>ProAudix</b><span>Colegas audiovisuales</span></a>
   <a class="tarjeta" href="#contacto" data-vista="contacto" data-ico="📞"><b>Contacto</b><span>Redes y cómo llegar</span></a>
-  <a class="tarjeta" href="#tienda" data-vista="tienda" data-ico="🛍️"><b>Tienda</b><span>Insumos y bebestibles</span></a>
+  <a class="tarjeta" href="#tienda" data-vista="tienda" data-ico="🛍️"><b>Tienda</b><span>Insumos y accesorios musicales</span></a>
   <a class="tarjeta" href="#bandas" data-vista="bandas" data-ico="🏅" hidden><b>Cuadro de honor</b><span>Bandas que pasaron por aquí</span></a>
   <a class="tarjeta" href="#cotizar" data-vista="cotizar" data-ico="📝"><b>Cotizar</b><span>Producción y consultas</span></a>
   <a class="tarjeta" href="#reglamento" data-vista="reglamento" data-ico="📖"><b>Reglamento</b><span>Cómo funciona todo</span></a>
@@ -71,9 +71,10 @@
       <fieldset id="paso-servicio">
         <legend>1 · ¿Qué necesitas?</legend>
         <div class="opciones" id="servicios">
-          <label class="opcion"><input type="radio" name="servicio" value="ensayo" checked><span><b>Sala de ensayo</b><small id="p-ensayo"></small></span></label>
-          <label class="opcion"><input type="radio" name="servicio" value="grabacion"><span><b>Estudio de grabación</b><small id="p-grab"></small></span></label>
+          <label class="opcion"><input type="radio" name="servicio" value="ensayo" checked><span><b>Sala de ensayo</b><small id="p-ensayo"></small><em class="desc">Para ensayar con tu banda con batería, amplificadores y sonido de sala.</em></span></label>
+          <label class="opcion"><input type="radio" name="servicio" value="grabacion"><span><b>Estudio de grabación</b><small id="p-grab"></small><em class="desc">Para grabar y mezclar tus canciones con técnico, micrófonos y control room.</em></span></label>
         </div>
+        <div id="aviso-incl" class="aviso-incl" hidden></div>
         <div><span class="lbl">¿Cuántas horas?</span><div class="segm" id="horas-btns" role="group" aria-label="Cantidad de horas"></div></div>
       </fieldset>
       <fieldset id="paso-fecha" class="paso off">
@@ -89,9 +90,9 @@
       </fieldset>
       <fieldset id="adicionales" class="paso off">
         <legend>4 · Adicionales (opcional)</legend>
-        <label>Equipo extra (platillos, bajo, guitarra, pedalboard)<select id="extras"></select></label>
-        <label class="chk"><input type="checkbox" id="video"><span>Video con GoPro <em id="p-video"></em></span></label>
-        <label class="chk"><input type="checkbox" id="raw"><span>Material en bruto <em id="p-raw"></em></span></label>
+        <div class="arriendo"><b>🎸 Arriendo de instrumentos y accesorios · <span id="p-extra"></span></b><ul><li>Set de platos Kingdo SN8 B8: Hi-Hat 14” / Crash 16” / Crash 18” / Ride 20”</li><li>Guitarra eléctrica Squier Stratocaster Vintage Modified ’70</li><li>Bajo eléctrico Epiphone Thunderbird Pro IV</li><li>Guitarra electroacústica Takamine</li><li>Pedalera multiefecto para guitarra</li><li>Pedalera multiefecto para bajo</li></ul><label>¿Cuántos arriendas?<select id="extras"></select></label></div>
+        <label class="chk"><input type="checkbox" id="video"><span>Grabación con video GoPro Hero 13 <em id="p-video"></em></span></label>
+        <label class="chk"><input type="checkbox" id="raw"><span>Entrega de material en bruto (opcional) <em id="p-raw"></em></span></label>
         <label class="chk"><input type="checkbox" id="zurdo"><span>Baterista zurdo</span></label>
         <label>Micrófonos de voz<select id="voces"><option>0</option><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
       </fieldset>
@@ -102,7 +103,7 @@
           <label>Tu nombre<input id="nombre" maxlength="60" required autocomplete="name"></label>
         </div>
         <div class="fila">
-          <label>WhatsApp<input id="telefono" type="tel" inputmode="tel" placeholder="+56 9 1234 5678" required autocomplete="tel"></label>
+          <label>WhatsApp<input id="telefono" type="tel" inputmode="tel" value="+569 " placeholder="+569 1234 5678" required autocomplete="tel"></label>
           <label>Correo<input id="correo" type="email" required autocomplete="email"></label>
         </div>
         <label>Comentarios (opcional)<textarea id="comentario" maxlength="300" rows="2"></textarea></label>
@@ -128,7 +129,7 @@
 
 <section id="planes" class="sec">
   <h2>Planes mensuales</h2>
-  <p class="sub">Cuatro sesiones de ensayo al mes, pagadas por adelantado. Para bandas nuevas o que ya han pasado por el estudio.</p>
+  <p class="sub">Un pack de 4 reservas de ensayo (de 2 o 3 horas) para usar durante el mes en curso o el siguiente. Tus reservas quedan confirmadas al validar tu pago. Los cambios se piden con 24 horas de anticipación; de lo contrario se retiene el abono de $5.000 por hora.</p>
   <div id="plan-cards" class="grid"></div>
   <div id="plan-wiz" class="caja" hidden>
     <h3 id="plan-tit"></h3>
@@ -138,7 +139,7 @@
     <ul id="plan-lista" class="plan-lista"></ul>
     <form id="f-plan" class="form" novalidate hidden>
       <div class="fila"><label>Nombre de la banda<input name="banda" maxlength="60" required></label><label>Tu nombre<input name="nombre" maxlength="60" required></label></div>
-      <div class="fila"><label>WhatsApp<input name="telefono" type="tel" required placeholder="+56 9 1234 5678"></label><label>Correo<input name="correo" type="email" required></label></div>
+      <div class="fila"><label>WhatsApp<input name="telefono" type="tel" required value="+569 " placeholder="+569 1234 5678"></label><label>Correo<input name="correo" type="email" required></label></div>
       <input type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true" class="trampa">
       <label class="chk"><input type="checkbox" name="tyc" required><span>Acepto que el plan se paga completo por adelantado para confirmar mis sesiones.</span></label>
       <p class="error" hidden></p><button class="btn" type="submit">Solicitar plan</button>
@@ -153,25 +154,27 @@
   <div class="prod-bloque"><h3>Enfoque y pasión</h3>
     <p>Mi pasión y especialidad es el rock y sus géneros derivados, con una dedicación especial hacia las bandas instrumentales. Me apasiona acompañar la música en sus distintas etapas:</p>
     <ul class="reg-lista"><li>Bandas de jóvenes que están partiendo y dando forma a sus primeros proyectos.</li><li>Proyectos emergentes que ya están en ruta buscando consolidar su sonido.</li><li>Músicos que vuelven a juntarse tras años de pausas para revivir sus canciones con la experiencia de hoy.</li></ul></div>
-  <figure class="prod-foto"><img src="assets/fotos/control-consola.jpg" alt="Control room con consola y monitores" loading="lazy"></figure>
+  <div class="playlist caja" data-playlist hidden></div>
   <div class="prod-bloque"><h3>Nuestra filosofía (sin rodeos ni humo)</h3>
     <p><strong>Honestidad técnica:</strong> no vendemos promesas mágicas. Trabajamos al máximo sobre la mejor interpretación que logremos registrar juntos. Buscamos el mejor sonido posible con las herramientas que tenemos.</p>
     <p><strong>Acompañamiento cercano:</strong> resolvemos dudas técnicas a lo largo de todo el camino. Aporto ideas musicales y soluciones técnico-artísticas para potenciar la visión de la banda.</p>
     <p><strong>Aprender escuchando:</strong> creemos que la mejor materia prima son los ensayos grabados. Que la banda salga del estudio escuchando lo que acaba de interpretar es la herramienta más directa para crecer.</p>
     <p><strong>Tu ritmo, tu sonido:</strong> adaptamos el proceso a la dinámica de tu banda. Con nuestra plantilla digital tomamos decisiones sonoras en tiempo real, optimizando el tiempo y facilitando ajustes sin perder agilidad.</p></div>
-  <figure class="prod-foto"><img src="assets/control-room-2.jpg" alt="Consola y monitores del estudio" loading="lazy"></figure>
+  <div class="prod-split"><figure class="prod-foto"><img src="assets/fotos/control-panoramica.jpg" alt="Control room con consola Midas M32 y monitores" loading="lazy"></figure>
   <div class="prod-bloque"><h3>Infraestructura y método técnico</h3>
     <p><strong>Espacios e interconexión:</strong> integramos la sala de control, la sala de ensayo y la sala de grabación mediante la consola digital Midas M32 y la caja Midas DL32 sobre red de alta velocidad.</p>
     <p><strong>Flujo híbrido in the box / analógico:</strong> consola de suma SSL SiX y estación de trabajo Apple Mac Mini M4 corriendo Universal Audio LUNA, con plugins UAD Native, Solid State Logic, Soundtoys y Slate Digital.</p>
     <p><strong>Respaldo automatizado:</strong> copias de seguridad nocturnas con FreeFileSync y RealTimeSync, resguardando cada proyecto en discos SSD.</p>
-    <p class="firma"><b>Juan Carlos Retamal González</b><br><span>Técnico Superior en Informática e Ingeniero en Sonido</span></p></div>
+    <p class="firma"><b>Juan Carlos Retamal González</b><br><span>Técnico Superior en Informática e Ingeniero en Sonido</span></p></div></div>
   <p><a class="btn" href="#ficha">Ver ficha técnica</a></p>
 </section>
 
 <section id="ficha" class="sec">
-  <h2>Ficha técnica</h2><div id="ficha-in" class="grid"></div>
-  <div id="mics-box" hidden><h3>Catálogo de micrófonos</h3><p class="sub">Toca un micrófono para escucharlo en distintas fuentes.</p><div id="mics" class="grid"></div></div>
-  <div id="escucha-box" hidden><h3>Escucha cómo suena</h3><p class="sub">Canciones en bruto, mezcladas y masterizadas, y ensayos reales de banda.</p><div id="escucha" class="grid"></div></div>
+  <h2>Ficha técnica</h2><div id="ficha-in" class="ficha-app"></div>
+  <div id="ficha-guarda" hidden>
+    <div id="mics-box" hidden><h3>Catálogo de micrófonos</h3><p class="sub">Toca un micrófono para escucharlo en distintas fuentes.</p><div id="mics" class="grid"></div></div>
+    <div id="escucha-box" hidden><h3>Escucha cómo suena</h3><p class="sub">Canciones en bruto, mezcladas y masterizadas, y ensayos reales de banda.</p><div id="escucha" class="grid"></div></div>
+  </div>
 </section>
 
 <section id="bandas" class="sec" hidden>
@@ -185,7 +188,7 @@
     <ol class="honor-pasos"><li><b>1</b> Llena lo básico</li><li><b>2</b> Revisamos tu solicitud</li><li><b>3</b> Apareces en el cuadro</li></ol>
     <form id="f-honor" class="form" novalidate>
       <div class="fila"><label>Nombre de la banda o proyecto *<input name="banda" maxlength="60" required placeholder="Ej. Los Ensayos"></label><label>Género o estilo<input name="genero" maxlength="60" placeholder="Ej. Rock progresivo y metal"></label></div>
-      <div class="fila"><label>WhatsApp de contacto *<input name="telefono" type="tel" required placeholder="+56 9 1234 5678"></label><label>Correo *<input name="correo" type="email" required placeholder="tu@correo.cl"></label></div>
+      <div class="fila"><label>WhatsApp de contacto *<input name="telefono" type="tel" required value="+569 " placeholder="+569 1234 5678"></label><label>Correo *<input name="correo" type="email" required placeholder="tu@correo.cl"></label></div>
       <label>Cuéntanos de tu banda *<textarea name="resena" rows="3" maxlength="500" required placeholder="Quiénes son, qué grabaron o ensayaron aquí…"></textarea><small class="contador" id="honor-cont">0 / 500</small></label>
       <details class="honor-mas"><summary>＋ Agregar más datos (opcional): logo, redes y formación</summary>
         <label>Formación<input name="formacion" maxlength="120" placeholder="Ej. Guitarra, bajo, batería y voz"></label>
@@ -202,7 +205,7 @@
   <h2>Evaluaciones</h2><p class="sub" id="promedio"></p><div id="resenas" class="grid"></div>
   <details class="forma" id="d-resena"><summary>Deja tu evaluación (solo con tu código de reserva)</summary>
     <form id="f-resena" class="form" novalidate>
-      <div class="fila"><label>Código de tu reserva (ej. RP-1001)<input name="codigo" maxlength="20" required></label><label>WhatsApp de la reserva<input name="telefono" type="tel" required></label></div>
+      <div class="fila"><label>Código de tu reserva (ej. RP-1001)<input name="codigo" maxlength="20" required></label><label>WhatsApp de la reserva<input name="telefono" type="tel" required value="+569 "></label></div>
       <div class="fila"><label>Tu nombre<input name="nombre" maxlength="40" required></label><label>Evaluación<select name="estrellas"><option value="5">★★★★★</option><option value="4">★★★★☆</option><option value="3">★★★☆☆</option><option value="2">★★☆☆☆</option><option value="1">★☆☆☆☆</option></select></label></div>
       <label>Comentario<textarea name="comentario" rows="3" maxlength="400"></textarea></label>
       <input type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true" class="trampa">
@@ -214,7 +217,7 @@
   <h2>Cotizar</h2><p class="sub">Planes mensuales, producción musical u otras consultas.</p>
   <form id="f-cot" class="form" novalidate>
     <div class="fila"><label>¿Qué necesitas?<select name="tipo"><option value="plan8">Plan mensual de 8 horas</option><option value="plan12">Plan mensual de 12 horas</option><option value="produccion">Producción musical</option><option value="otro">Otra consulta</option></select></label><label>Tu nombre<input name="nombre" maxlength="60" required></label></div>
-    <div class="fila"><label>WhatsApp<input name="telefono" type="tel" required></label><label>Correo<input name="correo" type="email" required></label></div>
+    <div class="fila"><label>WhatsApp<input name="telefono" type="tel" required value="+569 "></label><label>Correo<input name="correo" type="email" required></label></div>
     <label>Cuéntanos qué buscas<textarea name="mensaje" rows="3" maxlength="600" required></textarea></label>
     <input type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true" class="trampa">
     <p class="error" hidden></p><p class="ok" hidden></p><button class="btn" type="submit">Pedir cotización</button>
@@ -223,13 +226,13 @@
 
 <section id="reglamento" class="sec"><h2>Reglamento interno</h2><div id="reglamento-in" class="reglamento"></div></section>
 
-<section id="galeria" class="sec"><h2>Galería</h2><div id="galeria-in" class="galeria"></div></section>
+<section id="galeria" class="sec"><h2>Galería</h2><div id="galeria-info"></div><div id="galeria-car" class="carr-caja"></div><div class="playlist caja" data-playlist hidden></div><div id="galeria-in" class="galeria"></div></section>
 
 <section id="tienda" class="sec">
   <h2>Tienda de insumos</h2>
-  <p class="sub">Retiro en el estudio. Consulta stock por WhatsApp.</p>
+  <p class="sub">Retiro en el estudio. Toca «Pedir» y te atendemos por WhatsApp.</p>
   <div id="tienda-in"></div>
-  <p class="alianza"><span>Tienda y bebestibles en alianza con</span> <img src="assets/marcas/proaudix.jpg" alt="ProAudix" loading="lazy"></p>
+  <p class="alianza"><span>Tienda en alianza con</span> <img src="assets/marcas/proaudix.jpg" alt="ProAudix" loading="lazy"></p>
 </section>
 
 <section id="proaudix" class="sec">

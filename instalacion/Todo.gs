@@ -52,7 +52,7 @@ var Reglas = (function () {
     waVersion: 'v23.0',           // versión de la API Graph de Meta
     reagendoSemanas: 2,           // plazo máximo para reagendar una reserva (semanas). Se muestra en el reglamento
     reagendoCambios: 2,           // máximo de cambios por reserva. Se muestra en el reglamento
-    reglamento: "Para garantizar la mejor experiencia, fluidez en la agenda y el cuidado de los equipos, compartimos nuestras condiciones de servicio.\n\n## 📅 Reservas, reagendamientos y anulaciones\n- Confirmación: el abono confirma la fecha y hora en nuestra agenda.\n- Cambios: puedes reagendar o anular con al menos {horasAnulacion} horas de anticipación.\n- Flexibilidad: reagendamos en un plazo máximo de {reagendoSemanas} semanas (máximo {reagendoCambios} cambios por reserva).\n- Anulación: la devolución se realiza vía transferencia, descontando {retencionPorHora} por cada hora abonada (cargo por comisión de la plataforma).\n- Si estás atrasado o no puedes asistir, avísanos con tiempo para buscar una solución dentro de lo posible.\n- El horario queda tomado {minutosReserva} minutos mientras se realiza el abono; si no llega, se libera solo.\n\n## 🎟️ Planes mensuales\n- Opción 8 horas: 4 ensayos de 2 horas al mes.\n- Opción 12 horas: 4 ensayos de 3 horas al mes.\n- Se abona el total del plan al inicio y se agendan los 4 ensayos dentro del mes.\n\n## ⏰ Horarios y puntualidad\n- Llegada: recomendamos llegar 5 a 10 minutos antes para preparar aspectos técnicos antes de tocar.\n- Salida: solicitamos desocupar la sala 5 minutos antes de terminar el bloque, en respeto a la banda siguiente.\n\n## 🚫 Normas dentro de la sala\n- Prohibido fumar y consumir líquidos dentro de la sala (para proteger los equipos y la higiene). Disponemos de espacio en el patio para compartir.\n- Mantener la puerta cerrada mientras estén tocando, para cuidar el entorno y la acústica.\n\n## 🎒 Cuidado de pertenencias y espacios\n- Revisa todas tus pertenencias antes de retirarte. No nos hacemos responsables por pérdidas.\n- Mantenemos el orden y aseo constante en salas, estudio de grabación y áreas comunes.\n- Contamos con estacionamiento exterior (sujeto a disponibilidad).\n\nNuestra misión es entregarte la mejor experiencia para ti y tu banda. ¡Mantengamos siempre un ambiente de respeto y buena onda entre todos, así disfrutamos de la música! 🤘🔥",   // texto del reglamento; ## = título, - = viñeta; {horasAnulacion} etc. se reemplazan solos
+    reglamento: "Para garantizar la mejor experiencia, fluidez en la agenda y el cuidado de los equipos, compartimos nuestras condiciones de servicio.\n\n## 📅 Reservas, reagendamientos y anulaciones\n- Confirmación: el abono confirma la fecha y hora en nuestra agenda.\n- Cambios: puedes reagendar o anular con al menos {horasAnulacion} horas de anticipación.\n- Flexibilidad: reagendamos en un plazo máximo de {reagendoSemanas} semanas (máximo {reagendoCambios} cambios por reserva).\n- Anulación: la devolución se realiza vía transferencia, descontando {retencionPorHora} por cada hora abonada (cargo por comisión de la plataforma).\n- Si estás atrasado o no puedes asistir, avísanos con tiempo para buscar una solución dentro de lo posible.\n- El horario queda tomado {minutosReserva} minutos mientras se realiza el abono; si no llega, se libera solo.\n\n## 🎟️ Planes mensuales\n- Un plan es un pack de 4 reservas: opción de 8 horas (4 ensayos de 2 horas) u opción de 12 horas (4 ensayos de 3 horas).\n- Al validar tu pago se ingresan tus 4 reservas, idealmente dentro del mes en curso o del siguiente.\n- Cambios: igual que en ensayo y grabación, con al menos {horasAnulacion} horas de anticipación. Si no avisas a tiempo, nos quedamos con el abono de {abonoPorHora} por cada hora solicitada.\n\n## ⏰ Horarios y puntualidad\n- Llegada: recomendamos llegar 5 a 10 minutos antes para preparar aspectos técnicos antes de tocar.\n- Salida: solicitamos desocupar la sala 5 minutos antes de terminar el bloque, en respeto a la banda siguiente.\n\n## 🚫 Normas dentro de la sala\n- Prohibido fumar y consumir líquidos dentro de la sala (para proteger los equipos y la higiene). Disponemos de espacio en el patio para compartir.\n- Mantener la puerta cerrada mientras estén tocando, para cuidar el entorno y la acústica.\n\n## 🎒 Cuidado de pertenencias y espacios\n- Revisa todas tus pertenencias antes de retirarte. No nos hacemos responsables por pérdidas.\n- Mantenemos el orden y aseo constante en salas, estudio de grabación y áreas comunes.\n- Contamos con estacionamiento exterior (sujeto a disponibilidad).\n\nNuestra misión es entregarte la mejor experiencia para ti y tu banda. ¡Mantengamos siempre un ambiente de respeto y buena onda entre todos, así disfrutamos de la música! 🤘🔥",   // texto del reglamento; ## = título, - = viñeta; {horasAnulacion} etc. se reemplazan solos
     contabilidadFormal: false,    // SI = activa la contabilidad formal (IVA, PPM, impuesto simulado, compras)
     regimen: '14D3',              // 14D3 (Pro Pyme general) o 14D8 (Pro Pyme transparente)
     sitioUrl: '',                 // dirección pública del sitio (para armar los enlaces de socios)
@@ -308,6 +308,8 @@ var Reglas = (function () {
       var h = +k;
       if (h <= horas && h >= mejorH) { mejorH = h; mejor = cfg.escala[k]; }
     });
+    var claves = Object.keys(cfg.escala || {}).map(Number), maxH = claves.length ? Math.max.apply(null, claves) : 0;
+    if (maxH && horas > maxH) mejor += 60 * (horas - maxH); // más allá de la escala: +1 hora de grabación por cada hora extra
     return mejor;
   }
 
@@ -387,6 +389,15 @@ var Reglas = (function () {
     return { tipo: tipo, nombre: 'Plan mensual de ' + (h * 4) + ' horas', sesiones: 4, horasPorSesion: h, precio: precio, porSesion: Math.round(precio / 4) };
   }
 
+  /** Último día que puede agendarse un plan: fin del mes siguiente al actual (el plan se usa en el mes en curso o el próximo). */
+  function finPlan(hoyIso) {
+    var y = +hoyIso.slice(0, 4), m = +hoyIso.slice(5, 7) + 1; // mes siguiente
+    if (m > 12) { m = 1; y++; }
+    var ult = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    return y + '-' + dos(m) + '-' + dos(ult);
+  }
+  function diasPlan(hoyIso) { return diasEntre(hoyIso, finPlan(hoyIso)); }
+
   /** Valida un plan completo: sus 4 sesiones (días distintos, libres y dentro del plazo de planes) y los datos. */
   function validarPlan(cfg, ahora, sol, ocupadasPorFecha) {
     var plan = planInfo(cfg, sol && sol.tipo);
@@ -395,7 +406,7 @@ var Reglas = (function () {
     if (ses.length !== plan.sesiones) return { ok: false, codigo: 'DATOS', error: 'Elige las ' + plan.sesiones + ' sesiones de tu plan.' };
     var cfgP = {};
     for (var k in cfg) cfgP[k] = cfg[k];
-    cfgP.anticipacionMaxDias = cfg.planMaxDias;
+    cfgP.anticipacionMaxDias = diasPlan(ahora.fecha);
     var vistos = {}, out = [], datos = null;
     for (var i = 0; i < ses.length; i++) {
       var f = limpiar(ses[i] && ses[i].fecha, 10);
@@ -514,7 +525,7 @@ var Reglas = (function () {
     diasEntre: diasEntre, sumarDias: sumarDias, fechaLarga: fechaLarga, parseBloque: parseBloque, parseEscala: parseEscala,
     normalizarConfig: normalizarConfig, limitesHoras: limitesHoras, addonsPermitidos: addonsPermitidos,
     calcularPrecio: calcularPrecio, grabacionIncluidaMin: grabacionIncluidaMin, llenarPlantilla: llenarPlantilla, tarifaConveniente: tarifaConveniente, minutosTxt: minutosTxt,
-    horasAbiertas: horasAbiertas, horasLibres: horasLibres, inicios: inicios, planInfo: planInfo, validarPlan: validarPlan,
+    horasAbiertas: horasAbiertas, horasLibres: horasLibres, inicios: inicios, planInfo: planInfo, validarPlan: validarPlan, finPlan: finPlan, diasPlan: diasPlan,
     normalizarTelefono: normalizarTelefono, correoValido: correoValido, telefonoValido: telefonoValido,
     validarDatos: validarDatos, validarSolicitud: validarSolicitud, resumenTexto: resumenTexto, ahoraChile: ahoraChile
   };
@@ -732,8 +743,8 @@ function disponibilidad_(fecha) {
 /** Disponibilidad de los próximos días en una sola consulta (hoy y los 'dias' siguientes). plan = true usa el plazo de los planes. */
 function agenda_(dias, plan) {
   var cfg = getCfg_(), ahora = ahoraChile_();
-  if (plan) { cfg.anticipacionMaxDias = cfg.planMaxDias; }
-  var n = Math.max(1, Math.min(Number(dias) || (cfg.anticipacionMaxDias + 1), 40));
+  if (plan) { cfg.anticipacionMaxDias = Reglas.diasPlan(ahora.fecha); }
+  var n = Math.max(1, Math.min(Number(dias) || (cfg.anticipacionMaxDias + 1), plan ? 65 : 40));
   var oc = ocupadasRango_(ahora.fecha, n), out = {};
   for (var i = 0; i < n; i++) {
     var f = Reglas.sumarDias(ahora.fecha, i), r = Reglas.horasLibres(cfg, f, oc[f] || [], ahora);
@@ -1739,6 +1750,29 @@ function adminGuardarCliente(d) {
   });
 }
 
+/** Importa clientes en bloque. filas = [{nombre, apellido?, banda, telefono}]. Omite los que ya existen (por teléfono). Devuelve {agregados, omitidos:[texto]}. */
+function adminImportarClientes(filas) {
+  exigirAdmin_();
+  if (!filas || !filas.length) throw new Error('No hay clientes para importar.');
+  if (filas.length > 300) throw new Error('Máximo 300 clientes por vez.');
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.clientes), n = sh.getLastRow();
+    if (!sh.getRange(1, 9).getValue()) sh.getRange(1, 9, 1, 2).setValues([['Nombre', 'Apellido']]).setFontWeight('bold');
+    var existentes = {}; if (n > 1) sh.getRange(2, 1, n - 1, 1).getValues().forEach(function (r) { existentes[String(r[0])] = 1; });
+    var hoy = new Date(), agregados = 0, omitidos = [];
+    filas.forEach(function (x) {
+      var nombre = limpiar_(x.nombre, 60), apellido = limpiar_(x.apellido, 60), banda = limpiar_(x.banda, 80), tel = Reglas.normalizarTelefono(String(x.telefono || ''));
+      if (!nombre || !banda) { omitidos.push((nombre || '(sin nombre)') + ': falta nombre o banda'); return; }
+      if (!Reglas.telefonoValido(tel)) { omitidos.push(nombre + ': teléfono no válido (' + x.telefono + ')'); return; }
+      if (existentes[tel]) { omitidos.push(nombre + ': ya estaba en la base'); return; }
+      sh.appendRow([tel, '', textoSeguro_(banda), textoSeguro_((nombre + ' ' + apellido).trim()), 0, hoy, '', '', textoSeguro_(nombre), textoSeguro_(apellido)]);
+      sh.getRange(sh.getLastRow(), 1).setNumberFormat('@').setValue(tel);
+      existentes[tel] = 1; agregados++;
+    });
+    return { agregados: agregados, omitidos: omitidos };
+  });
+}
+
 /** Quita el cliente de la base. Sus reservas pasadas se conservan en la hoja Reservas. */
 function adminEliminarCliente(clave) {
   exigirAdmin_();
@@ -1782,17 +1816,30 @@ function adminReservaManual(p) {
     abono = Math.min(total, abono);
   }
   return conBloqueo_(function () {
+    var codigo = null, creada = new Date(), propias = [];
+    if (p.codigoEditar) { // edición: se reemplaza la reserva existente conservando su código
+      var shE = abrirBd_().getSheetByName(HOJAS.reservas), celdaE = shE.getLastRow() > 1 ? shE.createTextFinder(String(p.codigoEditar)).matchEntireCell(true).findNext() : null;
+      if (!celdaE || celdaE.getColumn() !== RES.codigo) throw new Error('No se encontró la reserva.');
+      var rv = shE.getRange(celdaE.getRow(), 1, 1, ENCABEZADO_RESERVAS.length).getValues()[0];
+      codigo = String(rv[RES.codigo - 1]); creada = rv[RES.creada - 1] || creada;
+      if (!p.estado) estado = estadoNorm_(rv[RES.estado - 1]) || estado;
+      if (aFechaIso_(rv[RES.fecha - 1]) === fecha) { var i0 = aHora_(rv[RES.inicio - 1]), n0 = Number(rv[RES.horas - 1]) || 0; for (var q = i0; i0 !== null && q < i0 + n0; q++) propias.push(q); }
+    }
     if (!p.forzar) {
       var oc = ocupadasRango_(fecha, 1)[fecha] || [], choca = [];
-      for (var h = inicio; h < inicio + horas; h++) if (oc.indexOf(h) >= 0) choca.push(h + ':00');
+      for (var h = inicio; h < inicio + horas; h++) if (oc.indexOf(h) >= 0 && propias.indexOf(h) < 0) choca.push(h + ':00');
       if (choca.length) throw new Error('CHOQUE: ese horario ya está ocupado o bloqueado (' + choca.join(', ') + ').');
     }
-    var codigo = siguienteCodigo_();
+    if (p.codigoEditar) {
+      var shB = abrirBd_().getSheetByName(HOJAS.reservas), cB = shB.createTextFinder(String(p.codigoEditar)).matchEntireCell(true).findNext(), evV = shB.getRange(cB.getRow(), RES.evento).getValue();
+      var evOld = evV ? obtenerEvento_(getCalendar_(), evV) : null; if (evOld) evOld.deleteEvent();
+      shB.deleteRow(cB.getRow());
+    } else codigo = siguienteCodigo_();
     var evento = getCalendar_().createEvent(tituloEvento_(estado, banda, servicio, horas, codigo), fechaHora_(fecha, inicio), fechaHora_(fecha, inicio + horas),
       { description: 'Reserva manual #' + codigo + '\nBanda: ' + banda + '\nContacto: ' + nombre + '\nTeléfono: +' + tel + (correo ? '\nCorreo: ' + correo : '') +
         (p.comentario ? '\nComentarios: ' + limpiar_(p.comentario, 300) : '') + '\nTotal ' + Reglas.clp(total), location: cfg.direccion });
     var sh = abrirBd_().getSheetByName(HOJAS.reservas), fila = new Array(ENCABEZADO_RESERVAS.length);
-    fila[RES.codigo - 1] = codigo; fila[RES.creada - 1] = new Date(); fila[RES.estado - 1] = estado;
+    fila[RES.codigo - 1] = codigo; fila[RES.creada - 1] = creada; fila[RES.estado - 1] = estado;
     fila[RES.servicio - 1] = ETIQUETA_SERVICIO[servicio]; fila[RES.fecha - 1] = fechaHora_(fecha, 0);
     fila[RES.inicio - 1] = Reglas.horaTxt(inicio); fila[RES.fin - 1] = Reglas.horaTxt(inicio + horas); fila[RES.horas - 1] = horas;
     fila[RES.banda - 1] = textoSeguro_(banda); fila[RES.contacto - 1] = textoSeguro_(nombre); fila[RES.telefono - 1] = tel; fila[RES.correo - 1] = textoSeguro_(correo);
@@ -1807,6 +1854,19 @@ function adminReservaManual(p) {
     if (estado !== EST.SIN_ABONO) sincronizarEstado_(sh, f);
     registrarCliente_({ telefono: tel, correo: correo, banda: banda, nombre: nombre });
     return { ok: true, codigo: codigo };
+  });
+}
+
+/** Elimina una reserva (fila y evento del calendario). Para anular conservando el historial usa «Anulada». */
+function adminEliminarReserva(codigo) {
+  exigirAdmin_();
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.reservas), celda = sh.getLastRow() > 1 ? sh.createTextFinder(String(codigo)).matchEntireCell(true).findNext() : null;
+    if (!celda || celda.getColumn() !== RES.codigo) throw new Error('No se encontró la reserva.');
+    var ev = sh.getRange(celda.getRow(), RES.evento).getValue(), evento = ev ? obtenerEvento_(getCalendar_(), ev) : null;
+    if (evento) evento.deleteEvent();
+    sh.deleteRow(celda.getRow());
+    return adminResumen();
   });
 }
 
@@ -2236,6 +2296,28 @@ function adminEditarHonor(fila, d) {
     var sh = abrirBd_().getSheetByName(HOJAS.honor), f = filaProducto_(sh, fila);
     sh.getRange(f, 3).setValue(textoSeguro_(banda));
     sh.getRange(f, 6, 1, 7).setValues([[logo, ig, enlace, yt, textoSeguro_(limpiar_(d.resena, 500)), textoSeguro_(limpiar_(d.genero, 60)), textoSeguro_(limpiar_(d.formacion, 120))]]);
+    limpiarCacheContenido_();
+    return adminResumen();
+  });
+}
+/** Agrega una banda al cuadro de honor directamente (queda aprobada y visible). d = {banda, genero, formacion, telefono?, correo?, instagram, enlace, youtube, logo, resena, logoB64?}. */
+function adminAgregarHonor(d) {
+  exigirAdmin_();
+  var banda = limpiar_(d.banda, 60);
+  if (banda.length < 2) throw new Error('Escribe el nombre de la banda.');
+  var logo = String(d.logo || '').trim() ? urlHttps_(d.logo) : '', enlace = String(d.enlace || '').trim() ? urlHttps_(d.enlace) : '';
+  var yt = String(d.youtube || '').trim() ? ytUrl_(d.youtube) : '', ig = String(d.instagram || '').trim() ? instagram_(d.instagram) : '';
+  if (String(d.logo || '').trim() && !logo) throw new Error('El logo debe ser un enlace https://');
+  if (String(d.enlace || '').trim() && !enlace) throw new Error('El enlace debe empezar con https://');
+  if (String(d.youtube || '').trim() && !yt) throw new Error('El enlace de YouTube no es válido.');
+  if (String(d.instagram || '').trim() && !ig) throw new Error('El Instagram no es válido.');
+  var tel = String(d.telefono || '').trim() ? Reglas.normalizarTelefono(d.telefono) : '';
+  if (tel && !Reglas.telefonoValido(tel)) throw new Error('Revisa el teléfono.');
+  var correo = limpiar_(d.correo, 120).toLowerCase();
+  if (correo && !Reglas.correoValido(correo)) throw new Error('Revisa el correo.');
+  if (String(d.logoB64 || '').trim()) logo = guardarLogo_(d.logoB64, banda);
+  return conBloqueo_(function () {
+    abrirBd_().getSheetByName(HOJAS.honor).appendRow([new Date(), 'APROBADA', textoSeguro_(banda), tel, textoSeguro_(correo), logo, ig, enlace, yt, textoSeguro_(limpiar_(d.resena, 500)), textoSeguro_(limpiar_(d.genero, 60)), textoSeguro_(limpiar_(d.formacion, 120))]);
     limpiarCacheContenido_();
     return adminResumen();
   });

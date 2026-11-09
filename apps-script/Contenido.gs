@@ -379,6 +379,28 @@ function adminEditarHonor(fila, d) {
     return adminResumen();
   });
 }
+/** Agrega una banda al cuadro de honor directamente (queda aprobada y visible). d = {banda, genero, formacion, telefono?, correo?, instagram, enlace, youtube, logo, resena, logoB64?}. */
+function adminAgregarHonor(d) {
+  exigirAdmin_();
+  var banda = limpiar_(d.banda, 60);
+  if (banda.length < 2) throw new Error('Escribe el nombre de la banda.');
+  var logo = String(d.logo || '').trim() ? urlHttps_(d.logo) : '', enlace = String(d.enlace || '').trim() ? urlHttps_(d.enlace) : '';
+  var yt = String(d.youtube || '').trim() ? ytUrl_(d.youtube) : '', ig = String(d.instagram || '').trim() ? instagram_(d.instagram) : '';
+  if (String(d.logo || '').trim() && !logo) throw new Error('El logo debe ser un enlace https://');
+  if (String(d.enlace || '').trim() && !enlace) throw new Error('El enlace debe empezar con https://');
+  if (String(d.youtube || '').trim() && !yt) throw new Error('El enlace de YouTube no es válido.');
+  if (String(d.instagram || '').trim() && !ig) throw new Error('El Instagram no es válido.');
+  var tel = String(d.telefono || '').trim() ? Reglas.normalizarTelefono(d.telefono) : '';
+  if (tel && !Reglas.telefonoValido(tel)) throw new Error('Revisa el teléfono.');
+  var correo = limpiar_(d.correo, 120).toLowerCase();
+  if (correo && !Reglas.correoValido(correo)) throw new Error('Revisa el correo.');
+  if (String(d.logoB64 || '').trim()) logo = guardarLogo_(d.logoB64, banda);
+  return conBloqueo_(function () {
+    abrirBd_().getSheetByName(HOJAS.honor).appendRow([new Date(), 'APROBADA', textoSeguro_(banda), tel, textoSeguro_(correo), logo, ig, enlace, yt, textoSeguro_(limpiar_(d.resena, 500)), textoSeguro_(limpiar_(d.genero, 60)), textoSeguro_(limpiar_(d.formacion, 120))]);
+    limpiarCacheContenido_();
+    return adminResumen();
+  });
+}
 function adminEliminarHonor(fila) {
   exigirAdmin_();
   return conBloqueo_(function () {

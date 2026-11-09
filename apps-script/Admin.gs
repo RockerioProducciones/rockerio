@@ -262,6 +262,29 @@ function adminGuardarCliente(d) {
   });
 }
 
+/** Importa clientes en bloque. filas = [{nombre, apellido?, banda, telefono}]. Omite los que ya existen (por teléfono). Devuelve {agregados, omitidos:[texto]}. */
+function adminImportarClientes(filas) {
+  exigirAdmin_();
+  if (!filas || !filas.length) throw new Error('No hay clientes para importar.');
+  if (filas.length > 300) throw new Error('Máximo 300 clientes por vez.');
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.clientes), n = sh.getLastRow();
+    if (!sh.getRange(1, 9).getValue()) sh.getRange(1, 9, 1, 2).setValues([['Nombre', 'Apellido']]).setFontWeight('bold');
+    var existentes = {}; if (n > 1) sh.getRange(2, 1, n - 1, 1).getValues().forEach(function (r) { existentes[String(r[0])] = 1; });
+    var hoy = new Date(), agregados = 0, omitidos = [];
+    filas.forEach(function (x) {
+      var nombre = limpiar_(x.nombre, 60), apellido = limpiar_(x.apellido, 60), banda = limpiar_(x.banda, 80), tel = Reglas.normalizarTelefono(String(x.telefono || ''));
+      if (!nombre || !banda) { omitidos.push((nombre || '(sin nombre)') + ': falta nombre o banda'); return; }
+      if (!Reglas.telefonoValido(tel)) { omitidos.push(nombre + ': teléfono no válido (' + x.telefono + ')'); return; }
+      if (existentes[tel]) { omitidos.push(nombre + ': ya estaba en la base'); return; }
+      sh.appendRow([tel, '', textoSeguro_(banda), textoSeguro_((nombre + ' ' + apellido).trim()), 0, hoy, '', '', textoSeguro_(nombre), textoSeguro_(apellido)]);
+      sh.getRange(sh.getLastRow(), 1).setNumberFormat('@').setValue(tel);
+      existentes[tel] = 1; agregados++;
+    });
+    return { agregados: agregados, omitidos: omitidos };
+  });
+}
+
 /** Quita el cliente de la base. Sus reservas pasadas se conservan en la hoja Reservas. */
 function adminEliminarCliente(clave) {
   exigirAdmin_();
@@ -305,17 +328,30 @@ function adminReservaManual(p) {
     abono = Math.min(total, abono);
   }
   return conBloqueo_(function () {
+    var codigo = null, creada = new Date(), propias = [];
+    if (p.codigoEditar) { // edición: se reemplaza la reserva existente conservando su código
+      var shE = abrirBd_().getSheetByName(HOJAS.reservas), celdaE = shE.getLastRow() > 1 ? shE.createTextFinder(String(p.codigoEditar)).matchEntireCell(true).findNext() : null;
+      if (!celdaE || celdaE.getColumn() !== RES.codigo) throw new Error('No se encontró la reserva.');
+      var rv = shE.getRange(celdaE.getRow(), 1, 1, ENCABEZADO_RESERVAS.length).getValues()[0];
+      codigo = String(rv[RES.codigo - 1]); creada = rv[RES.creada - 1] || creada;
+      if (!p.estado) estado = estadoNorm_(rv[RES.estado - 1]) || estado;
+      if (aFechaIso_(rv[RES.fecha - 1]) === fecha) { var i0 = aHora_(rv[RES.inicio - 1]), n0 = Number(rv[RES.horas - 1]) || 0; for (var q = i0; i0 !== null && q < i0 + n0; q++) propias.push(q); }
+    }
     if (!p.forzar) {
       var oc = ocupadasRango_(fecha, 1)[fecha] || [], choca = [];
-      for (var h = inicio; h < inicio + horas; h++) if (oc.indexOf(h) >= 0) choca.push(h + ':00');
+      for (var h = inicio; h < inicio + horas; h++) if (oc.indexOf(h) >= 0 && propias.indexOf(h) < 0) choca.push(h + ':00');
       if (choca.length) throw new Error('CHOQUE: ese horario ya está ocupado o bloqueado (' + choca.join(', ') + ').');
     }
-    var codigo = siguienteCodigo_();
+    if (p.codigoEditar) {
+      var shB = abrirBd_().getSheetByName(HOJAS.reservas), cB = shB.createTextFinder(String(p.codigoEditar)).matchEntireCell(true).findNext(), evV = shB.getRange(cB.getRow(), RES.evento).getValue();
+      var evOld = evV ? obtenerEvento_(getCalendar_(), evV) : null; if (evOld) evOld.deleteEvent();
+      shB.deleteRow(cB.getRow());
+    } else codigo = siguienteCodigo_();
     var evento = getCalendar_().createEvent(tituloEvento_(estado, banda, servicio, horas, codigo), fechaHora_(fecha, inicio), fechaHora_(fecha, inicio + horas),
       { description: 'Reserva manual #' + codigo + '\nBanda: ' + banda + '\nContacto: ' + nombre + '\nTeléfono: +' + tel + (correo ? '\nCorreo: ' + correo : '') +
         (p.comentario ? '\nComentarios: ' + limpiar_(p.comentario, 300) : '') + '\nTotal ' + Reglas.clp(total), location: cfg.direccion });
     var sh = abrirBd_().getSheetByName(HOJAS.reservas), fila = new Array(ENCABEZADO_RESERVAS.length);
-    fila[RES.codigo - 1] = codigo; fila[RES.creada - 1] = new Date(); fila[RES.estado - 1] = estado;
+    fila[RES.codigo - 1] = codigo; fila[RES.creada - 1] = creada; fila[RES.estado - 1] = estado;
     fila[RES.servicio - 1] = ETIQUETA_SERVICIO[servicio]; fila[RES.fecha - 1] = fechaHora_(fecha, 0);
     fila[RES.inicio - 1] = Reglas.horaTxt(inicio); fila[RES.fin - 1] = Reglas.horaTxt(inicio + horas); fila[RES.horas - 1] = horas;
     fila[RES.banda - 1] = textoSeguro_(banda); fila[RES.contacto - 1] = textoSeguro_(nombre); fila[RES.telefono - 1] = tel; fila[RES.correo - 1] = textoSeguro_(correo);
@@ -330,6 +366,19 @@ function adminReservaManual(p) {
     if (estado !== EST.SIN_ABONO) sincronizarEstado_(sh, f);
     registrarCliente_({ telefono: tel, correo: correo, banda: banda, nombre: nombre });
     return { ok: true, codigo: codigo };
+  });
+}
+
+/** Elimina una reserva (fila y evento del calendario). Para anular conservando el historial usa «Anulada». */
+function adminEliminarReserva(codigo) {
+  exigirAdmin_();
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.reservas), celda = sh.getLastRow() > 1 ? sh.createTextFinder(String(codigo)).matchEntireCell(true).findNext() : null;
+    if (!celda || celda.getColumn() !== RES.codigo) throw new Error('No se encontró la reserva.');
+    var ev = sh.getRange(celda.getRow(), RES.evento).getValue(), evento = ev ? obtenerEvento_(getCalendar_(), ev) : null;
+    if (evento) evento.deleteEvent();
+    sh.deleteRow(celda.getRow());
+    return adminResumen();
   });
 }
 

@@ -49,7 +49,7 @@ var Reglas = (function () {
     waVersion: 'v23.0',           // versión de la API Graph de Meta
     reagendoSemanas: 2,           // plazo máximo para reagendar una reserva (semanas). Se muestra en el reglamento
     reagendoCambios: 2,           // máximo de cambios por reserva. Se muestra en el reglamento
-    reglamento: "Para garantizar la mejor experiencia, fluidez en la agenda y el cuidado de los equipos, compartimos nuestras condiciones de servicio.\n\n## 📅 Reservas, reagendamientos y anulaciones\n- Confirmación: el abono confirma la fecha y hora en nuestra agenda.\n- Cambios: puedes reagendar o anular con al menos {horasAnulacion} horas de anticipación.\n- Flexibilidad: reagendamos en un plazo máximo de {reagendoSemanas} semanas (máximo {reagendoCambios} cambios por reserva).\n- Anulación: la devolución se realiza vía transferencia, descontando {retencionPorHora} por cada hora abonada (cargo por comisión de la plataforma).\n- Si estás atrasado o no puedes asistir, avísanos con tiempo para buscar una solución dentro de lo posible.\n- El horario queda tomado {minutosReserva} minutos mientras se realiza el abono; si no llega, se libera solo.\n\n## 🎟️ Planes mensuales\n- Opción 8 horas: 4 ensayos de 2 horas al mes.\n- Opción 12 horas: 4 ensayos de 3 horas al mes.\n- Se abona el total del plan al inicio y se agendan los 4 ensayos dentro del mes.\n\n## ⏰ Horarios y puntualidad\n- Llegada: recomendamos llegar 5 a 10 minutos antes para preparar aspectos técnicos antes de tocar.\n- Salida: solicitamos desocupar la sala 5 minutos antes de terminar el bloque, en respeto a la banda siguiente.\n\n## 🚫 Normas dentro de la sala\n- Prohibido fumar y consumir líquidos dentro de la sala (para proteger los equipos y la higiene). Disponemos de espacio en el patio para compartir.\n- Mantener la puerta cerrada mientras estén tocando, para cuidar el entorno y la acústica.\n\n## 🎒 Cuidado de pertenencias y espacios\n- Revisa todas tus pertenencias antes de retirarte. No nos hacemos responsables por pérdidas.\n- Mantenemos el orden y aseo constante en salas, estudio de grabación y áreas comunes.\n- Contamos con estacionamiento exterior (sujeto a disponibilidad).\n\nNuestra misión es entregarte la mejor experiencia para ti y tu banda. ¡Mantengamos siempre un ambiente de respeto y buena onda entre todos, así disfrutamos de la música! 🤘🔥",   // texto del reglamento; ## = título, - = viñeta; {horasAnulacion} etc. se reemplazan solos
+    reglamento: "Para garantizar la mejor experiencia, fluidez en la agenda y el cuidado de los equipos, compartimos nuestras condiciones de servicio.\n\n## 📅 Reservas, reagendamientos y anulaciones\n- Confirmación: el abono confirma la fecha y hora en nuestra agenda.\n- Cambios: puedes reagendar o anular con al menos {horasAnulacion} horas de anticipación.\n- Flexibilidad: reagendamos en un plazo máximo de {reagendoSemanas} semanas (máximo {reagendoCambios} cambios por reserva).\n- Anulación: la devolución se realiza vía transferencia, descontando {retencionPorHora} por cada hora abonada (cargo por comisión de la plataforma).\n- Si estás atrasado o no puedes asistir, avísanos con tiempo para buscar una solución dentro de lo posible.\n- El horario queda tomado {minutosReserva} minutos mientras se realiza el abono; si no llega, se libera solo.\n\n## 🎟️ Planes mensuales\n- Un plan es un pack de 4 reservas: opción de 8 horas (4 ensayos de 2 horas) u opción de 12 horas (4 ensayos de 3 horas).\n- Al validar tu pago se ingresan tus 4 reservas, idealmente dentro del mes en curso o del siguiente.\n- Cambios: igual que en ensayo y grabación, con al menos {horasAnulacion} horas de anticipación. Si no avisas a tiempo, nos quedamos con el abono de {abonoPorHora} por cada hora solicitada.\n\n## ⏰ Horarios y puntualidad\n- Llegada: recomendamos llegar 5 a 10 minutos antes para preparar aspectos técnicos antes de tocar.\n- Salida: solicitamos desocupar la sala 5 minutos antes de terminar el bloque, en respeto a la banda siguiente.\n\n## 🚫 Normas dentro de la sala\n- Prohibido fumar y consumir líquidos dentro de la sala (para proteger los equipos y la higiene). Disponemos de espacio en el patio para compartir.\n- Mantener la puerta cerrada mientras estén tocando, para cuidar el entorno y la acústica.\n\n## 🎒 Cuidado de pertenencias y espacios\n- Revisa todas tus pertenencias antes de retirarte. No nos hacemos responsables por pérdidas.\n- Mantenemos el orden y aseo constante en salas, estudio de grabación y áreas comunes.\n- Contamos con estacionamiento exterior (sujeto a disponibilidad).\n\nNuestra misión es entregarte la mejor experiencia para ti y tu banda. ¡Mantengamos siempre un ambiente de respeto y buena onda entre todos, así disfrutamos de la música! 🤘🔥",   // texto del reglamento; ## = título, - = viñeta; {horasAnulacion} etc. se reemplazan solos
     contabilidadFormal: false,    // SI = activa la contabilidad formal (IVA, PPM, impuesto simulado, compras)
     regimen: '14D3',              // 14D3 (Pro Pyme general) o 14D8 (Pro Pyme transparente)
     sitioUrl: '',                 // dirección pública del sitio (para armar los enlaces de socios)
@@ -305,6 +305,8 @@ var Reglas = (function () {
       var h = +k;
       if (h <= horas && h >= mejorH) { mejorH = h; mejor = cfg.escala[k]; }
     });
+    var claves = Object.keys(cfg.escala || {}).map(Number), maxH = claves.length ? Math.max.apply(null, claves) : 0;
+    if (maxH && horas > maxH) mejor += 60 * (horas - maxH); // más allá de la escala: +1 hora de grabación por cada hora extra
     return mejor;
   }
 
@@ -384,6 +386,15 @@ var Reglas = (function () {
     return { tipo: tipo, nombre: 'Plan mensual de ' + (h * 4) + ' horas', sesiones: 4, horasPorSesion: h, precio: precio, porSesion: Math.round(precio / 4) };
   }
 
+  /** Último día que puede agendarse un plan: fin del mes siguiente al actual (el plan se usa en el mes en curso o el próximo). */
+  function finPlan(hoyIso) {
+    var y = +hoyIso.slice(0, 4), m = +hoyIso.slice(5, 7) + 1; // mes siguiente
+    if (m > 12) { m = 1; y++; }
+    var ult = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    return y + '-' + dos(m) + '-' + dos(ult);
+  }
+  function diasPlan(hoyIso) { return diasEntre(hoyIso, finPlan(hoyIso)); }
+
   /** Valida un plan completo: sus 4 sesiones (días distintos, libres y dentro del plazo de planes) y los datos. */
   function validarPlan(cfg, ahora, sol, ocupadasPorFecha) {
     var plan = planInfo(cfg, sol && sol.tipo);
@@ -392,7 +403,7 @@ var Reglas = (function () {
     if (ses.length !== plan.sesiones) return { ok: false, codigo: 'DATOS', error: 'Elige las ' + plan.sesiones + ' sesiones de tu plan.' };
     var cfgP = {};
     for (var k in cfg) cfgP[k] = cfg[k];
-    cfgP.anticipacionMaxDias = cfg.planMaxDias;
+    cfgP.anticipacionMaxDias = diasPlan(ahora.fecha);
     var vistos = {}, out = [], datos = null;
     for (var i = 0; i < ses.length; i++) {
       var f = limpiar(ses[i] && ses[i].fecha, 10);
@@ -511,7 +522,7 @@ var Reglas = (function () {
     diasEntre: diasEntre, sumarDias: sumarDias, fechaLarga: fechaLarga, parseBloque: parseBloque, parseEscala: parseEscala,
     normalizarConfig: normalizarConfig, limitesHoras: limitesHoras, addonsPermitidos: addonsPermitidos,
     calcularPrecio: calcularPrecio, grabacionIncluidaMin: grabacionIncluidaMin, llenarPlantilla: llenarPlantilla, tarifaConveniente: tarifaConveniente, minutosTxt: minutosTxt,
-    horasAbiertas: horasAbiertas, horasLibres: horasLibres, inicios: inicios, planInfo: planInfo, validarPlan: validarPlan,
+    horasAbiertas: horasAbiertas, horasLibres: horasLibres, inicios: inicios, planInfo: planInfo, validarPlan: validarPlan, finPlan: finPlan, diasPlan: diasPlan,
     normalizarTelefono: normalizarTelefono, correoValido: correoValido, telefonoValido: telefonoValido,
     validarDatos: validarDatos, validarSolicitud: validarSolicitud, resumenTexto: resumenTexto, ahoraChile: ahoraChile
   };

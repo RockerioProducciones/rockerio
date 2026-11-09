@@ -1,4 +1,4 @@
-:root{--velo:rgba(37,36,35,.95);--panel-a:rgba(47,45,43,.92);--top-a:rgba(28,27,26,.95);--bg:#252423;--bg2:#1c1b1a;--panel:#2f2d2b;--borde:#454240;--oro:#FCC631;--rojo:#D81D23;--txt:#f3efe8;--mut:#b5afa6;--ok:#4ade80}
+:root{--velo:rgba(20,20,19,.95);--panel-a:rgba(29,28,27,.92);--top-a:rgba(14,14,13,.95);--bg:#141413;--bg2:#0e0e0d;--panel:#1d1c1b;--borde:#32302e;--oro:#FCC631;--rojo:#D81D23;--txt:#f3efe8;--mut:#b5afa6;--ok:#4ade80}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:70px}
 body{margin:0;background:var(--bg) url(../assets/hero-textura.jpg) center/cover fixed;color:var(--txt);font:16px/1.55 Inter,system-ui,sans-serif}

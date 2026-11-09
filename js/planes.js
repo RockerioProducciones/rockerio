@@ -9,9 +9,9 @@
     ['plan8', 'plan12'].forEach(function (tipo) {
       var p = R.planInfo(cfg, tipo); if (!p || !p.precio) return;
       var c = el('div', 'card'); c.appendChild(el('h3', '', p.nombre));
-      c.appendChild(el('p', '', '4 sesiones de ' + p.horasPorSesion + ' horas'));
+      c.appendChild(el('p', '', 'Pack de 4 reservas de ' + p.horasPorSesion + ' horas'));
       c.appendChild(el('p', 'tr-monto', R.clp(p.precio)));
-      c.appendChild(el('p', 'nota', R.clp(p.porSesion) + ' por sesión · se paga completo por adelantado'));
+      c.appendChild(el('p', 'nota', R.clp(p.porSesion) + ' por reserva · úsalas este mes o el siguiente · cambios hasta ' + cfg.horasAnulacion + ' h antes'));
       var usaWeb = RK.conectado() && cfg.reservasActivas, b;
       if (usaWeb) { b = el('button', 'btn', 'Elegir mis sesiones'); b.type = 'button'; b.addEventListener('click', function () { abrir(tipo); }); }
       else { b = el('a', 'btn', 'Consultar por WhatsApp'); b.href = RK.wsp('Hola, quiero el ' + p.nombre.toLowerCase() + ' (' + R.clp(p.precio) + ').'); b.target = '_blank'; b.rel = 'noopener'; }
@@ -24,7 +24,7 @@
     $('plan-wiz').hidden = false; $('plan-listo').hidden = true; $('f-plan').hidden = true;
     $('plan-tit').textContent = plan.nombre + ' · ' + R.clp(plan.precio);
     $('plan-wiz').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    RK.traerAgenda(RK.cfg().planMaxDias + 1, true).then(function (d) { agenda = d.dias; hoy = d.hoy; pintar(); });
+    RK.traerAgenda(R.diasPlan(RK.ahora().fecha) + 1, true).then(function (d) { agenda = d.dias; hoy = d.hoy; pintar(); });
   }
 
   function pintar() {

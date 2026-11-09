@@ -40,7 +40,7 @@ t('precios con formato chileno de texto se leen bien', () => {
 console.log('Grabación incluida en el ensayo');
 t('escala 2 h a 5 h', () => {
   const m = (h) => R.grabacionIncluidaMin(cfg, 'ensayo', h);
-  assert.deepStrictEqual([m(1), m(2), m(3), m(4), m(5), m(6)], [0, 30, 60, 120, 180, 180]);
+  assert.deepStrictEqual([m(1), m(2), m(3), m(4), m(5), m(6)], [0, 30, 60, 120, 180, 240]);
 });
 t('el estudio no regala grabación', () => assert.strictEqual(R.grabacionIncluidaMin(cfg, 'grabacion', 5), 0));
 t('si se vacía la escala, no se regala nada', () => {
@@ -244,7 +244,7 @@ t('plan 8 h = 4 sesiones de 2 h a $112.000; plan 12 h = 4 de 3 h a $168.000', ()
 });
 const datosPlan = { banda: 'Los Maderos', nombre: 'Ana Pérez', telefono: '+56 9 1234 5678', correo: 'ana@example.com', tyc: true };
 const sesiones4 = [{ fecha: '2026-11-09', inicio: 19 }, { fecha: '2026-11-16', inicio: 19 }, { fecha: '2026-11-23', inicio: 19 }, { fecha: '2026-11-30', inicio: 19 }];
-t('plan válido con 4 sesiones en días distintos (hasta 35 días)', () => {
+t('plan válido con 4 sesiones en días distintos (mes en curso o el siguiente)', () => {
   const r = R.validarPlan(cfg, ahora, Object.assign({ tipo: 'plan8', sesiones: sesiones4 }, datosPlan), {});
   assert.ok(r.ok, r.error);
   assert.deepStrictEqual(r.sesiones.map(s => s.fin - s.inicio), [2, 2, 2, 2]);
@@ -254,7 +254,9 @@ t('plan rechaza menos de 4 sesiones, días repetidos, horas ocupadas y fechas fu
   assert.ok(!p(sesiones4.slice(0, 3)).ok);
   assert.ok(!p([sesiones4[0], sesiones4[0], sesiones4[2], sesiones4[3]]).ok);
   assert.strictEqual(p(sesiones4, { '2026-11-16': [20] }).codigo, 'OCUPADO');
-  assert.ok(!p(sesiones4.slice(0, 3).concat([{ fecha: '2026-12-20', inicio: 19 }])).ok);
+  assert.ok(p(sesiones4.slice(0, 3).concat([{ fecha: '2026-12-20', inicio: 19 }])).ok, 'el mes siguiente sí vale');
+  assert.ok(!p(sesiones4.slice(0, 3).concat([{ fecha: '2027-01-05', inicio: 19 }])).ok, 'dos meses adelante no');
+  assert.strictEqual(R.finPlan('2026-12-10'), '2027-01-31');
 });
 
 console.log('\n' + ok + ' pruebas correctas' + (process.exitCode ? ', con fallas.' : '.'));

@@ -399,4 +399,39 @@ t('tienda y bebestibles NO suman al balance: quedan como anexo aparte', () => {
   assert.ok(/'=B18\+B21\+B22'/.test(b), 'ingresos brutos sin tienda'); assert.ok(/ANEXO · Tienda y bebestibles/.test(b));
 });
 
+console.log('\n== 15. Editar y eliminar reservas, alta manual de honor ==');
+t('editar una reserva (mismo código, nuevo horario, sin chocar consigo misma) y eliminarla', () => {
+  const gx = require('./gas-sim').crear(); gx.instalar();
+  const hoy = require('../../js/reglas.js').sumarDias ? null : null;
+  const f = gx.admin('adminJornadas').hoy;
+  const R = require('../../js/reglas.js'); const dia = R.sumarDias(f, 3);
+  const a = gx.admin('adminReservaManual', { servicio: 'ensayo', fecha: dia, inicio: 10, horas: 2, banda: 'Edit Band', nombre: 'Eli', telefono: '+56 9 4444 5555', estado: 'Reservado (con abono)' });
+  const e = gx.admin('adminReservaManual', { codigoEditar: a.codigo, servicio: 'ensayo', fecha: dia, inicio: 11, horas: 3, banda: 'Edit Band', nombre: 'Eli', telefono: '+56 9 4444 5555' });
+  assert.strictEqual(e.codigo, a.codigo);
+  const rs = gx.admin('adminJornadas').reservas.filter((r) => r.banda === 'Edit Band'); assert.strictEqual(rs.length, 1);
+  assert.strictEqual(rs[0].inicio.slice(0, 2), '11'); assert.strictEqual(rs[0].horas, 3); assert.strictEqual(rs[0].estado, 'Reservado (con abono)');
+  gx.admin('adminEliminarReserva', a.codigo);
+  assert.strictEqual(gx.admin('adminJornadas').reservas.filter((r) => r.banda === 'Edit Band').length, 0);
+  assert.throws(() => gx.admin('adminEliminarReserva', 'RP-9999'), /No se encontró/);
+});
+t('agregar una banda al cuadro de honor desde el portal la deja visible', () => {
+  const gx = require('./gas-sim').crear(); gx.instalar();
+  gx.admin('adminAgregarHonor', { banda: 'Los Manuales', genero: 'Rock', resena: 'Grabaron su disco aquí', instagram: '@losmanuales' });
+  const pub = gx.get({ accion: 'contenido' });
+  assert.ok(JSON.stringify(pub).indexOf('Los Manuales') >= 0, 'aparece en el sitio');
+  assert.throws(() => gx.admin('adminAgregarHonor', { banda: '' }), /nombre/);
+});
+t('más allá de 5 h de ensayo se suma 1 h de grabación por hora', () => {
+  const R = require('../../js/reglas.js'), c = R.normalizarConfig({});
+  assert.deepStrictEqual([2, 3, 4, 5, 6, 7].map((h) => R.grabacionIncluidaMin(c, 'ensayo', h)), [30, 60, 120, 180, 240, 300]);
+});
+
+t('importar clientes en bloque: agrega, omite repetidos y teléfonos inválidos', () => {
+  const gx = require('./gas-sim').crear(); gx.instalar();
+  const filas = [{ nombre: 'Agustin', apellido: 'Caceres', banda: 'Banda', telefono: '+56 9 90830392' }, { nombre: 'Vicente', apellido: 'Espinoza', banda: 'Mapochossippi', telefono: '+56997294715' }, { nombre: 'Malo', banda: 'X', telefono: '123' }];
+  const r = gx.admin('adminImportarClientes', filas); assert.strictEqual(r.agregados, 2); assert.strictEqual(r.omitidos.length, 1);
+  const r2 = gx.admin('adminImportarClientes', filas); assert.strictEqual(r2.agregados, 0);
+  const cl = gx.admin('adminJornadas').clientes; assert.ok(cl.some((c) => c.telefono === '56990830392' && c.banda === 'Banda'), 'cliente guardado con teléfono normalizado');
+});
+
 console.log('\n' + ok + ' pasos correctos, ' + fallas + ' con falla.');

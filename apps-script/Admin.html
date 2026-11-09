@@ -188,7 +188,7 @@ section{border-top:1px solid var(--borde);border-radius:14px;background:var(--pa
 <section id="resumen-p"><h2>Pendientes</h2><div id="cuentas" class="fila"></div></section>
 <section id="sec-jor" data-p="jornadas"><h2>Reservas y jornadas</h2>
 <div class="tabs" id="jtabs" role="tablist"><button type="button" data-v="cal" class="on">Calendario</button><button type="button" data-v="his">Historial</button><button type="button" data-v="cli">Clientes</button></div>
-<div class="nuevo-bar"><button type="button" id="rm-nueva">+ Reserva manual</button><button type="button" id="cli-nuevo" class="sec">+ Nuevo cliente</button></div>
+<div class="nuevo-bar"><button type="button" id="rm-nueva">+ Reserva manual</button><button type="button" id="cli-nuevo" class="sec">+ Nuevo cliente</button><button type="button" id="cli-import" class="sec">Importar lista de clientes</button></div>
 <div id="jbarra" class="jbarra"></div>
 <div id="jcal"></div>
 <div id="jhis" hidden></div>
@@ -235,6 +235,7 @@ section{border-top:1px solid var(--borde);border-radius:14px;background:var(--pa
 <div id="horas"></div><div class="fila" style="margin-top:8px"><button id="hog">Guardar horarios</button></div>
 <h3 style="margin:1em 0 .2em;font-size:15px">Qué ingresos entran al balance</h3>
 <div id="ingr" class="fila"></div><div class="fila" style="margin-top:8px"><button id="ing">Guardar</button></div></section>
+<section><h2>Agregar banda al cuadro de honor</h2><p style="color:#b5afa6;margin:0 0 8px">Para sumar una banda tú mismo, sin esperar el formulario. Queda aprobada y visible al guardar.</p><div id="honor-add" class="fila"></div></section>
 <section><h2>Sitio</h2><div class="fila">
 <label><input type="checkbox" id="activas"> Reservas en línea activas</label>
 <label><input type="checkbox" id="pagotr"> Pago por transferencia <span id="pagotraviso" style="color:#b5afa6"></span></label>
@@ -571,6 +572,12 @@ function pintarExtra(d){
   pintarMod(d.resenas,'res2','sinres2','resena',function(x,e){e.appendChild(par('★'.repeat(x.estrellas)+'☆'.repeat(5-x.estrellas)+' · '+x.nombre+' · '+x.banda+' ('+x.codigo+')','font-weight:700'));if(x.comentario)e.appendChild(par(x.comentario,'color:#b5afa6;margin:2px 0 6px'))});
   if(document.activeElement!==$('prx')&&document.activeElement!==$('prt')){$('prt').value=d.presentacion.titulo||'';$('prx').value=d.presentacion.texto||''}
 }
+(function(){var c=$('honor-add');if(!c)return;var F={};
+[['banda','Banda o proyecto *'],['genero','Género o estilo'],['formacion','Formación'],['resena','Reseña'],['instagram','Instagram'],['youtube','YouTube'],['enlace','Spotify u otro enlace'],['telefono','WhatsApp (opcional)'],['correo','Correo (opcional)'],['logo','Logo (enlace https, o sube un archivo abajo)']].forEach(function(x){var i=document.createElement('input');i.placeholder=x[1];i.title=x[1];i.style.cssText='flex:1;min-width:180px';F[x[0]]=i;c.appendChild(i)});
+var fl=document.createElement('input');fl.type='file';fl.accept='image/png,image/jpeg,image/webp';fl.title='Subir logo';c.appendChild(fl);
+c.appendChild(btn('Agregar al cuadro de honor',function(){var o={};Object.keys(F).forEach(function(k){o[k]=F[k].value});
+  function enviar(){google.script.run.withSuccessHandler(function(r){Object.keys(F).forEach(function(k){F[k].value=''});fl.value='';pintar(r);aviso('Banda agregada ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminAgregarHonor(o)}
+  if(fl.files[0]){redimLogo(fl.files[0]).then(function(b){o.logoB64=b.b64||b;enviar()}).catch(function(er){aviso(er.message)})}else enviar()}))})();
 ejecutar('adminResumen');
 
 /* ---------- áreas (un panel a la vez) ---------- */
@@ -674,7 +681,10 @@ function fichaJor(r){
   var ws=document.createElement('select');var o0=document.createElement('option');o0.textContent='Enviar WhatsApp…';ws.appendChild(o0);WATIPOS.forEach(function(x){var o=document.createElement('option');o.value=x[0];o.textContent=x[1];ws.appendChild(o)});
   var W=JOR.wa;ws.onchange=function(){if(!ws.value)return;var v={nombre:r.contacto,banda:r.banda,servicio:r.servicio,fecha:r.fechaTxt,hora:r.inicio,fin:r.fin,codigo:r.codigo,total:clp(r.total),abono:clp(r.abono),saldo:clp(r.saldo),direccion:W.direccion,negocio:W.negocio,sitio:W.sitio,horasAnulacion:W.horasAnulacion};
     var t=W.plantillas[ws.value].replace(/\{(\w+)\}/g,function(m,k){return v[k]!==undefined?v[k]:m});window.open('https://wa.me/'+String(r.telefono).replace(/\D/g,'')+'?text='+encodeURIComponent(t),'_blank','noopener');ws.selectedIndex=0};
-  acc.appendChild(ws);acc.appendChild(btn('Cerrar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
+  acc.appendChild(ws);
+  acc.appendChild(btn('Editar',function(){abrirRM({codigo:r.codigo,servicio:r.servicio==='Estudio de grabación'||/grab/i.test(r.servicio)?'grabacion':'ensayo',fecha:r.fecha,inicio:parseInt(r.inicio,10),horas:r.horas,banda:r.banda,nombre:r.contacto,telefono:r.telefono,correo:r.correo,estado:r.estado,total:r.total,extras:r.extras,video:r.video,raw:r.raw})},'sec'));
+  var ee=btn('Eliminar',function(){if(ee.textContent==='Eliminar'){ee.textContent='¿Seguro? No se puede deshacer';setTimeout(function(){ee.textContent='Eliminar'},4000)}else{google.script.run.withSuccessHandler(function(){d.hidden=true;aviso('Reserva eliminada');cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminEliminarReserva(r.codigo)}},'sec');acc.appendChild(ee);
+  acc.appendChild(btn('Cerrar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
 }
 function pintarHisJor(){
   var bar=$('jbarra');bar.textContent='';
@@ -727,15 +737,15 @@ function fichaCli(x){
 
 /* ---------- Reserva manual (mismo método que el sitio de clientes, pero sin restricción de horario) ---------- */
 var RM=null;
-function ocupHoras(f){var o={};(JOR.reservas||[]).forEach(function(r){if(r.fecha!==f||r.estado==='Anulada')return;var a=parseInt(r.inicio,10),b=a+Number(r.horas);for(var h=a;h<b;h++)o[h]=r.banda});
+function ocupHoras(f){var o={};(JOR.reservas||[]).forEach(function(r){if(r.fecha!==f||r.estado==='Anulada'||(RM&&RM.codigo&&r.codigo===RM.codigo))return;var a=parseInt(r.inicio,10),b=a+Number(r.horas);for(var h=a;h<b;h++)o[h]=r.banda});
   (JOR.bloqueos||[]).forEach(function(b){if(b.fecha!==f)return;var a=b.desde===''?0:Number(b.desde),z=b.hasta===''?24:Number(b.hasta);for(var h=a;h<z;h++)o[h]='Bloqueo'});return o}
 function abrirRM(pre){
-  pre=pre||{};RM={paso:1,servicio:'',fecha:'',inicio:null,horas:1,mes:(JOR.hoy||'').slice(0,7),banda:pre.banda||'',nombre:pre.nombre||'',telefono:pre.telefono||'',correo:pre.correo||'',estado:'Reservado (con abono)',total:'',extras:0,video:false,raw:false,comentario:''};
+  pre=pre||{};RM={codigo:pre.codigo||'',paso:pre.codigo?2:1,servicio:pre.servicio||'',fecha:pre.fecha||'',inicio:pre.inicio===undefined?null:pre.inicio,horas:pre.horas||1,mes:(pre.fecha||JOR.hoy||'').slice(0,7),banda:pre.banda||'',nombre:pre.nombre||'',telefono:pre.telefono||'',correo:pre.correo||'',estado:pre.estado||'Reservado (con abono)',total:pre.total===undefined?'':pre.total,extras:pre.extras||0,video:!!pre.video,raw:!!pre.raw,comentario:''};
   if(pre.banda)RM.paso=1;pintarRM();
 }
 function pintarRM(){
   var d=$('jdet');d.textContent='';d.hidden=false;d.onclick=function(e){if(e.target===d)d.hidden=true};
-  var f=el_('div','ficha-j');f.appendChild(el_('h3','','Nueva reserva manual'));f.appendChild(par('Sin restricción de horario: puedes agendar cualquier día y hora.','color:#b5afa6;font-size:.82rem;margin-bottom:.5rem'));
+  var f=el_('div','ficha-j');f.appendChild(el_('h3','',RM.codigo?'Editar reserva '+RM.codigo:'Nueva reserva manual'));f.appendChild(par('Sin restricción de horario: puedes agendar cualquier día y hora.','color:#b5afa6;font-size:.82rem;margin-bottom:.5rem'));
   var ps=el_('div','rm-pasos');['1 · Servicio','2 · Fecha y hora','3 · Datos','4 · Resumen'].forEach(function(t,i){ps.appendChild(el_('span',RM.paso===i+1?'on':'',t))});f.appendChild(ps);
   var c=el_('div');f.appendChild(c);
   var acc=el_('div','fila');acc.style.marginTop='10px';
@@ -780,8 +790,8 @@ function pintarRM(){
   f.appendChild(acc);d.appendChild(f);
 }
 function guardarRM(forzar){
-  var p={servicio:RM.servicio,fecha:RM.fecha,inicio:RM.inicio,horas:RM.horas,banda:RM.banda,nombre:RM.nombre,telefono:RM.telefono,correo:RM.correo,estado:RM.estado,total:RM.total,extras:RM.extras,video:RM.video,raw:RM.raw,comentario:RM.comentario,forzar:!!forzar};
-  google.script.run.withSuccessHandler(function(r){$('jdet').hidden=true;aviso('Reserva '+r.codigo+' guardada');jsel=RM.fecha;jmes=RM.fecha.slice(0,7);cargarJor()}).withFailureHandler(function(e){
+  var p={servicio:RM.servicio,fecha:RM.fecha,inicio:RM.inicio,horas:RM.horas,banda:RM.banda,nombre:RM.nombre,telefono:RM.telefono,correo:RM.correo,estado:RM.estado,total:RM.total,extras:RM.extras,video:RM.video,raw:RM.raw,comentario:RM.comentario,forzar:!!forzar,codigoEditar:RM.codigo||''};
+  google.script.run.withSuccessHandler(function(r){$('jdet').hidden=true;aviso('Reserva '+r.codigo+(RM.codigo?' actualizada':' guardada'));jsel=RM.fecha;jmes=RM.fecha.slice(0,7);cargarJor()}).withFailureHandler(function(e){
     var m=e.message||'Error';if(/CHOQUE/.test(m)){if(confirm(m.replace(/^.*CHOQUE:\s*/,'')+'\n\n¿Guardar igual?'))guardarRM(true)}else aviso(m)}).adminReservaManual(p);
 }
 /* ---------- Ficha manual de cliente ---------- */
@@ -797,6 +807,20 @@ function formCli(x){
   if(x.telefono)acc.appendChild(btn('Eliminar',function(){if(confirm('¿Quitar a '+(x.banda||x.contacto)+' de la base de clientes? Sus reservas anteriores se conservan.'))google.script.run.withSuccessHandler(function(){d.hidden=true;aviso('Cliente eliminado');cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminEliminarCliente(x.telefono)},'sec'));
   acc.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
 }
+var LISTA_INICIAL='Agustin Caceres;Banda;+56990830392\nAlejandro Hernandez;Don Carpo - Homenaje Papp;+56940261434\nAlfonso Oneto;La Gran America JR;+56965353500\nAlvaro Vasquez;Retro Cumbia;+56991452739\nAlvaro Zavala;LIES;+56959797928\nByron Malvino;Skaro Vivir;+56947423849\nCarlos Higuera;Los Bufones de la Corte;+56999495693\nCatalina Aldana;Minainus;+56961136048\nCesar Vidal;Malditos Calavera;+56984585703\nClaudio Godoy;Magnecio;+56945170332\nClaudio Maulen;Grupo Karay;+56977439882\nCristian Toro;Seventh Son (Iron Maiden);+56935055408\nDaniel Tobar;La Mafia;+56929754935\nDiego Candia;Tiempos de Perro;+56967853155\nDiego Rioseco;Jackmosis;+56978734568\nFelipe Huerta;Funky Marranos (Chancho e;+56954284803\nFelipe Montero;Saeskin;+56952065140\nGabriel Villagran;Las Bandoleras y sus Band;+56959741569\nIgnacio Flores;Un Whisky por Charly;+56973983639\nJaime Garcia;CDM;+56966300794\nJean Gardy Inocent;Melody Band;+56938773394\nJob Eulices;V2Nird;+56973178921\nJorge Puchi;NERCON;+56975667320\nJose Luis Villagran;MIG-21;+56933202000\nJuan Ordoñes;CDM;+56995276030\nLuis Tapia;Katary;+56971418262\nMathias Arroyo;Los Amigos de tu Mamá;+56922265382\nMauricio Salinas;Los Reggaeseros;+56942613361\nOsvaldo Lizama;Sismo;+56984332396\nPedro Maldonado;V.H.S.;+56997902146\nPhilipe Llulle;Full Revolt;+56953192992\nRoberto Alegria;Post Bruma;+56985197647\nSergio Chamorro;J Matt y su Banda;+56997775054\nVicente Espinoza;Mapochossippi;+56997294715\nVictor Cuminao;Los Costeros del Sur;+56954706687\nYonny Montecinos;Jackmosis;+56987507782';
+function importarCli(){
+  var d=$('jdet');d.textContent='';d.hidden=false;d.onclick=function(e){if(e.target===d)d.hidden=true};
+  var f=el_('div','ficha-j');f.appendChild(el_('h3','','Importar lista de clientes'));
+  f.appendChild(par('Una línea por cliente: Nombre Apellido ; Banda ; Teléfono. Ya viene cargada la lista del padrón del 06-11-2026 (36 contactos). Los que ya existan se omiten.','color:#b5afa6;font-size:.82rem;margin-bottom:.5rem'));
+  var ta=document.createElement('textarea');ta.rows=14;ta.style.cssText='width:100%;font-size:.8rem';ta.value=LISTA_INICIAL;f.appendChild(ta);
+  var acc=el_('div','fila');acc.style.marginTop='10px';
+  acc.appendChild(btn('Importar',function(){
+    var filas=ta.value.split('\n').map(function(l){return l.split(';')}).filter(function(c){return c.length>=3&&c[0].trim()}).map(function(c){var p=c[0].trim().split(/\s+/),ap=p.length>1?p.pop():'';return{nombre:p.join(' '),apellido:ap,banda:c[1].trim(),telefono:c[2].trim()}});
+    if(!filas.length){aviso('No hay líneas válidas.');return}
+    google.script.run.withSuccessHandler(function(r){d.hidden=true;aviso(r.agregados+' clientes agregados'+(r.omitidos.length?' · '+r.omitidos.length+' omitidos: '+r.omitidos.slice(0,3).join(' | '):''));cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminImportarClientes(filas)}));
+  acc.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
+}
+$('cli-import').onclick=function(){if(JOR)importarCli()};
 $('rm-nueva').onclick=function(){if(JOR)abrirRM()};$('cli-nuevo').onclick=function(){if(JOR)formCli()};
 [].forEach.call(document.querySelectorAll('#jtabs button'),function(b){b.onclick=function(){jv=b.getAttribute('data-v');jbusca='';pintarJor()}});
 document.addEventListener('keydown',function(e){if(e.key==='Escape')$('jdet').hidden=true});

@@ -207,8 +207,8 @@ function disponibilidad_(fecha) {
 /** Disponibilidad de los próximos días en una sola consulta (hoy y los 'dias' siguientes). plan = true usa el plazo de los planes. */
 function agenda_(dias, plan) {
   var cfg = getCfg_(), ahora = ahoraChile_();
-  if (plan) { cfg.anticipacionMaxDias = cfg.planMaxDias; }
-  var n = Math.max(1, Math.min(Number(dias) || (cfg.anticipacionMaxDias + 1), 40));
+  if (plan) { cfg.anticipacionMaxDias = Reglas.diasPlan(ahora.fecha); }
+  var n = Math.max(1, Math.min(Number(dias) || (cfg.anticipacionMaxDias + 1), plan ? 65 : 40));
   var oc = ocupadasRango_(ahora.fecha, n), out = {};
   for (var i = 0; i < n; i++) {
     var f = Reglas.sumarDias(ahora.fecha, i), r = Reglas.horasLibres(cfg, f, oc[f] || [], ahora);

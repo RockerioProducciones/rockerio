@@ -97,7 +97,7 @@
     if (!chipC.hidden) txt(chipC, 'Lun–Vie ' + R.horaTxt(cfg.convenienteDesde) + ' a ' + R.horaTxt(cfg.convenienteHasta) + (tcE.horas ? ': ensayo ' + R.clp(tcE.precio) + ' / hora' : '') + (tcG.horas ? (tcE.horas ? ' · ' : ': ') + 'estudio ' + R.clp(tcG.precio) + ' / hora' : ''));
     txt($('p-ensayo'), R.clp(cfg.precioEnsayoHora) + ' por hora');
     txt($('p-grab'), R.clp(cfg.precioGrabacionHora) + ' por hora');
-    txt($('p-video'), '+' + R.clp(cfg.precioVideo));
+    txt($('p-video'), '+' + R.clp(cfg.precioVideo)); txt($('p-extra'), R.clp(cfg.precioExtraEquipo) + (cfg.extraModo === 'hora' ? ' por hora' : ' por sesión'));
     txt($('p-raw'), '+' + R.clp(cfg.precioRaw));
     txt($('dir'), cfg.direccion); txt($('dir2'), String(cfg.direccion || '').replace(/[\s·]+$/, '').toUpperCase()); $('franja-dir').hidden = !cfg.direccion;
     txt($('max-dias'), String(cfg.anticipacionMaxDias));
@@ -117,7 +117,7 @@
       var a = el('a', '', 'Escríbenos por WhatsApp'); a.href = wspUrl('Hola, quiero reservar'); pausa.appendChild(a);
     }
     /* reglamento: «## » = título, «- » = viñeta, otra línea = párrafo; los {valores} salen de la configuración */
-    var valores = { horasAnulacion: cfg.horasAnulacion, retencionPorHora: R.clp(cfg.retencionPorHora), reagendoSemanas: cfg.reagendoSemanas, reagendoCambios: cfg.reagendoCambios, minutosReserva: cfg.minutosReserva };
+    var valores = { abonoPorHora: R.clp(cfg.abonoPorHora), devolucionPorHora: R.clp(cfg.abonoPorHora - cfg.retencionPorHora), horasAnulacion: cfg.horasAnulacion, retencionPorHora: R.clp(cfg.retencionPorHora), reagendoSemanas: cfg.reagendoSemanas, reagendoCambios: cfg.reagendoCambios, minutosReserva: cfg.minutosReserva };
     var rg = $('reglamento-in'); rg.textContent = ''; var lista = null;
     String(cfg.reglamento || '').split(/\r?\n/).forEach(function (l) {
       l = l.trim().replace(/\{(\w+)\}/g, function (m, k) { return valores[k] !== undefined ? valores[k] : m; });
@@ -155,22 +155,74 @@
   /* ---------- estáticos ---------- */
   var fichaDatos = null;
   /** Ficha técnica. Los {valores} (precios, abono, escala de grabación incluida) salen de la configuración, así nunca quedan desactualizados. */
+  /** Carrusel elegante con infografía: items = [{src, titulo, descripcion, datos:[…]}]. Flechas, puntos, deslizar, ampliar al tocar. */
+  function carrusel(cont, items, opciones) {
+    cont.textContent = ''; if (!items.length) { cont.hidden = true; return; } cont.hidden = false;
+    var pos = 0, auto = null, c = el('div', 'carr'), vp = el('div', 'carr-vp'), pista = el('div', 'carr-pista'), pts = el('div', 'carr-pts'), cnt = el('span', 'carr-n');
+    var fotos = items.map(function (f) { return { src: f.src, alt: f.titulo || f.alt || '' }; });
+    items.forEach(function (f, k) {
+      var s = el('figure', 'carr-sl'), im = el('img'); im.src = f.src; im.alt = f.titulo || f.alt || ''; im.loading = k ? 'lazy' : 'eager'; im.addEventListener('click', function () { visor(fotos, k); }); s.appendChild(im);
+      var pie = el('figcaption', 'carr-pie');
+      if (f.titulo) pie.appendChild(el('b', '', f.titulo)); if (f.descripcion) pie.appendChild(el('span', '', f.descripcion));
+      if (f.datos && f.datos.length) { var ch = el('div', 'carr-datos'); f.datos.forEach(function (x) { ch.appendChild(el('i', '', x)); }); pie.appendChild(ch); }
+      if (pie.childNodes.length) s.appendChild(pie); pista.appendChild(s);
+      var p = el('button', 'carr-pt'); p.type = 'button'; p.setAttribute('aria-label', 'Foto ' + (k + 1)); p.addEventListener('click', function () { ir(k, true); }); pts.appendChild(p);
+    });
+    function ir(n, manual) {
+      pos = (n + items.length) % items.length; pista.style.transform = 'translateX(' + (-pos * 100) + '%)';
+      [].forEach.call(pts.children, function (p, k) { p.className = 'carr-pt' + (k === pos ? ' on' : ''); }); cnt.textContent = (pos + 1) + ' / ' + items.length;
+      if (manual) parar();
+    }
+    function parar() { if (auto) { clearInterval(auto); auto = null; } }
+    vp.appendChild(pista); c.appendChild(vp);
+    if (items.length > 1) {
+      var ant = el('button', 'carr-b ant', '‹'), sig = el('button', 'carr-b sig', '›'); ant.type = sig.type = 'button'; ant.setAttribute('aria-label', 'Anterior'); sig.setAttribute('aria-label', 'Siguiente');
+      ant.addEventListener('click', function () { ir(pos - 1, true); }); sig.addEventListener('click', function () { ir(pos + 1, true); });
+      c.appendChild(ant); c.appendChild(sig); c.appendChild(cnt); c.appendChild(pts);
+      var x0 = 0; vp.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+      vp.addEventListener('touchend', function (e) { var d = e.changedTouches[0].clientX - x0; if (Math.abs(d) > 40) ir(pos + (d < 0 ? 1 : -1), true); });
+      if (!(opciones && opciones.sinAuto) && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) auto = setInterval(function () { if (document.hidden || !c.offsetParent) return; ir(pos + 1); }, 6000);
+    }
+    cont.appendChild(c); ir(0);
+  }
+  /** Infografía: datos destacados con icono. stats = [[icono, valor, etiqueta]]. */
+  function infografia(stats) {
+    var g = el('div', 'info-stats');
+    (stats || []).forEach(function (s) { var t = el('div', 'info-st'); t.appendChild(el('span', 'ic', s[0])); t.appendChild(el('b', '', s[1])); t.appendChild(el('small', '', s[2])); g.appendChild(t); });
+    return g;
+  }
+  var fichaTab = null;
   function pintarFicha() {
     if (!fichaDatos) { json('data/ficha.json').then(function (d) { fichaDatos = d; pintarFicha(); }).catch(function () { $('ficha').hidden = true; }); return; }
-    var cont = $('ficha-in'); cont.textContent = '';
+    var cont = $('ficha-in'); cont.textContent = ''; cont.className = 'ficha-app';
     var v = { precioEnsayoHora: R.clp(cfg.precioEnsayoHora), plan8: R.clp(cfg.plan8), plan12: R.clp(cfg.plan12), abonoPorHora: R.clp(cfg.abonoPorHora), horasAnulacion: cfg.horasAnulacion };
-    fichaDatos.bloques.forEach(function (b) {
-      var c = el('div', 'card'); c.appendChild(el('h3', '', b.titulo));
-      var ul = el('ul');
-      b.items.forEach(function (i) {
-        if (i === '{escala}') {
-          Object.keys(cfg.escala || {}).sort(function (x, y) { return x - y; }).forEach(function (h) { ul.appendChild(el('li', '', 'Bloque de ' + h + ' hrs: incluye hasta ' + R.minutosTxt(cfg.escala[h]) + ' de grabación')); });
-          return;
-        }
-        ul.appendChild(el('li', '', i.replace(/\{(\w+)\}/g, function (m, k) { return v[k] !== undefined ? v[k] : m; })));
+    var secs = fichaDatos.secciones || []; if (!secs.length) { $('ficha').hidden = true; return; }
+    if (!fichaTab || !secs.some(function (s) { return s.id === fichaTab; })) fichaTab = secs[0].id;
+    var tabs = el('div', 'ficha-tabs'); tabs.setAttribute('role', 'tablist'); cont.appendChild(tabs);
+    var panel = el('div', 'ficha-panel'); cont.appendChild(panel);
+    // los catálogos dinámicos (micrófonos y muestras) viven en el HTML y se mueven al panel que corresponde
+    var guarda = $('ficha-guarda');
+    function mostrar(id) {
+      fichaTab = id; ['mics-box', 'escucha-box'].forEach(function (k) { var n = document.getElementById(k); if (n) guarda.appendChild(n); }); panel.textContent = '';
+      [].forEach.call(tabs.children, function (b) { b.setAttribute('aria-selected', b.getAttribute('data-id') === id ? 'true' : 'false'); });
+      var s = secs.filter(function (x) { return x.id === id; })[0]; if (!s) return;
+      var cab = el('div', 'ficha-cab'); cab.appendChild(el('span', 'ficha-ico', s.icono || '')); var tx = el('div'); tx.appendChild(el('h3', '', s.titulo)); if (s.resumen) tx.appendChild(el('p', 'sub', s.resumen)); cab.appendChild(tx); panel.appendChild(cab);
+      if (s.stats && s.stats.length) panel.appendChild(infografia(s.stats));
+      if (s.fotos && s.fotos.length) { var cc = el('div', 'carr-caja'); panel.appendChild(cc); carrusel(cc, s.fotos); }
+      var g = el('div', 'grid'); panel.appendChild(g);
+      (s.bloques || []).forEach(function (b) {
+        var c = el('div', 'card'); c.appendChild(el('h3', '', b.titulo)); var ul = el('ul');
+        b.items.forEach(function (i) {
+          if (i === '{escala}') { Object.keys(cfg.escala || {}).sort(function (x, y) { return x - y; }).forEach(function (h) { ul.appendChild(el('li', '', 'Bloque de ' + h + ' hrs: incluye hasta ' + R.minutosTxt(cfg.escala[h]) + ' de grabación')); }); return; }
+          ul.appendChild(el('li', '', i.replace(/\{(\w+)\}/g, function (m, k) { return v[k] !== undefined ? v[k] : m; })));
+        });
+        if (ul.children.length) { c.appendChild(ul); g.appendChild(c); }
       });
-      if (ul.children.length) { c.appendChild(ul); cont.appendChild(c); }
-    });
+      if (s.mics) panel.appendChild($('mics-box'));
+      if (s.escucha) panel.appendChild($('escucha-box'));
+    }
+    secs.forEach(function (s) { var b = el('button', 'ficha-tab', (s.icono || '') + ' ' + s.titulo); b.type = 'button'; b.setAttribute('role', 'tab'); b.setAttribute('data-id', s.id); b.addEventListener('click', function () { mostrar(s.id); }); tabs.appendChild(b); });
+    mostrar(fichaTab);
   }
   /** Visor de fotos: ampliar, avanzar con flechas o deslizando, cerrar con Esc o tocando fuera. */
   function visor(lista, pos) {
@@ -203,16 +255,28 @@
   }
   function pintarGaleria() {
     json('data/galeria.json').then(function (g) {
-      var fotos = g.filter(function (f) { return f.src; });
-      g.forEach(function (f) {
-        if (f.video) { $('galeria-in').appendChild(tarjetaVideo(f)); return; }
-        var i = el('img'); i.src = f.src; i.alt = f.alt; i.loading = 'lazy'; i.tabIndex = 0;
-        i.addEventListener('click', function () { visor(fotos, fotos.indexOf(f)); });
-        i.addEventListener('keydown', function (e) { if (e.key === 'Enter') visor(fotos, fotos.indexOf(f)); });
-        if (f.titulo) { var fg = el('figure', 'gal-fig'); fg.appendChild(i); var fc = el('figcaption'); fc.appendChild(el('b', '', f.titulo)); if (f.descripcion) fc.appendChild(el('span', '', f.descripcion)); fg.appendChild(fc); $('galeria-in').appendChild(fg); }
-        else $('galeria-in').appendChild(i);
-      });
+      var cont = $('galeria-in'); cont.textContent = '';
+      var fotos = g.filter(function (f) { return f.src; }), videos = g.filter(function (f) { return f.video; });
+      var info = $('galeria-info'); if (info) { info.textContent = ''; info.appendChild(infografia([['📸', String(fotos.length), 'fotos del estudio'], ['🎛️', '2', 'salas: ensayo y grabación'], ['🎙️', '17', 'micrófonos de estudio'], ['🎚️', '32', 'canales Midas M32']])); }
+      var cc = $('galeria-car'); if (cc) carrusel(cc, fotos);
+      var tira = el('div', 'galeria'); fotos.forEach(function (f, k) { var i = el('img'); i.src = f.src; i.alt = f.alt || f.titulo || ''; i.loading = 'lazy'; i.tabIndex = 0; i.addEventListener('click', function () { visor(fotos, k); }); i.addEventListener('keydown', function (e) { if (e.key === 'Enter') visor(fotos, k); }); tira.appendChild(i); });
+      cont.appendChild(tira);
+      videos.forEach(function (f) { cont.appendChild(tarjetaVideo(f)); });
     }).catch(function () { $('galeria').hidden = true; });
+  }
+  /** Reproductor de tu playlist de YouTube Music (data/playlist.json) en Producción y Galería. */
+  function pintarPlaylist() {
+    json('data/playlist.json').then(function (d) {
+      var m = /[?&]list=([\w-]+)/.exec(d.url || ''); if (!m) return;
+      [].forEach.call(document.querySelectorAll('[data-playlist]'), function (c) {
+        c.textContent = ''; c.appendChild(el('h3', '', '🎵 ' + (d.titulo || 'Nuestra playlist')));
+        if (d.texto) c.appendChild(el('p', 'sub', d.texto));
+        var fr = el('iframe', 'pl-frame'); fr.src = 'https://www.youtube-nocookie.com/embed/videoseries?list=' + m[1]; fr.title = 'Playlist de trabajos terminados'; fr.loading = 'lazy';
+        fr.allow = 'accelerometer; encrypted-media; picture-in-picture'; fr.setAttribute('allowfullscreen', ''); c.appendChild(fr);
+        var b = el('a', 'btn chico', 'Abrir en YouTube Music'); b.href = d.url; b.target = '_blank'; b.rel = 'noopener'; c.appendChild(b);
+        c.hidden = false;
+      });
+    }).catch(function () {});
   }
   function pintarTienda(items) {
     var cont = $('tienda-in'); cont.textContent = '';
@@ -252,6 +316,10 @@
       b.addEventListener('click', function () { S.horas = h; pintarHoras(); alCambiarDuracion(); });
       c.appendChild(b);
     })(h);
+    var ai = $('aviso-incl'), gm = R.grabacionIncluidaMin(cfg, S.servicio, S.horas); ai.textContent = '';
+    if (gm) { var t1 = el('b', '', '🎙️ ¡Ya incluyes ' + R.minutosTxt(gm) + ' de grabación con mezcla!'); ai.appendChild(t1); ai.appendChild(el('span', '', ' Por reservar ' + S.horas + ' horas de ensayo puedes usar parte de tu tiempo para llevarte un registro multipista profesional.')); ai.hidden = false; }
+    else if (S.servicio === 'ensayo') { ai.appendChild(el('span', '', '💡 Desde 2 horas de ensayo incluyes minutos de grabación con mezcla: 2 h = 30 min · 3 h = 1 h · 4 h = 2 h · 5 h = 3 h, y así sucesivamente.')); ai.hidden = false; }
+    else ai.hidden = true;
     var ex = $('extras'), prev = Number(ex.value) || 0; ex.textContent = '';
     for (var i = 0; i <= 4; i++) { var op = el('option', '', i === 0 ? 'Ninguno' : i + ' (' + R.clp(i * cfg.precioExtraEquipo * (cfg.extraModo === 'hora' ? S.horas : 1)) + ')'); op.value = i; ex.appendChild(op); }
     ex.value = prev;
@@ -417,7 +485,7 @@
 
   /* ---------- arranque ---------- */
   document.addEventListener('DOMContentLoaded', function () {
-    pintarFicha(); pintarGaleria(); pintarConfig(); estado();
+    pintarFicha(); pintarGaleria(); pintarPlaylist(); pintarConfig(); estado();
     cargar().then(function () { pintarConfig(); window.RK._listo(); });
     document.querySelectorAll('input[name=servicio]').forEach(function (r) {
       r.addEventListener('change', function () { S.servicio = r.value; pintarHoras(); alCambiarDuracion(); });
