@@ -627,6 +627,9 @@ function pintarRC(d){
     ]));
     b.appendChild(par('Gabriela: este reparto aún no tiene un porcentaje para ella; dime cómo participa y lo agrego al cierre.','color:#b5afa6;font-size:13px;margin:.3rem 0'))}
   else{b.appendChild(el_('h3','rc-h','Ingresos por día'));b.appendChild(d.porDia.length?rcTabla(['Día','Total'],d.porDia.map(function(x){return{c:[fechaCorta(x.fecha),clp(x.total)]}})):par('Sin ingresos en la semana.','color:#b5afa6'))}
+  if((d.descuadres||[]).length){var dq=el_('div','rc-warn');dq.appendChild(el_('b','','⚠ '+d.descuadres.length+' reserva(s) cuyo total no coincide con lo que cuenta el balance. '));dq.appendChild(document.createTextNode('Suele pasar cuando el total se cambió a mano en versiones anteriores. «Cuadrar» deja el balance igual al total de cada reserva (el total que tú pusiste no cambia).'));
+    dq.appendChild(rcTabla(['Fecha','Reserva','Estado','Total reserva','Cuenta el balance'],d.descuadres.map(function(x){return{c:[fechaCorta(x.fecha),x.codigo+' · '+x.banda,x.estado,clp(x.total),clp(x.montos)]}})));
+    var bq=btn('Cuadrar todas',function(){confirmarSN('¿Cuadrar '+d.descuadres.length+' reserva(s)? El balance usará el total de cada reserva. Los montos originales quedan guardados.',function(){google.script.run.withSuccessHandler(function(r){aviso('Cuadradas: '+r.cuadradas+' ✔');cargarRC()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminCuadrarReservas([])},'Sí, cuadrar')});dq.appendChild(bq);b.appendChild(dq)}
   // Detalle
   b.appendChild(el_('h3','rc-h','Detalle de sesiones'));
   b.appendChild(d.detalle.length?rcTabla(['Fecha','Código','Banda / cliente','Servicio','Horas','Estado','Horas $','Extras','Video','Bruto','Total'],d.detalle.map(function(x){return{c:[fechaCorta(x.fecha),x.codigo,x.banda+' / '+x.cliente,x.servicio,x.horas,x.estado,clp(x.base),clp(x.extras),clp(x.video),clp(x.raw),clp(x.total)]}})):par('Sin sesiones en este período.','color:#b5afa6'));
@@ -922,12 +925,24 @@ function fichaJor(r){
   acc.appendChild(ws);
   acc.appendChild(btn('Editar',function(){d.hidden=true;editarDe(r)},'sec'));
   if(r.estado!=='No asiste'&&r.estado!=='Anulada')acc.appendChild(btn('Ajustar cobro / descuento',function(){formAjuste(r,false)}));
+  if(r.estado==='No asiste'||r.estado==='Anulada')acc.appendChild(btn('Editar retención',function(){formRetencion(r)},'sec'));
   if(r.estado==='Reservado (sin abono)'||r.estado==='Reservado (con abono)'){acc.appendChild(btn('Reagendar',function(){formReag(r)},'sec'))}
   if(r.reag)acc.appendChild(el_('span','chip',('Reagendada '+r.reag+'/'+(JOR.maxReag||2))));
   acc.appendChild(btnDel('Eliminar','¿Eliminar la reserva '+r.codigo+' de '+r.banda+'? Se borra también de la agenda y no se puede deshacer.',function(){google.script.run.withSuccessHandler(function(){d.hidden=true;aviso('Reserva eliminada');cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminEliminarReserva(r.codigo)}));
   acc.appendChild(btn('Cerrar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
 }
 
+
+function formRetencion(r){
+  var d=$('jdet');d.textContent='';d.hidden=false;d.onclick=function(e){if(e.target===d)d.hidden=true};
+  var f=el_('div','ficha-j');f.appendChild(el_('h3','','Retención · '+r.banda));
+  f.appendChild(el_('div','sub',r.codigo+' · '+r.estado+' · '+r.horas+(r.horas===1?' hora':' horas')+' · abono '+clp(r.abono)+' · retención actual '+clp(r.retenido)));
+  var g=el_('div','aj-grid');var l=el_('label','','Monto que se retiene ($) — 0 = perdonar');var i=el_('input');i.type='number';i.min=0;i.value=r.retenido;l.appendChild(i);g.appendChild(l);
+  var ln=el_('label','','Motivo');var nt=el_('input');nt.maxLength=150;nt.placeholder='Ej.: avisó tarde, se perdona la mitad…';ln.appendChild(nt);g.appendChild(ln);f.appendChild(g);
+  f.appendChild(el_('div','sub','Lo retenido es lo que entra al balance. La reserva sigue cerrada. Si el abono es mayor, la diferencia queda como «a devolver».'));
+  var acc=el_('div','fila');acc.appendChild(btn('Guardar retención',function(){google.script.run.withSuccessHandler(function(){d.hidden=true;aviso('Retención actualizada ✔');cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminAjustarRetencion(r.codigo,Number(i.value)||0,nt.value)}));
+  acc.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
+}
 function formAjuste(r,fin){
   var d=$('jdet');d.textContent='';d.hidden=false;d.onclick=function(e){if(e.target===d)d.hidden=true};
   var f=el_('div','ficha-j');f.appendChild(el_('h3','',(fin?'Finalizar · ':'Ajustar cobro · ')+r.banda));

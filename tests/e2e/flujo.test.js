@@ -524,6 +524,27 @@ t('ajustar una reserva: descuento, total final, finalizar y balance coherente', 
   assert.throws(() => g.admin('adminAjustarReserva', r.codigo, { descuento: 99999999 }));
   g.admin('adminAjustarReserva', r.codigo, { descuento: 0 }); x = g.admin('adminJornadas').reservas.find((q) => q.codigo === r.codigo); assert.strictEqual(x.total, x.totalOriginal, 'quitar el ajuste restaura el total');
 });
+t('total ingresado a mano (p. ej. $2.000 en vez de $30.000) es el que entra al balance; descuadres se detectan y cuadran', () => {
+  const fecha = sumar(f3, 35);
+  const r = g.admin('adminReservaManual', { servicio: 'ensayo', fecha, inicio: 10, horas: 2, banda: 'Plan pasado', nombre: 'Gus', telefono: '+56 9 5555 6666', estado: 'Finalizada', total: '2000' });
+  assert.ok(r.ok, JSON.stringify(r));
+  const fila = g.hoja('Reservas').find((x) => x[0] === r.codigo);
+  const suma = [C.RES.base, C.RES.extrasM, C.RES.videoM, C.RES.rawM].reduce((a, k) => a + (Number(fila[k - 1]) || 0), 0);
+  assert.strictEqual(Number(fila[C.RES.total - 1]), 2000); assert.strictEqual(suma, 2000, 'los montos del balance suman el total ingresado');
+  const c = g.admin('adminResumenContable', 'mes', fecha.slice(0, 7)); assert.strictEqual(c.detalle.find((q) => q.codigo === r.codigo).total, 2000);
+  // reserva antigua con total cambiado a mano pero montos viejos → aparece en descuadres y se cuadra
+  g.estado.hojas['Reservas'].filas.forEach((fl) => { if (fl[0] === r.codigo) { fl[C.RES.base - 1] = 30000; fl[C.RES.original - 1] = ''; fl[C.RES.ajuste - 1] = ''; } });
+  assert.ok(g.admin('adminResumenContable', 'mes', fecha.slice(0, 7)).descuadres.some((q) => q.codigo === r.codigo));
+  g.admin('adminCuadrarReservas', [r.codigo]);
+  assert.ok(!g.admin('adminResumenContable', 'mes', fecha.slice(0, 7)).descuadres.some((q) => q.codigo === r.codigo));
+  assert.strictEqual(g.admin('adminResumenContable', 'mes', fecha.slice(0, 7)).detalle.find((q) => q.codigo === r.codigo).total, 2000);
+});
+t('editar la retención de No asiste (perdonar o cambiar el monto)', () => {
+  const x = g.admin('adminJornadas').reservas.find((q) => q.estado === 'No asiste'); assert.ok(x, 'hay una No asiste');
+  g.admin('adminAjustarRetencion', x.codigo, 0, 'Se perdona'); const y = g.admin('adminJornadas').reservas.find((q) => q.codigo === x.codigo); assert.strictEqual(y.retenido, 0);
+  g.admin('adminAjustarRetencion', x.codigo, 7000); assert.strictEqual(g.admin('adminJornadas').reservas.find((q) => q.codigo === x.codigo).retenido, 7000);
+});
+
 t('resumen contable mensual y semanal: sala, estudio, tienda, bebestibles y reparto', () => {
   const m = g.admin('adminResumenContable', 'mes', hoy.slice(0, 7));
   ['sala', 'estudio', 'arriendos', 'bruto', 'musica', 'bebestibles', 'mes', 'detalle', 'noAsiste'].forEach((k) => assert.ok(m[k] !== undefined, 'falta ' + k));

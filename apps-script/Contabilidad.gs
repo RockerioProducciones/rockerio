@@ -207,6 +207,7 @@ function adminResumenContable(periodo, ref) {
     detalle: detalle.sort(function (a, b) { return a.fecha < b.fecha ? -1 : 1; }),
     porDia: Object.keys(porDia).sort().map(function (k) { return { fecha: k, total: porDia[k] }; })
   };
+  out.descuadres = descuadres_().slice(0, 100);
   out.ingresosBrutos = sala.total + estudio.total + bruto.monto;
   if (R.periodo === 'mes') {
     var c = null; leerCostos_().forEach(function (x) { if (x.mes === R.ref) c = x; });
