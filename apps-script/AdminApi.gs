@@ -37,7 +37,7 @@ function adminResumen(mesVentas) {
       if (fecha < hoy && estado !== EST.SIN_ABONO) return;
       reservas.push({
         codigo: String(r[RES.codigo - 1]), estado: estado, servicio: String(r[RES.servicio - 1]), fecha: fecha,
-        inicio: String(r[RES.inicio - 1]), fin: String(r[RES.fin - 1]), banda: String(r[RES.banda - 1]),
+        inicio: horaCelda_(r[RES.inicio - 1]), fin: horaCelda_(r[RES.fin - 1]), banda: String(r[RES.banda - 1]),
         contacto: String(r[RES.contacto - 1]), telefono: String(r[RES.telefono - 1]),
         total: Number(r[RES.total - 1]) || 0, abono: Number(r[RES.abono - 1]) || 0,
         plan: String(r[RES.plan - 1] || ''), fechaTxt: Reglas.fechaLarga(fecha), saldo: (Number(r[RES.total - 1]) || 0) - (Number(r[RES.abono - 1]) || 0), retenido: Number(r[RES.retenido - 1]) || 0, devolver: Number(r[RES.devolver - 1]) || 0
@@ -502,7 +502,7 @@ function adminJornadas() {
       var fecha = aFechaIso_(r[RES.fecha - 1]), total = Number(r[RES.total - 1]) || 0, abono = Number(r[RES.abono - 1]) || 0;
       reservas.push({
         codigo: String(r[RES.codigo - 1]), estado: estadoNorm_(r[RES.estado - 1]) || String(r[RES.estado - 1]), servicio: String(r[RES.servicio - 1]),
-        fecha: fecha, fechaTxt: fecha ? Reglas.fechaLarga(fecha) : '', inicio: String(r[RES.inicio - 1]), fin: String(r[RES.fin - 1]), horas: Number(r[RES.horas - 1]) || 0,
+        fecha: fecha, fechaTxt: fecha ? Reglas.fechaLarga(fecha) : '', inicio: horaCelda_(r[RES.inicio - 1]), fin: horaCelda_(r[RES.fin - 1]), horas: Number(r[RES.horas - 1]) || 0,
         banda: String(r[RES.banda - 1]), contacto: String(r[RES.contacto - 1]), telefono: String(r[RES.telefono - 1]), correo: String(r[RES.correo - 1] || ''),
         extras: Number(r[RES.extras - 1]) || 0, video: String(r[RES.video - 1]) === 'SI', raw: String(r[RES.raw - 1]) === 'SI', zurdo: String(r[RES.zurdo - 1]) === 'SI',
         voces: Number(r[RES.voces - 1]) || 0, comentarios: String(r[RES.comentarios - 1] || ''),

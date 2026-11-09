@@ -88,7 +88,7 @@ function agendaDetalle_() {
   if (n > 1) sr.getRange(2, 1, n - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r) {
     var f = aFechaIso_(r[RES.fecha - 1]), e = estadoNorm_(r[RES.estado - 1]);
     if (!r[RES.codigo - 1] || f < desde || f > fin || e === EST.ANULADA) return;
-    out.push({ fecha: f, inicio: String(r[RES.inicio - 1]), fin: String(r[RES.fin - 1]), servicio: String(r[RES.servicio - 1]), banda: String(r[RES.banda - 1]), estado: e });
+    out.push({ fecha: f, inicio: horaCelda_(r[RES.inicio - 1]), fin: horaCelda_(r[RES.fin - 1]), servicio: String(r[RES.servicio - 1]), banda: String(r[RES.banda - 1]), estado: e });
   });
   var sb = ss.getSheetByName(HOJAS.bloqueos), m = sb.getLastRow();
   if (m > 1) sb.getRange(2, 1, m - 1, 4).getValues().forEach(function (r) {

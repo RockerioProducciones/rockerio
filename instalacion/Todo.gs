@@ -1105,9 +1105,21 @@ function aFechaIso_(v) {
 /** Acepta 19, "19", "19:00", "19:30" (se toma la hora). Devuelve null si está vacío. */
 function aHora_(v) {
   if (v === '' || v === null || v === undefined) return null;
+  if (Object.prototype.toString.call(v) === '[object Date]') return isNaN(v.getTime()) ? null : v.getHours();
   if (typeof v === 'number') return v < 1 ? Math.round(v * 24) : Math.floor(v);
   var m = /^\s*(\d{1,2})/.exec(String(v));
   return m ? Number(m[1]) : null;
+}
+
+/** Hora de una celda como «HH:mm» aunque Sheets la haya guardado como hora (fecha 1899) o número. */
+function horaCelda_(v) {
+  if (v === '' || v === null || v === undefined) return '';
+  if (Object.prototype.toString.call(v) === '[object Date]') {
+    if (isNaN(v.getTime())) return '';
+    return ('0' + v.getHours()).slice(-2) + ':' + ('0' + v.getMinutes()).slice(-2);
+  }
+  if (typeof v === 'number' && v < 1) { var t = Math.round(v * 1440); return ('0' + Math.floor(t / 60)).slice(-2) + ':' + ('0' + (t % 60)).slice(-2); }
+  return String(v);
 }
 
 /** Evita que un texto empiece con = + - @ y se ejecute como fórmula en la hoja. */
@@ -1133,6 +1145,16 @@ function asegurarEsquema_(ss) {
     if (sh) {
       if (sh.getMaxColumns() < RES.reagendos) sh.insertColumnsAfter(sh.getMaxColumns(), RES.reagendos - sh.getMaxColumns());
       if (!sh.getRange(1, RES.reagendos).getValue()) sh.getRange(1, RES.reagendos).setValue('Reagendos').setFontWeight('bold');
+    }
+    // Una sola vez: el cuadro de honor queda visible en la portada (si estaba apagado por una versión anterior).
+    var props = PropertiesService.getScriptProperties();
+    if (!props.getProperty('MIG_HONOR_1')) {
+      var hc = ss.getSheetByName(HOJAS.config), nh = hc ? hc.getLastRow() : 0;
+      if (nh > 1) {
+        var kk = hc.getRange(2, 1, nh - 1, 1).getValues();
+        for (var q = 0; q < kk.length; q++) if (String(kk[q][0]) === 'verHonor') { hc.getRange(q + 2, 2).setValue('SI'); break; }
+      }
+      props.setProperty('MIG_HONOR_1', '1');
     }
     cache.put('esq3', '1', 21600);
   } catch (e) { /* si falla, se reintenta en la próxima solicitud */ }
@@ -1542,7 +1564,7 @@ function adminResumen(mesVentas) {
       if (fecha < hoy && estado !== EST.SIN_ABONO) return;
       reservas.push({
         codigo: String(r[RES.codigo - 1]), estado: estado, servicio: String(r[RES.servicio - 1]), fecha: fecha,
-        inicio: String(r[RES.inicio - 1]), fin: String(r[RES.fin - 1]), banda: String(r[RES.banda - 1]),
+        inicio: horaCelda_(r[RES.inicio - 1]), fin: horaCelda_(r[RES.fin - 1]), banda: String(r[RES.banda - 1]),
         contacto: String(r[RES.contacto - 1]), telefono: String(r[RES.telefono - 1]),
         total: Number(r[RES.total - 1]) || 0, abono: Number(r[RES.abono - 1]) || 0,
         plan: String(r[RES.plan - 1] || ''), fechaTxt: Reglas.fechaLarga(fecha), saldo: (Number(r[RES.total - 1]) || 0) - (Number(r[RES.abono - 1]) || 0), retenido: Number(r[RES.retenido - 1]) || 0, devolver: Number(r[RES.devolver - 1]) || 0
@@ -2007,7 +2029,7 @@ function adminJornadas() {
       var fecha = aFechaIso_(r[RES.fecha - 1]), total = Number(r[RES.total - 1]) || 0, abono = Number(r[RES.abono - 1]) || 0;
       reservas.push({
         codigo: String(r[RES.codigo - 1]), estado: estadoNorm_(r[RES.estado - 1]) || String(r[RES.estado - 1]), servicio: String(r[RES.servicio - 1]),
-        fecha: fecha, fechaTxt: fecha ? Reglas.fechaLarga(fecha) : '', inicio: String(r[RES.inicio - 1]), fin: String(r[RES.fin - 1]), horas: Number(r[RES.horas - 1]) || 0,
+        fecha: fecha, fechaTxt: fecha ? Reglas.fechaLarga(fecha) : '', inicio: horaCelda_(r[RES.inicio - 1]), fin: horaCelda_(r[RES.fin - 1]), horas: Number(r[RES.horas - 1]) || 0,
         banda: String(r[RES.banda - 1]), contacto: String(r[RES.contacto - 1]), telefono: String(r[RES.telefono - 1]), correo: String(r[RES.correo - 1] || ''),
         extras: Number(r[RES.extras - 1]) || 0, video: String(r[RES.video - 1]) === 'SI', raw: String(r[RES.raw - 1]) === 'SI', zurdo: String(r[RES.zurdo - 1]) === 'SI',
         voces: Number(r[RES.voces - 1]) || 0, comentarios: String(r[RES.comentarios - 1] || ''),
@@ -2631,7 +2653,7 @@ function leerPlanes_() {
     sr.getRange(2, 1, m - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r) {
       var pl = String(r[RES.plan - 1]);
       if (!pl) return;
-      (ses[pl] = ses[pl] || []).push({ codigo: String(r[RES.codigo - 1]), fecha: aFechaIso_(r[RES.fecha - 1]), inicio: String(r[RES.inicio - 1]), fin: String(r[RES.fin - 1]), estado: estadoNorm_(r[RES.estado - 1]) });
+      (ses[pl] = ses[pl] || []).push({ codigo: String(r[RES.codigo - 1]), fecha: aFechaIso_(r[RES.fecha - 1]), inicio: horaCelda_(r[RES.inicio - 1]), fin: horaCelda_(r[RES.fin - 1]), estado: estadoNorm_(r[RES.estado - 1]) });
     });
   }
   sp.getRange(2, 1, n - 1, PLAN_COLS).getValues().forEach(function (r) {
@@ -3182,7 +3204,7 @@ function agendaDetalle_() {
   if (n > 1) sr.getRange(2, 1, n - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r) {
     var f = aFechaIso_(r[RES.fecha - 1]), e = estadoNorm_(r[RES.estado - 1]);
     if (!r[RES.codigo - 1] || f < desde || f > fin || e === EST.ANULADA) return;
-    out.push({ fecha: f, inicio: String(r[RES.inicio - 1]), fin: String(r[RES.fin - 1]), servicio: String(r[RES.servicio - 1]), banda: String(r[RES.banda - 1]), estado: e });
+    out.push({ fecha: f, inicio: horaCelda_(r[RES.inicio - 1]), fin: horaCelda_(r[RES.fin - 1]), servicio: String(r[RES.servicio - 1]), banda: String(r[RES.banda - 1]), estado: e });
   });
   var sb = ss.getSheetByName(HOJAS.bloqueos), m = sb.getLastRow();
   if (m > 1) sb.getRange(2, 1, m - 1, 4).getValues().forEach(function (r) {
@@ -3700,7 +3722,7 @@ function enviarRecordatorios() {
       var celda = sh.getRange(i + 2, RES.recordatorio);
       try {
         enviarWhatsApp_(cfg, String(f[RES.telefono - 1]), parametrosRecordatorio_({ contacto: String(f[RES.contacto - 1]), servicio: String(f[RES.servicio - 1]),
-          fecha: manana, inicio: String(f[RES.inicio - 1]), fin: String(f[RES.fin - 1]) }));
+          fecha: manana, inicio: horaCelda_(f[RES.inicio - 1]), fin: horaCelda_(f[RES.fin - 1]) }));
         celda.setValue('Enviado ' + Utilities.formatDate(new Date(), Reglas.TZ, 'yyyy-MM-dd HH:mm')); enviados++;
       } catch (e) {
         celda.setValue('ERROR: ' + String(e.message || e).slice(0, 120));

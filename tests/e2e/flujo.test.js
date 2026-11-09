@@ -494,4 +494,13 @@ t('enlace social/familia: solo agenda; no puede vender', () => {
   assert.strictEqual(gx.post({ accion: 'socios_vender', t: s.token, tipo: 'musica', fila: 2, cantidad: 1, pago: 'Venta efectivo' }).ok, false);
 });
 
+t('las horas que Sheets guarda como hora (fecha 1899) se muestran HH:mm y cuentan para la agenda', () => {
+  const d = new Date(1899, 11, 30, 19, 0, 0);
+  assert.strictEqual(C.horaCelda_(d), '19:00');
+  assert.strictEqual(C.aHora_(d), 19);
+  assert.strictEqual(C.horaCelda_(0.75), '18:00');
+  assert.strictEqual(C.horaCelda_('21:00'), '21:00');
+  assert.strictEqual(C.horaCelda_(''), '');
+});
+
 console.log('\n' + ok + ' pasos correctos, ' + fallas + ' con falla.');

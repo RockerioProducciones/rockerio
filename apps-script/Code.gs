@@ -569,9 +569,21 @@ function aFechaIso_(v) {
 /** Acepta 19, "19", "19:00", "19:30" (se toma la hora). Devuelve null si está vacío. */
 function aHora_(v) {
   if (v === '' || v === null || v === undefined) return null;
+  if (Object.prototype.toString.call(v) === '[object Date]') return isNaN(v.getTime()) ? null : v.getHours();
   if (typeof v === 'number') return v < 1 ? Math.round(v * 24) : Math.floor(v);
   var m = /^\s*(\d{1,2})/.exec(String(v));
   return m ? Number(m[1]) : null;
+}
+
+/** Hora de una celda como «HH:mm» aunque Sheets la haya guardado como hora (fecha 1899) o número. */
+function horaCelda_(v) {
+  if (v === '' || v === null || v === undefined) return '';
+  if (Object.prototype.toString.call(v) === '[object Date]') {
+    if (isNaN(v.getTime())) return '';
+    return ('0' + v.getHours()).slice(-2) + ':' + ('0' + v.getMinutes()).slice(-2);
+  }
+  if (typeof v === 'number' && v < 1) { var t = Math.round(v * 1440); return ('0' + Math.floor(t / 60)).slice(-2) + ':' + ('0' + (t % 60)).slice(-2); }
+  return String(v);
 }
 
 /** Evita que un texto empiece con = + - @ y se ejecute como fórmula en la hoja. */
@@ -597,6 +609,16 @@ function asegurarEsquema_(ss) {
     if (sh) {
       if (sh.getMaxColumns() < RES.reagendos) sh.insertColumnsAfter(sh.getMaxColumns(), RES.reagendos - sh.getMaxColumns());
       if (!sh.getRange(1, RES.reagendos).getValue()) sh.getRange(1, RES.reagendos).setValue('Reagendos').setFontWeight('bold');
+    }
+    // Una sola vez: el cuadro de honor queda visible en la portada (si estaba apagado por una versión anterior).
+    var props = PropertiesService.getScriptProperties();
+    if (!props.getProperty('MIG_HONOR_1')) {
+      var hc = ss.getSheetByName(HOJAS.config), nh = hc ? hc.getLastRow() : 0;
+      if (nh > 1) {
+        var kk = hc.getRange(2, 1, nh - 1, 1).getValues();
+        for (var q = 0; q < kk.length; q++) if (String(kk[q][0]) === 'verHonor') { hc.getRange(q + 2, 2).setValue('SI'); break; }
+      }
+      props.setProperty('MIG_HONOR_1', '1');
     }
     cache.put('esq3', '1', 21600);
   } catch (e) { /* si falla, se reintenta en la próxima solicitud */ }

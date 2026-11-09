@@ -222,7 +222,7 @@ section{border-top:1px solid var(--borde);border-radius:14px;background:var(--pa
 .dia.sel{border-color:var(--oro)}
 .dia-cab{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:.5rem}.dia-cab h4{margin:0;flex:1;min-width:160px;text-transform:capitalize}
 .ses{border:1px solid var(--borde);border-left:5px solid #22c55e;border-radius:10px;background:rgba(0,0,0,.25);padding:.6rem .8rem;margin:.5rem 0}.ses-est{border-left-color:#ef4444}.ses-plan{border-left-color:#f59e0b}.ses.sin{border-style:dashed;border-left-style:solid}.ses.anu{opacity:.55}
-.ses-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.ses-top b{color:var(--oro);font-size:1.05rem}.ses-b{font-weight:700;flex:1}.ses-e{font-size:.72rem;border:1px solid var(--borde);border-radius:999px;padding:.15rem .6rem;color:var(--mut)}
+.temas-sw{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:10px}.tsw{display:flex;align-items:center;gap:8px;padding:10px;border:2px solid;border-radius:10px;cursor:pointer;font-weight:700}.tsw i{width:16px;height:16px;border-radius:50%;display:inline-block}.tsw.on{box-shadow:0 0 0 3px #fff3}.tsw.on::after{content:'✔';margin-left:auto;color:#fff}.ses-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.ses-top b{color:var(--oro);font-size:1.05rem}.ses-b{font-weight:700;flex:1;color:var(--oro);font-size:1.02rem}.ses-e{font-size:.72rem;border:1px solid var(--borde);border-radius:999px;padding:.15rem .6rem;color:var(--mut)}
 .ses-m{color:var(--mut);font-size:.8rem;margin:.2rem 0 .5rem}.ses-ac{display:flex;gap:6px;flex-wrap:wrap}
 @media(max-width:760px){
   .jstats{grid-template-columns:repeat(2,1fr)}.jtit h3{font-size:1.3rem}
@@ -289,7 +289,7 @@ section{border-top:1px solid var(--borde);border-radius:14px;background:var(--pa
 <section><h2>Presentación personal</h2><div class="fila" style="flex-direction:column;align-items:stretch">
 <input id="prt" placeholder="Título (ej. Mi enfoque)" maxlength="80"><textarea id="prx" rows="8" maxlength="3000" placeholder="Tu visión y enfoque técnico y artístico. Separa los párrafos con una línea en blanco. Vacío = la sección no se muestra en el sitio."></textarea>
 <div><button id="prg">Guardar presentación</button></div></div></section>
-<section><h2>Configuración</h2>
+<section><h2>Configuración</h2><h3 style="margin:.2rem 0">Tema del sitio</h3><div style="color:#b5afa6;font-size:13px;margin-bottom:6px">Toca un tema: se guarda y se aplica a la web pública al tiro (cada visitante igual puede cambiarlo con el selector de su pantalla).</div><div id="temas-sw" class="temas-sw"></div>
 <p style="color:#b5afa6;margin:0 0 .5em">Aquí cambias casi todo: precios, reglas de reserva, pagos, reparto entre socios y funciones. Cada campo tiene una ayuda debajo. Los cambios se aplican al sitio en un par de minutos.</p>
 <div id="ajustes"></div><div class="fila" style="margin-top:8px"><button id="ajg">Guardar configuración</button></div>
 <h3 style="margin:1em 0 .2em;font-size:15px">Horarios de atención</h3>
@@ -414,7 +414,11 @@ function pintarConta(d){
 }
 $('cfg').onclick=function(){if($('cf').checked&&!confirm('¿Activar la contabilidad formal? Solo hazlo si ya iniciaste actividades en el SII o vas a hacerlo.'))return;ejecutar('adminConfigurar',$('activas').checked,$('banner').value,$('pagoon').checked,$('pagotr').checked,$('tema').value,$('surl').value,$('cf').checked,$('rg').value)};
 
-function pintarAjustes(d){
+var TEMAS_SW=[['rockerio','Rockerío','#141413','#FCC631'],['medianoche','Medianoche','#080b12','#7cc4ff'],['vino','Vino','#140c0d','#f0b27a'],['bosque','Bosque','#0b120e','#9be37a'],['grafito','Grafito','#0f0f10','#e5e5e5'],['azufre','Azufre','#131208','#f5e642'],['abismo','Abismo','#060e0f','#4fe0d0'],['cobre','Cobre','#140e0b','#e8905a'],['ciruela','Ciruela','#110c15','#d9a6ff'],['carbon','Carbón','#040404','#E39A2D']];
+function pintarTemas(d){var c=$('temas-sw');if(!c)return;var act='';(d.ajustes||[]).forEach(function(a){if(a.clave==='tema')act=a.valor});c.textContent='';
+  TEMAS_SW.forEach(function(t){var b=document.createElement('button');b.type='button';b.className='tsw'+(t[0]===act?' on':'');b.style.background=t[2];b.style.borderColor=t[3];var p=document.createElement('i');p.style.background=t[3];b.appendChild(p);var n=document.createElement('span');n.textContent=t[1];n.style.color=t[3];b.appendChild(n);
+    b.onclick=function(){ejecutar('adminGuardarAjustes',{tema:t[0]});aviso('Tema «'+t[1]+'» guardado ✔')};c.appendChild(b)})}
+function pintarAjustes(d){pintarTemas(d);
   var cont=$('ajustes'),abiertos={};[].forEach.call(cont.querySelectorAll('details[open] > summary'),function(x){abiertos[x.textContent]=1});cont.textContent='';var grupo='',det=null;
   (d.ajustes||[]).forEach(function(a){
     if(a.grupo!==grupo){grupo=a.grupo;det=document.createElement('details');det.open=!!abiertos[grupo];det.style.cssText='margin:6px 0;border:1px solid #454240;border-radius:8px;padding:6px 10px';var sm=document.createElement('summary');sm.textContent=grupo;sm.style.cssText='cursor:pointer;font-weight:700;color:#FCC631';det.appendChild(sm);cont.appendChild(det)}
@@ -814,8 +818,8 @@ function diaJor(f){
   if(!rs.length&&!bq.length)h.appendChild(par('Sin jornadas ni bloqueos este día.','color:#b5afa6'));
   bq.forEach(function(x){var r=el_('div','fila');r.appendChild(chipBloq(x));if(x.fila)r.appendChild(btn('Quitar bloqueo',function(){confirmarSN('¿Quitar este bloqueo de la agenda?',function(){jrun('adminDesbloquear',x.fila)},'Sí, quitar')},'sec'));h.appendChild(r)});
   rs.forEach(function(r){var k=el_('div','ses ses-'+claseServ(r)+' '+(CLASE_EST[r.estado]||''));
-    var top=el_('div','ses-top');top.appendChild(el_('b','',r.inicio+' – '+r.fin));top.appendChild(el_('span','ses-b',r.banda));top.appendChild(el_('span','ses-e',r.estado));k.appendChild(top);
-    k.appendChild(el_('div','ses-m',r.servicio+(r.plan?' · Plan '+r.plan:'')+' · '+r.contacto+' · '+clp(r.total)+(r.reag?' · reagendada '+r.reag+'/'+(JOR.maxReag||2):'')));
+    var top=el_('div','ses-top');top.appendChild(el_('b','ses-b',r.inicio+' - '+r.fin+' / '+String(r.banda||'').toUpperCase()+' / '+String(r.contacto||'').toUpperCase()));top.appendChild(el_('span','ses-e',r.estado));k.appendChild(top);
+    k.appendChild(el_('div','ses-m',r.servicio+(r.plan?' · Plan '+r.plan:'')+' · '+clp(r.total)+(r.reag?' · reagendada '+r.reag+'/'+(JOR.maxReag||2):'')));
     var ac=el_('div','ses-ac');ac.appendChild(btn('Ver ficha',function(){fichaJor(r)},'sec'));
     ac.appendChild(btn('Editar',function(){editarDe(r)},'sec'));
     if(r.estado==='Reservado (sin abono)'||r.estado==='Reservado (con abono)'){ac.appendChild(btn('Finalizar',function(){confirmarSN('¿Marcar la sesión de '+r.banda+' como finalizada?',function(){jrun('adminCambiarEstado',r.codigo,'Finalizada')},'Sí, finalizar')}));ac.appendChild(btn('Reagendar',function(){formReag(r)},'sec'))}

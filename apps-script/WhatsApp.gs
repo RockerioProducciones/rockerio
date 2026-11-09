@@ -98,7 +98,7 @@ function enviarRecordatorios() {
       var celda = sh.getRange(i + 2, RES.recordatorio);
       try {
         enviarWhatsApp_(cfg, String(f[RES.telefono - 1]), parametrosRecordatorio_({ contacto: String(f[RES.contacto - 1]), servicio: String(f[RES.servicio - 1]),
-          fecha: manana, inicio: String(f[RES.inicio - 1]), fin: String(f[RES.fin - 1]) }));
+          fecha: manana, inicio: horaCelda_(f[RES.inicio - 1]), fin: horaCelda_(f[RES.fin - 1]) }));
         celda.setValue('Enviado ' + Utilities.formatDate(new Date(), Reglas.TZ, 'yyyy-MM-dd HH:mm')); enviados++;
       } catch (e) {
         celda.setValue('ERROR: ' + String(e.message || e).slice(0, 120));

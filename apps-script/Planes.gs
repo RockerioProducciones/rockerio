@@ -113,7 +113,7 @@ function leerPlanes_() {
     sr.getRange(2, 1, m - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r) {
       var pl = String(r[RES.plan - 1]);
       if (!pl) return;
-      (ses[pl] = ses[pl] || []).push({ codigo: String(r[RES.codigo - 1]), fecha: aFechaIso_(r[RES.fecha - 1]), inicio: String(r[RES.inicio - 1]), fin: String(r[RES.fin - 1]), estado: estadoNorm_(r[RES.estado - 1]) });
+      (ses[pl] = ses[pl] || []).push({ codigo: String(r[RES.codigo - 1]), fecha: aFechaIso_(r[RES.fecha - 1]), inicio: horaCelda_(r[RES.inicio - 1]), fin: horaCelda_(r[RES.fin - 1]), estado: estadoNorm_(r[RES.estado - 1]) });
     });
   }
   sp.getRange(2, 1, n - 1, PLAN_COLS).getValues().forEach(function (r) {
