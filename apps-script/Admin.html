@@ -637,11 +637,11 @@ function pintarRC(d){
       {c:['Utilidad de la sala',clp(m.utilidadSala)],tot:1},
       {c:['   Juan Carlos ('+m.pct.salaJC+'%)',clp(m.salaJC)]},{c:['   Jaime ('+m.pct.salaJaime+'%)',clp(m.salaJaime)]},
       {c:['± Otros ingresos y gastos del estudio (con nota)',clp(m.movEstudio)]},{c:['Utilidad del estudio',clp(m.utilidadEstudio)],tot:1},
-      {c:['   Estudio ('+m.pct.estudioEstudio+'%)',clp(m.estudioEstudio)]},{c:['   Juan Carlos ('+m.pct.estudioJC+'%)',clp(m.estudioJC)]},
+      {c:['   🎛️ Gabriela · horas de estudio ('+m.pct.estudioEstudio+'%)',clp(m.estudioEstudio)]},{c:['   🎛️ Juan Carlos · horas de estudio ('+m.pct.estudioJC+'%) — ítem aparte',clp(m.estudioJC)]},
       {c:['Material en bruto (Juan Carlos 100%)',clp(m.brutoJC)]},
-      {c:['TOTAL JUAN CARLOS',clp(m.totalJC)],tot:1},{c:['TOTAL JAIME',clp(m.totalJaime)],tot:1},{c:['TOTAL ESTUDIO',clp(m.totalEstudio)],tot:1}
+      {c:['TOTAL JUAN CARLOS',clp(m.totalJC)],tot:1},{c:['   de ellos, horas de estudio (ítem aparte)',clp(m.estudioJC)]},{c:['TOTAL JAIME',clp(m.totalJaime)],tot:1},{c:['TOTAL GABRIELA',clp(m.totalGabriela)],tot:1}
     ]));
-    b.appendChild(par('Gabriela: este reparto aún no tiene un porcentaje para ella; dime cómo participa y lo agrego al cierre.','color:#b5afa6;font-size:13px;margin:.3rem 0'))}
+    b.appendChild(par('Horas de estudio de grabación ($30.000 por hora): 60% Gabriela y 40% Juan Carlos, mostrados como ítem aparte. Los porcentajes se cambian en Configuración → Reparto de ingresos.','color:#b5afa6;font-size:13px;margin:.3rem 0'))}
   else{b.appendChild(el_('h3','rc-h','Ingresos por día'));b.appendChild(d.porDia.length?rcTabla(['Día','Total'],d.porDia.map(function(x){return{c:[fechaCorta(x.fecha),clp(x.total)]}})):par('Sin ingresos en la semana.','color:#b5afa6'))}
   if((d.descuadres||[]).length){var dq=el_('div','rc-warn');dq.appendChild(el_('b','','⚠ '+d.descuadres.length+' reserva(s) cuyo total no coincide con lo que cuenta el balance. '));dq.appendChild(document.createTextNode('Suele pasar cuando el total se cambió a mano en versiones anteriores. «Cuadrar» deja el balance igual al total de cada reserva (el total que tú pusiste no cambia).'));
     dq.appendChild(rcTabla(['Fecha','Reserva','Estado','Total reserva','Cuenta el balance'],d.descuadres.map(function(x){return{c:[fechaCorta(x.fecha),x.codigo+' · '+x.banda,x.estado,clp(x.total),clp(x.montos)]}})));

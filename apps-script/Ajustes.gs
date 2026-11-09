@@ -97,8 +97,8 @@ var ESQUEMA = [
 
   ['repartoSalaJC', 'Sala: % Juan Carlos', 'num', 'Reparto de ingresos', 'Sala de ensayo. Este % + el de Jaime deben sumar 100.', 100],
   ['repartoSalaJaime', 'Sala: % Jaime', 'num', 'Reparto de ingresos', 'Sala de ensayo. Debe sumar 100 con el de Juan Carlos.', 100],
-  ['repartoEstudioJC', 'Estudio: % Juan Carlos', 'num', 'Reparto de ingresos', 'Estudio de grabación. Debe sumar 100 con el del estudio.', 100],
-  ['repartoEstudioEstudio', 'Estudio: % que queda al estudio', 'num', 'Reparto de ingresos', 'Estudio de grabación. Debe sumar 100 con el de Juan Carlos.', 100],
+  ['repartoEstudioJC', 'Estudio: % Juan Carlos (por defecto 40)', 'num', 'Reparto de ingresos', 'Horas de estudio de grabación. Debe sumar 100 con el de Gabriela.', 100],
+  ['repartoEstudioEstudio', 'Estudio: % Gabriela (por defecto 60)', 'num', 'Reparto de ingresos', 'Horas de estudio de grabación. Debe sumar 100 con el de Juan Carlos.', 100],
   ['aporteLuzProAudix', 'Aporte mensual de ProAudix a la luz', 'pesos', 'Reparto de ingresos', 'Valor por defecto; cada mes puedes cambiarlo en «Costos del mes».'],
   ['cajaChicaMensual', 'Caja chica mensual', 'pesos', 'Reparto de ingresos', 'Valor por defecto; cada mes puedes cambiarlo en «Costos del mes».'],
 
@@ -161,7 +161,7 @@ function adminGuardarAjustes(datos) {
   Object.keys(datos || {}).forEach(function (k) { if (mapa[k]) salida[k] = validarAjuste_(mapa[k], datos[k]); });
   var get = function (k) { return salida[k] !== undefined ? salida[k] : getCfg_()[k]; };
   if (get('repartoSalaJC') + get('repartoSalaJaime') !== 100) throw new Error('En la sala, los porcentajes de Juan Carlos y Jaime deben sumar 100.');
-  if (get('repartoEstudioJC') + get('repartoEstudioEstudio') !== 100) throw new Error('En el estudio, los porcentajes de Juan Carlos y del estudio deben sumar 100.');
+  if (get('repartoEstudioJC') + get('repartoEstudioEstudio') !== 100) throw new Error('En el estudio, los porcentajes de Juan Carlos y de Gabriela deben sumar 100.');
   if (get('ensayoMinHoras') > get('ensayoMaxHoras') || get('grabacionMinHoras') > get('grabacionMaxHoras')) throw new Error('El mínimo de horas no puede ser mayor que el máximo.');
   if (get('minutosReserva') < 5 || get('minutosReserva') > 180) throw new Error('Los minutos que se guarda el horario deben estar entre 5 y 180.');
   return conBloqueo_(function () { ponerConfig_(salida); return adminResumen(); });

@@ -1348,7 +1348,7 @@ function prepararConfig_(ss) {
     ['repartoSalaJC', d.repartoSalaJC, 'Sala de ensayo: % de Juan Carlos. Junto con repartoSalaJaime debe sumar 100.'],
     ['repartoSalaJaime', d.repartoSalaJaime, 'Sala de ensayo: % de Jaime.'],
     ['repartoEstudioJC', d.repartoEstudioJC, 'Estudio de grabación: % de Juan Carlos. Junto con repartoEstudioEstudio debe sumar 100.'],
-    ['repartoEstudioEstudio', d.repartoEstudioEstudio, 'Estudio de grabación: % que queda para el estudio.'],
+    ['repartoEstudioEstudio', d.repartoEstudioEstudio, 'Estudio de grabación: % de Gabriela (el resto es de Juan Carlos).'],
     ['aporteLuzProAudix', d.aporteLuzProAudix, 'Lo que ProAudix aporta cada mes a la boleta de luz (valor por defecto; cada mes se puede cambiar en CostosMes).'],
     ['cajaChicaMensual', d.cajaChicaMensual, 'Caja chica que se aparta cada mes antes de repartir (valor por defecto).'],
     ['contabilidadFormal', 'NO', 'SI o NO. SI activa la contabilidad formal mensual: IVA, PPM, impuesto simulado y registro de compras (hoja Tributario). Actívala cuando inicies actividades en el SII.'],
@@ -1528,8 +1528,8 @@ function prepararBalance_(ss) {
     /* 37 */ ['  Juan Carlos (sala)', '=B36*C37', '=' + cn('repartoSalaJC', 50) + '/100'],
     /* 38 */ ['  Jaime (sala)', '=B36*C38', '=' + cn('repartoSalaJaime', 50) + '/100'],
     /* 39 */ ['Utilidad del estudio', '=B21', 'Total estudio'],
-    /* 40 */ ['  Estudio', '=B39*C40', '=' + cn('repartoEstudioEstudio', 60) + '/100'],
-    /* 41 */ ['  Juan Carlos (estudio)', '=B39*C41', '=' + cn('repartoEstudioJC', 40) + '/100'],
+    /* 40 */ ['  Gabriela (estudio)', '=B39*C40', '=' + cn('repartoEstudioEstudio', 60) + '/100'],
+    /* 41 */ ['  Juan Carlos (estudio, ítem aparte)', '=B39*C41', '=' + cn('repartoEstudioJC', 40) + '/100'],
     /* 42 */ ['Material en bruto (100% Juan Carlos)', '=B22', ''],
     /* 43 */ ['', '', ''],
     /* 44 */ ['TOTAL JUAN CARLOS', '=B37+B41+B42', ''],
@@ -3773,7 +3773,7 @@ function adminResumenContable(periodo, ref) {
       brutoJC: bruto.monto,
       pct: { salaJC: cfg.repartoSalaJC, salaJaime: cfg.repartoSalaJaime, estudioEstudio: cfg.repartoEstudioEstudio, estudioJC: cfg.repartoEstudioJC }
     };
-    out.mes.totalJC = out.mes.salaJC + out.mes.estudioJC + bruto.monto; out.mes.totalJaime = out.mes.salaJaime; out.mes.totalEstudio = out.mes.estudioEstudio;
+    out.mes.totalJC = out.mes.salaJC + out.mes.estudioJC + bruto.monto; out.mes.totalJaime = out.mes.salaJaime; out.mes.totalEstudio = out.mes.estudioEstudio; out.mes.totalGabriela = out.mes.estudioEstudio; out.mes.estudioJCTotal = out.mes.estudioJC;
     out.meses = [];
     var yy = Number(R.ref.slice(0, 4)), mx = Number(R.ref.slice(5, 7));
     for (var k = 0; k < 12; k++) { var d = new Date(Date.UTC(yy, mx - 1 - k, 1)); out.meses.push(d.getUTCFullYear() + '-' + ('0' + (d.getUTCMonth() + 1)).slice(-2)); }
@@ -3881,8 +3881,8 @@ var ESQUEMA = [
 
   ['repartoSalaJC', 'Sala: % Juan Carlos', 'num', 'Reparto de ingresos', 'Sala de ensayo. Este % + el de Jaime deben sumar 100.', 100],
   ['repartoSalaJaime', 'Sala: % Jaime', 'num', 'Reparto de ingresos', 'Sala de ensayo. Debe sumar 100 con el de Juan Carlos.', 100],
-  ['repartoEstudioJC', 'Estudio: % Juan Carlos', 'num', 'Reparto de ingresos', 'Estudio de grabación. Debe sumar 100 con el del estudio.', 100],
-  ['repartoEstudioEstudio', 'Estudio: % que queda al estudio', 'num', 'Reparto de ingresos', 'Estudio de grabación. Debe sumar 100 con el de Juan Carlos.', 100],
+  ['repartoEstudioJC', 'Estudio: % Juan Carlos (por defecto 40)', 'num', 'Reparto de ingresos', 'Horas de estudio de grabación. Debe sumar 100 con el de Gabriela.', 100],
+  ['repartoEstudioEstudio', 'Estudio: % Gabriela (por defecto 60)', 'num', 'Reparto de ingresos', 'Horas de estudio de grabación. Debe sumar 100 con el de Juan Carlos.', 100],
   ['aporteLuzProAudix', 'Aporte mensual de ProAudix a la luz', 'pesos', 'Reparto de ingresos', 'Valor por defecto; cada mes puedes cambiarlo en «Costos del mes».'],
   ['cajaChicaMensual', 'Caja chica mensual', 'pesos', 'Reparto de ingresos', 'Valor por defecto; cada mes puedes cambiarlo en «Costos del mes».'],
 
@@ -3945,7 +3945,7 @@ function adminGuardarAjustes(datos) {
   Object.keys(datos || {}).forEach(function (k) { if (mapa[k]) salida[k] = validarAjuste_(mapa[k], datos[k]); });
   var get = function (k) { return salida[k] !== undefined ? salida[k] : getCfg_()[k]; };
   if (get('repartoSalaJC') + get('repartoSalaJaime') !== 100) throw new Error('En la sala, los porcentajes de Juan Carlos y Jaime deben sumar 100.');
-  if (get('repartoEstudioJC') + get('repartoEstudioEstudio') !== 100) throw new Error('En el estudio, los porcentajes de Juan Carlos y del estudio deben sumar 100.');
+  if (get('repartoEstudioJC') + get('repartoEstudioEstudio') !== 100) throw new Error('En el estudio, los porcentajes de Juan Carlos y de Gabriela deben sumar 100.');
   if (get('ensayoMinHoras') > get('ensayoMaxHoras') || get('grabacionMinHoras') > get('grabacionMaxHoras')) throw new Error('El mínimo de horas no puede ser mayor que el máximo.');
   if (get('minutosReserva') < 5 || get('minutosReserva') > 180) throw new Error('Los minutos que se guarda el horario deben estar entre 5 y 180.');
   return conBloqueo_(function () { ponerConfig_(salida); return adminResumen(); });

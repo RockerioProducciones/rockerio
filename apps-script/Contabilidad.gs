@@ -320,7 +320,7 @@ function adminResumenContable(periodo, ref) {
       brutoJC: bruto.monto,
       pct: { salaJC: cfg.repartoSalaJC, salaJaime: cfg.repartoSalaJaime, estudioEstudio: cfg.repartoEstudioEstudio, estudioJC: cfg.repartoEstudioJC }
     };
-    out.mes.totalJC = out.mes.salaJC + out.mes.estudioJC + bruto.monto; out.mes.totalJaime = out.mes.salaJaime; out.mes.totalEstudio = out.mes.estudioEstudio;
+    out.mes.totalJC = out.mes.salaJC + out.mes.estudioJC + bruto.monto; out.mes.totalJaime = out.mes.salaJaime; out.mes.totalEstudio = out.mes.estudioEstudio; out.mes.totalGabriela = out.mes.estudioEstudio; out.mes.estudioJCTotal = out.mes.estudioJC;
     out.meses = [];
     var yy = Number(R.ref.slice(0, 4)), mx = Number(R.ref.slice(5, 7));
     for (var k = 0; k < 12; k++) { var d = new Date(Date.UTC(yy, mx - 1 - k, 1)); out.meses.push(d.getUTCFullYear() + '-' + ('0' + (d.getUTCMonth() + 1)).slice(-2)); }
