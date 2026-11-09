@@ -406,12 +406,15 @@
     function linea(t, v) { var f = el('div', 'ro-it'); f.appendChild(el('span', '', t)); f.appendChild(el('b', '', R.clp(v))); its.appendChild(f); }
     if (S.inicio !== null) {
       var ok = R.addonsPermitidos(cfg, S.servicio, S.horas), p = R.calcularPrecio(cfg, s), g = R.grabacionIncluidaMin(cfg, S.servicio, S.horas);
-      if (ens && s.extras) fila(dl, '🎸 Arriendos', arriendosElegidos().map(function (n) { return n.split(':')[0]; }).join(', '));
-      if (ens && s.zurdo) fila(dl, '🥁 Batería', 'Zurdo');
+      if (ens) fila(dl, '🥁 Batería', s.zurdo ? 'Zurdo' : 'Diestro');
+      if (ens && Number($('voces').value) > 0) fila(dl, '🎤 Micrófonos vocales', $('voces').value);
       linea((ens ? 'Sala de ensayo' : 'Estudio de grabación') + ' (' + hrs + ')', p.base);
-      if (p.extras) linea('Arriendos de equipos (' + s.extras + ')', p.extras);
-      if (p.video && s.video && ok) linea('Grabación en video GoPro Hero 13', p.video);
-      if (p.raw && s.raw && ok) linea('Material en bruto multitrack', p.raw);
+      if (p.extras) {
+        var arr = arriendosElegidos(), unit = arr.length ? Math.round(p.extras / arr.length) : p.extras;
+        arr.forEach(function (n) { linea('🎸 ' + n.split(':')[0] + (cfg.extraModo === 'hora' ? ' (' + S.horas + (S.horas === 1 ? ' hr' : ' hrs') + ')' : ''), unit); });
+      }
+      if (p.video && s.video && ok) linea('🎥 Grabación en video GoPro Hero 13', p.video);
+      if (p.raw && s.raw && ok) linea('💾 Material en bruto multitrack', p.raw);
       if (p.horasConveniente) its.appendChild(el('div', 'nota ahorro', '✔ Tarifa conveniente aplicada en ' + p.horasConveniente + (p.horasConveniente === 1 ? ' hora' : ' horas') + ' (ahorras ' + R.clp(p.ahorro) + ').'));
       if (g) its.appendChild(el('div', 'nota ahorro', '🎙️ Incluye ' + R.minutosTxt(g) + ' de grabación con mezcla.'));
       var t1 = el('div', 'ro-tot'); t1.appendChild(el('span', '', 'Total de la sesión:')); t1.appendChild(el('b', '', R.clp(p.total))); tot.appendChild(t1);
