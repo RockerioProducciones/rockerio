@@ -511,6 +511,19 @@ t('«No asiste» cobra $5.000 por hora reservada, haya abono o no, y aparece en 
   const c = g.admin('adminResumenContable', 'mes', sumar(f3, 14).slice(0, 7));
   assert.ok(c.sala.retenidos >= 10000);
 });
+t('ajustar una reserva: descuento, total final, finalizar y balance coherente', () => {
+  const r = g.post(sol({ fecha: sumar(f3, 14), inicio: 20, horas: 2, telefono: '56944445555', banda: 'Descuentos', nombre: 'Rita Mora', correo: 'r@r.cl' })); assert.ok(r.ok, JSON.stringify(r));
+  g.admin('adminCambiarEstado', r.codigo, 'Reservado (con abono)');
+  g.admin('adminAjustarReserva', r.codigo, { descuento: 5000, nota: 'Cliente frecuente', finalizar: true });
+  let x = g.admin('adminJornadas').reservas.find((q) => q.codigo === r.codigo);
+  assert.strictEqual(x.estado, 'Finalizada'); assert.strictEqual(x.ajuste, 5000); assert.strictEqual(x.total, x.totalOriginal - 5000);
+  g.admin('adminAjustarReserva', r.codigo, { totalFinal: x.totalOriginal - 12000, nota: 'Ajuste' });
+  x = g.admin('adminJornadas').reservas.find((q) => q.codigo === r.codigo); assert.strictEqual(x.ajuste, 12000);
+  const c = g.admin('adminResumenContable', 'mes', sumar(f3, 14).slice(0, 7)); const d = c.detalle.find((q) => q.codigo === r.codigo);
+  assert.strictEqual(d.total, x.totalOriginal - 12000, 'el resumen contable usa el total ajustado');
+  assert.throws(() => g.admin('adminAjustarReserva', r.codigo, { descuento: 99999999 }));
+  g.admin('adminAjustarReserva', r.codigo, { descuento: 0 }); x = g.admin('adminJornadas').reservas.find((q) => q.codigo === r.codigo); assert.strictEqual(x.total, x.totalOriginal, 'quitar el ajuste restaura el total');
+});
 t('resumen contable mensual y semanal: sala, estudio, tienda, bebestibles y reparto', () => {
   const m = g.admin('adminResumenContable', 'mes', hoy.slice(0, 7));
   ['sala', 'estudio', 'arriendos', 'bruto', 'musica', 'bebestibles', 'mes', 'detalle', 'noAsiste'].forEach((k) => assert.ok(m[k] !== undefined, 'falta ' + k));

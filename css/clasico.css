@@ -273,3 +273,39 @@ input:focus,select:focus,textarea:focus{outline:2px solid color-mix(in srgb,var(
 .honor-banda{max-width:var(--ancho)!important;margin-left:clamp(8px,2vw,32px)!important;margin-right:clamp(8px,2vw,32px)!important}
 @media(min-width:1100px){.honor-banda{margin-left:auto!important;margin-right:auto!important;width:calc(100% - 64px)}.menu{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))!important}}
 .ro-conf{border-color:var(--oro)!important}.ro-conf b:first-child{color:var(--oro)}
+
+/* ===== Asistente de reserva · diseño moderno por semanas y bloques ===== */
+.cal.sem{display:block!important;max-width:none!important}
+.sem-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px}
+.sem-tit{font:700 1.05rem Oswald,sans-serif;letter-spacing:.05em;text-transform:uppercase;text-align:center;flex:1}
+.sem-b{width:46px;height:46px;border-radius:50%;border:1px solid color-mix(in srgb,var(--oro) 45%,var(--borde));background:var(--panel);color:var(--oro);font-size:1.5rem;line-height:1;cursor:pointer}
+.sem-b:disabled{opacity:.3;cursor:default}
+.sem-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.sem-grid .cal-dia{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:2px;aspect-ratio:auto!important;min-height:92px;padding:.55rem .2rem;border-radius:14px;border:1px solid var(--borde);background:linear-gradient(160deg,color-mix(in srgb,var(--panel) 90%,#000),var(--bg2));color:var(--txt);cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s}
+.sem-grid .cal-dia .dn{order:2;font:700 1.55rem Oswald,sans-serif;line-height:1}
+.sem-grid .cal-dia .dw{order:1;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.sem-grid .cal-dia .dc{order:3;font-size:.68rem;color:var(--mut)}
+.sem-grid .cal-dia.libre{border-color:color-mix(in srgb,#4ade80 55%,var(--borde))}
+.sem-grid .cal-dia.libre .dc{color:#4ade80;font-weight:700}
+.sem-grid .cal-dia.libre:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(0,0,0,.5)}
+.sem-grid .cal-dia.hoy .dn{color:var(--oro)}
+.sem-grid .cal-dia[aria-pressed=true]{background:linear-gradient(160deg,var(--oro),color-mix(in srgb,var(--oro) 60%,#000))!important;border-color:var(--oro)!important;color:#141413}
+.sem-grid .cal-dia[aria-pressed=true] .dw,.sem-grid .cal-dia[aria-pressed=true] .dc{color:#141413}
+.sem-grid .cal-dia:disabled{opacity:.35;background:repeating-linear-gradient(135deg,transparent 0 6px,rgba(255,255,255,.04) 6px 12px)}
+@media(max-width:600px){.sem-grid{gap:5px}.sem-grid .cal-dia{min-height:74px;padding:.4rem 0;border-radius:11px}.sem-grid .cal-dia .dn{font-size:1.2rem}.sem-grid .cal-dia .dc{font-size:.58rem}.sem-grid .cal-dia .dw{font-size:.6rem}}
+/* bloques de horario */
+.wizard .horarios{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(148px,1fr))!important;gap:10px!important}
+.wizard .hora{border-radius:14px!important;min-height:74px!important;padding:.7rem .9rem!important;font:700 1.05rem Oswald,sans-serif!important;letter-spacing:.04em;transition:transform .15s,box-shadow .15s}
+.wizard .hora:not(.ocupado):hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(0,0,0,.5)}
+.wizard .hora[aria-pressed=true]{background:linear-gradient(160deg,var(--oro),color-mix(in srgb,var(--oro) 60%,#000))!important;color:#141413!important}
+/* selector de horas */
+.wizard .segm{display:flex;flex-wrap:wrap;gap:10px}
+.wizard .hbtn{width:64px!important;height:64px!important;border-radius:16px!important;font:700 1.6rem Oswald,sans-serif;border:1px solid var(--borde);background:var(--panel);color:var(--txt);cursor:pointer;transition:transform .15s}
+.wizard .hbtn:hover{transform:translateY(-2px)}
+.wizard .hbtn[aria-pressed=true]{background:linear-gradient(160deg,var(--oro),color-mix(in srgb,var(--oro) 60%,#000))!important;color:#141413;border-color:var(--oro)}
+/* tarjetas de los pasos */
+.wizard fieldset.activo{background:linear-gradient(160deg,color-mix(in srgb,var(--panel) 92%,#000),color-mix(in srgb,var(--bg2) 96%,#000))!important;box-shadow:0 16px 44px rgba(0,0,0,.55);padding:clamp(16px,3vw,32px)!important}
+.wizard legend{font-size:clamp(1.15rem,2.4vw,1.6rem)!important;color:var(--oro)}
+.wizard .opcion{border-radius:16px!important;transition:transform .15s,box-shadow .15s}
+.wizard .opcion:hover{transform:translateY(-2px)}
+.wizard .opciones{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}

@@ -38,12 +38,12 @@ var RES = {
   codigo: 1, creada: 2, estado: 3, servicio: 4, fecha: 5, inicio: 6, fin: 7, horas: 8, banda: 9, contacto: 10,
   telefono: 11, correo: 12, extras: 13, video: 14, raw: 15, total: 16, abono: 17, saldo: 18,
   zurdo: 19, voces: 20, comentarios: 21, evento: 22,
-  base: 23, extrasM: 24, videoM: 25, rawM: 26, abonoRecibido: 27, retenido: 28, devolver: 29, plan: 30, recordatorio: 31, reagendos: 32
+  base: 23, extrasM: 24, videoM: 25, rawM: 26, abonoRecibido: 27, retenido: 28, devolver: 29, plan: 30, recordatorio: 31, reagendos: 32, ajuste: 33, notaAjuste: 34, original: 35
 };
 var ENCABEZADO_RESERVAS = ['Código', 'Creada', 'Estado', 'Servicio', 'Fecha', 'Inicio', 'Fin', 'Horas', 'Banda', 'Contacto',
   'Teléfono', 'Correo', 'Equipo extra', 'Video', 'Material en bruto', 'Total', 'Abono', 'Saldo',
   'Baterista zurdo', 'Micrófonos de voz', 'Comentarios', 'ID del evento',
-  'Monto horas', 'Monto extras', 'Monto video', 'Monto material bruto', 'Abono recibido', 'Abono retenido', 'Abono a devolver', 'Plan', 'Recordatorio WhatsApp', 'Reagendos'];
+  'Monto horas', 'Monto extras', 'Monto video', 'Monto material bruto', 'Abono recibido', 'Abono retenido', 'Abono a devolver', 'Plan', 'Recordatorio WhatsApp', 'Reagendos', 'Ajuste (descuento)', 'Nota del ajuste', 'Montos originales'];
 
 /** Los cinco estados de una reserva (así aparecen en la hoja y en el portal). */
 var EST = {
@@ -525,7 +525,10 @@ function liquidar_(sh, f, r, estado) {
   var retenido = '', devolver = '';
   if (estado === EST.NO_ASISTE) {
     // «No asiste»: se cobran $X por cada hora reservada, haya abono o no. Lo abonado se descuenta; el resto queda por cobrar al cliente.
-    retenido = (Number(cfg.noAsisteCobroPorHora) || 0) * horas; devolver = recibido ? Math.max(0, abono - retenido) : 0;
+    // La reserva queda CERRADA: se da por cobrado el abono (retención) y esa retención es lo que entra al balance.
+    recibido = true;
+    retenido = (Number(cfg.noAsisteCobroPorHora) || 0) * horas; devolver = Math.max(0, abono - retenido);
+    sh.getRange(f, RES.saldo).setValue(0);
   } else if (estado === EST.ANULADA) {
     if (r[RES.retenido - 1] !== '' && r[RES.retenido - 1] !== null) return; // ya liquidada: no recalcular con otra hora
     if (!recibido) { retenido = 0; devolver = 0; }
@@ -604,12 +607,14 @@ function abrirBd_() {
 /** Agrega a la hoja de reservas la columna «Reagendos» si falta (hojas de versiones anteriores). Se revisa una vez cada 6 horas. */
 function asegurarEsquema_(ss) {
   var cache = CacheService.getScriptCache();
-  if (cache.get('esq3')) return;
+  if (cache.get('esq4')) return;
   try {
     var sh = ss.getSheetByName(HOJAS.reservas);
     if (sh) {
-      if (sh.getMaxColumns() < RES.reagendos) sh.insertColumnsAfter(sh.getMaxColumns(), RES.reagendos - sh.getMaxColumns());
-      if (!sh.getRange(1, RES.reagendos).getValue()) sh.getRange(1, RES.reagendos).setValue('Reagendos').setFontWeight('bold');
+      if (sh.getMaxColumns() < RES.original) sh.insertColumnsAfter(sh.getMaxColumns(), RES.original - sh.getMaxColumns());
+      [[RES.reagendos, 'Reagendos'], [RES.ajuste, 'Ajuste (descuento)'], [RES.notaAjuste, 'Nota del ajuste'], [RES.original, 'Montos originales']].forEach(function (c) {
+        if (!sh.getRange(1, c[0]).getValue()) sh.getRange(1, c[0]).setValue(c[1]).setFontWeight('bold');
+      });
     }
     // Una sola vez: el cuadro de honor queda visible en la portada (si estaba apagado por una versión anterior).
     var props = PropertiesService.getScriptProperties();
@@ -629,7 +634,7 @@ function asegurarEsquema_(ss) {
       }
       props.setProperty('MIG_HONOR_1', '1');
     }
-    cache.put('esq3', '1', 21600);
+    cache.put('esq4', '1', 21600);
   } catch (e) { /* si falla, se reintenta en la próxima solicitud */ }
 }
 

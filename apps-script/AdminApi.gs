@@ -40,7 +40,7 @@ function adminResumen(mesVentas) {
         inicio: horaCelda_(r[RES.inicio - 1]), fin: horaCelda_(r[RES.fin - 1]), banda: String(r[RES.banda - 1]),
         contacto: String(r[RES.contacto - 1]), telefono: String(r[RES.telefono - 1]),
         total: Number(r[RES.total - 1]) || 0, abono: Number(r[RES.abono - 1]) || 0,
-        plan: String(r[RES.plan - 1] || ''), fechaTxt: Reglas.fechaLarga(fecha), saldo: (Number(r[RES.total - 1]) || 0) - (Number(r[RES.abono - 1]) || 0), retenido: Number(r[RES.retenido - 1]) || 0, devolver: Number(r[RES.devolver - 1]) || 0
+        plan: String(r[RES.plan - 1] || ''), fechaTxt: Reglas.fechaLarga(fecha), saldo: estado === EST.NO_ASISTE ? 0 : (Number(r[RES.total - 1]) || 0) - (Number(r[RES.abono - 1]) || 0), ajuste: Number(r[RES.ajuste - 1]) || 0, notaAjuste: String(r[RES.notaAjuste - 1] || ''), totalOriginal: totalOriginal_(r), retenido: Number(r[RES.retenido - 1]) || 0, devolver: Number(r[RES.devolver - 1]) || 0
       });
     });
     reservas.sort(function (a, b) { return (a.fecha + a.inicio) < (b.fecha + b.inicio) ? -1 : 1; });
@@ -506,7 +506,7 @@ function adminJornadas() {
         banda: String(r[RES.banda - 1]), contacto: String(r[RES.contacto - 1]), telefono: String(r[RES.telefono - 1]), correo: String(r[RES.correo - 1] || ''),
         extras: Number(r[RES.extras - 1]) || 0, video: String(r[RES.video - 1]) === 'SI', raw: String(r[RES.raw - 1]) === 'SI', zurdo: String(r[RES.zurdo - 1]) === 'SI',
         voces: Number(r[RES.voces - 1]) || 0, comentarios: String(r[RES.comentarios - 1] || ''),
-        total: total, abono: abono, saldo: total - abono, retenido: Number(r[RES.retenido - 1]) || 0, devolver: Number(r[RES.devolver - 1]) || 0,
+        total: total, abono: abono, saldo: estadoNorm_(r[RES.estado - 1]) === EST.NO_ASISTE ? 0 : total - abono, ajuste: Number(r[RES.ajuste - 1]) || 0, notaAjuste: String(r[RES.notaAjuste - 1] || ''), totalOriginal: totalOriginal_(r), retenido: Number(r[RES.retenido - 1]) || 0, devolver: Number(r[RES.devolver - 1]) || 0,
         plan: String(r[RES.plan - 1] || ''), creada: aFechaIso_(r[RES.creada - 1]), reag: Number(r[RES.reagendos - 1]) || 0
       });
     });
@@ -532,4 +532,55 @@ function adminJornadas() {
   });
   var clientes = Object.keys(porTel).map(function (t) { return porTel[t]; }).sort(function (a, b) { return b.jornadas - a.jornadas || (a.banda < b.banda ? -1 : 1); });
   return { hoy: hoy, reservas: reservas, bloqueos: bloqueos, inhabiles: inhabiles, clientes: clientes, estados: ESTADOS, wa: waDatos_(), maxReag: getCfg_().reagendoCambios };
+}
+
+
+/** Total original (antes de descuentos/ajustes) de una fila de reserva. */
+function totalOriginal_(r) {
+  try { var o = JSON.parse(String(r[RES.original - 1] || '')); if (o && typeof o.t === 'number') return o.t; } catch (e) { /* sin ajuste */ }
+  return Number(r[RES.total - 1]) || 0;
+}
+
+/**
+ * Ajusta el cobro de una reserva (descuento, recargo o total final exacto) y, si quieres, la finaliza.
+ * d = {descuento (pesos; negativo = recargo) | totalFinal, nota, finalizar}. El descuento se reparte en horas → equipos → video → material,
+ * así el Balance y el resumen contable lo toman en cuenta. Los montos originales quedan guardados y el ajuste se puede cambiar o quitar.
+ */
+function adminAjustarReserva(codigo, d) {
+  exigirAdmin_();
+  d = d || {};
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.reservas);
+    var celda = sh.getLastRow() > 1 ? sh.createTextFinder(String(codigo)).matchEntireCell(true).findNext() : null;
+    if (!celda || celda.getColumn() !== RES.codigo) throw new Error('No se encontró la reserva.');
+    var f = celda.getRow(), r = sh.getRange(f, 1, 1, ENCABEZADO_RESERVAS.length).getValues()[0];
+    var estado = estadoNorm_(r[RES.estado - 1]);
+    if (estado === EST.NO_ASISTE) throw new Error('«No asiste» ya cierra la reserva con el cobro de la retención; no admite descuentos.');
+    if (estado === EST.ANULADA) throw new Error('Una reserva anulada no admite ajustes.');
+    var orig = null;
+    try { orig = JSON.parse(String(r[RES.original - 1] || '')); } catch (e) { orig = null; }
+    if (!orig || typeof orig.t !== 'number') orig = { b: Number(r[RES.base - 1]) || 0, e: Number(r[RES.extrasM - 1]) || 0, v: Number(r[RES.videoM - 1]) || 0, r: Number(r[RES.rawM - 1]) || 0, t: Number(r[RES.total - 1]) || 0 };
+    var bruto = orig.t, desc;
+    if (d.totalFinal !== undefined && d.totalFinal !== null && String(d.totalFinal) !== '') {
+      var tf = Math.round(Number(d.totalFinal)); if (!isFinite(tf) || tf < 0) throw new Error('El total final debe ser un monto válido (0 o más).');
+      desc = bruto - tf;
+    } else {
+      desc = Math.round(Number(d.descuento) || 0); if (!isFinite(desc)) throw new Error('El descuento debe ser un número.');
+    }
+    if (desc > bruto) throw new Error('El descuento no puede ser mayor que el total de la reserva (' + Reglas.clp(bruto) + ').');
+    var b = orig.b, e = orig.e, v = orig.v, rw = orig.r, resto = desc;
+    if (resto < 0) { b += -resto; resto = 0; }
+    [['b'], ['e'], ['v'], ['r']].forEach(function (k) {
+      var cur = k[0] === 'b' ? b : k[0] === 'e' ? e : k[0] === 'v' ? v : rw, q = Math.min(cur, resto);
+      if (k[0] === 'b') b -= q; else if (k[0] === 'e') e -= q; else if (k[0] === 'v') v -= q; else rw -= q;
+      resto -= q;
+    });
+    var total = bruto - desc, abono = Number(r[RES.abono - 1]) || 0;
+    sh.getRange(f, RES.total).setValue(total);
+    sh.getRange(f, RES.saldo).setValue(Math.max(0, total - abono));
+    sh.getRange(f, RES.base, 1, 4).setValues([[b, e, v, rw]]);
+    sh.getRange(f, RES.ajuste, 1, 3).setValues([[desc, textoSeguro_(String(d.nota || '').slice(0, 200)), JSON.stringify(orig)]]);
+    if (d.finalizar && estado !== EST.FINALIZADA) { sh.getRange(f, RES.estado).setValue(EST.FINALIZADA); sincronizarEstado_(sh, f); }
+    return adminResumen();
+  });
 }

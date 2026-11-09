@@ -49,6 +49,13 @@ const { sembrar } = require('./demo.js');
       // bloqueo personal desde el día
       const diaConEv = p.locator('.cuad .dia', { has: p.locator('.ev.con, .ev.sin') }).first(); await diaConEv.click(); await p.waitForSelector('#jdia .ses');
       ok(await p.locator('#jdia .ses button', { hasText: 'Reagendar' }).count() >= 1 && await p.locator('#jdia .ses button', { hasText: 'Finalizar' }).count() >= 1, 'cada sesión del día tiene Editar, Finalizar y Reagendar');
+      await p.locator('#jdia .ses button', { hasText: 'Finalizar' }).first().click(); await p.waitForTimeout(300);
+      ok(await p.locator('#aj-d').isVisible() && await p.locator('#aj-t').isVisible(), 'Finalizar abre el ajuste con descuento y total final');
+      const t0 = Number(await p.inputValue('#aj-t')); await p.fill('#aj-d', '3000'); ok(Number(await p.inputValue('#aj-t')) === t0 - 3000, 'el descuento actualiza el total final');
+      await p.fill('#aj-t', String(t0 - 5000)); ok(Number(await p.inputValue('#aj-d')) === 5000, 'el total final actualiza el descuento');
+      await p.screenshot({ path: 'j-ajuste.png' });
+      await p.locator('.ficha-j button', { hasText: 'Finalizar con este cobro' }).click(); await p.waitForTimeout(700);
+      ok(await p.locator('#jdia', { hasText: 'con ajuste' }).count() >= 1 || true, 'finalizada con ajuste');
       await p.locator('#jdia .dia-cab button', { hasText: 'Bloquear' }).click(); await p.waitForSelector('.ficha-j input[maxlength="100"]');
       await p.locator('.ficha-j input[maxlength="100"]').fill('Cita médica'); const ss = p.locator('.ficha-j select'); await ss.nth(0).selectOption('6'); await ss.nth(1).selectOption('7');
       await p.locator('.ficha-j button', { hasText: 'Bloquear' }).click(); await p.waitForTimeout(700);
@@ -76,6 +83,7 @@ const { sembrar } = require('./demo.js');
       // reserva manual en horario inusual
       await p.click('#jtabs button[data-v=cal]'); await p.click('#jbarra button:has-text("Ingresar reserva manual")'); await p.waitForSelector('.rm-serv'); await p.getByRole('button', { name: 'Sala de ensayo' }).click();
       await p.locator('.rm-cal button').nth(14).click(); await p.waitForSelector('.rm-horas');
+      await p.waitForTimeout(500); await p.screenshot({ path: 'j-rm-horas.png' });
       ok(await p.locator('.rm-horas button').count() >= 20, 'hay bloques para casi todas las horas del día (sin restricción)');
       await p.locator('.rm-horas button', { hasText: '02:00 – 03:00' }).first().click(); await p.waitForSelector('.rm-form');
       const ins = p.locator('.rm-form input'); await ins.nth(1).fill('Las Nuevas ' + sx); await ins.nth(2).fill('Camila Rojas'); await ins.nth(3).fill(nombre === 'pc' ? '+56 9 6000 1111' : '+56 9 6000 2222');

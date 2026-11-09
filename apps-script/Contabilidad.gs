@@ -170,8 +170,8 @@ function adminResumenContable(periodo, ref) {
       fila.total = base + ex + vi + rw; detalle.push(fila);
       porDia[f] = (porDia[f] || 0) + fila.total;
     } else if (estado === EST.NO_ASISTE) {
-      var cobro = fee * h, porCobrar = Math.max(0, cobro - (recibido ? abono : 0));
-      noa.n++; noa.horas += h; noa.cobro += cobro; noa.abonoRetenido += recibido ? Math.min(abono, cobro) : 0; noa.porCobrar += porCobrar;
+      var cobro = Number(r[RES.retenido - 1]) || fee * h, porCobrar = 0;
+      noa.n++; noa.horas += h; noa.cobro += cobro; noa.abonoRetenido += cobro; noa.porCobrar += porCobrar;
       (ens ? sala : estudio).retenidos += cobro; (ens ? sala : estudio).total += cobro;
       fila.total = cobro; fila.porCobrar = porCobrar; noa.lista.push(fila); detalle.push(fila);
       porDia[f] = (porDia[f] || 0) + cobro;

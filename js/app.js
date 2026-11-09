@@ -35,22 +35,40 @@
   /* ---------- calendario reutilizable (reserva y planes) ----------
      o = { cont, hoy, dias: {fecha: {libres}}, horas: fn, elegida: fn, deshabilitada: fn(fecha), alElegir: fn(fecha) } */
   function calendario(o) {
-    var c = o.cont; c.textContent = '';
+    var c = o.cont; c.textContent = ''; c.classList.add('sem');
     var fechas = Object.keys(o.dias).sort();
     if (!fechas.length) return;
-    ['L', 'M', 'M', 'J', 'V', 'S', 'D'].forEach(function (d) { c.appendChild(el('div', 'cal-dow', d)); });
-    for (var i = 0; i < (R.diaSemana(fechas[0]) + 6) % 7; i++) c.appendChild(el('div'));
-    fechas.forEach(function (f, idx) {
-      var n = R.inicios(o.dias[f].libres, o.horas()).length;
-      var dia = Number(f.slice(8)), b = el('button', 'cal-dia', String(dia)); b.type = 'button';
-      if (dia === 1 || idx === 0) b.appendChild(el('small', '', MESES[Number(f.slice(5, 7)) - 1]));
-      var off = !n || (o.deshabilitada && o.deshabilitada(f));
-      b.disabled = !!off; b.setAttribute('aria-pressed', o.elegida() === f ? 'true' : 'false');
-      b.setAttribute('aria-label', R.fechaLarga(f) + (off ? ', sin cupo' : ''));
+    var lunesDe = function (f) { return R.sumarDias(f, -((R.diaSemana(f) + 6) % 7)); };
+    var lunes = []; fechas.forEach(function (f) { var l = lunesDe(f); if (lunes.indexOf(l) < 0) lunes.push(l); });
+    var habil = function (f) { return !!o.dias[f] && R.inicios(o.dias[f].libres, o.horas()).length > 0 && !(o.deshabilitada && o.deshabilitada(f)); };
+    var idx = c._sem;
+    var el_ = o.elegida && o.elegida();
+    if (el_ && lunes.indexOf(lunesDe(el_)) >= 0 && c._ultima !== el_) idx = lunes.indexOf(lunesDe(el_));
+    if (idx === undefined || idx < 0 || idx >= lunes.length) { idx = 0; for (var q = 0; q < lunes.length; q++) { var hay = false; for (var k = 0; k < 7; k++) if (habil(R.sumarDias(lunes[q], k))) hay = true; if (hay) { idx = q; break; } } }
+    c._sem = idx; c._ultima = el_;
+    var l0 = lunes[idx], l6 = R.sumarDias(l0, 6);
+    var nav = el('div', 'sem-nav');
+    var ant = el('button', 'sem-b', '‹'); ant.type = 'button'; ant.setAttribute('aria-label', 'Semana anterior'); ant.disabled = idx === 0; ant.addEventListener('click', function () { c._sem = idx - 1; calendario(o); });
+    var sig = el('button', 'sem-b', '›'); sig.type = 'button'; sig.setAttribute('aria-label', 'Semana siguiente'); sig.disabled = idx >= lunes.length - 1; sig.addEventListener('click', function () { c._sem = idx + 1; calendario(o); });
+    var m0 = MESES[Number(l0.slice(5, 7)) - 1], m6 = MESES[Number(l6.slice(5, 7)) - 1];
+    nav.appendChild(ant); nav.appendChild(el('div', 'sem-tit', Number(l0.slice(8)) + (m0 !== m6 ? ' ' + m0 : '') + ' – ' + Number(l6.slice(8)) + ' ' + m6 + ' ' + l6.slice(0, 4))); nav.appendChild(sig);
+    c.appendChild(nav);
+    var g = el('div', 'sem-grid'); var DS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+    for (var d = 0; d < 7; d++) (function (d) {
+      var f = R.sumarDias(l0, d), n = o.dias[f] ? R.inicios(o.dias[f].libres, o.horas()).length : 0;
+      var b = el('button', 'cal-dia'); b.type = 'button';
+      b.appendChild(el('b', 'dn', String(Number(f.slice(8)))));
+      b.appendChild(el('span', 'dw', DS[d]));
+      b.appendChild(el('small', 'dc', !o.dias[f] ? '—' : n ? n + (n === 1 ? ' bloque' : ' bloques') : 'Sin cupo'));
+      var off = !habil(f);
+      b.disabled = off; b.setAttribute('aria-pressed', o.elegida() === f ? 'true' : 'false');
+      b.setAttribute('aria-label', R.fechaLarga(f) + (off ? ', sin cupo' : ', ' + n + ' bloques libres'));
       if (f === o.hoy) b.classList.add('hoy');
+      if (n && !off) b.classList.add('libre');
       b.addEventListener('click', function () { o.alElegir(f); });
-      c.appendChild(b);
-    });
+      g.appendChild(b);
+    })(d);
+    c.appendChild(g);
   }
 
   /** Muestra todos los bloques del horario de atención: los libres se pueden elegir; los ocupados aparecen tachados y no se pueden tocar. */

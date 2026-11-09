@@ -157,7 +157,7 @@ section{border-top:1px solid var(--borde);border-radius:14px;background:var(--pa
 .rm-horas button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:.45rem .3rem;border-radius:8px;cursor:pointer}.rm-horas button b{font:700 .95rem Oswald,sans-serif}
 .rm-horas button small{font-size:.68rem;color:#4ade80}.rm-horas button.oc small{color:#f87171}.rm-horas button.oc{border-style:dashed}
 .rm-horas button.en{background:#2a2415;border-color:var(--oro)}.rm-horas button.sel{background:var(--oro);color:#000;border-color:var(--oro)}.rm-horas button.sel small{color:#000}
-.rm-form{display:grid;grid-template-columns:1fr 1fr;gap:8px}.rm-form label{display:grid;gap:3px;font-size:.78rem;color:var(--mut)}.rm-form .full{grid-column:1/-1}
+.rm-horas button,.rm-cal button{background:var(--panel);color:var(--txt);border:1px solid var(--borde)}.rm-cal button.sel{background:var(--oro);color:#000}.rm-cal button.hoy{border-color:var(--oro)}.rm-horas button:hover{border-color:var(--oro)}.rm-dur{border:1px solid var(--borde);border-radius:14px;padding:.7rem .9rem;margin:.2rem 0 .7rem;background:rgba(255,255,255,.03)}.rm-dur-t{font:700 1rem Oswald,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--oro);margin-bottom:.5rem}.rm-dur-b{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.rm-dur-b button{width:54px;height:54px;border-radius:14px;font:700 1.35rem Oswald,sans-serif;background:var(--panel);border:1px solid var(--borde);color:var(--txt);cursor:pointer}.rm-dur-b button.on{background:var(--oro);color:#000;border-color:var(--oro)}.rm-dur-b select{height:54px;border-radius:14px}.rm-dur-s{margin-top:.4rem;color:var(--mut);font-size:.85rem}.rm-chip{display:inline-block;background:#2a2415;border:1px solid var(--oro);color:var(--oro);border-radius:999px;padding:.35rem .8rem;font-weight:700;margin:.2rem 0 .4rem}.rm-form{display:grid;grid-template-columns:1fr 1fr;gap:8px}.rm-form label{display:grid;gap:3px;font-size:.78rem;color:var(--mut)}.rm-form .full{grid-column:1/-1}
 @media(max-width:560px){.rm-form{grid-template-columns:1fr}}
 .rm-res{border:1px solid var(--borde);background:#1a1918;border-radius:10px;padding:.7rem;margin:.6rem 0;font-size:.9rem;line-height:1.5}
 
@@ -230,7 +230,7 @@ section.tab-off{display:none!important}
 .rc-h{margin:1rem 0 .3rem;font-size:1.05rem;color:#FCC631}.rc-t{width:100%;border-collapse:collapse;font-size:.92rem}.rc-t th,.rc-t td{padding:.35rem .5rem;border-bottom:1px solid #3a3836;text-align:left}.rc-t td.n,.rc-t th.n{text-align:right;white-space:nowrap}.rc-t tr.rc-tot td{font-weight:700;border-top:2px solid #FCC631}
 .rc-warn{border:1px solid #ef4444;background:rgba(239,68,68,.08);border-radius:10px;padding:.6rem .8rem;margin:.5rem 0}.rc-ok{border:1px solid #22c55e;background:rgba(34,197,94,.08);border-radius:10px;padding:.6rem .8rem;margin:.5rem 0}
 @media print{#imprimir .rc-t th,#imprimir .rc-t td{border:1px solid #888;padding:3px 6px;color:#000}#imprimir .rc-h{color:#000}}
-.ses-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.ses-top b{color:var(--oro);font-size:1.05rem}.ses-b{font-weight:700;flex:1;color:var(--oro);font-size:1.02rem}.ses-e{font-size:.72rem;border:1px solid var(--borde);border-radius:999px;padding:.15rem .6rem;color:var(--mut)}
+.aj-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:.6rem 0}.aj-grid label{display:flex;flex-direction:column;gap:4px;font-weight:600}.aj-grid .full{grid-column:1/-1}.aj-grid input{font-size:1.15rem;padding:.6rem}.aj-st{font-weight:700;color:var(--oro,#FCC631);margin:.3rem 0}@media(max-width:560px){.aj-grid{grid-template-columns:1fr}}.ses-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.ses-top b{color:var(--oro);font-size:1.05rem}.ses-b{font-weight:700;flex:1;color:var(--oro);font-size:1.02rem}.ses-e{font-size:.72rem;border:1px solid var(--borde);border-radius:999px;padding:.15rem .6rem;color:var(--mut)}
 .ses-m{color:var(--mut);font-size:.8rem;margin:.2rem 0 .5rem}.ses-ac{display:flex;gap:6px;flex-wrap:wrap}
 @media(max-width:760px){
   .jstats{grid-template-columns:repeat(2,1fr)}.jtit h3{font-size:1.3rem}
@@ -322,7 +322,7 @@ section.tab-off{display:none!important}
 <section id="sec-beb"></section>
 <section id="sec-ct"><h2>Contabilidad</h2><div class="ct-tabs"><button type="button" class="on" data-ct="res">Resumen y cierre</button><button type="button" data-ct="trib">Simulaciones tributarias</button></div></section>
 <section id="sec-rc" data-tab="res"><h2>Resumen contable</h2>
-<div class="rc-aviso"><b>📌 Reglas de la agenda:</b> el <b>abono confirma tu reserva</b>. Si una reserva queda en <b>«No asiste»</b> se cobran <b id="rc-fee">$5.000</b> por cada hora reservada, <u>haya abono o no</u>: lo abonado se descuenta y el resto se cobra al cliente. Es por la seriedad y el mantenimiento de la agenda.</div>
+<div class="rc-aviso"><b>📌 Reglas de la agenda:</b> el <b>abono confirma tu reserva</b>. Si una reserva queda en <b>«No asiste»</b> se cobra <b id="rc-fee">$5.000</b> por cada hora reservada (el abono) y <u>la reserva queda cerrada</u>: esa retención es lo que entra al balance y ya no se le cobra nada más al cliente. Es por la seriedad y el mantenimiento de la agenda.</div>
 <div class="fila"><button type="button" class="on rc-p" data-rp="mes">Mensual</button><button type="button" class="sec rc-p" data-rp="semana">Semanal</button><span id="rc-nav" class="fila" style="gap:6px"></span><button type="button" class="sec" id="rc-pdf">📄 Exportar PDF</button></div>
 <div id="rc-box">Cargando resumen…</div></section>
 <section id="sec-conta" data-tab="trib"><h2>Contabilidad formal</h2>
@@ -609,9 +609,9 @@ function pintarRC(d){
   ]));
   b.appendChild(par('Tienda y bebestibles son cuentas aparte: no suman a los ingresos brutos ni al reparto. Se cuentan por fecha de cobro.','color:#b5afa6;font-size:13px;margin:.3rem 0'));
   // No asiste destacado
-  var na=d.noAsiste;b.appendChild(el_('h3','rc-h','No asiste (se cobran '+clp(d.tarifaNoAsiste)+' por hora reservada)'));
-  var w=el_('div',na.porCobrar>0?'rc-warn':'rc-ok');w.appendChild(el_('div','',na.n+' reserva(s) · '+na.horas+' h · cobro total '+clp(na.cobro)+' · abonado/retenido '+clp(na.abonoRetenido)+' · POR COBRAR al cliente '+clp(na.porCobrar)));b.appendChild(w);
-  if(na.lista.length)b.appendChild(rcTabla(['Fecha','Banda / cliente','Horas','Cobro','Por cobrar'],na.lista.map(function(x){return{c:[fechaCorta(x.fecha),x.banda+' / '+x.cliente,x.horas,clp(x.total),clp(x.porCobrar||0)]}})));
+  var na=d.noAsiste;b.appendChild(el_('h3','rc-h','No asiste · reserva cerrada con retención de '+clp(d.tarifaNoAsiste)+' por hora'));
+  var w=el_('div','rc-ok');w.appendChild(el_('div','',na.n+' reserva(s) cerradas · '+na.horas+' h · retención que entra al balance: '+clp(na.abonoRetenido)));b.appendChild(w);
+  if(na.lista.length)b.appendChild(rcTabla(['Fecha','Banda / cliente','Horas','Retención (cerrada)'],na.lista.map(function(x){return{c:[fechaCorta(x.fecha),x.banda+' / '+x.cliente,x.horas,clp(x.total)]}})));
   if(d.anuladas.n)b.appendChild(par('Anuladas: '+d.anuladas.n+' · retenido '+clp(d.anuladas.retenido)+' · a devolver '+clp(d.anuladas.devolver),'margin:.4rem 0'));
   // Mes: cierre
   if(d.mes){var m=d.mes;b.appendChild(el_('h3','rc-h','Cierre del mes · Juan Carlos, Jaime y Gabriela'));
@@ -896,10 +896,10 @@ function diaJor(f){
   bq.forEach(function(x){var r=el_('div','fila');r.appendChild(chipBloq(x));if(x.fila)r.appendChild(btn('Quitar bloqueo',function(){confirmarSN('¿Quitar este bloqueo de la agenda?',function(){jrun('adminDesbloquear',x.fila)},'Sí, quitar')},'sec'));h.appendChild(r)});
   rs.forEach(function(r){var k=el_('div','ses ses-'+claseServ(r)+' '+(CLASE_EST[r.estado]||''));
     var top=el_('div','ses-top');top.appendChild(el_('b','ses-b',r.inicio+' - '+r.fin+' / '+String(r.banda||'').toUpperCase()+' / '+String(r.contacto||'').toUpperCase()));top.appendChild(el_('span','ses-e',r.estado));k.appendChild(top);
-    k.appendChild(el_('div','ses-m',r.servicio+(r.plan?' · Plan '+r.plan:'')+' · '+clp(r.total)+(r.reag?' · reagendada '+r.reag+'/'+(JOR.maxReag||2):'')));
+    k.appendChild(el_('div','ses-m',r.servicio+(r.plan?' · Plan '+r.plan:'')+' · '+(r.estado==='No asiste'?'cerrada · retención '+clp(r.retenido):clp(r.total)+(r.ajuste?' (con ajuste de '+clp(r.ajuste)+')':''))+(r.reag?' · reagendada '+r.reag+'/'+(JOR.maxReag||2):'')));
     var ac=el_('div','ses-ac');ac.appendChild(btn('Ver ficha',function(){fichaJor(r)},'sec'));
     ac.appendChild(btn('Editar',function(){editarDe(r)},'sec'));
-    if(r.estado==='Reservado (sin abono)'||r.estado==='Reservado (con abono)'){ac.appendChild(btn('Finalizar',function(){confirmarSN('¿Marcar la sesión de '+r.banda+' como finalizada?',function(){jrun('adminCambiarEstado',r.codigo,'Finalizada')},'Sí, finalizar')}));ac.appendChild(btn('Reagendar',function(){formReag(r)},'sec'))}
+    if(r.estado==='Reservado (sin abono)'||r.estado==='Reservado (con abono)'){ac.appendChild(btn('Finalizar',function(){formAjuste(r,true)}));ac.appendChild(btn('Reagendar',function(){formReag(r)},'sec'))}
     k.appendChild(ac);h.appendChild(k)});
   p.appendChild(h);
 }
@@ -910,7 +910,8 @@ function fichaJor(r){
   f.appendChild(el_('h3','',r.banda));f.appendChild(el_('div','sub',r.codigo+' · '+r.servicio+(r.plan?' · Plan '+r.plan:'')));
   var kv=el_('dl','kv');function fila(k,v){if(v===''||v===null||v===undefined)return;kv.appendChild(el_('dt','',k));kv.appendChild(el_('dd','',String(v)))}
   fila('Día',r.fechaTxt);fila('Horario',r.inicio+' a '+r.fin+' ('+r.horas+(r.horas===1?' hora':' horas')+')');fila('Contacto',r.contacto);fila('WhatsApp','+'+r.telefono);fila('Correo',r.correo);
-  fila('Total',clp(r.total));fila('Abono',clp(r.abono));fila('Saldo en el estudio',clp(r.saldo));if(r.retenido)fila('Abono retenido',clp(r.retenido));if(r.devolver)fila('Abono a devolver',clp(r.devolver));
+  if(r.estado==='No asiste'){fila('Cobro','Reserva cerrada · retención del abono '+clp(r.retenido)+' (entra al balance)');fila('Valor original de la reserva',clp(r.total))}
+  else{if(r.ajuste){fila('Total original',clp(r.totalOriginal));fila(r.ajuste>0?'Descuento aplicado':'Recargo aplicado',clp(Math.abs(r.ajuste))+(r.notaAjuste?' · '+r.notaAjuste:''))}fila(r.ajuste?'Total final':'Total',clp(r.total));fila('Abono',clp(r.abono));fila('Saldo en el estudio',clp(r.saldo));if(r.retenido)fila('Abono retenido',clp(r.retenido));if(r.devolver)fila('Abono a devolver',clp(r.devolver))}
   fila('Comentarios',r.comentarios);fila('Creada',r.creada);f.appendChild(kv);
   var ch=el_('div','chips');[[r.extras?'Equipo extra: '+r.extras:'',1],[r.video?'Video GoPro':'',1],[r.raw?'Material en bruto':'',1],[r.zurdo?'Baterista zurdo':'',1],[r.servicio==='Ensayo'?'Micrófonos de voz: '+r.voces:'',1]].forEach(function(x){if(x[0])ch.appendChild(el_('span','chip ok',x[0]))});
   if(!ch.firstChild)ch.appendChild(el_('span','chip','Sin adicionales'));f.appendChild(ch);
@@ -920,10 +921,33 @@ function fichaJor(r){
     var t=W.plantillas[ws.value].replace(/\{(\w+)\}/g,function(m,k){return v[k]!==undefined?v[k]:m});window.open('https://wa.me/'+String(r.telefono).replace(/\D/g,'')+'?text='+encodeURIComponent(t),'_blank','noopener');ws.selectedIndex=0};
   acc.appendChild(ws);
   acc.appendChild(btn('Editar',function(){d.hidden=true;editarDe(r)},'sec'));
+  if(r.estado!=='No asiste'&&r.estado!=='Anulada')acc.appendChild(btn('Ajustar cobro / descuento',function(){formAjuste(r,false)}));
   if(r.estado==='Reservado (sin abono)'||r.estado==='Reservado (con abono)'){acc.appendChild(btn('Reagendar',function(){formReag(r)},'sec'))}
   if(r.reag)acc.appendChild(el_('span','chip',('Reagendada '+r.reag+'/'+(JOR.maxReag||2))));
   acc.appendChild(btnDel('Eliminar','¿Eliminar la reserva '+r.codigo+' de '+r.banda+'? Se borra también de la agenda y no se puede deshacer.',function(){google.script.run.withSuccessHandler(function(){d.hidden=true;aviso('Reserva eliminada');cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminEliminarReserva(r.codigo)}));
   acc.appendChild(btn('Cerrar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
+}
+
+function formAjuste(r,fin){
+  var d=$('jdet');d.textContent='';d.hidden=false;d.onclick=function(e){if(e.target===d)d.hidden=true};
+  var f=el_('div','ficha-j');f.appendChild(el_('h3','',(fin?'Finalizar · ':'Ajustar cobro · ')+r.banda));
+  var orig=r.totalOriginal||r.total;
+  f.appendChild(el_('div','sub',r.codigo+' · '+r.inicio+' a '+r.fin+' ('+r.horas+(r.horas===1?' hora':' horas')+') · valor original '+clp(orig)+' · abono '+clp(r.abono)));
+  var g=el_('div','aj-grid');
+  function campo(t,id,ph){var l=el_('label','',t);var i=el_('input');i.type='number';i.id=id;i.placeholder=ph||'';i.step=1;l.appendChild(i);g.appendChild(l);return i}
+  var desc=campo('Descuento ($) — en negativo es un recargo','aj-d','0'),tot=campo('Total final de la reserva ($)','aj-t',String(orig));
+  desc.value=r.ajuste||'';tot.value=r.total;
+  function resumenAj(){var dv=Number(desc.value)||0;st.textContent='Total final: '+clp(orig-dv)+' · saldo en el estudio: '+clp(Math.max(0,orig-dv-r.abono))}
+  desc.oninput=function(){tot.value=orig-(Number(desc.value)||0);resumenAj()};tot.oninput=function(){desc.value=orig-(Number(tot.value)||0);resumenAj()};
+  var ln=el_('label','full','Motivo / nota del ajuste');var nt=el_('input');nt.maxLength=200;nt.placeholder='Ej.: cliente frecuente, error en la hora, cortesía…';nt.value=r.notaAjuste||'';ln.appendChild(nt);g.appendChild(ln);f.appendChild(g);
+  var st=el_('div','aj-st');f.appendChild(st);resumenAj();
+  f.appendChild(el_('div','sub','El descuento baja el valor que entra al balance y a la contabilidad. Los montos originales quedan guardados; con descuento 0 se restauran.'));
+  var acc=el_('div','fila');
+  function enviar(fz){google.script.run.withSuccessHandler(function(){d.hidden=true;aviso(fz?'Reserva finalizada ✔':'Ajuste guardado ✔');if(typeof cargarJor==='function')cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminAjustarReserva(r.codigo,{descuento:Number(desc.value)||0,nota:nt.value,finalizar:fz})}
+  if(fin){acc.appendChild(btn('Finalizar con este cobro',function(){enviar(true)}));}
+  else acc.appendChild(btn('Guardar ajuste',function(){enviar(false)}));
+  if(!fin&&r.estado!=='Finalizada')acc.appendChild(btn('Guardar y finalizar',function(){enviar(true)},'sec'));
+  acc.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
 }
 function pintarHisJor(){
   var bar=$('jbarra');bar.textContent='';
@@ -993,6 +1017,10 @@ function pintarRM(){
   if(RM.paso===1){[['ensayo','Sala de ensayo'],['grabacion','Estudio de grabación']].forEach(function(x){});}
   if(RM.paso===1){var g=el_('div','rm-serv');[['ensayo','Sala de ensayo'],['grabacion','Estudio de grabación']].forEach(function(x){var b=btn(x[1],function(){RM.servicio=x[0];RM.paso=2;pintarRM()});if(RM.servicio===x[0])b.className='on';g.appendChild(b)});c.appendChild(g)}
   else if(RM.paso===2){
+    var hb=el_('div','rm-dur');hb.appendChild(el_('div','rm-dur-t','⏱ ¿Cuántas horas dura la sesión?'));var hbt=el_('div','rm-dur-b');
+    for(var hh=1;hh<=8;hh++)(function(hh){var b=btn(String(hh),function(){RM.horas=hh;RM.inicio=null;pintarRM()});b.type='button';if(hh===RM.horas)b.className='on';hbt.appendChild(b)})(hh);
+    var mas=document.createElement('select');var m0=document.createElement('option');m0.value='';m0.textContent='Más…';mas.appendChild(m0);for(var hh=9;hh<=12;hh++){var mo=document.createElement('option');mo.value=hh;mo.textContent=hh+' h';if(RM.horas===hh)mo.selected=true;mas.appendChild(mo)}mas.onchange=function(){if(mas.value){RM.horas=Number(mas.value);RM.inicio=null;pintarRM()}};hbt.appendChild(mas);
+    hb.appendChild(hbt);hb.appendChild(el_('div','rm-dur-s',RM.horas+(RM.horas===1?' hora':' horas')+' seleccionadas'));c.appendChild(hb);
     var nav=el_('div','fila');nav.appendChild(btn('‹',function(){RM.mes=sumMes(RM.mes,-1);pintarRM()},'sec'));nav.appendChild(el_('b','',mesTxt(RM.mes)));nav.appendChild(btn('›',function(){RM.mes=sumMes(RM.mes,1);pintarRM()},'sec'));c.appendChild(nav);
     var g=el_('div','rm-cal');['L','M','M','J','V','S','D'].forEach(function(x){g.appendChild(el_('div','dow',x))});
     var y=Number(RM.mes.slice(0,4)),m=Number(RM.mes.slice(5,7)),off=(new Date(Date.UTC(y,m-1,1)).getUTCDay()+6)%7,nd=new Date(Date.UTC(y,m,0)).getUTCDate();
@@ -1000,7 +1028,7 @@ function pintarRM(){
     for(var k=1;k<=nd;k++)(function(k){var fe=RM.mes+'-'+String(k).padStart(2,'0'),b=btn(String(k),function(){RM.fecha=fe;RM.inicio=null;pintarRM()});if(fe===RM.fecha)b.className='sel';else if(fe===JOR.hoy)b.className='hoy';g.appendChild(b)})(k);
     c.appendChild(g);
     if(RM.fecha){
-      var lb=el_('label');lb.style.cssText='display:flex;gap:8px;align-items:center;margin:.4rem 0';lb.appendChild(document.createTextNode('Duración (horas):'));var sh=document.createElement('select');for(var h=1;h<=12;h++){var o=document.createElement('option');o.value=h;o.textContent=h;if(h===RM.horas)o.selected=true;sh.appendChild(o)}sh.onchange=function(){RM.horas=Number(sh.value);RM.inicio=null;pintarRM()};lb.appendChild(sh);c.appendChild(lb);
+      c.appendChild(el_('div','rm-chip',(RM.servicio==='ensayo'?'🎸 Sala de ensayo':'🎛️ Estudio')+' · '+RM.horas+(RM.horas===1?' hora':' horas')+' · '+R_fecha(RM.fecha)+(RM.inicio!==null?' · '+String(RM.inicio).padStart(2,'0')+':00 a '+String(RM.inicio+RM.horas).padStart(2,'0')+':00':'')));
       c.appendChild(par(R_fecha(RM.fecha)+' · elige la hora de inicio','color:#b5afa6;font-size:.82rem'));
       var oc=ocupHoras(RM.fecha),hg=el_('div','rm-horas');
       for(var h=0;h<=24-RM.horas;h++)(function(h){var libre=true,q='';for(var j=h;j<h+RM.horas;j++)if(oc[j]!==undefined){libre=false;q=oc[j]}
