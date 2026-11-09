@@ -1,0 +1,29 @@
+/* Páginas de agenda y socios */
+.pg{max-width:900px;margin:0 auto;padding:16px}
+.pg h1{font-size:clamp(1.6rem,6vw,2.4rem);margin:.2em 0}
+.pg .marca img{height:44px}
+.tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin:1rem 0}
+.tabs button{background:var(--panel);color:var(--txt);border:1px solid var(--borde);border-radius:99px;padding:.5rem 1rem;font:inherit;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--oro);color:#1c1b1a;border-color:var(--oro);font-weight:700}
+.dia{background:var(--panel-a);border:1px solid var(--borde);border-radius:10px;padding:.7rem 1rem;margin:.6rem 0}
+.dia h3{margin:0 0 .4rem;font-size:1rem;color:var(--oro);text-transform:capitalize}
+.hs{display:flex;flex-wrap:wrap;gap:.3rem}
+.h{padding:.2rem .55rem;border-radius:6px;font-size:.85rem;border:1px solid var(--borde)}
+.h.libre{border-color:var(--ok);color:var(--ok)}.h.ocupada{color:var(--mut);text-decoration:line-through;opacity:.7}
+.ev{display:flex;gap:.8rem;flex-wrap:wrap;border-bottom:1px solid var(--borde);padding:.35rem 0}
+.ev b{min-width:90px}
+.ev .st{color:var(--mut)}
+.prods{display:grid;gap:.6rem}
+.prod{background:var(--panel-a);border:1px solid var(--borde);border-radius:10px;padding:.7rem 1rem;display:grid;gap:.4rem}
+.prod .n{font-weight:600}.prod .d{color:var(--mut);font-size:.9rem}
+.acc{display:flex;gap:.4rem;flex-wrap:wrap;align-items:center}
+.acc input{width:70px}
+.pb{background:var(--oro);color:#1c1b1a;border:0;border-radius:6px;padding:.5rem .8rem;font-weight:700;cursor:pointer;font:inherit}
+.pb.sec{background:var(--borde);color:var(--txt)}
+.cifras{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.6rem;margin:.6rem 0}
+.cifra{background:var(--panel-a);border:1px solid var(--borde);border-radius:10px;padding:.6rem .8rem}
+.cifra small{display:block;color:var(--mut)}.cifra b{font-size:1.3rem;color:var(--oro)}
+.tab-p{width:100%;border-collapse:collapse}.tab-p td{padding:.4rem;border-bottom:1px solid var(--borde);vertical-align:middle}
+.aviso-msg{position:sticky;top:0;background:var(--rojo);color:#fff;padding:.6rem;border-radius:6px;margin:.5rem 0;z-index:5}
+.aviso-msg.ok{background:#166534}
+@media(max-width:600px){.tab-p,.tab-p tbody,.tab-p tr,.tab-p td{display:block}.tab-p tr{border-bottom:2px solid var(--borde);padding:.3rem 0}}

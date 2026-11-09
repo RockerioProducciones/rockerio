@@ -1,0 +1,124 @@
+/**
+ * Enlace para socios (Jaime Encina, Gabriela Martelli…): agenda en solo lectura, venta de música y bebestibles,
+ * e historial/resumen del mes. Funciona con un enlace secreto (token) que tú creas, cambias o borras desde el portal.
+ * Los tokens viven en Propiedades del script (no en GitHub ni en la hoja). El socio NUNCA ve teléfonos, correos ni montos de reservas.
+ */
+
+var SOCIOS_INICIALES = ['Jaime Encina', 'Gabriela Martelli'];
+
+function leerTokens_() {
+  try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('TOKENS_SOCIOS') || '{}'); } catch (e) { return {}; }
+}
+function guardarTokens_(t) { PropertiesService.getScriptProperties().setProperty('TOKENS_SOCIOS', JSON.stringify(t)); }
+
+function nuevoToken_() { return Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, ''); }
+
+/** Crea los enlaces iniciales la primera vez. */
+function prepararSocios_() {
+  var t = leerTokens_();
+  if (Object.keys(t).length) return;
+  SOCIOS_INICIALES.forEach(function (n) { t[nuevoToken_()] = { nombre: n, creado: ahoraChile_().fecha }; });
+  guardarTokens_(t);
+}
+
+function leerSocios_() {
+  var t = leerTokens_();
+  return Object.keys(t).map(function (k) { return { token: k, nombre: t[k].nombre, creado: t[k].creado || '' }; })
+    .sort(function (a, b) { return a.nombre < b.nombre ? -1 : 1; });
+}
+
+function adminCrearSocio(nombre) {
+  exigirAdmin_();
+  nombre = limpiar_(nombre, 40);
+  if (!nombre) throw new Error('Escribe el nombre del socio.');
+  return conBloqueo_(function () {
+    var t = leerTokens_();
+    if (Object.keys(t).length >= 10) throw new Error('Máximo 10 enlaces de socios.');
+    t[nuevoToken_()] = { nombre: nombre, creado: ahoraChile_().fecha };
+    guardarTokens_(t);
+    return adminResumen();
+  });
+}
+
+/** Cambia el enlace de un socio: el anterior deja de funcionar al instante. */
+function adminRegenerarSocio(token) {
+  exigirAdmin_();
+  return conBloqueo_(function () {
+    var t = leerTokens_();
+    if (!t[token]) throw new Error('Enlace no encontrado.');
+    var datos = t[token]; delete t[token];
+    t[nuevoToken_()] = { nombre: datos.nombre, creado: ahoraChile_().fecha };
+    guardarTokens_(t);
+    return adminResumen();
+  });
+}
+
+function adminEliminarSocio(token) {
+  exigirAdmin_();
+  return conBloqueo_(function () {
+    var t = leerTokens_();
+    delete t[token];
+    guardarTokens_(t);
+    return adminResumen();
+  });
+}
+
+/** Devuelve el nombre del socio o '' si el token no vale. Frena a quien prueba tokens al azar. */
+function socioDe_(token) {
+  token = String(token || '');
+  var cache = CacheService.getScriptCache();
+  if (Number(cache.get('tokmal') || 0) >= 40) return '';
+  var t = leerTokens_(), ok = /^[a-f0-9]{64}$/.test(token) && t[token];
+  if (!ok) { cache.put('tokmal', String(Number(cache.get('tokmal') || 0) + 1), 600); return ''; }
+  return t[token].nombre;
+}
+
+function catalogoSocios_(tipo) {
+  return leerProductos_(tipo).filter(function (p) { return p.visible && p.precio !== ''; })
+    .map(function (p) { return { fila: p.fila, categoria: p.categoria, nombre: p.nombre, detalle: p.detalle, precio: p.precio, stock: p.stock, foto: fotoValida_(p.foto) }; });
+}
+
+/** Agenda de los próximos 30 días: solo banda, hora, servicio y estado. Sin teléfonos, correos ni montos. */
+function agendaDetalle_() {
+  var ss = abrirBd_(), hoy = ahoraChile_().fecha, fin = Reglas.sumarDias(hoy, 30), out = [];
+  var sr = ss.getSheetByName(HOJAS.reservas), n = sr.getLastRow();
+  if (n > 1) sr.getRange(2, 1, n - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r) {
+    var f = aFechaIso_(r[RES.fecha - 1]), e = estadoNorm_(r[RES.estado - 1]);
+    if (!r[RES.codigo - 1] || f < hoy || f > fin || e === EST.ANULADA) return;
+    out.push({ fecha: f, inicio: String(r[RES.inicio - 1]), fin: String(r[RES.fin - 1]), servicio: String(r[RES.servicio - 1]), banda: String(r[RES.banda - 1]), estado: e });
+  });
+  var sb = ss.getSheetByName(HOJAS.bloqueos), m = sb.getLastRow();
+  if (m > 1) sb.getRange(2, 1, m - 1, 4).getValues().forEach(function (r) {
+    var f = aFechaIso_(r[0]);
+    if (f && f >= hoy && f <= fin) out.push({ fecha: f, inicio: String(r[1] || ''), fin: String(r[2] || ''), servicio: 'Bloqueo', banda: String(r[3] || 'No disponible'), estado: 'Bloqueo' });
+  });
+  out.sort(function (a, b) { return (a.fecha + a.inicio) < (b.fecha + b.inicio) ? -1 : 1; });
+  return out;
+}
+
+function sociosDatos_(token, mes) {
+  var nombre = socioDe_(token);
+  if (!nombre) return { ok: false, codigo: 'ENLACE', error: 'Este enlace no es válido o fue desactivado. Pide uno nuevo.' };
+  var v = datosVentas_(mes);
+  return { ok: true, socio: nombre, ahora: ahoraChile_(), agenda: agendaDetalle_(), musica: catalogoSocios_('musica'), bebestibles: catalogoSocios_('bebestible'),
+    resumen: v.resumen, ventas: v.ventas, pendientes: v.pendientes };
+}
+
+function sociosVender_(sol) {
+  var nombre = socioDe_(sol.t);
+  if (!nombre) return { ok: false, codigo: 'ENLACE', error: 'Enlace no válido.' };
+  if (limiteGlobal_('socios_venta', 200)) return { ok: false, codigo: 'TASA', error: 'Demasiadas ventas seguidas. Intenta más tarde.' };
+  try {
+    var id = conBloqueo_(function () { return registrarVenta_(tipoCatalogo_(sol.tipo), sol.fila, sol.cantidad, sol.pago, nombre, sol.nota); });
+    return { ok: true, id: id };
+  } catch (e) { return { ok: false, codigo: 'DATOS', error: String(e.message || e) }; }
+}
+
+function sociosCobrar_(sol) {
+  var nombre = socioDe_(sol.t);
+  if (!nombre) return { ok: false, codigo: 'ENLACE', error: 'Enlace no válido.' };
+  try {
+    conBloqueo_(function () { cobrarVenta_(String(sol.id || ''), sol.pago, nombre); });
+    return { ok: true };
+  } catch (e) { return { ok: false, codigo: 'DATOS', error: String(e.message || e) }; }
+}

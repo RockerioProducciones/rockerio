@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="es"><head><base target="_top"><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* Portal de administración: tarjetas por área, un panel a la vez. Colores por área en --acc. */
+:root{--bg:#1f1e1d;--panel:#2b2928;--panel2:#242221;--borde:#403d3b;--oro:#FCC631;--rojo:#D81D23;--txt:#f3efe8;--mut:#b5afa6;--acc:#FCC631}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1200px 500px at 80% -10%,rgba(252,198,49,.10),transparent 60%),radial-gradient(900px 500px at -10% 10%,rgba(216,29,35,.12),transparent 55%),var(--bg);color:var(--txt);font:15px/1.55 Inter,system-ui,sans-serif;padding:0 16px 40px;max-width:1000px;margin:auto;min-height:100vh}
+h1,h2,h3{font-family:Oswald,Impact,sans-serif;text-transform:uppercase;letter-spacing:.05em;margin:0}
+h2{color:var(--acc);font-size:1.25rem;margin:.1em 0 .5em;display:flex;align-items:center;gap:.5rem}
+h2::before{content:"";width:6px;height:1.1em;border-radius:3px;background:var(--acc)}
+.cab{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:18px 0 8px}
+.cab h1{font-size:1.7rem;color:var(--oro);line-height:1}
+.cab h1 small{display:block;font:600 .72rem Inter,sans-serif;color:var(--mut);letter-spacing:.12em;margin-top:.35rem}
+.cab h1::after{content:"";display:block;width:70px;height:4px;border-radius:2px;margin-top:.5rem;background:linear-gradient(90deg,var(--oro),var(--rojo))}
+.cab a{color:var(--oro);text-decoration:none;font-weight:600;border:1px solid var(--borde);border-radius:999px;padding:.35rem .9rem}
+.cab a:hover{border-color:var(--oro)}
+/* menú de áreas */
+.menu-a{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;margin:14px 0 8px}
+@media(min-width:760px){.menu-a{grid-template-columns:repeat(4,1fr)}}
+.area{position:relative;text-align:left;background:linear-gradient(160deg,var(--panel),var(--panel2));color:var(--txt);border:1px solid var(--borde);border-left:4px solid var(--acc);border-radius:14px;padding:.9rem 1rem;min-height:96px;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s;font:inherit}
+.area:hover,.area:focus-visible{transform:translateY(-3px);border-color:var(--acc);box-shadow:0 10px 24px rgba(0,0,0,.35)}
+.area b{display:block;font:700 1.05rem Oswald,sans-serif;text-transform:uppercase;letter-spacing:.05em;color:var(--acc)}
+.area span{display:block;font-size:.8rem;color:var(--mut);line-height:1.3;margin-top:.2rem}
+.area i{position:absolute;top:.6rem;right:.7rem;min-width:24px;height:24px;border-radius:12px;background:var(--rojo);color:#fff;font:700 .78rem/24px Inter,sans-serif;text-align:center;font-style:normal;padding:0 6px;animation:latido 2s infinite}
+@keyframes latido{0%,100%{box-shadow:0 0 0 0 rgba(216,29,35,.5)}50%{box-shadow:0 0 0 7px rgba(216,29,35,0)}}
+.barra{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:.8rem;padding:.55rem 0;background:rgba(31,30,29,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--borde);margin-bottom:10px}
+.barra button{background:transparent;color:var(--acc);border:1px solid var(--borde);border-radius:999px;padding:.35rem .9rem;font:700 .9rem Oswald,sans-serif;text-transform:uppercase;letter-spacing:.05em}
+.barra button:hover{border-color:var(--acc);background:transparent}
+.barra b{font:700 1.1rem Oswald,sans-serif;text-transform:uppercase;letter-spacing:.05em;color:var(--acc)}
+body[data-panel] .menu-a,body[data-panel] #resumen-p{display:none}
+body:not([data-panel]) .barra,body:not([data-panel]) section:not(#resumen-p){display:none}
+body[data-panel] section{display:none}
+section{background:linear-gradient(160deg,var(--panel),var(--panel2));border:1px solid var(--borde);border-top:3px solid var(--acc);border-radius:12px;padding:16px;margin:14px 0;animation:entra .3s both}
+@keyframes entra{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+section.on{display:block!important}
+#resumen-p{border-top-color:var(--oro)}
+[data-p=reservas]{--acc:#FCC631}[data-p=solicitudes]{--acc:#ff5a5f}[data-p=tienda]{--acc:#4ade80}[data-p=contenido]{--acc:#60a5fa}[data-p=mensajes]{--acc:#34d399}[data-p=config]{--acc:#c084fc}[data-p=conta]{--acc:#fb923c}[data-p=socios]{--acc:#94a3b8}
+table{width:100%;border-collapse:collapse}td,th{padding:8px 6px;border-bottom:1px solid var(--borde);text-align:left;vertical-align:middle}
+th{color:var(--mut);font:600 .75rem Inter,sans-serif;text-transform:uppercase;letter-spacing:.08em}
+tbody tr:hover{background:rgba(255,255,255,.03)}
+input,select,button,textarea{font:inherit;background:#1a1918;color:var(--txt);border:1px solid var(--borde);border-radius:8px;padding:8px 10px;min-height:38px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);outline-offset:1px;border-color:transparent}
+button{background:linear-gradient(180deg,#ffd45a,var(--oro));color:#1c1b1a;border:0;font-weight:700;cursor:pointer;transition:transform .12s,filter .12s}
+button:hover{filter:brightness(1.07);transform:translateY(-1px)}button:active{transform:scale(.97)}
+button.sec{background:#46433f;color:var(--txt)}
+a{color:var(--oro)}
+details{background:rgba(0,0,0,.18)}
+details[open]>summary{color:var(--acc)}
+summary{cursor:pointer;font-weight:700;padding:4px 0}
+.fila{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.est{font-weight:700}
+#msg{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:20;max-width:90vw;background:var(--rojo);box-shadow:0 8px 24px rgba(0,0,0,.5);padding:10px 16px;border-radius:10px;display:none;font-weight:600}
+@media(max-width:700px){table,tbody,tr,td{display:block}th{display:none}tr{border-bottom:2px solid var(--borde);padding:8px 0}td{border:0;padding:3px 0}input,select{max-width:100%}}
+
+/* ---- Reservas y jornadas ---- */
+[data-p=jornadas]{--acc:#FCC631}
+.tabs{display:flex;gap:.4rem;margin:.2rem 0 .8rem;flex-wrap:wrap}
+.tabs button{background:transparent;color:var(--mut);border:1px solid var(--borde);border-radius:999px;padding:.4rem 1.1rem;font:700 .9rem Oswald,sans-serif;text-transform:uppercase;letter-spacing:.05em}
+.tabs button.on{background:var(--oro);color:#1c1b1a;border-color:var(--oro)}
+.jbarra{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:.7rem}
+.jbarra .mes{font:700 1.3rem Oswald,sans-serif;text-transform:uppercase;letter-spacing:.05em;min-width:190px;text-align:center}
+.jbarra label{color:var(--mut);font-size:.85rem;display:flex;align-items:center;gap:.3rem}
+.leyj{display:flex;flex-wrap:wrap;gap:.8rem;font-size:.78rem;color:var(--mut);margin:.2rem 0 .7rem}
+.leyj span::before{content:"";display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:.35rem;vertical-align:-1px;background:var(--c);border:1px solid var(--c2,var(--c))}
+.cuad{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cuad .dow{color:var(--mut);font:600 .72rem Inter,sans-serif;text-transform:uppercase;letter-spacing:.08em;text-align:center;padding:.2rem 0}
+.dia{min-height:118px;background:rgba(0,0,0,.22);border:1px solid var(--borde);border-radius:8px;padding:4px;display:flex;flex-direction:column;gap:3px;cursor:pointer;transition:border-color .12s,background .12s;overflow:hidden}
+.dia:hover{border-color:var(--oro)}
+.dia.fuera{opacity:.35}.dia.hoy{border-color:var(--oro);box-shadow:inset 0 0 0 1px var(--oro)}
+.dia.sel{background:rgba(252,198,49,.10)}
+.dia .n{font:700 .85rem Oswald,sans-serif;color:var(--mut);display:flex;justify-content:space-between}
+.dia.hoy .n{color:var(--oro)}
+.ev{display:block;width:100%;text-align:left;font-size:.72rem;line-height:1.25;padding:2px 5px;border-radius:5px;border:1px solid var(--c);background:color-mix(in srgb,var(--c) 22%,transparent);color:var(--txt);min-height:0;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.ev b{color:var(--c)}
+.ev:hover{filter:brightness(1.2)}
+.ev.bloq{--c:#ff5a5f;background:repeating-linear-gradient(135deg,rgba(255,90,95,.18) 0 6px,rgba(255,90,95,.06) 6px 12px);cursor:default}
+.ev.sin{--c:#FCC631;border-style:dashed}.ev.con{--c:#4ade80}.ev.fin{--c:#60a5fa}.ev.noa{--c:#c084fc}.ev.anu{--c:#8a8581;text-decoration:line-through}
+.mas{font-size:.7rem;color:var(--mut);padding-left:3px}
+.agenda-d{border:1px solid var(--borde);border-radius:10px;margin:.4rem 0;padding:.5rem .7rem;background:rgba(0,0,0,.2)}
+.agenda-d h4{margin:0 0 .3rem;font:700 .95rem Oswald,sans-serif;text-transform:uppercase;letter-spacing:.05em;color:var(--oro)}
+.jdet{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.6);display:flex;align-items:flex-start;justify-content:center;padding:4vh 12px;overflow:auto}
+.jdet[hidden]{display:none}
+.ficha-j{background:linear-gradient(160deg,var(--panel),var(--panel2));border:1px solid var(--borde);border-top:4px solid var(--c,var(--oro));border-radius:14px;max-width:640px;width:100%;padding:1.1rem;animation:entra .2s both}
+.ficha-j h3{font-size:1.3rem;color:var(--c,var(--oro));margin:0}
+.ficha-j .sub{color:var(--mut);margin:.1rem 0 .7rem}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:.25rem 1rem;margin:.6rem 0}
+.kv dt{color:var(--mut)}.kv dd{margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin:.5rem 0}
+.chip{border:1px solid var(--borde);border-radius:999px;padding:.15rem .7rem;font-size:.8rem;background:rgba(0,0,0,.25)}
+.chip.ok{border-color:#4ade80;color:#4ade80}
+.tarjetas-c{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:.7rem}
+.cli{background:linear-gradient(160deg,var(--panel),var(--panel2));border:1px solid var(--borde);border-left:4px solid var(--oro);border-radius:12px;padding:.8rem .9rem;cursor:pointer;transition:transform .12s,border-color .12s}
+.cli:hover{transform:translateY(-2px);border-color:var(--oro)}
+.cli b{font:700 1.1rem Oswald,sans-serif;text-transform:uppercase;letter-spacing:.04em;color:var(--oro);display:block}
+.cli small{display:block;color:var(--mut)}
+.cli .num{display:flex;gap:.9rem;margin-top:.5rem}.cli .num div{text-align:center}.cli .num b{font-size:1.15rem;color:var(--txt)}.cli .num span{font-size:.68rem;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+.tot{display:flex;flex-wrap:wrap;gap:.6rem;margin:.6rem 0}
+.tot div{background:rgba(0,0,0,.25);border:1px solid var(--borde);border-radius:10px;padding:.4rem .8rem}.tot b{color:var(--oro);font-size:1.1rem}
+@media(max-width:760px){.cuad{display:none}.jbarra .mes{min-width:0;flex:1}}
+@media(min-width:761px){.agenda-solo{display:none}}
+
+/* ---- estilo portal clásico: cabecera fija, pestañas con ícono, paleta casi negra ---- */
+:root{--bg:#0b0b0c;--panel:#141416;--panel2:#101012;--borde:#2a2a2e;--oro:#E39A2D}
+body{background:var(--bg)}
+.cab{position:static;padding:14px 0 10px;border-bottom:1px solid var(--borde)}
+.cab h1{font-size:1.25rem;letter-spacing:.06em;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.cab h1::after{display:none}
+.cab h1 small{display:inline;margin:0;font-size:.7rem}
+.badge-adm{background:var(--oro);color:#111;font:800 .65rem Inter,sans-serif;letter-spacing:.1em;padding:.15rem .5rem;border-radius:5px}
+.cab-acc{display:flex;align-items:center;gap:.5rem}
+.cab-acc a,.cab-acc button{background:transparent;color:var(--txt);border:1px solid var(--borde);border-radius:8px;padding:.4rem .75rem;font:600 .78rem Inter,sans-serif;text-transform:none;letter-spacing:0;text-decoration:none;cursor:pointer;min-height:0}
+.cab-acc a:hover,.cab-acc button:hover{border-color:var(--oro);color:var(--oro)}
+#campana{position:relative}#campana i{position:absolute;top:-7px;right:-7px;min-width:18px;height:18px;border-radius:9px;background:var(--rojo);color:#fff;font:700 .68rem/18px Inter,sans-serif;text-align:center;font-style:normal;padding:0 4px}
+body .menu-a{display:flex!important;grid-template-columns:none;gap:.35rem;overflow-x:auto;position:sticky;top:0;z-index:6;background:rgba(11,11,12,.94);backdrop-filter:blur(8px);padding:8px 0;margin:0 0 6px;border-bottom:1px solid var(--borde);scrollbar-width:none}
+.menu-a::-webkit-scrollbar{display:none}
+.menu-a .area{flex:0 0 auto;min-height:0;border:1px solid transparent;border-left:1px solid transparent;border-radius:9px;background:transparent;padding:.5rem .8rem;display:flex;align-items:center;gap:.45rem}
+.menu-a .area::before{content:attr(data-ico);font-size:1rem}
+.menu-a .area span{display:none}
+.menu-a .area b{font:700 .74rem Inter,sans-serif;letter-spacing:.07em;color:var(--mut);white-space:nowrap}
+.menu-a .area:hover{transform:none;box-shadow:none;background:rgba(255,255,255,.04)}
+.menu-a .area.on{background:rgba(227,154,45,.12);border-color:var(--oro)}.menu-a .area.on b{color:var(--oro)}
+.menu-a .area i{position:static;margin-left:.2rem;animation:none;min-width:18px;height:18px;line-height:18px;font-size:.68rem;border-radius:9px}
+body[data-panel] .menu-a{display:flex!important}
+.barra,#resumen-p{display:none!important}
+body:not([data-panel]) section:not(#resumen-p){display:none}
+section h2{display:none}section#sec-jor h2{display:none}
+section{border-top:1px solid var(--borde);border-radius:14px;background:var(--panel)}
+/* calendario por servicio */
+.ev.sv-ens{--c:#22c55e}.ev.sv-est{--c:#ef4444}.ev.sv-plan{--c:#f59e0b}
+.ev.anu{--c:#8a8581}
+.ev.bloq{--c:#8a8581;background:repeating-linear-gradient(135deg,rgba(138,133,129,.2) 0 6px,rgba(138,133,129,.07) 6px 12px)}
+.ev small{display:block;color:var(--mut);font-size:.62rem}
+.dia.hoy::after{content:"HOY";position:absolute;top:3px;right:4px;background:var(--oro);color:#111;font:800 .55rem Inter,sans-serif;padding:1px 5px;border-radius:4px}
+.dia{position:relative;min-height:132px}
+.dia .mas{color:var(--oro)}
+.selinfo{margin:.5rem 0;color:var(--mut);font-size:.85rem}.selinfo b{color:var(--oro)}
+/* clientes */
+.tarjetas-c{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+.cli{cursor:default;border-left:1px solid var(--borde)}
+.cli:hover{transform:none}
+.cli b::before{content:"♪ ";color:var(--oro)}
+.cli .mat{margin-top:.6rem;border:1px solid var(--borde);border-radius:10px;padding:.5rem;background:rgba(0,0,0,.3)}
+.cli .mat h5{margin:0 0 .3rem;font:700 .65rem Inter,sans-serif;letter-spacing:.1em;color:var(--mut);text-transform:uppercase}
+.cli .mat .fila{gap:.3rem}.cli .mat a,.cli .mat button{font:600 .72rem Inter,sans-serif;padding:.3rem .55rem;border-radius:7px;text-decoration:none;min-height:0}
+.cli .hist{margin-top:.5rem;display:flex;justify-content:space-between;border-top:1px solid var(--borde);padding-top:.45rem;font-size:.78rem;color:var(--mut)}.cli .hist b{display:inline;font:700 .85rem Inter,sans-serif;color:var(--oro)}.cli .hist b::before{content:""}
+.cli .wa{display:block;margin-top:.5rem;text-align:center;background:#16a34a;color:#fff;text-decoration:none;border-radius:8px;padding:.45rem;font:700 .8rem Inter,sans-serif}
+</style></head><body>
+<div class="cab"><h1>Portal de control <small>· Rockerío Producciones</small><span class="badge-adm">ADMIN</span></h1><div class="cab-acc"><a id="ver-sitio" href="#" target="_blank" rel="noopener" hidden>Ver sitio público ↗</a><button type="button" id="campana" title="Pendientes">🔔<i id="campana-n" hidden></i></button></div></div>
+<div id="msg"></div>
+<div class="barra" id="barra"><button type="button" id="inicio-a">‹ Inicio</button><b id="barra-t"></b></div>
+<div class="menu-a" id="menu-a"></div>
+<section id="resumen-p"><h2>Pendientes</h2><div id="cuentas" class="fila"></div></section>
+<section id="sec-jor" data-p="jornadas"><h2>Reservas y jornadas</h2>
+<div class="tabs" id="jtabs" role="tablist"><button type="button" data-v="cal" class="on">Calendario</button><button type="button" data-v="his">Historial</button><button type="button" data-v="cli">Clientes</button></div>
+<div id="jbarra" class="jbarra"></div>
+<div id="jcal"></div>
+<div id="jhis" hidden></div>
+<div id="jcli" hidden></div>
+<div id="jdet" class="jdet" hidden></div>
+</section>
+
+<section><h2>Planes mensuales</h2>
+<p style="color:#b5afa6;margin:0 0 .5em">Un plan son 4 sesiones. Si el cliente lo compra en el sitio, sus 4 sesiones llegan solas. Si lo vendes tú, créalo aquí («0 de 4») y ve agregando las fechas.</p>
+<div class="fila"><select id="plt"><option value="plan8">Plan 8 horas (4 × 2 h)</option><option value="plan12">Plan 12 horas (4 × 3 h)</option></select>
+<input id="plb" placeholder="Banda" maxlength="60" style="width:140px"><input id="plc" placeholder="Contacto" maxlength="60" style="width:140px">
+<input id="plf" placeholder="WhatsApp" style="width:130px"><input id="ple" placeholder="Correo" style="flex:1;min-width:150px"><label><input type="checkbox" id="plp"> Ya pagó</label><button id="plg">Crear plan</button></div>
+<div id="pls"></div><p id="sinpl"></p></section>
+<section><h2>Cotizaciones y solicitudes</h2><div id="sol"></div><p id="sinsol"></p></section>
+<section><h2>Cuadro de honor</h2><div id="hon"></div><p id="sinhon"></p></section>
+<section><h2>Reseñas</h2><div id="res2"></div><p id="sinres2"></p></section>
+<section><h2>Muestras de audio</h2>
+<p style="color:#b5afa6;margin:0 0 .5em">Sube el audio a Drive (compartido con «cualquiera con el enlace») y pega el enlace. Un grupo es un micrófono, una canción o un ensayo; cada fila es una muestra (Caja, Voz, En bruto, Mezclada, Masterizada…).</p>
+<div class="fila" id="mform"><input id="mg" placeholder="Grupo (ej. Shure SM57)" maxlength="80" style="flex:1;min-width:150px">
+<select id="mt"><option>Micrófono</option><option>Canción</option><option>Ensayo</option><option>Otro</option></select>
+<input id="me" placeholder="Etiqueta (ej. Caja)" maxlength="60" style="width:150px"><input id="ml" placeholder="https://drive.google.com/file/d/…" style="flex:1;min-width:200px">
+<input id="md" placeholder="Descripción del grupo (opcional)" maxlength="300" style="flex:1;min-width:200px"><label><input type="checkbox" id="mv" checked> Visible</label>
+<button id="mg2">Agregar</button><button id="mcancel" class="sec" style="display:none">Cancelar</button></div>
+<div class="fila" style="margin-top:6px"><label style="color:#b5afa6">…o sube el archivo de audio (mp3, wav, m4a u ogg, hasta 12 MB) con el grupo, tipo y etiqueta de arriba:</label><input type="file" id="ma" accept="audio/mpeg,audio/wav,audio/mp4,audio/ogg,.mp3,.wav,.m4a,.ogg"><button id="msub">Subir audio</button></div>
+<table><tbody id="mue"></tbody></table></section>
+<section id="sec-wa"><h2>Mensajes de WhatsApp</h2>
+<p style="color:#b5afa6;margin:0 0 .5em">Textos de los mensajes. En cada reserva hay un selector «WhatsApp…» que abre la conversación con el mensaje ya escrito (un toque, gratis). Variables: {nombre} {banda} {servicio} {fecha} {hora} {fin} {codigo} {total} {abono} {saldo} {direccion} {negocio} {sitio} {horasAnulacion}. Vacío = vuelve al texto original.</p>
+<div id="wam"></div><div style="margin-top:6px"><button id="wag">Guardar mensajes</button></div>
+<h3 style="margin:1em 0 .2em;font-size:15px">Recordatorios de mañana</h3><div id="wamanana"></div><p id="sinwa" style="color:#b5afa6"></p>
+<h3 style="margin:1em 0 .2em;font-size:15px">Envío automático (opcional)</h3>
+<p style="color:#b5afa6;margin:0 0 .5em">Envía solo el recordatorio del día anterior (18:00) a reservas confirmadas. Requiere WhatsApp Business Platform de Meta: número registrado, plantilla aprobada y token. Meta puede cobrar por conversación; fuera de la ventana de 24 h solo se permiten plantillas aprobadas. Cuerpo sugerido de la plantilla: «Hola {{1}}, te recordamos tu reserva de {{2}} el {{3}} de {{4}} a {{5}}. ¡Te esperamos!». Activa el envío y completa ID del número y nombre de plantilla en <b>Configuración &gt; WhatsApp</b>.</p>
+<div class="fila"><input id="wat" type="password" autocomplete="off" placeholder="Token de la API (no se vuelve a mostrar)" style="flex:1;min-width:240px"><button id="watg">Guardar token</button><button id="watb" class="sec">Borrar token</button><span id="watest" style="color:#b5afa6"></span></div>
+<div class="fila" style="margin-top:6px"><input id="wan" placeholder="Tu WhatsApp para probar (56912345678)" style="width:230px"><button id="wap" class="sec">Enviar mensaje de prueba</button></div></section>
+<section><h2>Reglamento interno</h2>
+<p style="color:#b5afa6;margin:0 0 .5em">Es el texto que ven los clientes en el sitio. Usa «## » para los títulos de sección y «- » para las viñetas. {horasAnulacion}, {retencionPorHora}, {reagendoSemanas}, {reagendoCambios} y {minutosReserva} se reemplazan solos con los valores de Configuración. Vacío = vuelve al texto original.</p>
+<textarea id="rgt" rows="14" maxlength="6000" style="width:100%"></textarea><div style="margin-top:6px"><button id="rgg">Guardar reglamento</button></div></section>
+<section><h2>Presentación personal</h2><div class="fila" style="flex-direction:column;align-items:stretch">
+<input id="prt" placeholder="Título (ej. Mi enfoque)" maxlength="80"><textarea id="prx" rows="8" maxlength="3000" placeholder="Tu visión y enfoque técnico y artístico. Separa los párrafos con una línea en blanco. Vacío = la sección no se muestra en el sitio."></textarea>
+<div><button id="prg">Guardar presentación</button></div></div></section>
+<section><h2>Configuración</h2>
+<p style="color:#b5afa6;margin:0 0 .5em">Aquí cambias casi todo: precios, reglas de reserva, pagos, reparto entre socios y funciones. Cada campo tiene una ayuda debajo. Los cambios se aplican al sitio en un par de minutos.</p>
+<div id="ajustes"></div><div class="fila" style="margin-top:8px"><button id="ajg">Guardar configuración</button></div>
+<h3 style="margin:1em 0 .2em;font-size:15px">Horarios de atención</h3>
+<p style="color:#b5afa6;margin:0 0 .4em">Escribe cada bloque como 09:00-14:00. Deja vacío el segundo bloque si el día es corrido, o ambos si no atiendes.</p>
+<div id="horas"></div><div class="fila" style="margin-top:8px"><button id="hog">Guardar horarios</button></div>
+<h3 style="margin:1em 0 .2em;font-size:15px">Qué ingresos entran al balance</h3>
+<div id="ingr" class="fila"></div><div class="fila" style="margin-top:8px"><button id="ing">Guardar</button></div></section>
+<section><h2>Sitio</h2><div class="fila">
+<label><input type="checkbox" id="activas"> Reservas en línea activas</label>
+<label><input type="checkbox" id="pagotr"> Pago por transferencia <span id="pagotraviso" style="color:#b5afa6"></span></label>
+<label><input type="checkbox" id="pagoon"> Pago online <span id="pagoaviso" style="color:#b5afa6"></span></label>
+<input id="banner" maxlength="200" placeholder="Aviso en el sitio (opcional)" style="flex:1;min-width:200px">
+<select id="tema"></select><input id="surl" placeholder="Dirección del sitio https://…" maxlength="150" style="flex:1;min-width:200px">
+<button id="guardar">Guardar</button></div>
+<p style="margin:.6em 0 0"><a id="hoja" target="_blank" rel="noopener" style="color:#FCC631">Abrir la hoja de datos y el Balance mensual</a></p></section>
+<section><h2>Reservas</h2><table><thead><tr><th>Código</th><th>Fecha</th><th>Banda / contacto</th><th>Monto</th><th>Estado</th></tr></thead><tbody id="res"></tbody></table><p id="sinres"></p></section>
+<section><h2>Clientes y material</h2>
+<p style="color:#b5afa6;margin:0 0 .5em">Pega el enlace de la carpeta de Drive de cada banda una sola vez: queda ligado a todos sus integrantes y aparece como «Enviar material» en cada reserva.</p>
+<table><tbody id="cli"></tbody></table><p id="sincli"></p></section>
+<section id="sec-musica"></section>
+<section id="sec-beb"></section>
+<section><h2>Ventas del mes</h2>
+<div class="fila"><select id="vmes"></select><span id="vres" style="color:#b5afa6"></span></div>
+<div id="vtot" class="fila" style="margin:.6em 0"></div>
+<h3 style="margin:.6em 0 .2em;font-size:15px">Por cobrar (entregado en sesión)</h3><table><tbody id="vpend"></tbody></table><p id="sinvp" style="color:#b5afa6"></p>
+<h3 style="margin:.6em 0 .2em;font-size:15px">Historial</h3><table><tbody id="vhist"></tbody></table></section>
+<section id="sec-conta"><h2>Contabilidad formal</h2>
+<p style="color:#b5afa6;margin:0 0 .5em">Simulación mensual con la normativa chilena: IVA (Formulario 29), PPM, Impuesto de Primera Categoría y reserva de impuestos. Enciéndela cuando inicies actividades en el SII. Apagada, el balance sigue como siempre y nada de esto se calcula.</p>
+<div class="fila"><label><input type="checkbox" id="cf"> Contabilidad formal activada</label><select id="rg"><option value="14D3">Régimen Pro Pyme general (14 D N°3)</option><option value="14D8">Régimen Pro Pyme transparente (14 D N°8)</option></select><button id="cfg">Guardar</button></div>
+<div id="contab"></div></section>
+<section><h2>Costos del mes y cierre</h2>
+<p style="color:#b5afa6;margin:0 0 .5em">Escribe aquí la boleta de la luz de cada mes: queda guardada para ese mes y alimenta su Balance. Al cambiar de mes el Balance parte de cero solo; los meses anteriores no se pierden.</p>
+<div class="fila"><input id="cm" placeholder="Mes AAAA-MM" maxlength="7" style="width:110px"><input id="cl" type="number" min="0" placeholder="Luz total (boleta)" style="width:150px"><input id="ca" type="number" min="0" placeholder="Aporte ProAudix (10000)" style="width:170px"><input id="cc" type="number" min="0" placeholder="Caja chica (20000)" style="width:150px"><input id="co" type="number" min="0" placeholder="Otros gastos" style="width:120px"><input id="cn" maxlength="200" placeholder="Notas" style="flex:1;min-width:120px"><label title="Marca SI si la boleta de luz es una factura a nombre del negocio: permite recuperar el IVA y deducir el gasto"><input type="checkbox" id="cfa"> Luz con factura</label><button id="cg">Guardar mes</button></div>
+<table><tbody id="ctab"></tbody></table>
+<h3 style="margin:.8em 0 .2em;font-size:15px">Historial de balances</h3>
+<div class="fila"><button id="cierre" class="sec">Cerrar el mes seleccionado arriba</button><span style="color:#b5afa6">Se cierra solo el día 1 de cada mes (guarda una copia fija del balance).</span></div>
+<table><tbody id="htab"></tbody></table></section>
+<section><h2>Enlaces para compartir</h2>
+<p style="color:#b5afa6;margin:0 0 .5em">El enlace de cada socio es secreto: quien lo tenga puede ver la agenda y vender. Compártelo solo por mensaje privado. «Cambiar enlace» deja inválido el anterior al instante.</p>
+<div id="socs"></div>
+<div class="fila"><input id="sn" maxlength="40" placeholder="Nombre del socio" style="flex:1;min-width:160px"><button id="sg">Crear enlace</button></div>
+<h3 style="margin:.8em 0 .2em;font-size:15px">Agenda para familia y clientes (solo lectura)</h3><div id="pubag"></div></section>
+<section><h2>Respaldo</h2><div class="fila"><button id="resp">Respaldar ahora</button><span style="color:#b5afa6">Se hace solo cada noche en tu Drive (carpeta «Rockerío · Respaldos», últimas 30 copias).</span></div></section>
+<section><h2>Bloqueos</h2><div class="fila">
+<input type="date" id="bf"><input type="number" id="bd" min="0" max="23" placeholder="Desde (h)" style="width:100px"><input type="number" id="bh" min="1" max="24" placeholder="Hasta (h)" style="width:100px"><input id="bm" maxlength="100" placeholder="Motivo" style="flex:1;min-width:140px"><button id="bloq">Bloquear</button></div>
+<p style="color:#b5afa6;margin:.4em 0">Sin horas = todo el día.</p><table><tbody id="blo"></tbody></table></section>
+<script>
+var $=function(i){return document.getElementById(i)};
+function aviso(t){var m=$('msg');m.textContent=t;m.style.display=t?'block':'none';if(t)setTimeout(function(){m.style.display='none'},6000)}
+function ejecutar(fn){var a=[].slice.call(arguments,1);google.script.run.withSuccessHandler(pintar).withFailureHandler(function(e){aviso(e.message||'Error')})[fn].apply(null,a)}
+function td(t,c){var e=document.createElement('td');e.textContent=t;if(c)e.className=c;return e}
+function clp(n){return '$'+Number(n).toLocaleString('es-CL')}
+function pintarClientes(cs){
+  var t=$('cli');t.textContent='';$('sincli').textContent=cs.length?'':'Aún no hay clientes.';
+  cs.forEach(function(c){var tr=document.createElement('tr');
+    tr.appendChild(td(c.banda));tr.appendChild(td(c.contacto+' · +'+c.telefono));tr.appendChild(td(c.correo));
+    var k=document.createElement('td'),i=document.createElement('input');i.placeholder='https://drive.google.com/…';i.value=c.enlace;i.style.width='100%';i.style.minWidth='180px';
+    k.appendChild(i);k.appendChild(btn('Guardar',function(){ejecutar('adminGuardarEnlace',c.telefono,i.value)}));tr.appendChild(k);t.appendChild(tr)});
+}
+function wsp(r){
+  var msg='Hola '+r.contacto+', aquí está el material de '+r.banda+': '+r.enlace;
+  return 'https://wa.me/'+r.telefono+'?text='+encodeURIComponent(msg);
+}
+var ultimo=null;
+var WA=null;
+function waTexto(t,r){var v={nombre:r.contacto,banda:r.banda,servicio:r.servicio,fecha:r.fechaTxt,hora:r.inicio,fin:r.fin,codigo:r.codigo,total:clp(r.total),abono:clp(r.abono),saldo:clp(r.saldo),direccion:WA.direccion,negocio:WA.negocio,sitio:WA.sitio,horasAnulacion:WA.horasAnulacion};return WA.plantillas[t].replace(/\{(\w+)\}/g,function(m,k){return v[k]!==undefined?v[k]:m})}
+function waUrl(t,r){return 'https://wa.me/'+String(r.telefono).replace(/\D/g,'')+'?text='+encodeURIComponent(waTexto(t,r))}
+var WATIPOS=[['msgRecordatorio','Recordatorio'],['msgConfirmacion','Reserva confirmada'],['msgCobroAbono','Cobrar abono'],['msgGracias','Gracias y reseña']];
+function pintar(d){
+  if(d.mensaje)aviso(d.mensaje);
+  pintarExtra(d);
+  pintarClientes(d.clientes||[]);
+  WA=d.wa;ultimo=d;pintarWA(d);pintarMenu(d);if(document.activeElement!==$('rgt'))$('rgt').value=d.reglamento||'';pintarAjustes(d);pintarConta(d);pintarCatalogos(d);pintarVentas(d);pintarCostos(d);pintarSocios(d);
+  $('activas').checked=d.reservasActivas;$('pagoon').checked=d.pagoOnline;$('pagotr').checked=d.pagoTransferencia;$('pagotraviso').textContent=d.hayDatosTransf?'':'(faltan datosTransferencia en la hoja Configuracion)';$('hoja').href=d.urlHoja;$('pagoaviso').textContent=d.hayLinkPago?'':'(falta linkPago en la hoja Configuracion)';$('banner').value=d.avisoBanner||'';fijarTemas(d.tema);$('surl').value=d.sitioUrl||'';
+  var t=$('res');t.textContent='';$('sinres').textContent=d.reservas.length?'':'No hay reservas próximas.';
+  d.reservas.forEach(function(r){var tr=document.createElement('tr');
+    tr.appendChild(td(r.codigo));tr.appendChild(td(r.fecha+' '+r.inicio+'–'+r.fin+' ('+r.servicio+')'));
+    tr.appendChild(td(r.banda+' · '+r.contacto+' · +'+r.telefono));tr.appendChild(td(clp(r.total)+' (abono '+clp(r.abono)+')'));
+    var c=document.createElement('td'),s=document.createElement('select');
+    d.estados.forEach(function(e){var o=document.createElement('option');o.value=e;o.textContent=e;if(e===r.estado)o.selected=true;s.appendChild(o)});
+    s.onchange=function(){ejecutar('adminCambiarEstado',r.codigo,s.value)};c.appendChild(s);
+    if(r.devolver>0)c.appendChild(par('Devolver '+clp(r.devolver)+' por transferencia','color:#FCC631;margin-top:4px'));
+    if(r.retenido>0)c.appendChild(par('Abono retenido '+clp(r.retenido),'color:#b5afa6;margin-top:2px'));
+    if(r.enlace){var m=document.createElement('a');m.textContent='Enviar material';m.href=wsp(r);m.target='_blank';m.rel='noopener';m.style.cssText='margin-left:8px;color:#FCC631';c.appendChild(m)}
+    else{var sm=document.createElement('span');sm.textContent='Sin carpeta de material';sm.style.cssText='margin-left:8px;color:#b5afa6';c.appendChild(sm)}
+    if(WA){var wsel=document.createElement('select');wsel.style.marginLeft='8px';var w0=document.createElement('option');w0.textContent='WhatsApp…';wsel.appendChild(w0);
+    WATIPOS.forEach(function(x){var o=document.createElement('option');o.value=x[0];o.textContent=x[1];wsel.appendChild(o)});
+    wsel.onchange=function(){if(wsel.value)window.open(waUrl(wsel.value,r),'_blank','noopener');wsel.selectedIndex=0};c.appendChild(wsel)}
+    tr.appendChild(c);t.appendChild(tr)});
+  var b=$('blo');b.textContent='';
+  d.bloqueos.forEach(function(x){var tr=document.createElement('tr');
+    tr.appendChild(td(x.fecha));tr.appendChild(td(x.desde===''?'Todo el día':x.desde+'–'+x.hasta+' h'));tr.appendChild(td(x.motivo));
+    var c=document.createElement('td'),k=document.createElement('button');k.className='sec';k.textContent='Quitar';k.onclick=function(){ejecutar('adminDesbloquear',x.fila)};c.appendChild(k);tr.appendChild(c);b.appendChild(tr)});
+}
+$('guardar').onclick=function(){ejecutar('adminConfigurar',$('activas').checked,$('banner').value,$('pagoon').checked,$('pagotr').checked,$('tema').value,$('surl').value,$('cf').checked,$('rg').value);aviso('')};
+$('bloq').onclick=function(){ejecutar('adminBloquear',$('bf').value,$('bd').value,$('bh').value,$('bm').value)};
+
+function btn(t,f,c){var b=document.createElement('button');b.textContent=t;if(c)b.className=c;b.onclick=f;return b}
+$('resp').onclick=function(){google.script.run.withSuccessHandler(aviso).withFailureHandler(function(e){aviso(e.message||'Error')}).adminRespaldar()};
+
+
+function filaR(t,v,neg,nota){var tr=document.createElement('tr');tr.appendChild(td(t));tr.appendChild(td(clp(v),neg?'est':''));tr.appendChild(td(nota||''));tr.lastChild.style.color='#b5afa6';return tr}
+var TDOC=['Factura','Boleta','Sin documento'];
+function pintarConta(d){
+  $('cf').checked=!!d.contabilidadFormal;$('rg').value=d.regimen||'14D3';
+  var b=$('contab');b.textContent='';var c=d.contab;
+  if(!d.contabilidadFormal){b.appendChild(par('Desactivada. Al activarla (y guardar) verás aquí el IVA a pagar, el PPM, la provisión de impuestos y podrás registrar compras. Antes de activarla: inicio de actividades en el SII, y confirmar régimen y tasas con tu contador.','color:#FCC631;margin-top:8px'));return}
+  b.appendChild(par('Mes: '+c.mes+' · Régimen '+c.regimen+' · cambia el mes en la hoja Balance (B1)','color:#b5afa6;margin:8px 0'));
+  var t=document.createElement('table'),tb=document.createElement('tbody');t.appendChild(tb);b.appendChild(t);
+  [['Ventas brutas (con IVA)',c.ventasBrutas],['Ventas netas',c.ventasNetas],['IVA débito',c.ivaDebito],['IVA crédito (compras con factura + luz)',c.ivaCredito+c.ivaCreditoLuz],['Remanente de IVA anterior',c.remanenteAnt],['IVA a pagar',c.ivaPagar,1],['PPM',c.ppm],['TOTAL A PAGAR EN EL F29',c.totalF29,1],
+   ['Utilidad tributaria del mes',c.utilidad],[c.regimen==='14D8'?'Renta atribuida a los dueños':'Impuesto de Primera Categoría (provisión)',c.regimen==='14D8'?c.atribuida:c.idpc],['RESERVA DE IMPUESTOS A GUARDAR',c.reserva,1]].forEach(function(x){tb.appendChild(filaR(x[0],x[1],x[2]))});
+  c.reparto.forEach(function(r){var tr=document.createElement('tr');tr.appendChild(td(r.nombre+': antes '+clp(r.antes)));tr.appendChild(td('después '+clp(r.despues),'est'));tr.appendChild(td('estimado'));tr.lastChild.style.color='#b5afa6';tb.appendChild(tr)});
+  b.appendChild(par('Obligaciones: boleta electrónica por cada venta · declarar y pagar el F29 cada mes (hasta el 12, o el 20 si lo haces en línea) · llevar el Registro de Compras y Ventas · Operación Renta en abril. Tasas y plazos son referencias: confírmalas con tu contador (hoja Tributario, celdas amarillas).','color:#b5afa6;margin:8px 0'));
+  var h=document.createElement('h3');h.textContent='Compras y gastos con documento';h.style.cssText='margin:.8em 0 .2em;font-size:15px';b.appendChild(h);
+  var f=document.createElement('div');f.className='fila';b.appendChild(f);var ci={};
+  function inp(k,ph,w,tp){var i=document.createElement('input');i.placeholder=ph;if(tp)i.type=tp;if(w)i.style.width=w;else{i.style.flex='1';i.style.minWidth='120px'}ci[k]=i;f.appendChild(i)}
+  inp('fecha','Fecha',null,'date');inp('proveedor','Proveedor');inp('rut','RUT proveedor','120px');
+  var sel=document.createElement('select');TDOC.forEach(function(x){var o=document.createElement('option');o.textContent=x;sel.appendChild(o)});f.appendChild(sel);
+  inp('numero','N° doc.','90px');inp('detalle','Detalle');inp('total','Total pagado','110px','number');
+  f.appendChild(btn('Agregar compra',function(){ejecutar('adminGuardarCompra',{fecha:ci.fecha.value,proveedor:ci.proveedor.value,rut:ci.rut.value,tipo:sel.value,numero:ci.numero.value,detalle:ci.detalle.value,categoria:'',total:ci.total.value})}));
+  b.appendChild(par('Con factura se separa el IVA y se recupera como crédito. Con boleta se deduce el total pero no hay crédito. Sin documento no se deduce.','color:#b5afa6;margin:4px 0'));
+  var t2=document.createElement('table'),b2=document.createElement('tbody');t2.appendChild(b2);b.appendChild(t2);
+  (d.compras||[]).forEach(function(x){var tr=document.createElement('tr');[x.fecha,x.proveedor,x.tipo+(x.numero?' '+x.numero:''),x.detalle,'Neto '+clp(x.neto),'IVA '+clp(x.iva),clp(x.total)].forEach(function(v){tr.appendChild(td(v))});
+    var k=document.createElement('td'),e=btn('Eliminar',function(){if(e.textContent==='Eliminar'){e.textContent='¿Seguro?';setTimeout(function(){e.textContent='Eliminar'},4000)}else ejecutar('adminEliminarCompra',x.fila)},'sec');k.appendChild(e);tr.appendChild(k);b2.appendChild(tr)});
+}
+$('cfg').onclick=function(){if($('cf').checked&&!confirm('¿Activar la contabilidad formal? Solo hazlo si ya iniciaste actividades en el SII o vas a hacerlo.'))return;ejecutar('adminConfigurar',$('activas').checked,$('banner').value,$('pagoon').checked,$('pagotr').checked,$('tema').value,$('surl').value,$('cf').checked,$('rg').value)};
+
+function pintarAjustes(d){
+  var cont=$('ajustes'),abiertos={};[].forEach.call(cont.querySelectorAll('details[open] > summary'),function(x){abiertos[x.textContent]=1});cont.textContent='';var grupo='',det=null;
+  (d.ajustes||[]).forEach(function(a){
+    if(a.grupo!==grupo){grupo=a.grupo;det=document.createElement('details');det.open=!!abiertos[grupo];det.style.cssText='margin:6px 0;border:1px solid #454240;border-radius:8px;padding:6px 10px';var sm=document.createElement('summary');sm.textContent=grupo;sm.style.cssText='cursor:pointer;font-weight:700;color:#FCC631';det.appendChild(sm);cont.appendChild(det)}
+    var w=document.createElement('div');w.style.cssText='margin:8px 0';var l=document.createElement('label');l.textContent=a.etiqueta;l.style.cssText='display:block;font-weight:600';w.appendChild(l);
+    var i;
+    if(a.tipo==='sino'){i=document.createElement('select');['SI','NO'].forEach(function(x){var o=document.createElement('option');o.textContent=x;i.appendChild(o)})}
+    else if(a.tipo==='lista'){i=document.createElement('select');a.opciones.forEach(function(x){var o=document.createElement('option');o.textContent=x;i.appendChild(o)})}
+    else if(a.tipo==='enlaces'){i=document.createElement('textarea');i.rows=4;i.maxLength=1200;i.style.width='100%';i.placeholder='Texto | https://enlace'}
+    else{i=document.createElement('input');if(a.tipo==='pesos'||a.tipo==='num'){i.type='number';i.min=0;i.step=1}i.style.width=(a.tipo==='texto'||a.tipo==='url')?'100%':'180px';i.maxLength=300}
+    i.value=a.valor;i.setAttribute('data-clave',a.clave);w.appendChild(i);w.appendChild(par(a.ayuda,'color:#b5afa6;font-size:13px'));det.appendChild(w)});
+  var h=$('horas');h.textContent='';
+  (d.horarios||[]).forEach(function(x,k){var f=document.createElement('div');f.className='fila';f.style.margin='4px 0';var n=document.createElement('span');n.textContent=x.dia;n.style.width='90px';f.appendChild(n);
+    ['b1','b2'].forEach(function(c){var i=document.createElement('input');i.value=x[c];i.placeholder='09:00-14:00';i.style.width='130px';i.setAttribute('data-h',k+c);f.appendChild(i)});h.appendChild(f)});
+  var g=$('ingr');g.textContent='';
+  (d.ingresos||[]).forEach(function(x){var l=document.createElement('label'),c=document.createElement('input');c.type='checkbox';c.checked=x.valor;l.appendChild(c);l.appendChild(document.createTextNode(' '+x.etiqueta));l.style.marginRight='14px';g.appendChild(l)});
+}
+$('ajg').onclick=function(){var o={};[].forEach.call(document.querySelectorAll('#ajustes [data-clave]'),function(i){o[i.getAttribute('data-clave')]=i.value});ejecutar('adminGuardarAjustes',o);aviso('Guardando…')};
+$('hog').onclick=function(){var f=[];for(var k=0;k<7;k++)f.push({b1:document.querySelector('[data-h="'+k+'b1"]').value,b2:document.querySelector('[data-h="'+k+'b2"]').value});ejecutar('adminGuardarHorarios',f);aviso('Guardando…')};
+$('ing').onclick=function(){ejecutar('adminGuardarIngresos',[].map.call(document.querySelectorAll('#ingr input'),function(c){return c.checked}));aviso('Guardando…')};
+
+$('rgg').onclick=function(){ejecutar('adminGuardarReglamento',$('rgt').value);aviso('Reglamento guardado')};
+function pintarWA(d){
+  var box=$('wam');if(!box.firstChild||document.activeElement.tagName!=='TEXTAREA'){box.textContent='';WATIPOS.forEach(function(x){var l=document.createElement('label');l.textContent=x[1];l.style.cssText='display:block;font-weight:600;margin-top:8px';var a=document.createElement('textarea');a.rows=3;a.maxLength=1000;a.style.width='100%';a.value=d.wa.plantillas[x[0]];a.setAttribute('data-msg',x[0]);box.appendChild(l);box.appendChild(a)})}
+  var m=new Date(d.hoy+'T12:00:00');m.setDate(m.getDate()+1);var man=m.getFullYear()+'-'+String(m.getMonth()+1).padStart(2,'0')+'-'+String(m.getDate()).padStart(2,'0');
+  var c=$('wamanana');c.textContent='';var lista=(d.reservas||[]).filter(function(r){return r.fecha===man&&r.estado==='Reservado (con abono)'});
+  $('sinwa').textContent=lista.length?'':'No hay reservas confirmadas para mañana.';
+  lista.forEach(function(r){var f=document.createElement('div');f.className='fila';f.style.margin='4px 0';f.appendChild(par(r.inicio+'–'+r.fin+' · '+r.banda+' · '+r.contacto));var a=document.createElement('a');a.textContent='Enviar recordatorio';a.href=waUrl('msgRecordatorio',r);a.target='_blank';a.rel='noopener';a.style.cssText='color:#FCC631;margin-left:8px';f.appendChild(a);c.appendChild(f)});
+  $('watest').textContent=d.wa.tieneToken?'Token guardado'+(d.wa.auto?' · envío automático ACTIVADO':' · envío automático apagado'):'Sin token';
+}
+$('wag').onclick=function(){var o={};[].forEach.call(document.querySelectorAll('#wam [data-msg]'),function(a){o[a.getAttribute('data-msg')]=a.value});ejecutar('adminGuardarMensajes',o)};
+$('watg').onclick=function(){ejecutar('adminGuardarWaToken',$('wat').value);$('wat').value=''};
+$('watb').onclick=function(){if(confirm('¿Borrar el token guardado?'))ejecutar('adminGuardarWaToken','')};
+$('wap').onclick=function(){aviso('Enviando prueba…');ejecutar('adminProbarWhatsApp',$('wan').value)};
+
+var TEMAS=['rockerio','medianoche','vino','bosque','grafito','azufre','abismo','cobre','ciruela','carbon'];
+function fijarTemas(act){var s=$('tema');if(!s.options.length)TEMAS.forEach(function(t){var o=document.createElement('option');o.value=t;o.textContent='Tema: '+t;s.appendChild(o)});s.value=act||'rockerio'}
+var PAGOS=['Venta efectivo','Venta transferencia','Entregado en sesión (pago pendiente)'];
+var edit={musica:null,bebestible:null};
+function seccionCat(id,tipo,titulo,cats){
+  var sec=$(id);if(sec.firstChild)return;
+  var h=document.createElement('h2');h.textContent=titulo;sec.appendChild(h);
+  var f=document.createElement('div');f.className='fila';sec.appendChild(f);
+  var c={};
+  function inp(k,ph,w,tp){var i=document.createElement('input');i.placeholder=ph;if(w)i.style.width=w;else{i.style.flex='1';i.style.minWidth='140px'}if(tp){i.type=tp;i.min=0}c[k]=i;f.appendChild(i);return i}
+  var cat=inp('cat','Categoría','130px');cat.setAttribute('list','dl-'+tipo);var dl=document.createElement('datalist');dl.id='dl-'+tipo;cats.forEach(function(x){var o=document.createElement('option');o.value=x;dl.appendChild(o)});f.appendChild(dl);
+  inp('nom','Nombre del producto').maxLength=100;inp('fot','Foto (assets/tienda/x.jpg o https://…)').maxLength=300;inp('det','Detalle (opcional)').maxLength=150;inp('pre','Precio','90px','number');inp('sto','Stock','80px','number');
+  var lab=document.createElement('label'),ck=document.createElement('input');ck.type='checkbox';ck.checked=true;lab.appendChild(ck);lab.appendChild(document.createTextNode(' Visible'));f.appendChild(lab);
+  var g=btn('Agregar',function(){ejecutar('adminGuardarProducto',{tipo:tipo,fila:edit[tipo],categoria:c.cat.value,nombre:c.nom.value,detalle:c.det.value,foto:c.fot.value,precio:c.pre.value,stock:c.sto.value,visible:ck.checked});limpiar()});f.appendChild(g);
+  var x=btn('Cancelar',function(){limpiar()},'sec');x.style.display='none';f.appendChild(x);
+  function limpiar(){edit[tipo]=null;['cat','nom','det','fot','pre','sto'].forEach(function(k){c[k].value=''});ck.checked=true;g.textContent='Agregar';x.style.display='none'}
+  var p=document.createElement('p');p.style.cssText='color:#b5afa6;margin:.4em 0';p.textContent='Stock vacío = sin control. Stock 0 = agotado. Cada venta se anota con su forma de pago y descuenta stock.';sec.appendChild(p);
+  var nt=document.createElement('input');nt.placeholder='Comprador o banda de la venta (opcional)';nt.maxLength=100;nt.style.cssText='width:100%;margin:.3em 0 .5em';sec.appendChild(nt);sec._nota=nt;
+  var tb=document.createElement('table'),tbody=document.createElement('tbody');tbody.id='t-'+tipo;tb.appendChild(tbody);sec.appendChild(tb);
+  sec._editar=function(p2){edit[tipo]=p2.fila;c.cat.value=p2.categoria;c.nom.value=p2.nombre;c.det.value=p2.detalle;c.fot.value=p2.foto||'';c.pre.value=p2.precio;c.sto.value=p2.stock;ck.checked=p2.visible;g.textContent='Guardar cambios';x.style.display='';f.scrollIntoView({block:'center'})};
+}
+function filasCat(sec,tipo,ps){
+  var t=$('t-'+tipo);t.textContent='';
+  ps.forEach(function(p){var tr=document.createElement('tr');
+    tr.appendChild(td(p.categoria));tr.appendChild(td(p.nombre+(p.detalle?' · '+p.detalle:'')));
+    tr.appendChild(td(p.precio===''?'Sin precio':clp(p.precio)));tr.appendChild(td(p.stock===''?'Sin control':'Stock '+p.stock));tr.appendChild(td(p.visible?'Visible':'Oculto'));
+    var c=document.createElement('td'),q=document.createElement('input');q.type='number';q.min=1;q.value=1;q.style.width='60px';c.appendChild(q);
+    ['Efectivo','Transferencia','Pendiente'].forEach(function(n,i){c.appendChild(btn(n,function(){ejecutar('adminVender',tipo,p.fila,q.value,PAGOS[i],sec._nota?sec._nota.value:'')},i===2?'sec':''))});
+    c.appendChild(btn('+ Stock',function(){ejecutar('adminReponer',p.fila,q.value,tipo)},'sec'));
+    c.appendChild(btn('Editar',function(){sec._editar(p)},'sec'));
+    var e=btn('Eliminar',function(){if(e.textContent==='Eliminar'){e.textContent='¿Seguro?';setTimeout(function(){e.textContent='Eliminar'},4000)}else ejecutar('adminEliminarProducto',p.fila,tipo)},'sec');c.appendChild(e);
+    tr.appendChild(c);t.appendChild(tr)});
+}
+function pintarCatalogos(d){
+  seccionCat('sec-musica','musica','Tienda de música',['Cuerdas','Accesorios','Percusión','Monitoreo']);
+  seccionCat('sec-beb','bebestible','Bebestibles',['Bebidas','Energéticas','Café y té','Snacks']);
+  filasCat($('sec-musica'),'musica',d.productos||[]);filasCat($('sec-beb'),'bebestible',d.bebestibles||[]);
+}
+function pintarVentas(d){
+  var v=d.ventas,r=v.resumen,sel=$('vmes');sel.textContent='';
+  r.meses.forEach(function(m){var o=document.createElement('option');o.value=m;o.textContent=m;if(m===r.mes)o.selected=true;sel.appendChild(o)});
+  sel.onchange=function(){ejecutar('adminResumen',sel.value)};
+  var t=$('vtot');t.textContent='';
+  [['Cobrado',r.cobrado],['Efectivo',r.efectivo],['Transferencia',r.transferencia],['Por cobrar (mes)',r.porCobrar],['Pendiente total',r.pendienteTotal]].forEach(function(x){t.appendChild(par(x[0]+': '+clp(x[1]),'background:#1c1b1a;padding:6px 10px;border-radius:6px'))});
+  Object.keys(r.porTipo).forEach(function(k){t.appendChild(par(k+': '+clp(r.porTipo[k].cobrado)+(r.porTipo[k].porCobrar?' (+'+clp(r.porTipo[k].porCobrar)+' pend.)':''),'color:#b5afa6;padding:6px 10px'))});
+  Object.keys(r.porVendedor).forEach(function(k){t.appendChild(par('Vendió '+k+': '+clp(r.porVendedor[k].cobrado),'color:#b5afa6;padding:6px 10px'))});
+  var p=$('vpend');p.textContent='';$('sinvp').textContent=v.pendientes.length?'':'Nada por cobrar.';
+  v.pendientes.forEach(function(x){var tr=document.createElement('tr');tr.appendChild(td(x.fecha));tr.appendChild(td(x.cantidad+' × '+x.producto+' ('+x.tipo+')'));tr.appendChild(td(clp(x.total)));tr.appendChild(td(x.vendedor));
+    var c=document.createElement('td');c.appendChild(btn('Cobrado en efectivo',function(){ejecutar('adminCobrar',x.id,PAGOS[0])}));c.appendChild(btn('Cobrado por transferencia',function(){ejecutar('adminCobrar',x.id,PAGOS[1])}));c.appendChild(anular(x));tr.appendChild(c);p.appendChild(tr)});
+  var h=$('vhist');h.textContent='';
+  v.ventas.forEach(function(x){var tr=document.createElement('tr');tr.appendChild(td(x.fecha));tr.appendChild(td(x.cantidad+' × '+x.producto+' ('+x.tipo+')'));tr.appendChild(td(clp(x.total)));tr.appendChild(td(x.pago));tr.appendChild(td(x.vendedor));
+    var c=document.createElement('td');if(x.pago!=='Anulada')c.appendChild(anular(x));tr.appendChild(c);h.appendChild(tr)});
+}
+function anular(x){var e=btn('Anular',function(){if(e.textContent==='Anular'){e.textContent='¿Seguro? Devuelve stock';setTimeout(function(){e.textContent='Anular'},4000)}else ejecutar('adminAnularVenta',x.id)},'sec');return e}
+function pintarCostos(d){
+  if(!$('cm').value)$('cm').value=d.mesActual;
+  var t=$('ctab');t.textContent='';
+  (d.costos||[]).forEach(function(c){var tr=document.createElement('tr');tr.appendChild(td(c.mes));tr.appendChild(td('Luz '+clp(c.luz)));tr.appendChild(td('ProAudix '+clp(c.aporte)));tr.appendChild(td('Caja '+clp(c.caja)));tr.appendChild(td('Otros '+clp(c.otros)));tr.appendChild(td(c.notas));
+    var k=document.createElement('td');k.appendChild(btn('Editar',function(){$('cm').value=c.mes;$('cl').value=c.luz;$('ca').value=c.aporte;$('cc').value=c.caja;$('co').value=c.otros;$('cn').value=c.notas;$('cfa').checked=!!c.luzFactura},'sec'));tr.appendChild(k);t.appendChild(tr)});
+  var h=$('htab');h.textContent='';
+  (d.historial||[]).forEach(function(x){var tr=document.createElement('tr');tr.appendChild(td(x.mes));tr.appendChild(td('Bruto '+clp(x.brutos)));tr.appendChild(td('Juan Carlos '+clp(x.jc)));tr.appendChild(td('Jaime '+clp(x.jaime)));tr.appendChild(td('Estudio '+clp(x.est)));h.appendChild(tr)});
+}
+$('cg').onclick=function(){ejecutar('adminGuardarCostos',{mes:$('cm').value,luz:$('cl').value,aporte:$('ca').value,caja:$('cc').value,otros:$('co').value,notas:$('cn').value,luzFactura:$('cfa').checked});aviso('Costos guardados')};
+$('cierre').onclick=function(){ejecutar('adminCerrarMes',$('vmes').value);aviso('Mes cerrado en el historial')};
+function enlaceCopiable(cont,url){
+  var f=document.createElement('div');f.className='fila';var i=document.createElement('input');i.readOnly=true;i.value=url;i.style.cssText='flex:1;min-width:220px';i.onfocus=function(){i.select()};f.appendChild(i);
+  f.appendChild(btn('Copiar',function(){i.select();try{document.execCommand('copy');aviso('Enlace copiado')}catch(e){}},'sec'));cont.appendChild(f);
+}
+function pintarSocios(d){
+  var base=(d.sitioUrl||'').replace(/\/+$/,''),box=$('socs');box.textContent='';var pa=$('pubag');pa.textContent='';
+  if(!base){box.appendChild(par('Primero escribe la dirección del sitio en la sección «Sitio» y guarda.','color:#FCC631'));}
+  (d.socios||[]).forEach(function(s){var w=caja();w.appendChild(par(s.nombre+' · creado '+s.creado,'font-weight:700'));
+    if(base)enlaceCopiable(w,base+'/socios.html?t='+s.token);
+    var b=document.createElement('div');b.className='fila';b.style.marginTop='6px';b.appendChild(btn('Cambiar enlace',function(){ejecutar('adminRegenerarSocio',s.token)},'sec'));
+    var e=btn('Eliminar',function(){if(e.textContent==='Eliminar'){e.textContent='¿Seguro?';setTimeout(function(){e.textContent='Eliminar'},4000)}else ejecutar('adminEliminarSocio',s.token)},'sec');b.appendChild(e);w.appendChild(b);box.appendChild(w)});
+  if(base)enlaceCopiable(pa,base+'/agenda.html');
+}
+$('sg').onclick=function(){ejecutar('adminCrearSocio',$('sn').value);$('sn').value=''};
+
+function par(txt,css){var p=document.createElement('div');p.textContent=txt;if(css)p.style.cssText=css;return p}
+function selEstado(lista,actual,fn){var s=document.createElement('select');lista.forEach(function(e){var o=document.createElement('option');o.value=e;o.textContent=e;if(e===actual)o.selected=true;s.appendChild(o)});s.onchange=function(){fn(s.value)};return s}
+function link(t,h){var a=document.createElement('a');a.textContent=t;a.href=h;a.target='_blank';a.rel='noopener';a.style.cssText='color:#FCC631;margin-right:10px';return a}
+/* reduce un logo a 400 px y lo devuelve como data URL (PNG o JPG liviano) */
+function redimLogo(file){return new Promise(function(ok,mal){if(!/^image\/(png|jpeg|webp)$/.test(file.type)){mal(new Error('El logo debe ser PNG, JPG o WebP.'));return}var im=new Image(),u=URL.createObjectURL(file);im.onload=function(){var k=Math.min(1,400/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);var p=c.toDataURL('image/png');ok(p.length<380000?p:c.toDataURL('image/jpeg',.85))};im.onerror=function(){mal(new Error('No pudimos leer esa imagen.'))};im.src=u})}
+function caja(){var d=document.createElement('div');d.style.cssText='border-bottom:1px solid #454240;padding:8px 0';return d}
+function pintarCuentas(c){var t=$('cuentas');t.textContent='';
+  [['Reservas por abonar',c.reservas],['Planes sin pagar',c.planes],['Cotizaciones nuevas',c.solicitudes],['Cuadro de honor',c.honor],['Reseñas',c.resenas]].forEach(function(x){
+    var b=document.createElement('div');b.style.cssText='background:#1c1b1a;border:1px solid '+(x[1]?'#FCC631':'#454240')+';border-radius:8px;padding:8px 14px';
+    var n=document.createElement('b');n.textContent=x[1];n.style.cssText='font-size:1.4em;color:'+(x[1]?'#FCC631':'#b5afa6');b.appendChild(n);b.appendChild(document.createTextNode(' '+x[0]));t.appendChild(b)})}
+function pintarSolicitudes(ss){var c=$('sol');c.textContent='';$('sinsol').textContent=ss.length?'':'No hay solicitudes.';
+  ss.forEach(function(s){var d=caja();
+    d.appendChild(par(s.tipo+' · '+s.nombre+' · +'+s.telefono+' · '+s.correo,'font-weight:700'));d.appendChild(par(s.mensaje,'color:#b5afa6;margin:2px 0 6px'));
+    var f=document.createElement('div');f.className='fila';
+    var m=document.createElement('input');m.type='number';m.min=0;m.placeholder='Monto';m.value=s.monto;m.style.width='110px';
+    var dt=document.createElement('input');dt.placeholder='Detalle de la cotización';dt.value=s.detalle;dt.maxLength=600;dt.style.cssText='flex:1;min-width:180px';
+    var est=selEstado(['NUEVA','COTIZADA','ACEPTADA','RECHAZADA','CERRADA'],s.estado,function(){});
+    f.appendChild(est);f.appendChild(m);f.appendChild(dt);
+    f.appendChild(btn('Guardar',function(){ejecutar('adminSolicitud',s.fila,est.value,m.value,dt.value)}));
+    f.appendChild(btn('Enviar por correo',function(){ejecutar('adminCotizacionCorreo',s.fila)},'sec'));
+    var w=link('Enviar por WhatsApp','https://wa.me/'+s.telefono+'?text='+encodeURIComponent(s.texto));f.appendChild(w);
+    d.appendChild(f);c.appendChild(d)})}
+function pintarMod(lista,cont,vacio,hoja,detalle){var c=$(cont);c.textContent='';$(vacio).textContent=lista.length?'':'Sin registros.';
+  lista.forEach(function(x){var d=caja();detalle(x,d);
+    d.appendChild(selEstado(['PENDIENTE','APROBADA','RECHAZADA'],x.estado,function(v){ejecutar('adminModerar',hoja,x.fila,v)}));c.appendChild(d)})}
+function pintarMuestras(ms){var t=$('mue');t.textContent='';
+  ms.forEach(function(m){var tr=document.createElement('tr');
+    tr.appendChild(td(m.grupo));tr.appendChild(td(m.tipo+' · '+m.etiqueta));tr.appendChild(td(m.visible?'Visible':'Oculto'));
+    var c=document.createElement('td');c.appendChild(link('Probar',m.enlace.indexOf('http')===0?m.enlace:'#'));
+    c.appendChild(btn('Editar',function(){editM=m.fila;$('mg').value=m.grupo;$('mt').value=m.tipo;$('me').value=m.etiqueta;$('ml').value=m.enlace;$('md').value=m.descripcion;$('mv').checked=m.visible;$('mg2').textContent='Guardar cambios';$('mcancel').style.display='';$('mform').scrollIntoView({block:'center'})},'sec'));
+    var e=btn('Eliminar',function(){if(e.textContent==='Eliminar'){e.textContent='¿Seguro?';setTimeout(function(){e.textContent='Eliminar'},4000)}else ejecutar('adminEliminarMuestra',m.fila)},'sec');c.appendChild(e);tr.appendChild(c);t.appendChild(tr)})}
+var editM=null;
+function limpiarM(){editM=null;['mg','me','ml','md'].forEach(function(i){$(i).value=''});$('mv').checked=true;$('mg2').textContent='Agregar';$('mcancel').style.display='none'}
+$('mg2').onclick=function(){ejecutar('adminGuardarMuestra',{fila:editM,grupo:$('mg').value,tipo:$('mt').value,etiqueta:$('me').value,enlace:$('ml').value,descripcion:$('md').value,visible:$('mv').checked});limpiarM()};
+$('mcancel').onclick=limpiarM;
+$('msub').onclick=function(){var f=$('ma').files[0];if(!f){aviso('Elige primero un archivo de audio.');return}if(!$('mg').value.trim()){aviso('Escribe el grupo (por ejemplo, el micrófono).');return}if(f.size>12*1024*1024){aviso('El audio pesa más de 12 MB. Expórtalo en mp3.');return}
+  aviso('Subiendo audio a tu Drive…');var r=new FileReader();r.onload=function(){ejecutar('adminSubirAudio',{grupo:$('mg').value,tipo:$('mt').value,etiqueta:$('me').value,descripcion:$('md').value,b64:r.result});$('ma').value='';limpiarM()};r.onerror=function(){aviso('No pudimos leer el archivo.')};r.readAsDataURL(f)};
+$('prg').onclick=function(){ejecutar('adminGuardarPresentacion',$('prt').value,$('prx').value)};
+
+function pintarPlanes(ps){var c=$('pls');c.textContent='';$('sinpl').textContent=ps.length?'':'Aún no hay planes.';
+  ps.forEach(function(p){var d=caja();
+    d.appendChild(par(p.plan+' · '+p.banda+' · '+p.contacto+' · +'+p.telefono+' · '+clp(p.total)+' · '+p.codigo,'font-weight:700'));
+    var cuota=par('Cuota '+p.activas+' de 4 · '+(p.pagado?'Pagado':'Sin pagar'),'margin:2px 0;color:'+(p.pagado?'#4ade80':'#FCC631'));d.appendChild(cuota);
+    p.sesiones.forEach(function(s){d.appendChild(par('• '+s.fecha+' '+s.inicio+'–'+s.fin+' · '+s.estado+' ('+s.codigo+')','color:#b5afa6;font-size:.9em'))});
+    var f=document.createElement('div');f.className='fila';f.style.marginTop='6px';
+    f.appendChild(btn(p.pagado?'Marcar sin pagar':'Marcar pagado',function(){ejecutar('adminPlanPagado',p.codigo,!p.pagado)},p.pagado?'sec':''));
+    if(p.activas<4){var fe=document.createElement('input');fe.type='date';var se=document.createElement('select');se.innerHTML='<option value="">Hora…</option>';
+      fe.onchange=function(){se.textContent='';google.script.run.withSuccessHandler(function(r){se.innerHTML='<option value="">'+(r.inicios.length?'Hora…':'Sin horarios')+'</option>';r.inicios.forEach(function(h){var o=document.createElement('option');o.value=h;o.textContent=h+':00 a '+(h+p.horas)+':00';se.appendChild(o)})}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminDisponibilidad(fe.value,p.horas)};
+      f.appendChild(fe);f.appendChild(se);f.appendChild(btn('Agregar sesión',function(){if(!fe.value||se.value==='')return aviso('Elige fecha y hora.');ejecutar('adminAgendarSesion',p.codigo,fe.value,se.value)}))}
+    d.appendChild(f);c.appendChild(d)})}
+$('plg').onclick=function(){ejecutar('adminCrearPlan',{tipo:$('plt').value,banda:$('plb').value,contacto:$('plc').value,telefono:$('plf').value,correo:$('ple').value,pagado:$('plp').checked});['plb','plc','plf','ple'].forEach(function(i){$(i).value=''});$('plp').checked=false};
+function pintarExtra(d){
+  pintarPlanes(d.planes||[]);
+  pintarCuentas(d.cuenta);pintarSolicitudes(d.solicitudes);pintarMuestras(d.muestras);
+  pintarMod(d.honor,'hon','sinhon','honor',function(x,e){
+    var cab=document.createElement('div');cab.style.cssText='display:flex;gap:10px;align-items:center';
+    if(/^https:\/\//.test(x.logo)){var im=document.createElement('img');im.src=x.logo;im.referrerPolicy='no-referrer';im.style.cssText='width:52px;height:52px;object-fit:cover;border-radius:10px;border:1px solid #403d3b';cab.appendChild(im)}
+    var tx=document.createElement('div');tx.appendChild(par(x.banda+(x.genero?' · '+x.genero:''),'font-weight:700'));tx.appendChild(par('+'+x.telefono+' · '+x.correo+(x.formacion?' · '+x.formacion:''),'color:#b5afa6;font-size:.82rem'));cab.appendChild(tx);e.appendChild(cab);
+    e.appendChild(par(x.resena,'color:#b5afa6;margin:4px 0 6px'));
+    [['Logo',x.logo],['Instagram',x.instagram],['Enlace',x.enlace],['YouTube',x.youtube]].forEach(function(l){if(l[1])e.appendChild(link(l[0],l[1]))});
+    var ed=document.createElement('div');ed.hidden=true;ed.className='fila';ed.style.marginTop='6px';
+    var F={};[['banda','Banda'],['genero','Género o estilo'],['formacion','Formación'],['instagram','Instagram'],['enlace','Spotify u otro enlace'],['youtube','YouTube'],['logo','Logo (enlace https)']].forEach(function(c){var i=document.createElement('input');i.placeholder=c[1];i.title=c[1];i.value=x[c[0]]||'';i.style.cssText='flex:1;min-width:150px';F[c[0]]=i;ed.appendChild(i)});
+    var rs=document.createElement('textarea');rs.rows=3;rs.maxLength=500;rs.value=x.resena||'';rs.style.cssText='width:100%';rs.title='Reseña';ed.appendChild(rs);
+    var fl=document.createElement('input');fl.type='file';fl.accept='image/png,image/jpeg,image/webp';fl.title='Subir un logo nuevo';ed.appendChild(fl);
+    ed.appendChild(btn('Guardar cambios',function(){
+      var d2={banda:F.banda.value,genero:F.genero.value,formacion:F.formacion.value,instagram:F.instagram.value,enlace:F.enlace.value,youtube:F.youtube.value,logo:F.logo.value,resena:rs.value};
+      if(fl.files[0]){redimLogo(fl.files[0]).then(function(b){d2.logoB64=b;ejecutar('adminEditarHonor',x.fila,d2)}).catch(function(er){aviso(er.message)})}else ejecutar('adminEditarHonor',x.fila,d2)}));
+    ed.appendChild(btn('Cancelar',function(){ed.hidden=true},'sec'));
+    var bt=document.createElement('div');bt.style.cssText='display:flex;gap:6px;margin-top:6px;flex-wrap:wrap';
+    bt.appendChild(btn('Editar',function(){ed.hidden=!ed.hidden},'sec'));
+    var del=btn('Eliminar',function(){if(del.textContent==='Eliminar'){del.textContent='¿Seguro?';setTimeout(function(){del.textContent='Eliminar'},4000)}else ejecutar('adminEliminarHonor',x.fila)},'sec');bt.appendChild(del);
+    e.appendChild(bt);e.appendChild(ed)});
+  pintarMod(d.resenas,'res2','sinres2','resena',function(x,e){e.appendChild(par('★'.repeat(x.estrellas)+'☆'.repeat(5-x.estrellas)+' · '+x.nombre+' · '+x.banda+' ('+x.codigo+')','font-weight:700'));if(x.comentario)e.appendChild(par(x.comentario,'color:#b5afa6;margin:2px 0 6px'))});
+  if(document.activeElement!==$('prx')&&document.activeElement!==$('prt')){$('prt').value=d.presentacion.titulo||'';$('prx').value=d.presentacion.texto||''}
+}
+ejecutar('adminResumen');
+
+/* ---------- áreas (un panel a la vez) ---------- */
+var AREAS=[
+ ['jornadas','Reservas y jornadas','Calendario, historial y clientes'],
+ ['reservas','Cobros y planes','Abonos, planes y material',function(c){return (c.reservas||0)+(c.planes||0)}],
+ ['solicitudes','Solicitudes','Cotizaciones, honor y evaluaciones',function(c){return (c.solicitudes||0)+(c.honor||0)+(c.resenas||0)}],
+ ['tienda','Tienda y ventas','Productos, bebestibles y ventas del mes'],
+ ['contenido','Contenido','Presentación, reglamento y audios'],
+ ['mensajes','WhatsApp','Mensajes y recordatorios'],
+ ['config','Configuración','Precios, reglas, secciones y redes'],
+ ['conta','Contabilidad','Costos, cierre de mes e impuestos'],
+ ['socios','Socios y respaldo','Enlaces para compartir y copias']
+];
+var DE={'Reservas y jornadas':'jornadas','Reservas':'reservas','Bloqueos':'reservas','Planes mensuales':'reservas','Clientes y material':'reservas','Cotizaciones y solicitudes':'solicitudes','Cuadro de honor':'solicitudes','Reseñas':'solicitudes','Ventas del mes':'tienda','Presentación personal':'contenido','Reglamento interno':'contenido','Muestras de audio':'contenido','Mensajes de WhatsApp':'mensajes','Configuración':'config','Sitio':'config','Costos del mes y cierre':'conta','Contabilidad formal':'conta','Enlaces para compartir':'socios','Respaldo':'socios'};
+[].forEach.call(document.querySelectorAll('section'),function(s){var h=s.querySelector('h2'),p=s.id==='sec-musica'||s.id==='sec-beb'?'tienda':s.id==='sec-conta'?'conta':s.id==='sec-wa'?'mensajes':(h&&DE[h.textContent.trim()]);if(p)s.setAttribute('data-p',p)});
+function abrirArea(k){
+  var a=AREAS.filter(function(x){return x[0]===k})[0];if(!a)return;
+  document.body.setAttribute('data-panel',k);$('barra-t').textContent=a[1];[].forEach.call(document.querySelectorAll('.menu-a .area'),function(x){x.classList.toggle('on',x.getAttribute('data-p')===k)});
+  [].forEach.call(document.querySelectorAll('section'),function(s){s.classList.toggle('on',s.getAttribute('data-p')===k)});
+  var b=$('barra');b.style.setProperty('--acc',getComputedStyle(document.querySelector('[data-p='+k+']')||document.body).getPropertyValue('--acc'));window.scrollTo(0,0);if(k==='jornadas')cargarJor();
+}
+function irInicio(){document.body.removeAttribute('data-panel');window.scrollTo(0,0)}
+$('inicio-a').onclick=irInicio;
+var ICO={jornadas:'📅',reservas:'💳',solicitudes:'📥',tienda:'🛍️',contenido:'🎨',mensajes:'💬',config:'⚙️',conta:'📊',socios:'🔗'};
+function pintarMenu(d){
+  var m=$('menu-a');m.textContent='';var c=d.cuenta||{};
+  AREAS.forEach(function(a){var b=document.createElement('button');b.type='button';b.className='area'+(document.body.getAttribute('data-panel')===a[0]?' on':'');b.setAttribute('data-p',a[0]);b.setAttribute('data-ico',ICO[a[0]]||'•');
+    var t=document.createElement('b');t.textContent=a[1];var s=document.createElement('span');s.textContent=a[2];b.appendChild(t);b.appendChild(s);
+    var n=a[3]?a[3](c):0;if(n){var i=document.createElement('i');i.textContent=n;i.title='Pendientes';b.appendChild(i)}
+    b.onclick=function(){abrirArea(a[0])};m.appendChild(b)});
+  var tot=0;AREAS.forEach(function(a){if(a[3])tot+=a[3](c)});var cn=$('campana-n');cn.textContent=tot;cn.hidden=!tot;$('campana').onclick=function(){var a=AREAS.filter(function(x){return x[3]&&x[3](c)})[0];abrirArea(a?a[0]:'jornadas')};
+  var v=$('ver-sitio');if(d.sitioUrl){v.href=d.sitioUrl;v.hidden=false}
+  if(!document.body.getAttribute('data-panel'))abrirArea('jornadas');
+}
+
+/* ---------- Reservas y jornadas ---------- */
+var JOR=null,jv='cal',jmes=null,jsel=null,jfEstado='',jbusca='',jAnu=false;
+var CLASE_EST={'Reservado (sin abono)':'sin','Reservado (con abono)':'con','Finalizada':'fin','No asiste':'noa','Anulada':'anu'};
+function cargarJor(){google.script.run.withSuccessHandler(function(d){JOR=d;if(!jmes)jmes=d.hoy.slice(0,7);pintarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminJornadas()}
+function jrun(fn){var a=[].slice.call(arguments,1);google.script.run.withSuccessHandler(function(r){if(r&&r.reservas&&r.estados)pintar(r);cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')})[fn].apply(null,a)}
+function mesTxt(m){var n=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];return n[Number(m.slice(5,7))-1]+' '+m.slice(0,4)}
+function sumMes(m,k){var y=Number(m.slice(0,4)),x=Number(m.slice(5,7))+k;if(x<1){x=12;y--}if(x>12){x=1;y++}return y+'-'+String(x).padStart(2,'0')}
+function deDia(f){return(JOR.reservas||[]).filter(function(r){return r.fecha===f&&(jAnu||r.estado!=='Anulada')}).sort(function(a,b){return a.inicio<b.inicio?-1:1})}
+function bloqDia(f){var o=[];(JOR.bloqueos||[]).forEach(function(b){if(b.fecha===f)o.push({fila:b.fila,txt:(b.desde===''?'Todo el día':b.desde+':00–'+b.hasta+':00')+(b.motivo?' · '+b.motivo:'')})});(JOR.inhabiles||[]).forEach(function(b){if(b.fecha===f)o.push({txt:'Inhabilitado'+(b.motivo?' · '+b.motivo:'')})});return o}
+function el_(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!==undefined)e.textContent=x;return e}
+function chipEv(r){var b=el_('button','ev '+(CLASE_EST[r.estado]||'')+' '+(r.plan?'sv-plan':r.servicio==='Ensayo'?'sv-ens':'sv-est'));b.type='button';var h=el_('b','',r.inicio.replace(':00','')+'–'+r.fin.replace(':00','')+' ');b.appendChild(h);b.appendChild(document.createTextNode(r.banda+(r.extras||r.video||r.raw?' +':'')));b.title=r.banda+' · '+r.contacto+' · '+r.estado;b.onclick=function(ev){ev.stopPropagation();fichaJor(r)};return b}
+function chipBloq(x){var b=el_('div','ev bloq','🔒 '+x.txt);b.title=x.txt;return b}
+function pintarJor(){
+  if(!JOR)return;
+  [].forEach.call(document.querySelectorAll('#jtabs button'),function(b){b.classList.toggle('on',b.getAttribute('data-v')===jv)});
+  $('jcal').hidden=jv!=='cal';$('jhis').hidden=jv!=='his';$('jcli').hidden=jv!=='cli';
+  if(jv==='cal')pintarCalJor();else if(jv==='his')pintarHisJor();else pintarCliJor();
+}
+function pintarCalJor(){
+  var bar=$('jbarra');bar.textContent='';
+  bar.appendChild(btn('‹',function(){jmes=sumMes(jmes,-1);jsel=null;pintarJor()},'sec'));bar.appendChild(el_('span','mes',mesTxt(jmes)));bar.appendChild(btn('›',function(){jmes=sumMes(jmes,1);jsel=null;pintarJor()},'sec'));
+  bar.appendChild(btn('Hoy',function(){jmes=JOR.hoy.slice(0,7);jsel=JOR.hoy;pintarJor()},'sec'));
+  var lb=el_('label');var ck=document.createElement('input');ck.type='checkbox';ck.checked=jAnu;ck.onchange=function(){jAnu=ck.checked;pintarJor()};lb.appendChild(ck);lb.appendChild(document.createTextNode(' Mostrar anuladas'));bar.appendChild(lb);
+  var c=$('jcal');c.textContent='';
+  var ley=el_('div','leyj');[['Sala de Ensayo','#22c55e'],['Estudio de Grabación','#ef4444'],['Plan Mensual','#f59e0b'],['Bloqueo','#8a8581'],['Borde punteado = sin abono','#555']].forEach(function(x){var s=el_('span','',x[0]);s.style.setProperty('--c',x[1]);ley.appendChild(s)});c.appendChild(ley);
+  var delMes=(JOR.reservas||[]).filter(function(r){return r.fecha.slice(0,7)===jmes&&r.estado!=='Anulada'});
+  var tot=el_('div','tot');[['Jornadas',delMes.length],['Horas',delMes.reduce(function(a,r){return a+r.horas},0)],['Total',clp(delMes.reduce(function(a,r){return a+r.total},0))]].forEach(function(x){var d=el_('div');d.appendChild(el_('b','',x[1]));d.appendChild(document.createTextNode(' '+x[0]));tot.appendChild(d)});c.appendChild(tot);
+  var g=el_('div','cuad');['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].forEach(function(d){g.appendChild(el_('div','dow',d))});
+  var y=Number(jmes.slice(0,4)),m=Number(jmes.slice(5,7)),pri=new Date(Date.UTC(y,m-1,1)),off=(pri.getUTCDay()+6)%7,dias=new Date(Date.UTC(y,m,0)).getUTCDate();
+  for(var i=0;i<off;i++)g.appendChild(el_('div'));
+  var lista=el_('div','agenda-solo');
+  for(var d=1;d<=dias;d++){(function(d){
+    var f=jmes+'-'+String(d).padStart(2,'0'),rs=deDia(f),bq=bloqDia(f);
+    var cel=el_('div','dia'+(f===JOR.hoy?' hoy':'')+(f===jsel?' sel':''));var n=el_('div','n');n.appendChild(el_('span','',String(d)));if(rs.length||bq.length)n.appendChild(el_('span','mas',rs.length?rs.length+' jornada'+(rs.length>1?'s':''):''));cel.appendChild(n);
+    bq.slice(0,2).forEach(function(x){cel.appendChild(chipBloq(x))});rs.slice(0,3).forEach(function(r){cel.appendChild(chipEv(r))});if(rs.length>3)cel.appendChild(el_('div','mas','+ '+(rs.length-3)+' más'));
+    cel.onclick=function(){jsel=f;pintarCalJor();diaJor(f)};g.appendChild(cel);
+    if(rs.length||bq.length){var ad=el_('div','agenda-d');ad.appendChild(el_('h4','',R_fecha(f)));bq.forEach(function(x){ad.appendChild(chipBloq(x))});rs.forEach(function(r){ad.appendChild(chipEv(r))});lista.appendChild(ad)}
+  })(d)}
+  c.appendChild(g);c.appendChild(lista);c.appendChild(el_('div','panel-dia'));var pd=c.lastChild;pd.id='jdia';if(jsel&&jsel.slice(0,7)===jmes)diaJor(jsel);
+}
+function R_fecha(f){var d=new Date(f+'T12:00:00Z'),n=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];return n[d.getUTCDay()]+' '+Number(f.slice(8))+' de '+mesTxt(f.slice(0,7)).split(' ')[0].toLowerCase()}
+function diaJor(f){
+  var p=$('jdia');if(!p)return;p.textContent='';var rs=deDia(f),bq=bloqDia(f);
+  var h=el_('div','agenda-d');var si=el_('div','selinfo');si.appendChild(document.createTextNode('Día seleccionado: '));si.appendChild(el_('b','',f.slice(8)+'/'+f.slice(5,7)+'/'+f.slice(0,4)));si.appendChild(document.createTextNode(' ('+rs.length+' sesiones)'));h.appendChild(si);h.appendChild(el_('h4','',R_fecha(f)));
+  if(!rs.length&&!bq.length)h.appendChild(par('Sin jornadas ni bloqueos.','color:#b5afa6'));
+  bq.forEach(function(x){var r=el_('div','fila');r.appendChild(chipBloq(x));if(x.fila)r.appendChild(btn('Quitar bloqueo',function(){jrun('adminDesbloquear',x.fila)},'sec'));h.appendChild(r)});
+  rs.forEach(function(r){var l=el_('div','fila');l.style.margin='4px 0';l.appendChild(chipEv(r));l.appendChild(par(r.contacto+' · '+r.estado));h.appendChild(l)});
+  var f2=el_('div','fila');f2.style.marginTop='8px';var d1=document.createElement('input'),d2=document.createElement('input'),mo=document.createElement('input');
+  d1.type=d2.type='number';d1.min=d2.min=0;d1.max=d2.max=24;d1.placeholder='Desde (h)';d2.placeholder='Hasta (h)';d1.style.width=d2.style.width='96px';mo.placeholder='Motivo (ej. Mantención)';mo.style.flex='1';mo.maxLength=100;
+  f2.appendChild(btn('🔒 Bloquear',function(){jrun('adminBloquear',f,d1.value,d2.value,mo.value)}));f2.appendChild(d1);f2.appendChild(d2);f2.appendChild(mo);
+  h.appendChild(par('Bloquear horas (deja desde/hasta vacío para todo el día):','color:#b5afa6;font-size:.82rem;margin-top:8px'));h.appendChild(f2);p.appendChild(h);
+}
+function fichaJor(r){
+  var d=$('jdet');d.textContent='';d.hidden=false;d.onclick=function(e){if(e.target===d)d.hidden=true};
+  var f=el_('div','ficha-j');f.style.setProperty('--c',({sin:'#FCC631',con:'#4ade80',fin:'#60a5fa',noa:'#c084fc',anu:'#8a8581'})[CLASE_EST[r.estado]||'sin']);
+  f.appendChild(el_('h3','',r.banda));f.appendChild(el_('div','sub',r.codigo+' · '+r.servicio+(r.plan?' · Plan '+r.plan:'')));
+  var kv=el_('dl','kv');function fila(k,v){if(v===''||v===null||v===undefined)return;kv.appendChild(el_('dt','',k));kv.appendChild(el_('dd','',String(v)))}
+  fila('Día',r.fechaTxt);fila('Horario',r.inicio+' a '+r.fin+' ('+r.horas+(r.horas===1?' hora':' horas')+')');fila('Contacto',r.contacto);fila('WhatsApp','+'+r.telefono);fila('Correo',r.correo);
+  fila('Total',clp(r.total));fila('Abono',clp(r.abono));fila('Saldo en el estudio',clp(r.saldo));if(r.retenido)fila('Abono retenido',clp(r.retenido));if(r.devolver)fila('Abono a devolver',clp(r.devolver));
+  fila('Comentarios',r.comentarios);fila('Creada',r.creada);f.appendChild(kv);
+  var ch=el_('div','chips');[[r.extras?'Equipo extra: '+r.extras:'',1],[r.video?'Video GoPro':'',1],[r.raw?'Material en bruto':'',1],[r.zurdo?'Baterista zurdo':'',1],[r.servicio==='Ensayo'?'Micrófonos de voz: '+r.voces:'',1]].forEach(function(x){if(x[0])ch.appendChild(el_('span','chip ok',x[0]))});
+  if(!ch.firstChild)ch.appendChild(el_('span','chip','Sin adicionales'));f.appendChild(ch);
+  var acc=el_('div','fila');acc.appendChild(selEstado(JOR.estados,r.estado,function(v){jrun('adminCambiarEstado',r.codigo,v);d.hidden=true}));
+  var ws=document.createElement('select');var o0=document.createElement('option');o0.textContent='Enviar WhatsApp…';ws.appendChild(o0);WATIPOS.forEach(function(x){var o=document.createElement('option');o.value=x[0];o.textContent=x[1];ws.appendChild(o)});
+  var W=JOR.wa;ws.onchange=function(){if(!ws.value)return;var v={nombre:r.contacto,banda:r.banda,servicio:r.servicio,fecha:r.fechaTxt,hora:r.inicio,fin:r.fin,codigo:r.codigo,total:clp(r.total),abono:clp(r.abono),saldo:clp(r.saldo),direccion:W.direccion,negocio:W.negocio,sitio:W.sitio,horasAnulacion:W.horasAnulacion};
+    var t=W.plantillas[ws.value].replace(/\{(\w+)\}/g,function(m,k){return v[k]!==undefined?v[k]:m});window.open('https://wa.me/'+String(r.telefono).replace(/\D/g,'')+'?text='+encodeURIComponent(t),'_blank','noopener');ws.selectedIndex=0};
+  acc.appendChild(ws);acc.appendChild(btn('Cerrar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
+}
+function pintarHisJor(){
+  var bar=$('jbarra');bar.textContent='';
+  var q=document.createElement('input');q.placeholder='Buscar banda, contacto, teléfono o código';q.value=jbusca;q.style.cssText='flex:1;min-width:220px';q.oninput=function(){jbusca=q.value;listaHis()};bar.appendChild(q);
+  var se=document.createElement('select');var t0=document.createElement('option');t0.value='';t0.textContent='Todos los estados';se.appendChild(t0);JOR.estados.forEach(function(e){var o=document.createElement('option');o.value=e;o.textContent=e;se.appendChild(o)});se.value=jfEstado;se.onchange=function(){jfEstado=se.value;listaHis()};bar.appendChild(se);
+  listaHis();
+}
+function listaHis(){
+  var c=$('jhis');c.textContent='';var q=jbusca.trim().toLowerCase();
+  var l=(JOR.reservas||[]).filter(function(r){return(!jfEstado||r.estado===jfEstado)&&(!q||(r.banda+' '+r.contacto+' '+r.telefono+' '+r.codigo+' '+r.correo).toLowerCase().indexOf(q)>=0)});
+  var tot=el_('div','tot');[['Jornadas',l.length],['Total',clp(l.reduce(function(a,r){return a+r.total},0))],['Abonos',clp(l.reduce(function(a,r){return a+r.abono},0))]].forEach(function(x){var d=el_('div');d.appendChild(el_('b','',x[1]));d.appendChild(document.createTextNode(' '+x[0]));tot.appendChild(d)});c.appendChild(tot);
+  var t=document.createElement('table'),th=document.createElement('thead'),tr=document.createElement('tr');['Fecha','Horario','Banda / contacto','Adicionales','Total','Estado'].forEach(function(x){var e=document.createElement('th');e.textContent=x;tr.appendChild(e)});th.appendChild(tr);t.appendChild(th);
+  var tb=document.createElement('tbody');l.slice(0,300).forEach(function(r){var tr=document.createElement('tr');tr.style.cursor='pointer';tr.onclick=function(){fichaJor(r)};
+    tr.appendChild(td(r.fecha));tr.appendChild(td(r.inicio+'–'+r.fin+' · '+r.servicio));tr.appendChild(td(r.banda+' · '+r.contacto));
+    tr.appendChild(td([r.extras?'extra '+r.extras:'',r.video?'video':'',r.raw?'bruto':'',r.zurdo?'zurdo':''].filter(Boolean).join(', ')||'—'));tr.appendChild(td(clp(r.total)));
+    var e=td('');var chip=el_('span','ev '+(CLASE_EST[r.estado]||''),r.estado);chip.style.display='inline-block';chip.style.width='auto';e.appendChild(chip);tr.appendChild(e);tb.appendChild(tr)});
+  t.appendChild(tb);c.appendChild(t);if(l.length>300)c.appendChild(par('Se muestran las 300 más recientes de '+l.length+'. Usa el buscador para acotar.','color:#b5afa6'));if(!l.length)c.appendChild(par('No hay reservas con ese filtro.','color:#b5afa6'));
+}
+function pintarCliJor(){
+  var bar=$('jbarra');bar.textContent='';var q=document.createElement('input');q.placeholder='Buscar cliente';q.value=jbusca;q.style.cssText='flex:1;min-width:220px';q.oninput=function(){jbusca=q.value;listaCli()};bar.appendChild(q);listaCli();
+}
+function listaCli(){
+  var c=$('jcli');c.textContent='';var q=jbusca.trim().toLowerCase(),g=el_('div','tarjetas-c');
+  (JOR.clientes||[]).filter(function(x){return!q||(x.banda+' '+x.contacto+' '+x.telefono+' '+x.correo).toLowerCase().indexOf(q)>=0}).forEach(function(x){
+    var k=el_('div','cli');k.appendChild(el_('b','',x.banda||'(sin banda)'));k.appendChild(el_('small','',x.contacto));k.appendChild(el_('small','','+'+x.telefono));if(x.correo)k.appendChild(el_('small','',x.correo));
+    var m=el_('div','mat');m.appendChild(el_('h5','','Material de banda (Drive)'));var f=el_('div','fila');
+    function modoVer(){f.textContent='';
+      if(x.enlace){var a=el_('a','sec','Abrir');a.href=x.enlace;a.target='_blank';a.rel='noopener';a.style.cssText='border:1px solid var(--borde);color:var(--oro)';f.appendChild(a);
+        f.appendChild(btn('Copiar',function(){try{navigator.clipboard.writeText(x.enlace);aviso('Enlace copiado')}catch(e){aviso('Copia el enlace manualmente')}},'sec'));f.appendChild(btn('Cambiar',modoEd,'sec'))}
+      else f.appendChild(btn('+ Añadir enlace',modoEd,'sec'))}
+    function modoEd(){f.textContent='';var i=document.createElement('input');i.placeholder='https://drive.google.com/…';i.value=x.enlace||'';i.style.cssText='flex:1;min-width:120px';f.appendChild(i);
+      f.appendChild(btn('Guardar',function(){google.script.run.withSuccessHandler(function(){x.enlace=i.value.trim();aviso('Enlace guardado');modoVer()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminGuardarEnlace(x.telefono,i.value.trim())}));f.appendChild(btn('✕',modoVer,'sec'))}
+    modoVer();m.appendChild(f);k.appendChild(m);
+    var h=el_('div','hist');var h1=el_('span','','Historial: ');h1.appendChild(el_('b','',x.jornadas+' reservas'));var h2=el_('span','','Inversión: ');h2.appendChild(el_('b','',clp(x.gastado)));h.appendChild(h1);h.appendChild(h2);k.appendChild(h);
+    if(x.proxima)k.appendChild(el_('small','','Próxima: '+x.proxima));else if(x.ultima)k.appendChild(el_('small','','Última: '+x.ultima));
+    var w=el_('a','wa','WhatsApp');w.href='https://wa.me/'+String(x.telefono).replace(/\D/g,'');w.target='_blank';w.rel='noopener';w.onclick=function(e){e.stopPropagation()};k.appendChild(w);
+    var det=btn('Ver jornadas',function(){fichaCli(x)},'sec');det.style.marginTop='.4rem';k.appendChild(det);
+    g.appendChild(k)});
+  c.appendChild(g);if(!g.firstChild)c.appendChild(par('Sin clientes todavía.','color:#b5afa6'));
+}
+function fichaCli(x){
+  var d=$('jdet');d.textContent='';d.hidden=false;d.onclick=function(e){if(e.target===d)d.hidden=true};
+  var f=el_('div','ficha-j');f.appendChild(el_('h3','',x.banda||'(sin banda)'));f.appendChild(el_('div','sub',x.contacto+' · +'+x.telefono+(x.correo?' · '+x.correo:'')));
+  var tot=el_('div','tot');[['Jornadas',x.jornadas],['Finalizadas',x.finalizadas],['Gastado',clp(x.gastado)]].forEach(function(y){var e=el_('div');e.appendChild(el_('b','',y[1]));e.appendChild(document.createTextNode(' '+y[0]));tot.appendChild(e)});f.appendChild(tot);
+  var rs=(JOR.reservas||[]).filter(function(r){return r.telefono===x.telefono});
+  rs.forEach(function(r){var l=el_('div','fila');l.style.margin='4px 0';var c=chipEv(r);c.style.width='auto';c.style.flex='1';c.onclick=function(){fichaJor(r)};l.appendChild(el_('span','',r.fecha));l.appendChild(c);l.appendChild(el_('span','',clp(r.total)));f.appendChild(l)});
+  var acc=el_('div','fila');acc.style.marginTop='8px';var a=el_('a','',' Escribir por WhatsApp');a.href='https://wa.me/'+x.telefono;a.target='_blank';a.rel='noopener';a.style.color='#FCC631';acc.appendChild(a);
+  if(x.enlace){var m=el_('a','','Carpeta de material');m.href=x.enlace;m.target='_blank';m.rel='noopener';m.style.color='#FCC631';acc.appendChild(m)}acc.appendChild(btn('Cerrar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
+}
+[].forEach.call(document.querySelectorAll('#jtabs button'),function(b){b.onclick=function(){jv=b.getAttribute('data-v');jbusca='';pintarJor()}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')$('jdet').hidden=true});
+</script></body></html>

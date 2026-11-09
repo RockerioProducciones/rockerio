@@ -1,0 +1,62 @@
+[
+ {
+  "src": "assets/fotos/control-panoramica.jpg",
+  "alt": "Control Room y consola Midas M32",
+  "titulo": "Control Room y consola Midas M32",
+  "descripcion": "Puesto principal de ingeniería: consola digital, monitores y rack de procesadores."
+ },
+ {
+  "src": "assets/sala-1.jpg",
+  "alt": "Sala de ensayo principal",
+  "titulo": "Sala de ensayo principal",
+  "descripcion": "Acondicionamiento acústico y backline valvular Laney y Orange."
+ },
+ {
+  "src": "assets/fotos/bateria-azul-1.jpg",
+  "alt": "Batería Pearl Export y microfonía",
+  "titulo": "Batería Pearl Export y microfonía",
+  "descripcion": "Set de 5 piezas miqueado con Shure, AKG y Sennheiser para registro en vivo."
+ },
+ {
+  "src": "assets/fotos/control-consola.jpg",
+  "alt": "Consola y monitoreo de campo cercano",
+  "titulo": "Consola y monitoreo de campo cercano",
+  "descripcion": "Control room con monitores Kali Audio LP-8 y subwoofer."
+ },
+ {
+  "src": "assets/fotos/microfono-amplificador.jpg",
+  "alt": "Amplificadores microfoneados",
+  "titulo": "Amplificadores microfoneados",
+  "descripcion": "Micrófono captando un amplificador Laney valvular."
+ },
+ {
+  "src": "assets/control-room.jpg",
+  "alt": "Sala de control del estudio",
+  "titulo": "Sala de control del estudio",
+  "descripcion": "Estación de trabajo con Universal Audio LUNA sobre Mac Mini M4."
+ },
+ {
+  "src": "assets/control-room-2.jpg",
+  "alt": "Consola y monitores del estudio",
+  "titulo": "Consola y monitores del estudio",
+  "descripcion": "Suma análoga SSL SiX y monitoreo de precisión."
+ },
+ {
+  "src": "assets/amplificadores.jpg",
+  "alt": "Amplificación de guitarra y bajo",
+  "titulo": "Amplificación de guitarra y bajo",
+  "descripcion": "Cabezales y gabinetes disponibles para tu ensayo."
+ },
+ {
+  "src": "assets/fotos/bateria-azul-2.jpg",
+  "alt": "Batería de la sala de ensayo",
+  "titulo": "Batería de la sala de ensayo",
+  "descripcion": "Vista de los platillos y la afinación lista para tocar."
+ },
+ {
+  "src": "assets/sala-patio.jpg",
+  "alt": "Patio del estudio",
+  "titulo": "Patio del estudio",
+  "descripcion": "Un espacio para descansar y compartir entre sesiones."
+ }
+]

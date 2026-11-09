@@ -1,0 +1,150 @@
+{
+ "_nota": "Edita este archivo para cambiar la ficha técnica. Cada bloque tiene un título y una lista de equipos.",
+ "bloques": [
+  {
+   "titulo": "Sala de ensayo · Tarifas",
+   "items": [
+    "Hora de sala de ensayo: {precioEnsayoHora}",
+    "Plan 8 horas (4 ensayos de 2 h): {plan8}",
+    "Plan 12 horas (4 ensayos de 3 h): {plan12}",
+    "Abono de {abonoPorHora} por hora para asegurar tu cupo; el saldo se paga al finalizar la sesión",
+    "Cambios de agenda con al menos {horasAnulacion} horas de anticipación"
+   ]
+  },
+  {
+   "titulo": "Comodidades del espacio",
+   "items": [
+    "Climatización: aire acondicionado para ensayos y grabaciones confortables",
+    "Espacios: patio interior para descansar, compartir y despejarse entre sesiones",
+    "Conectividad: Wi-Fi de alta velocidad disponible en todo el recinto",
+    "Servicios: estación permanente de té, café y agua purificada a libre disposición",
+    "Estacionamiento: exterior, sujeto a disponibilidad"
+   ]
+  },
+  {
+   "titulo": "Sala de ensayo · Grabación multipista incluida",
+   "items": [
+    "{escala}",
+    "Es opcional: puedes usar todo el tiempo solo para ensayar",
+    "El tiempo de grabación no es acumulable"
+   ]
+  },
+  {
+   "titulo": "Sala de ensayo · Backline",
+   "items": [
+    "Batería Pearl Export de 5 piezas, parches Remo/Evans (arriendo de platos opcional)",
+    "Micrófonos de batería: Sennheiser e602, AKG D112, Shure SM57, Sennheiser e609, Shure Beta 56A y AT2021",
+    "Bajo: Fender Rumble 500 Combo (350 W) con micrófono Shure Beta 62A",
+    "Guitarra 1: Laney Ironheart IRT60 valvular (combo 2×12\") con Shure SM57",
+    "Guitarra 2: Laney GH30 valvular (combo 1×12\") con Shure SM57",
+    "Guitarra 3: cabezal Orange TH30 valvular con gabinete Marshall 1922 (2×12\") y Sennheiser e609"
+   ]
+  },
+  {
+   "titulo": "Sala de ensayo · Audio, mezcla y monitoreo",
+   "items": [
+    "PA: 2 cajas activas JBL Eon 615 (500 W) y notebook HP con internet",
+    "Consolas: Mackie ProFX10 v3 en la sala; Midas M32 + DL32 en el control room",
+    "In-ears: amplificador Mackie HM-800 con 8 receptores inalámbricos",
+    "Audífonos: 6 AKG K92 y 4 Sennheiser HD206",
+    "Micrófonos extra: Shure SM58, Beta 58A y PGA81",
+    "Cajas directas Radial (activa) y Alctron (pasiva estéreo), atriles Hercules y cableado completo"
+   ]
+  },
+  {
+   "titulo": "Equipo extra en arriendo",
+   "items": [
+    "Platillos",
+    "Bajo",
+    "Guitarra",
+    "Pedalboard"
+   ]
+  },
+  {
+   "titulo": "Registro de tu sesión",
+   "items": [
+    "Video con GoPro",
+    "Material en bruto de la sesión"
+   ]
+  },
+  {
+   "titulo": "Asistencia técnica",
+   "items": [
+    "Soporte técnico especializado durante toda tu jornada, tanto en ensayo como en grabación"
+   ]
+  },
+  {
+   "titulo": "Estudio · Sala de control",
+   "items": [
+    "Consola digital Midas M32 (32 canales / 16 salidas)",
+    "Consola análoga SSL SiX: 2 channel strips dedicados para grabación, suma análoga y bus compressor SSL G Series",
+    "Mac Mini M4 (24 GB RAM / 500 GB SSD) con DAW Universal Audio LUNA y paquete completo de plugins Universal Audio y SSL",
+    "Monitores de campo cercano Kali Audio LP-8 (8 pulgadas)"
+   ]
+  },
+  {
+   "titulo": "Estudio · Software, plugins y respaldo",
+   "items": [
+    "DAW principal: Universal Audio LUNA con procesamiento DSP en tiempo real y suma analógica API",
+    "Procesamiento dinámico y coloración: UAD Native, Solid State Logic (SSL), Soundtoys, iZotope y Eventide",
+    "Modelado de amplificadores: Neural DSP (Darkglass, Archetype Gojira/Nolly), AmpliTube y emulaciones dedicadas para guitarras y bajos pesados",
+    "Saturación de cinta en pistas individuales: emulación analógica Studer y Ampex",
+    "Respaldo automatizado: copias nocturnas con FreeFileSync y RealTimeSync en discos SSD",
+    "Control y respaldo remoto: Tailscale (VPN mesh) y Screen Sharing en Curtain Mode"
+   ]
+  },
+  {
+   "titulo": "Estudio · Sala de grabación y backline",
+   "items": [
+    "Batería Gretsch de 5 piezas: bombo 22\", caja 14\" (parche Remo Controlled Sound), toms 10\", 12\" y 16\"",
+    "Atril de hi-hat, 4 atriles de platos y sillín ajustable Dixon",
+    "Arriendo de set de platos opcional"
+   ]
+  },
+  {
+   "titulo": "Estudio · Microfonía de alta gama",
+   "items": [
+    "Telefunken TF39: condensador valvular multipatrón",
+    "Telefunken M82: dinámico cardioide (ideal para bombo y graves)",
+    "Telefunken M80 SH: dinámico cardioide",
+    "3 × Telefunken M81 SH: dinámicos cardioides (toms, cajas, guitarras)",
+    "2 × Telefunken M60: condensadores cardioides (overheads e instrumentos)",
+    "Shure Beta 91A: micrófono de superficie para bombo",
+    "4 × Shure SM57 y 3 × Shure SM58",
+    "Rode NT1-A: condensador cardioide"
+   ]
+  },
+  {
+   "titulo": "Estudio · Cajas directas y re-amping",
+   "items": [
+    "Caja directa Radial SB-1 (activa, 1 canal)",
+    "Caja directa Alctron (pasiva, 2 canales estéreo)",
+    "Caja de re-amplificación Radial (2 salidas)"
+   ]
+  },
+  {
+   "titulo": "Estudio · Conectividad y monitoreo de músicos",
+   "items": [
+    "Stagebox Midas DL32 (32 entradas / 16 salidas)",
+    "Amplificador de audífonos Samson C-Que8 (4 canales)",
+    "5 audífonos AKG K92 para monitoreo de los músicos"
+   ]
+  },
+  {
+   "titulo": "Estudio · Formato y entrega",
+   "items": [
+    "Grabación en WAV de alta resolución, 24 bits / 48 kHz",
+    "Al terminar la sesión, el material multipista o la mezcla se envía por enlace directo de Google Drive"
+   ]
+  },
+  {
+   "titulo": "Estudio · Cómo se reserva",
+   "items": [
+    "Sesiones desde 1 hora: el valor se ajusta a las horas que necesites",
+    "Asistencia técnica e ingeniería durante toda la sesión: microfonía, ruteo y toma de sonido",
+    "Abono por cada hora reservada para asegurar tu cupo; el saldo se paga al finalizar",
+    "Cambios de fecha u hora con al menos 24 horas de anticipación"
+   ]
+  }
+ ]
+}

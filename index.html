@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ROCKERÍO Producciones · Sala de ensayo y estudio en Quinta Normal</title>
+<meta name="description" content="Sala de ensayo y estudio de grabación en Quinta Normal, Santiago. Reserva en línea, ficha técnica y tienda de insumos.">
+<meta property="og:title" content="ROCKERÍO Producciones">
+<meta property="og:description" content="Sala de ensayo y estudio de grabación en Quinta Normal. Reserva en línea.">
+<meta property="og:image" content="assets/og.jpg">
+<meta property="og:type" content="website">
+<link rel="icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/temas.css">
+<link rel="stylesheet" href="css/movil.css">
+<link rel="stylesheet" href="css/clasico.css">
+<script src="js/tema.js"></script>
+</head>
+<body>
+<div id="aviso" class="aviso" hidden></div>
+<header class="top">
+  <a href="#inicio" class="marca"><img src="assets/logo-horizontal-dorado.png" alt="ROCKERÍO Producciones"></a>
+  <nav>
+    <a href="#reservar">Reservar</a><a href="#planes">Planes</a><a href="#ficha">Ficha técnica</a><a href="#reglamento">Reglamento</a><a href="#bandas" id="nav-bandas" hidden>Bandas</a><a href="#cotizar">Cotizar</a><a href="#tienda">Tienda</a><a href="#contacto">Contacto</a>
+  </nav>
+</header>
+
+<main>
+<section id="inicio" class="hero">
+  <img class="hero-marca" src="assets/marcas/calavera.png" alt="" aria-hidden="true">
+  <div class="hero-in">
+    <img class="hero-logo" src="assets/logo-horizontal-dorado.png" alt="">
+    <h1 id="hero-t">Tu banda suena aquí</h1>
+    <p id="hero-p">Sala de ensayo y estudio de grabación en Quinta Normal, Santiago.</p>
+    <p class="chips"><span id="chip-ensayo"></span><span id="chip-estudio"></span><span id="chip-conv" class="chip-conv" hidden></span></p>
+    <a class="btn" href="#reservar">Reservar ahora</a>
+  </div>
+</section>
+
+<div id="franja-dir" class="franja-dir" hidden><span>📍 <b>DIRECCIÓN: <span id="dir2"></span></b></span><span id="sep2" hidden> · </span><a id="maps2" target="_blank" rel="noopener" hidden>VER MAPA</a></div>
+<div id="menu" class="menu" role="navigation" aria-label="¿Qué quieres hacer?">
+  <a class="tarjeta principal" href="#reservar" data-vista="reservar" data-ico="📅"><b>Reservar</b><span>Sala o estudio en 6 pasos rápidos</span></a>
+  <a class="tarjeta" href="#nosotros" data-vista="nosotros" data-ico="🎚️"><b>Producción</b><span>Enfoque y presentación</span></a>
+  <a class="tarjeta" href="#ficha" data-vista="ficha" data-ico="🎛️"><b>Ficha técnica</b><span>Micrófonos, backline y más</span></a>
+  <a class="tarjeta" href="#planes" data-vista="planes" data-ico="🏷️"><b>Planes mensuales</b><span>4 sesiones al mes</span></a>
+  <a class="tarjeta" href="#galeria" data-vista="galeria" data-ico="🖼️"><b>Galería</b><span>Fotos y videos</span></a>
+  <a class="tarjeta" href="#opiniones" data-vista="opiniones" data-ico="⭐"><b>Evaluaciones</b><span>Lo que dicen las bandas</span></a>
+  <a class="tarjeta" href="#proaudix" data-vista="proaudix" data-ico="🛡️"><b>ProAudix</b><span>Colegas audiovisuales</span></a>
+  <a class="tarjeta" href="#contacto" data-vista="contacto" data-ico="📞"><b>Contacto</b><span>Redes y cómo llegar</span></a>
+  <a class="tarjeta" href="#tienda" data-vista="tienda" data-ico="🛍️"><b>Tienda</b><span>Insumos y bebestibles</span></a>
+  <a class="tarjeta" href="#bandas" data-vista="bandas" data-ico="🏅" hidden><b>Cuadro de honor</b><span>Bandas que pasaron por aquí</span></a>
+  <a class="tarjeta" href="#cotizar" data-vista="cotizar" data-ico="📝"><b>Cotizar</b><span>Producción y consultas</span></a>
+  <a class="tarjeta" href="#reglamento" data-vista="reglamento" data-ico="📖"><b>Reglamento</b><span>Cómo funciona todo</span></a>
+</div>
+<div id="vista-barra" class="vista-barra" hidden><a class="volver" href="#inicio">‹ Inicio</a><span id="vista-titulo"></span></div>
+
+<section id="reservar" class="sec">
+  <h2>Reserva en línea</h2>
+  <p class="sub">Elige qué necesitas, el día y tu horario. Te mostramos solo lo que está libre.</p>
+  <div id="pausa" class="caja" hidden></div>
+  <div class="reserva">
+    <form id="form" class="form wizard" novalidate autocomplete="on">
+      <div id="wiz-barra" class="wiz-barra" aria-live="polite">
+        <div class="wiz-fila"><button type="button" id="wiz-atras" class="wiz-atras" aria-label="Paso anterior" hidden>‹ Atrás</button><span id="wiz-titulo" class="wiz-titulo"></span><span id="wiz-n" class="wiz-n"></span></div>
+        <div class="wiz-prog" id="wiz-prog" role="presentation"></div>
+        <div id="wiz-chip" class="wiz-chip" hidden></div>
+      </div>
+      <fieldset id="paso-servicio">
+        <legend>1 · ¿Qué necesitas?</legend>
+        <div class="opciones" id="servicios">
+          <label class="opcion"><input type="radio" name="servicio" value="ensayo" checked><span><b>Sala de ensayo</b><small id="p-ensayo"></small></span></label>
+          <label class="opcion"><input type="radio" name="servicio" value="grabacion"><span><b>Estudio de grabación</b><small id="p-grab"></small></span></label>
+        </div>
+        <div><span class="lbl">¿Cuántas horas?</span><div class="segm" id="horas-btns" role="group" aria-label="Cantidad de horas"></div></div>
+      </fieldset>
+      <fieldset id="paso-fecha" class="paso off">
+        <legend>2 · Elige el día</legend>
+        <div id="cal" class="cal" aria-live="polite"></div>
+        <p class="leyenda"><span class="ley libre">Disponible</span><span class="ley ocupado">Sin cupo</span></p>
+        <p class="nota">Desde hoy hasta <span id="max-dias">21</span> días adelante. Los días apagados no tienen cupo para esa cantidad de horas.</p>
+      </fieldset>
+      <fieldset id="paso-hora" class="paso off">
+        <legend>3 · Elige tu horario</legend>
+        <p class="leyenda"><span class="ley libre">Disponible</span><span class="ley ocupado">Ocupado</span></p>
+        <div id="horarios" class="horarios" aria-live="polite"><p class="nota">Primero elige un día.</p></div>
+      </fieldset>
+      <fieldset id="adicionales" class="paso off">
+        <legend>4 · Adicionales (opcional)</legend>
+        <label>Equipo extra (platillos, bajo, guitarra, pedalboard)<select id="extras"></select></label>
+        <label class="chk"><input type="checkbox" id="video"><span>Video con GoPro <em id="p-video"></em></span></label>
+        <label class="chk"><input type="checkbox" id="raw"><span>Material en bruto <em id="p-raw"></em></span></label>
+        <label class="chk"><input type="checkbox" id="zurdo"><span>Baterista zurdo</span></label>
+        <label>Micrófonos de voz<select id="voces"><option>0</option><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
+      </fieldset>
+      <fieldset id="paso-datos" class="paso off">
+        <legend>5 · Tus datos</legend>
+        <div class="fila">
+          <label>Nombre de la banda<input id="banda" maxlength="60" required></label>
+          <label>Tu nombre<input id="nombre" maxlength="60" required autocomplete="name"></label>
+        </div>
+        <div class="fila">
+          <label>WhatsApp<input id="telefono" type="tel" inputmode="tel" placeholder="+56 9 1234 5678" required autocomplete="tel"></label>
+          <label>Correo<input id="correo" type="email" required autocomplete="email"></label>
+        </div>
+        <label>Comentarios (opcional)<textarea id="comentario" maxlength="300" rows="2"></textarea></label>
+        <input type="text" id="web" name="web" tabindex="-1" autocomplete="off" aria-hidden="true" class="trampa">
+      </fieldset>
+      <fieldset id="paso-resumen" class="paso">
+        <legend>6 · Revisa y confirma</legend>
+        <aside id="tu-reserva" class="tu-reserva" aria-live="polite">
+          <h3>Tu reserva</h3>
+          <dl id="tr-lista"></dl>
+          <div id="tr-total"></div>
+          <p id="tr-falta" class="nota"></p>
+        </aside>
+        <label class="chk"><input type="checkbox" id="tyc" required><span id="tyc-txt"></span></label>
+        <p class="error" id="error" role="alert" hidden></p>
+        <button class="btn" id="enviar" type="submit">Solicitar reserva</button>
+      </fieldset>
+      <div class="wiz-acc" id="wiz-acc"><button type="button" class="btn" id="wiz-sig">Siguiente ›</button></div>
+    </form>
+  </div>
+  <div id="listo" class="caja" hidden></div>
+</section>
+
+<section id="planes" class="sec">
+  <h2>Planes mensuales</h2>
+  <p class="sub">Cuatro sesiones de ensayo al mes, pagadas por adelantado. Para bandas nuevas o que ya han pasado por el estudio.</p>
+  <div id="plan-cards" class="grid"></div>
+  <div id="plan-wiz" class="caja" hidden>
+    <h3 id="plan-tit"></h3>
+    <p>Elige tus sesiones: <b id="plan-prog"></b></p>
+    <div id="plan-cal" class="cal"></div>
+    <div id="plan-horas" class="horarios"></div>
+    <ul id="plan-lista" class="plan-lista"></ul>
+    <form id="f-plan" class="form" novalidate hidden>
+      <div class="fila"><label>Nombre de la banda<input name="banda" maxlength="60" required></label><label>Tu nombre<input name="nombre" maxlength="60" required></label></div>
+      <div class="fila"><label>WhatsApp<input name="telefono" type="tel" required placeholder="+56 9 1234 5678"></label><label>Correo<input name="correo" type="email" required></label></div>
+      <input type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true" class="trampa">
+      <label class="chk"><input type="checkbox" name="tyc" required><span>Acepto que el plan se paga completo por adelantado para confirmar mis sesiones.</span></label>
+      <p class="error" hidden></p><button class="btn" type="submit">Solicitar plan</button>
+    </form>
+  </div>
+  <div id="plan-listo" class="caja" hidden></div>
+</section>
+
+<section id="nosotros" class="sec">
+  <h2>Producción</h2>
+  <div class="caja intro-prod"><h3 id="nosotros-t"></h3><div id="nosotros-in" class="texto"></div></div>
+  <div class="prod-bloque"><h3>Enfoque y pasión</h3>
+    <p>Mi pasión y especialidad es el rock y sus géneros derivados, con una dedicación especial hacia las bandas instrumentales. Me apasiona acompañar la música en sus distintas etapas:</p>
+    <ul class="reg-lista"><li>Bandas de jóvenes que están partiendo y dando forma a sus primeros proyectos.</li><li>Proyectos emergentes que ya están en ruta buscando consolidar su sonido.</li><li>Músicos que vuelven a juntarse tras años de pausas para revivir sus canciones con la experiencia de hoy.</li></ul></div>
+  <figure class="prod-foto"><img src="assets/fotos/control-consola.jpg" alt="Control room con consola y monitores" loading="lazy"></figure>
+  <div class="prod-bloque"><h3>Nuestra filosofía (sin rodeos ni humo)</h3>
+    <p><strong>Honestidad técnica:</strong> no vendemos promesas mágicas. Trabajamos al máximo sobre la mejor interpretación que logremos registrar juntos. Buscamos el mejor sonido posible con las herramientas que tenemos.</p>
+    <p><strong>Acompañamiento cercano:</strong> resolvemos dudas técnicas a lo largo de todo el camino. Aporto ideas musicales y soluciones técnico-artísticas para potenciar la visión de la banda.</p>
+    <p><strong>Aprender escuchando:</strong> creemos que la mejor materia prima son los ensayos grabados. Que la banda salga del estudio escuchando lo que acaba de interpretar es la herramienta más directa para crecer.</p>
+    <p><strong>Tu ritmo, tu sonido:</strong> adaptamos el proceso a la dinámica de tu banda. Con nuestra plantilla digital tomamos decisiones sonoras en tiempo real, optimizando el tiempo y facilitando ajustes sin perder agilidad.</p></div>
+  <figure class="prod-foto"><img src="assets/control-room-2.jpg" alt="Consola y monitores del estudio" loading="lazy"></figure>
+  <div class="prod-bloque"><h3>Infraestructura y método técnico</h3>
+    <p><strong>Espacios e interconexión:</strong> integramos la sala de control, la sala de ensayo y la sala de grabación mediante la consola digital Midas M32 y la caja Midas DL32 sobre red de alta velocidad.</p>
+    <p><strong>Flujo híbrido in the box / analógico:</strong> consola de suma SSL SiX y estación de trabajo Apple Mac Mini M4 corriendo Universal Audio LUNA, con plugins UAD Native, Solid State Logic, Soundtoys y Slate Digital.</p>
+    <p><strong>Respaldo automatizado:</strong> copias de seguridad nocturnas con FreeFileSync y RealTimeSync, resguardando cada proyecto en discos SSD.</p>
+    <p class="firma"><b>Juan Carlos Retamal González</b><br><span>Técnico Superior en Informática e Ingeniero en Sonido</span></p></div>
+  <p><a class="btn" href="#ficha">Ver ficha técnica</a></p>
+</section>
+
+<section id="ficha" class="sec">
+  <h2>Ficha técnica</h2><div id="ficha-in" class="grid"></div>
+  <div id="mics-box" hidden><h3>Catálogo de micrófonos</h3><p class="sub">Toca un micrófono para escucharlo en distintas fuentes.</p><div id="mics" class="grid"></div></div>
+  <div id="escucha-box" hidden><h3>Escucha cómo suena</h3><p class="sub">Canciones en bruto, mezcladas y masterizadas, y ensayos reales de banda.</p><div id="escucha" class="grid"></div></div>
+</section>
+
+<section id="bandas" class="sec" hidden>
+  <h2>Cuadro de honor</h2>
+  <div class="honor-cab"><span class="honor-ico">🏅</span><div><h3>Cuadro de honor · Rockerío y ProAudix</h3><p class="sub">Bandas, solistas y proyectos musicales que graban y ensayan con nosotros.</p></div></div>
+  <div id="honor" class="grid honor-grid"></div>
+  <div class="honor-invita caja">
+    <h3>¿Grabaste o ensayaste en Rockerío Producciones?</h3>
+    <p class="sub">Comparte la información de tu banda y llena el formulario para formar parte de nuestro cuadro de honor. Así dejamos registro de tu proyecto y hacemos comunidad. Revisamos cada solicitud antes de publicarla.</p>
+    <form id="f-honor" class="form" novalidate>
+      <div class="fila"><label>Nombre de la banda o proyecto *<input name="banda" maxlength="60" required></label><label>Género o estilo<input name="genero" maxlength="60" placeholder="Ej. Rock progresivo y metal"></label></div>
+      <label>Formación<input name="formacion" maxlength="120" placeholder="Ej. Guitarra, bajo, batería y voz"></label>
+      <div class="fila"><label>WhatsApp de contacto *<input name="telefono" type="tel" required placeholder="+56 9 1234 5678"></label><label>Correo *<input name="correo" type="email" required></label></div>
+      <div class="fila"><label>Instagram (@usuario)<input name="instagram" maxlength="60"></label><label>Canal o video de YouTube<input name="youtube" type="url" placeholder="https://youtu.be/…"></label></div>
+      <div class="fila"><label>Spotify, Bandcamp u otro enlace<input name="enlace" type="url" placeholder="https://…"></label><label>Logo de tu banda (imagen)<input name="logoArchivo" type="file" accept="image/png,image/jpeg,image/webp"></label></div>
+      <label>Reseña de tu banda *<textarea name="resena" rows="3" maxlength="500" required placeholder="Cuéntanos quiénes son, qué grabaron o ensayaron aquí…"></textarea></label>
+      <input type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true" class="trampa">
+      <p class="error" hidden></p><p class="ok" hidden></p><button class="btn" type="submit">Enviar para revisión</button>
+    </form>
+  </div>
+</section>
+
+<section id="opiniones" class="sec">
+  <h2>Evaluaciones</h2><p class="sub" id="promedio"></p><div id="resenas" class="grid"></div>
+  <details class="forma" id="d-resena"><summary>Deja tu evaluación (solo con tu código de reserva)</summary>
+    <form id="f-resena" class="form" novalidate>
+      <div class="fila"><label>Código de tu reserva (ej. RP-1001)<input name="codigo" maxlength="20" required></label><label>WhatsApp de la reserva<input name="telefono" type="tel" required></label></div>
+      <div class="fila"><label>Tu nombre<input name="nombre" maxlength="40" required></label><label>Evaluación<select name="estrellas"><option value="5">★★★★★</option><option value="4">★★★★☆</option><option value="3">★★★☆☆</option><option value="2">★★☆☆☆</option><option value="1">★☆☆☆☆</option></select></label></div>
+      <label>Comentario<textarea name="comentario" rows="3" maxlength="400"></textarea></label>
+      <input type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true" class="trampa">
+      <p class="error" hidden></p><p class="ok" hidden></p><button class="btn" type="submit">Enviar opinión</button>
+    </form></details>
+</section>
+
+<section id="cotizar" class="sec">
+  <h2>Cotizar</h2><p class="sub">Planes mensuales, producción musical u otras consultas.</p>
+  <form id="f-cot" class="form" novalidate>
+    <div class="fila"><label>¿Qué necesitas?<select name="tipo"><option value="plan8">Plan mensual de 8 horas</option><option value="plan12">Plan mensual de 12 horas</option><option value="produccion">Producción musical</option><option value="otro">Otra consulta</option></select></label><label>Tu nombre<input name="nombre" maxlength="60" required></label></div>
+    <div class="fila"><label>WhatsApp<input name="telefono" type="tel" required></label><label>Correo<input name="correo" type="email" required></label></div>
+    <label>Cuéntanos qué buscas<textarea name="mensaje" rows="3" maxlength="600" required></textarea></label>
+    <input type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true" class="trampa">
+    <p class="error" hidden></p><p class="ok" hidden></p><button class="btn" type="submit">Pedir cotización</button>
+  </form>
+</section>
+
+<section id="reglamento" class="sec"><h2>Reglamento interno</h2><div id="reglamento-in" class="reglamento"></div></section>
+
+<section id="galeria" class="sec"><h2>Galería</h2><div id="galeria-in" class="galeria"></div></section>
+
+<section id="tienda" class="sec">
+  <h2>Tienda de insumos</h2>
+  <p class="sub">Retiro en el estudio. Consulta stock por WhatsApp.</p>
+  <div id="tienda-in"></div>
+  <p class="alianza"><span>Tienda y bebestibles en alianza con</span> <img src="assets/marcas/proaudix.jpg" alt="ProAudix" loading="lazy"></p>
+</section>
+
+<section id="proaudix" class="sec">
+  <h2>ProAudix</h2>
+  <div class="pa-hero"><div class="pa-logo"><img src="assets/marcas/proaudix.jpg" alt="ProAudix" loading="lazy"></div>
+    <h3>ProAudix — nuestra casa y aliado audiovisual</h3><p id="pa-texto"></p></div>
+  <div class="pa-bloque"><h3>La casa donde nace Rockerío</h3><p>ProAudix proporciona el respaldo técnico, la infraestructura acústica y el equipamiento de alto nivel para ensayos y grabaciones profesionales.</p></div>
+  <div class="pa-bloque"><h3>Desarrollo de proyectos CCTV y transmisión</h3>
+    <p><strong>Eventos corporativos y charlas:</strong> cobertura de circuito cerrado de televisión (CCTV) con switcher en vivo.</p>
+    <p><strong>Podcasts y entrevistas:</strong> setup multicámara profesional con iluminación controlada y microfonía dedicada.</p>
+    <p><strong>Eventos y streaming en vivo:</strong> transmisión en directo multicanal optimizada para plataformas digitales.</p></div>
+  <div class="pa-bloque"><h3>Enlaces y contacto ProAudix</h3><div id="pa-links" class="enlaces"></div></div>
+</section>
+
+<section id="contacto" class="sec">
+  <h2>Contacto</h2>
+  <p id="dir"></p>
+  <p class="botones"><a class="btn" id="wsp" target="_blank" rel="noopener">Escribir por WhatsApp</a> <a class="btn sec-b" id="maps" target="_blank" rel="noopener" hidden>Cómo llegar</a></p>
+  <h3 id="redes-t" hidden>Redes y enlaces</h3><div id="redes" class="enlaces"></div>
+  <p class="nota" id="horarios-txt"></p>
+</section>
+</main>
+
+<footer><p class="pie-chips"><span class="chip-ok">● Agenda oficial Rockerío conectada</span></p><img src="assets/marcas/calavera.png" alt="ROCKERÍO Producciones"> <span id="pie"></span></footer>
+
+<script src="js/config.js"></script>
+<script src="js/reglas.js"></script>
+<script src="js/app.js"></script>
+<script src="js/planes.js"></script>
+<script src="js/contenido.js"></script>
+<script src="js/pasos.js"></script>
+<script src="js/vistas.js"></script>
+</body>
+</html>
