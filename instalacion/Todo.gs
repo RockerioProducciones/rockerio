@@ -40,11 +40,14 @@ var Reglas = (function () {
     precioGrabacionConveniente: 0,     // $ por hora de grabación dentro de la franja (0 = sin tarifa conveniente en el estudio)
     convenienteDesde: 9,          // hora de inicio de la franja
     convenienteHasta: 14,         // hora de término de la franja (no incluida)
-    // Mensajes de WhatsApp (plantillas). {nombre} {banda} {servicio} {fecha} {hora} {fin} {codigo} {total} {abono} {saldo} {direccion} {negocio} {sitio} {horasAnulacion}
+    // Mensajes de WhatsApp (plantillas). {nombre} {banda} {servicio} {fecha} {hora} {fin} {codigo} {total} {abono} {saldo} {direccion} {negocio} {sitio} {horasAnulacion} {enlaceDescarga} {enlaceResena} {enlaceHonor}
     msgRecordatorio: "Hola {nombre} 👋 Te recordamos tu reserva en {negocio}: {servicio} el {fecha}, de {hora} a {fin}. Dirección: {direccion}. Recomendamos llegar 5 a 10 minutos antes. Si necesitas cambiarla, avísanos con al menos {horasAnulacion} horas de anticipación. ¡Nos vemos! 🤘",
     msgConfirmacion: "Hola {nombre} 🤘 ¡Recibimos tu abono! Tu reserva #{codigo} quedó confirmada: {servicio} el {fecha}, de {hora} a {fin}. Saldo a pagar en el estudio: {saldo}. Dirección: {direccion}.",
     msgCobroAbono: "Hola {nombre}, tu reserva #{codigo} ({servicio} el {fecha}, de {hora} a {fin}) está pendiente de abono de {abono}. Cuando lo hagas, envíanos el comprobante por aquí para confirmarla. Si no recibimos el abono a tiempo, el horario se libera.",
     msgGracias: "Hola {nombre}, ¡gracias por venir a {negocio}! 🎸 Esperamos que la sesión haya sido genial. Si puedes, déjanos una reseña en nuestro sitio: {sitio}",
+    msgResena: "Hola {nombre} 🤘 ¿Cómo te fue en {negocio}? Tu opinión ayuda a otras bandas a decidirse: déjanos una reseña aquí {enlaceResena} ¡Mil gracias!",
+    msgDescarga: "Hola {nombre}, aquí está el material de {banda}: {enlaceDescarga} Descárgalo desde ese enlace y, si algo no abre, avísanos. 🎧",
+    msgHonor: "Hola {nombre} 🤘 ¡Nos encantó tener a {banda} en {negocio}! Te invitamos a sumarte a nuestro Cuadro de Honor de bandas: {enlaceHonor}",
     waAutoActivo: false,          // SI = el recordatorio del día anterior se envía solo por la API de WhatsApp Business (requiere cuenta Meta)
     waPhoneId: '',                // ID del número de WhatsApp Business (no es el teléfono)
     waPlantillaRecordatorio: '',  // nombre de la plantilla de recordatorio aprobada por Meta
@@ -209,7 +212,7 @@ var Reglas = (function () {
     c.reservasActivas = aBool(raw.reservasActivas, d.reservasActivas);
     c.avisoBanner = aTexto(raw.avisoBanner, d.avisoBanner);
     c.tarifaConveniente = aBool(raw.tarifaConveniente, d.tarifaConveniente);
-    ['msgRecordatorio', 'msgConfirmacion', 'msgCobroAbono', 'msgGracias'].forEach(function (k) { c[k] = aTexto(raw[k], d[k]) || d[k]; });
+    ['msgRecordatorio', 'msgConfirmacion', 'msgCobroAbono', 'msgGracias', 'msgResena', 'msgDescarga', 'msgHonor'].forEach(function (k) { c[k] = aTexto(raw[k], d[k]) || d[k]; });
     c.waAutoActivo = aBool(raw.waAutoActivo, d.waAutoActivo);
     ['waPhoneId', 'waPlantillaRecordatorio', 'waIdioma', 'waVersion'].forEach(function (k) { c[k] = aTexto(raw[k], d[k]); });
     c.reglamento = aTexto(raw.reglamento, d.reglamento) || d.reglamento;
@@ -1320,7 +1323,10 @@ function prepararConfig_(ss) {
     ['msgRecordatorio', d.msgRecordatorio, 'Texto del recordatorio de WhatsApp (botón de un toque). {nombre} {banda} {servicio} {fecha} {hora} {fin} {codigo} {total} {abono} {saldo} {direccion} {negocio} {sitio} {horasAnulacion}. Se edita también desde el portal.'],
     ['msgConfirmacion', d.msgConfirmacion, 'Texto del mensaje de reserva confirmada.'],
     ['msgCobroAbono', d.msgCobroAbono, 'Texto para cobrar el abono pendiente.'],
-    ['msgGracias', d.msgGracias, 'Texto de agradecimiento y petición de reseña.'],
+    ['msgGracias', d.msgGracias, 'Texto de agradecimiento después de la sesión.'],
+    ['msgResena', d.msgResena, 'Texto para pedir una reseña. {enlaceResena} lleva al formulario del sitio.'],
+    ['msgDescarga', d.msgDescarga, 'Texto para enviar el enlace de descarga del material. {enlaceDescarga} es la carpeta de la banda.'],
+    ['msgHonor', d.msgHonor, 'Texto de invitación al Cuadro de Honor. {enlaceHonor} lleva al formulario del sitio.'],
     ['waAutoActivo', 'NO', 'SI = el recordatorio del día anterior se envía solo por la API de WhatsApp Business (requiere cuenta de Meta, plantilla aprobada y token). Ver portal > Mensajes de WhatsApp.'],
     ['waPhoneId', '', 'ID del número de WhatsApp Business (en Meta, no es el teléfono).'],
     ['waPlantillaRecordatorio', '', 'Nombre de la plantilla de recordatorio aprobada por Meta.'],
@@ -2066,6 +2072,7 @@ function adminJornadas() {
   if (k > 1) si.getRange(2, 1, k - 1, 2).getValues().forEach(function (r) { var f = aFechaIso_(r[0]); if (f) inhabiles.push({ fecha: f, motivo: String(r[1] || '') }); });
 
   var cl = leerClientes_(), porTel = {};
+  reservas.forEach(function (r) { r.enlace = enlaceDe_(cl, r.telefono, r.banda); });
   cl.forEach(function (c) { porTel[c.telefono] = { telefono: c.telefono, correo: c.correo, banda: c.banda, contacto: c.contacto, nombre: c.nombre, apellido: c.apellido, enlace: c.enlace, jornadas: 0, finalizadas: 0, gastado: 0, ultima: '', proxima: '' }; });
   reservas.forEach(function (r) {
     var c = porTel[r.telefono] || (porTel[r.telefono] = { telefono: r.telefono, correo: r.correo, banda: r.banda, contacto: r.contacto, enlace: '', jornadas: 0, finalizadas: 0, gastado: 0, ultima: '', proxima: '' });
@@ -3902,7 +3909,7 @@ function adminGuardarIngresos(valores) {
  *      "Hola {{1}}, te recordamos tu reserva de {{2}} el {{3}} de {{4}} a {{5}}. ¡Te esperamos!"
  */
 
-var CLAVES_MENSAJES = ['msgRecordatorio', 'msgConfirmacion', 'msgCobroAbono', 'msgGracias'];
+var CLAVES_MENSAJES = ['msgRecordatorio', 'msgConfirmacion', 'msgCobroAbono', 'msgGracias', 'msgResena', 'msgDescarga', 'msgHonor'];
 
 /** Guarda los textos de los mensajes. Vacío = vuelve al texto original. */
 function adminGuardarMensajes(m) {
@@ -3998,7 +4005,7 @@ function enviarRecordatorios() {
 /** Datos que el portal necesita para armar los mensajes de WhatsApp (nunca incluye el token). */
 function waDatos_() {
   var cfg = getCfg_();
-  return { plantillas: { msgRecordatorio: cfg.msgRecordatorio, msgConfirmacion: cfg.msgConfirmacion, msgCobroAbono: cfg.msgCobroAbono, msgGracias: cfg.msgGracias },
+  return { plantillas: { msgRecordatorio: cfg.msgRecordatorio, msgConfirmacion: cfg.msgConfirmacion, msgCobroAbono: cfg.msgCobroAbono, msgGracias: cfg.msgGracias, msgResena: cfg.msgResena, msgDescarga: cfg.msgDescarga, msgHonor: cfg.msgHonor },
     negocio: cfg.nombreNegocio, direccion: cfg.direccion, horasAnulacion: cfg.horasAnulacion, sitio: cfg.sitioUrl, auto: cfg.waAutoActivo,
     tieneToken: !!PropertiesService.getScriptProperties().getProperty('WA_TOKEN') };
 }

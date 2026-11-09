@@ -16,7 +16,7 @@
  *      "Hola {{1}}, te recordamos tu reserva de {{2}} el {{3}} de {{4}} a {{5}}. ¡Te esperamos!"
  */
 
-var CLAVES_MENSAJES = ['msgRecordatorio', 'msgConfirmacion', 'msgCobroAbono', 'msgGracias'];
+var CLAVES_MENSAJES = ['msgRecordatorio', 'msgConfirmacion', 'msgCobroAbono', 'msgGracias', 'msgResena', 'msgDescarga', 'msgHonor'];
 
 /** Guarda los textos de los mensajes. Vacío = vuelve al texto original. */
 function adminGuardarMensajes(m) {
@@ -112,7 +112,7 @@ function enviarRecordatorios() {
 /** Datos que el portal necesita para armar los mensajes de WhatsApp (nunca incluye el token). */
 function waDatos_() {
   var cfg = getCfg_();
-  return { plantillas: { msgRecordatorio: cfg.msgRecordatorio, msgConfirmacion: cfg.msgConfirmacion, msgCobroAbono: cfg.msgCobroAbono, msgGracias: cfg.msgGracias },
+  return { plantillas: { msgRecordatorio: cfg.msgRecordatorio, msgConfirmacion: cfg.msgConfirmacion, msgCobroAbono: cfg.msgCobroAbono, msgGracias: cfg.msgGracias, msgResena: cfg.msgResena, msgDescarga: cfg.msgDescarga, msgHonor: cfg.msgHonor },
     negocio: cfg.nombreNegocio, direccion: cfg.direccion, horasAnulacion: cfg.horasAnulacion, sitio: cfg.sitioUrl, auto: cfg.waAutoActivo,
     tieneToken: !!PropertiesService.getScriptProperties().getProperty('WA_TOKEN') };
 }

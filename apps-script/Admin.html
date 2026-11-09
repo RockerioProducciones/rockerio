@@ -284,7 +284,7 @@ section.tab-off{display:none!important}
 <div style="margin-top:8px"><button id="cmg">Guardar canción en el comparador</button></div>
 <table><tbody id="cml"></tbody></table></section>
 <section id="sec-wa"><h2>Mensajes de WhatsApp</h2>
-<p style="color:#b5afa6;margin:0 0 .5em">Textos de los mensajes. En cada reserva hay un selector «WhatsApp…» que abre la conversación con el mensaje ya escrito (un toque, gratis). Variables: {nombre} {banda} {servicio} {fecha} {hora} {fin} {codigo} {total} {abono} {saldo} {direccion} {negocio} {sitio} {horasAnulacion}. Vacío = vuelve al texto original.</p>
+<p style="color:#b5afa6;margin:0 0 .5em">Textos de los mensajes. En la tarjeta de cada cliente y en el detalle de cada reserva hay un botón por mensaje: abre WhatsApp con el texto ya escrito (un toque, gratis). Variables: {nombre} {banda} {servicio} {fecha} {hora} {fin} {codigo} {total} {abono} {saldo} {direccion} {negocio} {sitio} {horasAnulacion} {enlaceDescarga} {enlaceResena} {enlaceHonor}. Vacío = vuelve al texto original.</p>
 <div id="wam"></div><div style="margin-top:6px"><button id="wag">Guardar mensajes</button></div>
 <h3 style="margin:1em 0 .2em;font-size:15px">Recordatorios de mañana</h3><div id="wamanana"></div><p id="sinwa" style="color:#b5afa6"></p>
 <h3 style="margin:1em 0 .2em;font-size:15px">Envío automático (opcional)</h3>
@@ -368,9 +368,13 @@ function wsp(r){
 }
 var ultimo=null;
 var WA=null;
-function waTexto(t,r){var v={nombre:r.contacto,banda:r.banda,servicio:r.servicio,fecha:r.fechaTxt,hora:r.inicio,fin:r.fin,codigo:r.codigo,total:clp(r.total),abono:clp(r.abono),saldo:clp(r.saldo),direccion:WA.direccion,negocio:WA.negocio,sitio:WA.sitio,horasAnulacion:WA.horasAnulacion};return WA.plantillas[t].replace(/\{(\w+)\}/g,function(m,k){return v[k]!==undefined?v[k]:m})}
+function waTexto(t,r){var v=waVars(r,WA);return WA.plantillas[t].replace(/\{(\w+)\}/g,function(m,k){return v[k]!==undefined?v[k]:m})}
 function waUrl(t,r){return 'https://wa.me/'+String(r.telefono).replace(/\D/g,'')+'?text='+encodeURIComponent(waTexto(t,r))}
-var WATIPOS=[['msgRecordatorio','Recordatorio'],['msgConfirmacion','Reserva confirmada'],['msgCobroAbono','Cobrar abono'],['msgGracias','Gracias y reseña']];
+var WATIPOS=[['msgRecordatorio','Recordatorio de reserva'],['msgConfirmacion','Reserva confirmada'],['msgCobroAbono','Cobro de abono'],['msgDescarga','Enlace de descarga del material'],['msgResena','Pedir reseña'],['msgHonor','Invitación al Cuadro de Honor'],['msgGracias','Gracias por venir']];
+var WABTN={msgRecordatorio:'⏰ Recordatorio',msgConfirmacion:'✅ Confirmada',msgCobroAbono:'💳 Cobrar abono',msgDescarga:'📥 Material',msgResena:'⭐ Reseña',msgHonor:'🏆 Honor',msgGracias:'🙏 Gracias'};
+function waVars(r,W){var base=(W.sitio||'').replace(/\/+$/,'');return {nombre:r.contacto||'',banda:r.banda||'',servicio:r.servicio||'',fecha:r.fechaTxt||'',hora:r.inicio||'',fin:r.fin||'',codigo:r.codigo||'',total:r.total!==undefined?clp(r.total):'',abono:r.abono!==undefined?clp(r.abono):'',saldo:r.saldo!==undefined?clp(r.saldo):'',direccion:W.direccion,negocio:W.negocio,sitio:W.sitio,horasAnulacion:W.horasAnulacion,enlaceDescarga:r.enlace||'',enlaceResena:base?base+'/#opiniones':'',enlaceHonor:base?base+'/#bandas':''}}
+function waBotones(r,tipos){var W=(JOR&&JOR.wa)||WA,box=document.createElement('div');box.className='fila wa-btns';(tipos||WATIPOS.map(function(x){return x[0]})).forEach(function(k){var b=document.createElement('button');b.type='button';b.className='sec';b.textContent=WABTN[k];
+  b.onclick=function(){var v=waVars(r,W);if(k==='msgDescarga'&&!v.enlaceDescarga){aviso('Esta banda aún no tiene enlace de material: agrégalo en su ficha de cliente.');return}if(/^MAN-/.test(String(r.telefono))||!r.telefono){aviso('Este cliente no tiene WhatsApp registrado.');return}var t=W.plantillas[k].replace(/\{(\w+)\}/g,function(m,x){return v[x]!==undefined?v[x]:m});window.open('https://wa.me/'+String(r.telefono).replace(/\D/g,'')+'?text='+encodeURIComponent(t),'_blank','noopener')};box.appendChild(b)});return box}
 function pintar(d){
   if(d.mensaje)aviso(d.mensaje);
   pintarExtra(d);
@@ -933,10 +937,7 @@ function fichaJor(r){
   var ch=el_('div','chips');[[r.extras?'Equipo extra: '+r.extras:'',1],[r.video?'Video GoPro':'',1],[r.raw?'Material en bruto':'',1],[r.zurdo?'Baterista zurdo':'',1],[r.servicio==='Ensayo'?'Micrófonos de voz: '+r.voces:'',1]].forEach(function(x){if(x[0])ch.appendChild(el_('span','chip ok',x[0]))});
   if(!ch.firstChild)ch.appendChild(el_('span','chip','Sin adicionales'));f.appendChild(ch);
   var acc=el_('div','fila');acc.appendChild(selEstado(JOR.estados,r.estado,function(v){jrun('adminCambiarEstado',r.codigo,v);d.hidden=true}));
-  var ws=document.createElement('select');var o0=document.createElement('option');o0.textContent='Enviar WhatsApp…';ws.appendChild(o0);WATIPOS.forEach(function(x){var o=document.createElement('option');o.value=x[0];o.textContent=x[1];ws.appendChild(o)});
-  var W=JOR.wa;ws.onchange=function(){if(!ws.value)return;var v={nombre:r.contacto,banda:r.banda,servicio:r.servicio,fecha:r.fechaTxt,hora:r.inicio,fin:r.fin,codigo:r.codigo,total:clp(r.total),abono:clp(r.abono),saldo:clp(r.saldo),direccion:W.direccion,negocio:W.negocio,sitio:W.sitio,horasAnulacion:W.horasAnulacion};
-    var t=W.plantillas[ws.value].replace(/\{(\w+)\}/g,function(m,k){return v[k]!==undefined?v[k]:m});window.open('https://wa.me/'+String(r.telefono).replace(/\D/g,'')+'?text='+encodeURIComponent(t),'_blank','noopener');ws.selectedIndex=0};
-  acc.appendChild(ws);
+  f.appendChild(el_('h5','','Enviar por WhatsApp'));f.appendChild(waBotones(r));
   acc.appendChild(btn('Editar',function(){d.hidden=true;editarDe(r)},'sec'));
   if(r.estado!=='No asiste'&&r.estado!=='Anulada')acc.appendChild(btn('Ajustar cobro / descuento',function(){formAjuste(r,false)}));
   if(r.estado==='No asiste'||r.estado==='Anulada')acc.appendChild(btn('Editar retención',function(){formRetencion(r)},'sec'));
@@ -1013,6 +1014,7 @@ function listaCli(){
     var h=el_('div','hist');var h1=el_('span','','Historial: ');h1.appendChild(el_('b','',x.jornadas+' reservas'));var h2=el_('span','','Inversión: ');h2.appendChild(el_('b','',clp(x.gastado)));h.appendChild(h1);h.appendChild(h2);k.appendChild(h);
     if(x.proxima)k.appendChild(el_('small','','Próxima: '+x.proxima));else if(x.ultima)k.appendChild(el_('small','','Última: '+x.ultima));
     var w=el_('a','wa','WhatsApp');if(/^MAN-/.test(x.telefono))w.style.display='none';w.href='https://wa.me/'+String(x.telefono).replace(/\D/g,'');w.target='_blank';w.rel='noopener';w.onclick=function(e){e.stopPropagation()};k.appendChild(w);
+    if(!/^MAN-/.test(x.telefono)){var cx={contacto:x.contacto,banda:x.banda,telefono:x.telefono,enlace:x.enlace};var wb=waBotones(cx,['msgDescarga','msgResena','msgHonor']);wb.style.marginTop='.4rem';k.appendChild(wb)}
     var det=btn('Ver jornadas',function(){fichaCli(x)},'sec');det.style.marginTop='.4rem';k.appendChild(det);var ed=btn('Editar',function(){formCli(x)},'sec');ed.style.margin='.4rem 0 0 .3rem';k.appendChild(ed);var nr=btn('+ Reserva',function(){abrirRM({banda:x.banda,nombre:x.contacto,telefono:/^MAN-/.test(x.telefono)?'':x.telefono,correo:x.correo})},'sec');nr.style.margin='.4rem 0 0 .3rem';k.appendChild(nr);
     g.appendChild(k)});
   c.appendChild(g);if(!g.firstChild)c.appendChild(par('Sin clientes todavía.','color:#b5afa6'));
@@ -1023,6 +1025,7 @@ function fichaCli(x){
   var tot=el_('div','tot');[['Jornadas',x.jornadas],['Finalizadas',x.finalizadas],['Gastado',clp(x.gastado)]].forEach(function(y){var e=el_('div');e.appendChild(el_('b','',y[1]));e.appendChild(document.createTextNode(' '+y[0]));tot.appendChild(e)});f.appendChild(tot);
   var rs=(JOR.reservas||[]).filter(function(r){return r.telefono===x.telefono});
   rs.forEach(function(r){var l=el_('div','fila');l.style.margin='4px 0';var c=chipEv(r);c.style.width='auto';c.style.flex='1';c.onclick=function(){fichaJor(r)};l.appendChild(el_('span','',r.fecha));l.appendChild(c);l.appendChild(el_('span','',clp(r.total)));f.appendChild(l)});
+  if(!/^MAN-/.test(x.telefono)){f.appendChild(el_('h5','','Enviar por WhatsApp'));f.appendChild(waBotones({contacto:x.contacto,banda:x.banda,telefono:x.telefono,enlace:x.enlace},['msgDescarga','msgResena','msgHonor','msgGracias']))}
   var acc=el_('div','fila');acc.style.marginTop='8px';var a=el_('a','',' Escribir por WhatsApp');a.href='https://wa.me/'+x.telefono;a.target='_blank';a.rel='noopener';a.style.color='#FCC631';acc.appendChild(a);
   if(x.enlace){var m=el_('a','','Carpeta de material');m.href=x.enlace;m.target='_blank';m.rel='noopener';m.style.color='#FCC631';acc.appendChild(m)}acc.appendChild(btn('Cerrar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
 }

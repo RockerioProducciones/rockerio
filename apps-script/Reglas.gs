@@ -37,11 +37,14 @@ var Reglas = (function () {
     precioGrabacionConveniente: 0,     // $ por hora de grabación dentro de la franja (0 = sin tarifa conveniente en el estudio)
     convenienteDesde: 9,          // hora de inicio de la franja
     convenienteHasta: 14,         // hora de término de la franja (no incluida)
-    // Mensajes de WhatsApp (plantillas). {nombre} {banda} {servicio} {fecha} {hora} {fin} {codigo} {total} {abono} {saldo} {direccion} {negocio} {sitio} {horasAnulacion}
+    // Mensajes de WhatsApp (plantillas). {nombre} {banda} {servicio} {fecha} {hora} {fin} {codigo} {total} {abono} {saldo} {direccion} {negocio} {sitio} {horasAnulacion} {enlaceDescarga} {enlaceResena} {enlaceHonor}
     msgRecordatorio: "Hola {nombre} 👋 Te recordamos tu reserva en {negocio}: {servicio} el {fecha}, de {hora} a {fin}. Dirección: {direccion}. Recomendamos llegar 5 a 10 minutos antes. Si necesitas cambiarla, avísanos con al menos {horasAnulacion} horas de anticipación. ¡Nos vemos! 🤘",
     msgConfirmacion: "Hola {nombre} 🤘 ¡Recibimos tu abono! Tu reserva #{codigo} quedó confirmada: {servicio} el {fecha}, de {hora} a {fin}. Saldo a pagar en el estudio: {saldo}. Dirección: {direccion}.",
     msgCobroAbono: "Hola {nombre}, tu reserva #{codigo} ({servicio} el {fecha}, de {hora} a {fin}) está pendiente de abono de {abono}. Cuando lo hagas, envíanos el comprobante por aquí para confirmarla. Si no recibimos el abono a tiempo, el horario se libera.",
     msgGracias: "Hola {nombre}, ¡gracias por venir a {negocio}! 🎸 Esperamos que la sesión haya sido genial. Si puedes, déjanos una reseña en nuestro sitio: {sitio}",
+    msgResena: "Hola {nombre} 🤘 ¿Cómo te fue en {negocio}? Tu opinión ayuda a otras bandas a decidirse: déjanos una reseña aquí {enlaceResena} ¡Mil gracias!",
+    msgDescarga: "Hola {nombre}, aquí está el material de {banda}: {enlaceDescarga} Descárgalo desde ese enlace y, si algo no abre, avísanos. 🎧",
+    msgHonor: "Hola {nombre} 🤘 ¡Nos encantó tener a {banda} en {negocio}! Te invitamos a sumarte a nuestro Cuadro de Honor de bandas: {enlaceHonor}",
     waAutoActivo: false,          // SI = el recordatorio del día anterior se envía solo por la API de WhatsApp Business (requiere cuenta Meta)
     waPhoneId: '',                // ID del número de WhatsApp Business (no es el teléfono)
     waPlantillaRecordatorio: '',  // nombre de la plantilla de recordatorio aprobada por Meta
@@ -206,7 +209,7 @@ var Reglas = (function () {
     c.reservasActivas = aBool(raw.reservasActivas, d.reservasActivas);
     c.avisoBanner = aTexto(raw.avisoBanner, d.avisoBanner);
     c.tarifaConveniente = aBool(raw.tarifaConveniente, d.tarifaConveniente);
-    ['msgRecordatorio', 'msgConfirmacion', 'msgCobroAbono', 'msgGracias'].forEach(function (k) { c[k] = aTexto(raw[k], d[k]) || d[k]; });
+    ['msgRecordatorio', 'msgConfirmacion', 'msgCobroAbono', 'msgGracias', 'msgResena', 'msgDescarga', 'msgHonor'].forEach(function (k) { c[k] = aTexto(raw[k], d[k]) || d[k]; });
     c.waAutoActivo = aBool(raw.waAutoActivo, d.waAutoActivo);
     ['waPhoneId', 'waPlantillaRecordatorio', 'waIdioma', 'waVersion'].forEach(function (k) { c[k] = aTexto(raw[k], d[k]); });
     c.reglamento = aTexto(raw.reglamento, d.reglamento) || d.reglamento;
