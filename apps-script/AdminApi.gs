@@ -84,8 +84,56 @@ function adminBloquear(fecha, desde, hasta, motivo) {
   var d = aHora_(desde), h = aHora_(hasta);
   if ((d === null) !== (h === null)) throw new Error('Indica desde y hasta, o deja ambos vacíos para bloquear todo el día.');
   if (d !== null && !(d >= 0 && h <= 24 && h > d)) throw new Error('Rango de horas inválido.');
+  // El bloqueo no se rige por el horario oficial, pero no puede quedar encima de una reserva vigente.
+  var choques = reservasVigentesEn_(String(fecha)).filter(function (x) { return d === null || (x.ini < h && x.fin > d); });
+  if (choques.length) throw new Error('Ese bloqueo quedaría sobre la reserva de ' + choques[0].banda + ' (' + Reglas.horaTxt(choques[0].ini) + ' a ' + Reglas.horaTxt(choques[0].fin) + '). Reagéndala o elige otro horario.');
   abrirBd_().getSheetByName(HOJAS.bloqueos).appendRow([String(fecha), d === null ? '' : String(d), h === null ? '' : String(h), textoSeguro_(String(motivo || '').slice(0, 100))]);
   return adminResumen();
+}
+
+/** Reservas vigentes (que ocupan agenda) de un día: [{ini, fin, banda, codigo}] con horas enteras. */
+function reservasVigentesEn_(fecha, excluirCodigo) {
+  var sh = abrirBd_().getSheetByName(HOJAS.reservas), n = sh.getLastRow(), out = [];
+  if (n < 2) return out;
+  sh.getRange(2, 1, n - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r) {
+    if (!r[RES.codigo - 1] || String(r[RES.codigo - 1]) === String(excluirCodigo || '') || aFechaIso_(r[RES.fecha - 1]) !== fecha) return;
+    if (ESTADOS_QUE_OCUPAN.indexOf(estadoNorm_(r[RES.estado - 1])) < 0) return;
+    var i = aHora_(r[RES.inicio - 1]), h = Number(r[RES.horas - 1]) || 0;
+    if (i !== null) out.push({ ini: i, fin: i + h, banda: String(r[RES.banda - 1]), codigo: String(r[RES.codigo - 1]) });
+  });
+  return out;
+}
+
+/** Reagenda una reserva (misma duración, mismo precio). Máximo `reagendoCambios` veces; como administrador puedes hacer una excepción con excepcion=true.
+ *  Nunca puede quedar sobre otra reserva ni sobre un bloqueo. */
+function adminReagendar(codigo, fecha, inicio, excepcion) {
+  exigirAdmin_();
+  fecha = String(fecha || ''); inicio = Number(inicio);
+  if (!Reglas.fechaValida(fecha)) throw new Error('Elige una fecha válida.');
+  if (!(inicio >= 0 && inicio <= 23 && inicio === Math.floor(inicio))) throw new Error('Elige la hora de inicio.');
+  var cfg = getCfg_();
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.reservas), celda = sh.getLastRow() > 1 ? sh.createTextFinder(String(codigo)).matchEntireCell(true).findNext() : null;
+    if (!celda || celda.getColumn() !== RES.codigo) throw new Error('No se encontró la reserva.');
+    var f = celda.getRow(), r = sh.getRange(f, 1, 1, ENCABEZADO_RESERVAS.length).getValues()[0], estado = estadoNorm_(r[RES.estado - 1]);
+    if ([EST.SIN_ABONO, EST.CON_ABONO].indexOf(estado) < 0) throw new Error('Solo se pueden reagendar reservas vigentes (no finalizadas, anuladas ni inasistencias).');
+    var horas = Number(r[RES.horas - 1]) || 1;
+    if (inicio + horas > 24) throw new Error('La sesión terminaría después de medianoche.');
+    var hechos = Number(r[RES.reagendos - 1]) || 0, max = Number(cfg.reagendoCambios) || 2;
+    if (hechos >= max && !excepcion) throw new Error('LIMITE: esta reserva ya se reagendó ' + hechos + ' ' + (hechos === 1 ? 'vez' : 'veces') + ' (máximo ' + max + ').');
+    reservasVigentesEn_(fecha, codigo).forEach(function (x) { if (x.ini < inicio + horas && x.fin > inicio) throw new Error('CHOQUE: ese horario quedaría sobre la reserva de ' + x.banda + ' (' + Reglas.horaTxt(x.ini) + ' a ' + Reglas.horaTxt(x.fin) + ').'); });
+    var oc = ocupadasRango_(fecha, 1)[fecha] || [], propias = [];
+    if (aFechaIso_(r[RES.fecha - 1]) === fecha) { var i0 = aHora_(r[RES.inicio - 1]); for (var q = i0; i0 !== null && q < i0 + horas; q++) propias.push(q); }
+    for (var h = inicio; h < inicio + horas; h++) if (oc.indexOf(h) >= 0 && propias.indexOf(h) < 0) throw new Error('CHOQUE: ese horario está bloqueado u ocupado (' + h + ':00). Quita el bloqueo o elige otro.');
+    sh.getRange(f, RES.fecha).setValue(fechaHora_(fecha, 0));
+    sh.getRange(f, RES.inicio).setNumberFormat('@').setValue(Reglas.horaTxt(inicio));
+    sh.getRange(f, RES.fin).setNumberFormat('@').setValue(Reglas.horaTxt(inicio + horas));
+    sh.getRange(f, RES.reagendos).setValue(hechos + 1);
+    sh.getRange(f, RES.recordatorio).setValue('');
+    var ev = r[RES.evento - 1] ? obtenerEvento_(getCalendar_(), r[RES.evento - 1]) : null;
+    if (ev) ev.setTime(fechaHora_(fecha, inicio), fechaHora_(fecha, inicio + horas));
+    return adminResumen();
+  });
 }
 
 function adminDesbloquear(fila) {
@@ -150,6 +198,7 @@ function respaldar() {
     var archivos = [], f = carpeta.getFiles();
     while (f.hasNext()) archivos.push(f.next());
     archivos.sort(function (a, b) { return b.getDateCreated() - a.getDateCreated(); });
+    archivos = archivos.filter(function (a) { return /^Respaldo /.test(a.getName()); });
     archivos.slice(RESPALDOS_A_CONSERVAR).forEach(function (a) { a.setTrashed(true); });
     props.setProperty('ULTIMO_RESPALDO', hoy);
     return 'Respaldo creado: ' + copia.getName() + ' (se conservan ' + RESPALDOS_A_CONSERVAR + ').';
@@ -166,6 +215,61 @@ function respaldar() {
 function adminRespaldar() {
   exigirAdmin_();
   return respaldar();
+}
+
+function carpetaRespaldos_() {
+  var it = DriveApp.getFoldersByName(CARPETA_RESPALDOS);
+  return it.hasNext() ? it.next() : DriveApp.createFolder(CARPETA_RESPALDOS);
+}
+
+/** Lista las copias disponibles (más nuevas primero). */
+function adminListarRespaldos() {
+  exigirAdmin_();
+  var out = [], f = carpetaRespaldos_().getFiles();
+  while (f.hasNext()) {
+    var a = f.next();
+    out.push({ id: a.getId(), nombre: a.getName(), creado: Utilities.formatDate(a.getDateCreated(), 'America/Santiago', 'yyyy-MM-dd HH:mm'), t: a.getDateCreated().getTime() });
+  }
+  out.sort(function (a, b) { return b.t - a.t; });
+  return out.slice(0, 60).map(function (x) { delete x.t; return x; });
+}
+
+/**
+ * Restaura TODA la información desde una copia. Seguridad:
+ * 1) exige que la copia sea un archivo de la carpeta de respaldos y tenga las hojas clave;
+ * 2) antes de tocar nada guarda una copia «Previo a restaurar» del estado actual (se puede deshacer);
+ * 3) copia hoja por hoja solo los datos (no borra hojas, fórmulas de formato ni enlaces).
+ */
+function adminRestaurar(id) {
+  exigirAdmin_();
+  return conBloqueo_(function () {
+    var carpeta = carpetaRespaldos_(), ok = false, f = carpeta.getFiles();
+    while (f.hasNext()) if (f.next().getId() === String(id)) ok = true;
+    if (!ok) throw new Error('Esa copia no está en la carpeta de respaldos.');
+    var origen = SpreadsheetApp.openById(id), destino = abrirBd_();
+    [HOJAS.reservas, HOJAS.clientes].forEach(function (n) {
+      if (!origen.getSheetByName(n)) throw new Error('La copia no tiene la hoja «' + n + '». No se restauró nada.');
+    });
+    var previo = DriveApp.getFileById(PropertiesService.getScriptProperties().getProperty('SHEET_ID'))
+      .makeCopy('Previo a restaurar ' + ahoraChile_().fecha + ' ' + Utilities.formatDate(new Date(), Reglas.TZ, 'HH-mm') + ' · Rockerío', carpeta);
+    var n = 0;
+    origen.getSheets().forEach(function (h) {
+      var d = destino.getSheetByName(h.getName());
+      if (!d) return;
+      var filas = h.getLastRow(), cols = h.getLastColumn();
+      var vals = filas && cols ? h.getRange(1, 1, filas, cols).getValues() : [];
+      d.clearContents();
+      if (vals.length) {
+        if (d.getMaxRows() < vals.length) d.insertRowsAfter(d.getMaxRows(), vals.length - d.getMaxRows());
+        if (d.getMaxColumns() < cols) d.insertColumnsAfter(d.getMaxColumns(), cols - d.getMaxColumns());
+        d.getRange(1, 1, vals.length, cols).setValues(vals);
+      }
+      n++;
+    });
+    try { limpiarCacheContenido_(); } catch (e) { /* sin caché */ }
+    try { CacheService.getScriptCache().removeAll(['esq3']); } catch (e) { /* sin caché */ }
+    return 'Restaurado ✔ (' + n + ' hojas). Antes de restaurar se guardó «' + previo.getName() + '». Recarga el portal.';
+  });
 }
 
 /* ---------- Clientes y material (carpeta de Drive por banda) ---------- */
@@ -403,7 +507,7 @@ function adminJornadas() {
         extras: Number(r[RES.extras - 1]) || 0, video: String(r[RES.video - 1]) === 'SI', raw: String(r[RES.raw - 1]) === 'SI', zurdo: String(r[RES.zurdo - 1]) === 'SI',
         voces: Number(r[RES.voces - 1]) || 0, comentarios: String(r[RES.comentarios - 1] || ''),
         total: total, abono: abono, saldo: total - abono, retenido: Number(r[RES.retenido - 1]) || 0, devolver: Number(r[RES.devolver - 1]) || 0,
-        plan: String(r[RES.plan - 1] || ''), creada: aFechaIso_(r[RES.creada - 1])
+        plan: String(r[RES.plan - 1] || ''), creada: aFechaIso_(r[RES.creada - 1]), reag: Number(r[RES.reagendos - 1]) || 0
       });
     });
     reservas.sort(function (a, b) { return (b.fecha + b.inicio) < (a.fecha + a.inicio) ? -1 : 1; }); // más reciente primero
@@ -427,5 +531,5 @@ function adminJornadas() {
     if (r.fecha && r.fecha >= hoy && (!c.proxima || r.fecha < c.proxima)) c.proxima = r.fecha;
   });
   var clientes = Object.keys(porTel).map(function (t) { return porTel[t]; }).sort(function (a, b) { return b.jornadas - a.jornadas || (a.banda < b.banda ? -1 : 1); });
-  return { hoy: hoy, reservas: reservas, bloqueos: bloqueos, inhabiles: inhabiles, clientes: clientes, estados: ESTADOS, wa: waDatos_() };
+  return { hoy: hoy, reservas: reservas, bloqueos: bloqueos, inhabiles: inhabiles, clientes: clientes, estados: ESTADOS, wa: waDatos_(), maxReag: getCfg_().reagendoCambios };
 }
