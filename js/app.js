@@ -136,7 +136,8 @@
     txt($('max-dias'), String(cfg.anticipacionMaxDias));
     $('wsp').href = wspUrl('Hola, quiero consultar por ' + cfg.nombreNegocio);
     txt($('tyc-txt'), 'Leí el reglamento interno y acepto que el horario queda reservado ' + cfg.minutosReserva + ' minutos a la espera del abono (' + R.clp(cfg.abonoPorHora) + ' por hora) y que puedo anular o reagendar con al menos ' + cfg.horasAnulacion + ' horas de anticipación.');
-    var rl = el('a', '', ' Ver reglamento'); rl.href = '#reglamento'; rl.target = '_blank'; $('tyc-txt').appendChild(rl);
+    var rl = el('a', 'ver-reg', ' Ver reglamento'); rl.href = '#reglamento'; rl.setAttribute('role', 'button');
+    rl.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); abrirReglamento(); }); $('tyc-txt').appendChild(rl);
     txt($('pie'), '© ' + new Date().getFullYear() + ' ' + cfg.nombreNegocio);
     var av = $('aviso'); av.hidden = !cfg.avisoBanner; txt(av, cfg.avisoBanner || '');
     var dias = [1, 2, 3, 4, 5, 6, 0].map(function (d) {
@@ -190,6 +191,21 @@
     [['nosotros', 'verProduccion'], ['ficha', 'verFicha'], ['planes', 'verPlanes'], ['galeria', 'verGaleria'], ['opiniones', 'verEvaluaciones'], ['proaudix', 'verProaudix'], ['contacto', 'verContacto'], ['bandas', 'verHonor'], ['tienda', 'verTienda'], ['cotizar', 'verCotizar'], ['reglamento', 'verReglamento']].forEach(function (x) { if (!cfg[x[1]]) $(x[0]).hidden = true; else if (x[0] !== 'reglamento' && x[0] !== 'tienda' && x[0] !== 'galeria') $(x[0]).hidden = false; });
     if (!cfg.verHonor) $('bandas').hidden = true;
     pintarHoras(); refrescarAgenda(); if (fichaDatos) pintarFicha();
+  }
+
+  /* El reglamento se abre en una ventana emergente para no sacar al cliente de su reserva. */
+  function abrirReglamento() {
+    var previo = document.activeElement, ov = el('div', 'reg-ov'), c = el('div', 'reg-modal'), cab = el('div', 'reg-cab');
+    ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-label', 'Reglamento interno');
+    cab.appendChild(el('h3', '', 'Reglamento interno'));
+    var x = el('button', 'btn chico', 'Cerrar ✕'); x.type = 'button'; cab.appendChild(x); c.appendChild(cab);
+    var cuerpo = el('div', 'reglamento'); [].forEach.call($('reglamento-in').childNodes, function (n) { cuerpo.appendChild(n.cloneNode(true)); });
+    if (!cuerpo.firstChild) cuerpo.appendChild(el('p', '', 'El reglamento no está disponible por ahora.'));
+    c.appendChild(cuerpo); var pie = el('div', 'reg-pie'), ok = el('button', 'btn', 'Entendido, volver a mi reserva'); ok.type = 'button'; pie.appendChild(ok); c.appendChild(pie); ov.appendChild(c);
+    function cerrar() { document.removeEventListener('keydown', tecla); ov.remove(); document.body.classList.remove('reg-abierto'); if (previo && previo.focus) previo.focus(); }
+    function tecla(e) { if (e.key === 'Escape') cerrar(); }
+    x.addEventListener('click', cerrar); ok.addEventListener('click', cerrar); ov.addEventListener('click', function (e) { if (e.target === ov) cerrar(); });
+    document.addEventListener('keydown', tecla); document.body.classList.add('reg-abierto'); document.body.appendChild(ov); x.focus();
   }
 
   /* ---------- estáticos ---------- */

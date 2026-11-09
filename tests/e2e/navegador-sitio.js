@@ -57,6 +57,13 @@ const { sembrar } = require('./demo.js');
     await p.goto('http://localhost:8099/#' + id); await p.waitForTimeout(500);
     ok(await p.locator(sel).first().isVisible(), 'vista ' + id); await p.screenshot({ path: 'v-' + id + '.png' });
   }
+  // términos y condiciones: el reglamento se abre en una ventana emergente sin sacar al cliente de la reserva
+  await p.goto('http://localhost:8099/#reservar'); await p.reload(); await p.waitForFunction(() => window.RK && window.RK.conectado()); await p.waitForTimeout(500);
+  const hashAntes = await p.evaluate(() => location.hash);
+  await p.evaluate(() => document.querySelector('.ver-reg').click()); await p.waitForSelector('.reg-ov');
+  console.log((await p.locator('.reg-modal .reglamento').innerText()).length > 100 && (await p.evaluate(() => location.hash)) === hashAntes ? '  ok  el reglamento abre en ventana emergente y la reserva sigue en su lugar' : 'FALLA ventana del reglamento');
+  await p.keyboard.press('Escape'); await p.waitForTimeout(150); console.log(await p.locator('.reg-ov').count() === 0 ? '  ok  la ventana se cierra con Escape' : 'FALLA no cierra');
+  await p.evaluate(() => document.querySelector('.ver-reg').click()); await p.locator('.reg-pie button').click(); console.log(await p.locator('.reg-ov').count() === 0 ? '  ok  el botón «volver a mi reserva» la cierra' : 'FALLA botón');
   // contenido editado desde el portal («Sitio web») se aplica sobre el sitio
   g.admin('adminGuardarSitio', 'textos', { 'nos.fil.p1': '**Texto nuevo:** editado desde el portal' });
   g.admin('adminGuardarSitio', 'galeria', [{ src: 'assets/sala-1.jpg', titulo: 'Única foto editada' }]);

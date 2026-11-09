@@ -309,3 +309,11 @@ input:focus,select:focus,textarea:focus{outline:2px solid color-mix(in srgb,var(
 .wizard .opcion{border-radius:16px!important;transition:transform .15s,box-shadow .15s}
 .wizard .opcion:hover{transform:translateY(-2px)}
 .wizard .opciones{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+
+/* Reglamento en ventana emergente (desde «términos y condiciones» de la reserva) */
+.reg-ov{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:14px}
+.reg-modal{width:min(720px,100%);max-height:90vh;display:flex;flex-direction:column;background:var(--panel,#161514);border:1px solid var(--borde,#3a3733);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.reg-cab{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:.8rem 1rem;border-bottom:1px solid var(--borde,#3a3733)}.reg-cab h3{margin:0}
+.reg-modal .reglamento{overflow:auto;padding:1rem;flex:1}
+.reg-pie{padding:.7rem 1rem;border-top:1px solid var(--borde,#3a3733);text-align:center}
+body.reg-abierto{overflow:hidden}
