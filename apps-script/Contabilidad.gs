@@ -124,6 +124,89 @@ function adminEliminarCompra(fila) {
 }
 
 /* ====================================================================
+ *  EXCEPCIONES CONTABLES: cobro pendiente, medio de pago, cortesía y otros ingresos/gastos
+ * ==================================================================== */
+
+var MEDIOS_PAGO = ['Efectivo', 'Transferencia', 'Tarjeta'];
+
+function filaReserva_(codigo) {
+  var sh = abrirBd_().getSheetByName(HOJAS.reservas);
+  var celda = sh.getLastRow() > 1 ? sh.createTextFinder(String(codigo)).matchEntireCell(true).findNext() : null;
+  if (!celda || celda.getColumn() !== RES.codigo) throw new Error('No se encontró la reserva.');
+  return { sh: sh, f: celda.getRow(), r: sh.getRange(celda.getRow(), 1, 1, ENCABEZADO_RESERVAS.length).getValues()[0] };
+}
+
+/** d = {cobro: 'POR COBRAR' | 'PAGADO', medio: Efectivo|Transferencia|Tarjeta}. El saldo se asumía pagado; así queda registrado si no. */
+function adminMarcarCobro(codigo, d) {
+  exigirAdmin_();
+  d = d || {};
+  var porCobrar = d.cobro === 'POR COBRAR', medio = String(d.medio || '');
+  if (medio && MEDIOS_PAGO.indexOf(medio) < 0) throw new Error('Medio de pago no válido.');
+  return conBloqueo_(function () {
+    var x = filaReserva_(codigo), est = estadoNorm_(x.r[RES.estado - 1]);
+    if (est === EST.ANULADA || est === EST.NO_ASISTE) throw new Error('Esta reserva ya está cerrada: no tiene saldo que cobrar.');
+    if (x.r[RES.cortesia - 1] === 'SI') throw new Error('Es una cortesía: no tiene cobro.');
+    x.sh.getRange(x.f, RES.cobro, 1, 4 - 2).setValues([[porCobrar ? 'POR COBRAR' : '', porCobrar ? '' : medio]]);
+    x.sh.getRange(x.f, RES.fechaPago).setValue(porCobrar ? '' : fechaHora_(ahoraChile_().fecha, 0));
+    return adminResumen();
+  });
+}
+
+/** Marca (o quita) una cortesía o canje: la reserva queda en $0, se ve en el resumen y no suma ingreso. d = {quitar, nota, finalizar}. */
+function adminMarcarCortesia(codigo, d) {
+  exigirAdmin_();
+  d = d || {};
+  return conBloqueo_(function () {
+    var nota = textoSeguro_(limpiar_(d.nota, 150));
+    if (d.quitar) {
+      var q = ajustarFila_(codigo, { descuento: 0, nota: '' });
+      q.sh.getRange(q.f, RES.cortesia).setValue('');
+    } else {
+      var a = ajustarFila_(codigo, { totalFinal: 0, nota: 'Cortesía o canje' + (nota ? ': ' + nota : ''), finalizar: d.finalizar !== false });
+      a.sh.getRange(a.f, RES.cortesia).setValue('SI');
+      a.sh.getRange(a.f, RES.cobro, 1, 2).setValues([['', '']]);
+    }
+    return adminResumen();
+  });
+}
+
+function leerMovimientos_() {
+  var sh = abrirBd_().getSheetByName(HOJAS.movimientos), out = [];
+  if (!sh || sh.getLastRow() < 2) return out;
+  sh.getRange(2, 1, sh.getLastRow() - 1, 6).getValues().forEach(function (r) {
+    var f = aFechaIso_(r[1]); if (!f || !r[0]) return;
+    out.push({ id: String(r[0]), fecha: f, tipo: String(r[2]), destino: String(r[3]), monto: Number(r[4]) || 0, nota: String(r[5] || '') });
+  });
+  return out.sort(function (a, b) { return a.fecha < b.fecha ? 1 : -1; });
+}
+
+/** m = {fecha, tipo: Ingreso|Gasto, destino: Sala|Estudio, monto, nota}. Entran al cierre del mes con los socios. */
+function adminGuardarMovimiento(m) {
+  exigirAdmin_();
+  m = m || {};
+  var fecha = String(m.fecha || ''); if (!Reglas.fechaValida(fecha)) throw new Error('La fecha no es válida.');
+  var tipo = m.tipo === 'Ingreso' ? 'Ingreso' : m.tipo === 'Gasto' ? 'Gasto' : ''; if (!tipo) throw new Error('Elige si es ingreso o gasto.');
+  var destino = m.destino === 'Estudio' ? 'Estudio' : m.destino === 'Sala' ? 'Sala' : ''; if (!destino) throw new Error('Elige a qué área corresponde: Sala o Estudio.');
+  var monto = Math.round(Number(m.monto)); if (!(monto > 0)) throw new Error('El monto debe ser mayor a 0.');
+  var nota = textoSeguro_(limpiar_(m.nota, 150)); if (!nota) throw new Error('Escribe una nota (por ejemplo «cable XLR» o «arriendo de parlante»).');
+  return conBloqueo_(function () {
+    abrirBd_().getSheetByName(HOJAS.movimientos).appendRow(['MOV-' + Utilities.getUuid().slice(0, 8), fechaHora_(fecha, 0), tipo, destino, monto, nota]);
+    SpreadsheetApp.flush();
+    return adminResumen();
+  });
+}
+
+function adminEliminarMovimiento(id) {
+  exigirAdmin_();
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.movimientos), f = sh.getLastRow() > 1 ? filaPorTexto_(sh, id, 1) : 0;
+    if (!f) throw new Error('Movimiento no encontrado.');
+    sh.deleteRow(f);
+    return adminResumen();
+  });
+}
+
+/* ====================================================================
  *  RESUMEN CONTABLE POR PERÍODO (semana o mes) — para cerrar con los socios
  * ==================================================================== */
 
@@ -152,9 +235,13 @@ function adminResumenContable(periodo, ref) {
   var anu = { n: 0, retenido: 0, devolver: 0 };
   var proy = { sesiones: 0, monto: 0, horas: 0 };
   var detalle = [], porDia = {};
+  var deudas = [], cortesias = { n: 0, valor: 0, lista: [] }, medios = { Efectivo: 0, Transferencia: 0, Tarjeta: 0, sinRegistrar: 0, porCobrar: 0, abonos: 0 };
   var sr = ss.getSheetByName(HOJAS.reservas), n = sr.getLastRow();
   if (n > 1) sr.getRange(2, 1, n - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r) {
     var f = aFechaIso_(r[RES.fecha - 1]);
+    if (f && r[RES.cobro - 1] === 'POR COBRAR' && [EST.ANULADA, EST.NO_ASISTE].indexOf(estadoNorm_(r[RES.estado - 1])) < 0) {
+      deudas.push({ fecha: f, codigo: String(r[RES.codigo - 1]), banda: String(r[RES.banda - 1]), cliente: String(r[RES.contacto - 1]), telefono: String(r[RES.telefono - 1]), estado: estadoNorm_(r[RES.estado - 1]), saldo: Math.max(0, (Number(r[RES.total - 1]) || 0) - (Number(r[RES.abono - 1]) || 0)) });
+    }
     if (!f || f < R.desde || f > R.hasta) return;
     var estado = estadoNorm_(r[RES.estado - 1]), ens = /ensayo/i.test(String(r[RES.servicio - 1]));
     var h = Number(r[RES.horas - 1]) || 0, base = Number(r[RES.base - 1]) || 0, ex = Number(r[RES.extrasM - 1]) || 0, vi = Number(r[RES.videoM - 1]) || 0, rw = Number(r[RES.rawM - 1]) || 0;
@@ -167,7 +254,15 @@ function adminResumenContable(periodo, ref) {
       if (ens) { sala.extras += ex; sala.video += vi; arr.unidades += Number(r[RES.extras - 1]) || 0; arr.monto += ex; }
       else { arr.unidades += Number(r[RES.extras - 1]) || 0; arr.monto += ex; }
       bruto.sesiones += rw > 0 ? 1 : 0; bruto.monto += rw;
-      fila.total = base + ex + vi + rw; detalle.push(fila);
+      fila.total = base + ex + vi + rw; fila.cortesia = r[RES.cortesia - 1] === 'SI'; detalle.push(fila);
+      if (fila.cortesia) { cortesias.n++; cortesias.valor += totalOriginal_(r); cortesias.lista.push({ fecha: f, codigo: fila.codigo, banda: fila.banda, cliente: fila.cliente, valor: totalOriginal_(r), nota: String(r[RES.notaAjuste - 1] || '') }); }
+      else {
+        var totR = Number(r[RES.total - 1]) || 0, saldoR = Math.max(0, totR - abono);
+        medios.abonos += recibido ? Math.min(abono, totR) : 0;
+        if (r[RES.cobro - 1] === 'POR COBRAR') medios.porCobrar += saldoR;
+        else if (MEDIOS_PAGO.indexOf(String(r[RES.medioPago - 1])) >= 0) medios[String(r[RES.medioPago - 1])] += saldoR;
+        else medios.sinRegistrar += saldoR;
+      }
       porDia[f] = (porDia[f] || 0) + fila.total;
     } else if (estado === EST.NO_ASISTE) {
       var cobro = Number(r[RES.retenido - 1]) || fee * h, porCobrar = 0;
@@ -208,13 +303,18 @@ function adminResumenContable(periodo, ref) {
     porDia: Object.keys(porDia).sort().map(function (k) { return { fecha: k, total: porDia[k] }; })
   };
   out.descuadres = descuadres_().slice(0, 100);
+  out.deudas = deudas.sort(function (a, b) { return a.fecha < b.fecha ? -1 : 1; }); out.cortesias = cortesias; out.medios = medios;
+  var movs = leerMovimientos_().filter(function (x) { return x.fecha >= R.desde && x.fecha <= R.hasta; });
+  var mv = { lista: movs, ingresoSala: 0, gastoSala: 0, ingresoEstudio: 0, gastoEstudio: 0 };
+  movs.forEach(function (x) { mv[(x.tipo === 'Ingreso' ? 'ingreso' : 'gasto') + x.destino] += x.monto; });
+  out.movimientos = mv;
   out.ingresosBrutos = sala.total + estudio.total + bruto.monto;
   if (R.periodo === 'mes') {
     var c = null; leerCostos_().forEach(function (x) { if (x.mes === R.ref) c = x; });
     var luz = c ? c.luz : 0, aporte = c && c.aporte !== '' ? c.aporte : Number(cfg.aporteLuzProAudix) || 0, caja = c && c.caja !== '' ? c.caja : Number(cfg.cajaChicaMensual) || 0, otros = c ? c.otros : 0;
-    var luzSala = Math.max(0, luz - aporte), utilSala = sala.total - luzSala - caja - otros, utilEst = estudio.total;
+    var luzSala = Math.max(0, luz - aporte), utilSala = sala.total - luzSala - caja - otros + mv.ingresoSala - mv.gastoSala, utilEst = estudio.total + mv.ingresoEstudio - mv.gastoEstudio;
     out.mes = {
-      boletaIngresada: !!(c && c.luz > 0), luz: luz, aporte: aporte, luzSala: luzSala, caja: caja, otros: otros, notas: c ? c.notas : '',
+      movSala: mv.ingresoSala - mv.gastoSala, movEstudio: mv.ingresoEstudio - mv.gastoEstudio, boletaIngresada: !!(c && c.luz > 0), luz: luz, aporte: aporte, luzSala: luzSala, caja: caja, otros: otros, notas: c ? c.notas : '',
       utilidadSala: utilSala, salaJC: utilSala * cfg.repartoSalaJC / 100, salaJaime: utilSala * cfg.repartoSalaJaime / 100,
       utilidadEstudio: utilEst, estudioEstudio: utilEst * cfg.repartoEstudioEstudio / 100, estudioJC: utilEst * cfg.repartoEstudioJC / 100,
       brutoJC: bruto.monto,

@@ -551,6 +551,40 @@ t('total ingresado a mano (p. ej. $2.000 en vez de $30.000) es el que entra al b
   assert.ok(!g.admin('adminResumenContable', 'mes', fecha.slice(0, 7)).descuadres.some((q) => q.codigo === r.codigo));
   assert.strictEqual(g.admin('adminResumenContable', 'mes', fecha.slice(0, 7)).detalle.find((q) => q.codigo === r.codigo).total, 2000);
 });
+t('cobro pendiente, medio de pago, cortesía y otros ingresos/gastos', () => {
+  const fecha = sumar(f3, 42), mes = fecha.slice(0, 7);
+  let hh = 8; const mk = (banda, tel, total) => g.admin('adminReservaManual', { servicio: 'ensayo', fecha, inicio: (hh += 2), horas: 2, banda, nombre: 'Test', telefono: tel, estado: 'Finalizada', total }).codigo;
+  const a = mk('Deudora', '+56 9 1111 0001', '30000'), b = mk('Paga efectivo', '+56 9 1111 0002', '20000'), c = mk('Cortesía', '+56 9 1111 0003', '30000');
+  const base = g.admin('adminResumenContable', 'mes', mes);
+  // por cobrar
+  g.admin('adminMarcarCobro', a, { cobro: 'POR COBRAR' });
+  let r = g.admin('adminResumenContable', 'mes', mes);
+  assert.ok(r.deudas.some((x) => x.codigo === a), 'deudas ' + JSON.stringify(r.deudas));
+  assert.strictEqual(r.medios.porCobrar, 20000, 'por cobrar = total − abono');
+  g.admin('adminMarcarCobro', a, { cobro: 'PAGADO', medio: 'Transferencia' });
+  r = g.admin('adminResumenContable', 'mes', mes);
+  assert.ok(!r.deudas.some((x) => x.codigo === a) && r.medios.Transferencia === 20000, 'al pagar sale de las deudas y entra al medio');
+  g.admin('adminMarcarCobro', b, { cobro: 'PAGADO', medio: 'Efectivo' });
+  r = g.admin('adminResumenContable', 'mes', mes); assert.strictEqual(r.medios.Efectivo, 10000);
+  assert.throws(() => g.admin('adminMarcarCobro', b, { cobro: 'PAGADO', medio: 'Cheque' }), /Medio/);
+  // cortesía: no suma ingreso pero se ve
+  g.admin('adminMarcarCortesia', c, { nota: 'Canje por afiche' });
+  const r2 = g.admin('adminResumenContable', 'mes', mes);
+  assert.strictEqual(r2.cortesias.n, 1); assert.strictEqual(r2.cortesias.valor, g.admin('adminJornadas').reservas.find((q) => q.codigo === c).totalOriginal, 'valor de lista de lo no cobrado');
+  assert.strictEqual(r2.detalle.find((q) => q.codigo === c).total, 0, 'la cortesía no suma ingreso');
+  g.admin('adminMarcarCortesia', c, { quitar: true });
+  assert.strictEqual(g.admin('adminResumenContable', 'mes', mes).cortesias.n, 0);
+  // otros ingresos y gastos entran al cierre
+  const antes = g.admin('adminResumenContable', 'mes', mes).mes.utilidadSala;
+  g.admin('adminGuardarMovimiento', { fecha, tipo: 'Gasto', destino: 'Sala', monto: 8000, nota: 'Cable XLR' });
+  g.admin('adminGuardarMovimiento', { fecha, tipo: 'Ingreso', destino: 'Sala', monto: 3000, nota: 'Venta de cable usado' });
+  const d = g.admin('adminResumenContable', 'mes', mes);
+  assert.strictEqual(d.mes.utilidadSala, antes - 5000); assert.strictEqual(d.movimientos.lista.length, 2);
+  assert.throws(() => g.admin('adminGuardarMovimiento', { fecha, tipo: 'Gasto', destino: 'Sala', monto: 100, nota: '' }), /nota/i);
+  g.admin('adminEliminarMovimiento', d.movimientos.lista[0].id);
+  assert.strictEqual(g.admin('adminResumenContable', 'mes', mes).movimientos.lista.length, 1);
+  assert.ok(base.ok);
+});
 t('editar la retención de No asiste (perdonar o cambiar el monto)', () => {
   const x = g.admin('adminJornadas').reservas.find((q) => q.estado === 'No asiste'); assert.ok(x, 'hay una No asiste');
   g.admin('adminAjustarRetencion', x.codigo, 0, 'Se perdona'); const y = g.admin('adminJornadas').reservas.find((q) => q.codigo === x.codigo); assert.strictEqual(y.retenido, 0);

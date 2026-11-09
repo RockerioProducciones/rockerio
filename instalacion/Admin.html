@@ -621,14 +621,15 @@ function pintarRC(d){
   var w=el_('div','rc-ok');w.appendChild(el_('div','',na.n+' reserva(s) cerradas · '+na.horas+' h · retención que entra al balance: '+clp(na.abonoRetenido)));b.appendChild(w);
   if(na.lista.length)b.appendChild(rcTabla(['Fecha','Banda / cliente','Horas','Retención (cerrada)'],na.lista.map(function(x){return{c:[fechaCorta(x.fecha),x.banda+' / '+x.cliente,x.horas,clp(x.total)]}})));
   if(d.anuladas.n)b.appendChild(par('Anuladas: '+d.anuladas.n+' · retenido '+clp(d.anuladas.retenido)+' · a devolver '+clp(d.anuladas.devolver),'margin:.4rem 0'));
+  rcExcepciones(d,b);
   // Mes: cierre
   if(d.mes){var m=d.mes;b.appendChild(el_('h3','rc-h','Cierre del mes · Juan Carlos, Jaime y Gabriela'));
     var ob=el_('div',m.boletaIngresada?'rc-ok':'rc-warn');ob.appendChild(el_('div','',m.boletaIngresada?'Boleta de luz ingresada: '+clp(m.luz)+(m.notas?' · '+m.notas:''):'Falta ingresar la boleta de luz de este mes (sección «Costos del mes y cierre», más abajo). Mientras tanto la utilidad se calcula sin ese costo.'));b.appendChild(ob);
     b.appendChild(rcTabla(['Concepto','Monto'],[
-      {c:['Total sala',clp(d.sala.total)]},{c:['− Luz que paga la sala (boleta '+clp(m.luz)+' − aporte ProAudix '+clp(m.aporte)+')',clp(m.luzSala)]},{c:['− Caja chica',clp(m.caja)]},{c:['− Otros gastos de sala',clp(m.otros)]},
+      {c:['Total sala',clp(d.sala.total)]},{c:['− Luz que paga la sala (boleta '+clp(m.luz)+' − aporte ProAudix '+clp(m.aporte)+')',clp(m.luzSala)]},{c:['− Caja chica',clp(m.caja)]},{c:['− Otros gastos de sala',clp(m.otros)]},{c:['± Otros ingresos y gastos de sala (con nota)',clp(m.movSala)]},
       {c:['Utilidad de la sala',clp(m.utilidadSala)],tot:1},
       {c:['   Juan Carlos ('+m.pct.salaJC+'%)',clp(m.salaJC)]},{c:['   Jaime ('+m.pct.salaJaime+'%)',clp(m.salaJaime)]},
-      {c:['Utilidad del estudio',clp(m.utilidadEstudio)],tot:1},
+      {c:['± Otros ingresos y gastos del estudio (con nota)',clp(m.movEstudio)]},{c:['Utilidad del estudio',clp(m.utilidadEstudio)],tot:1},
       {c:['   Estudio ('+m.pct.estudioEstudio+'%)',clp(m.estudioEstudio)]},{c:['   Juan Carlos ('+m.pct.estudioJC+'%)',clp(m.estudioJC)]},
       {c:['Material en bruto (Juan Carlos 100%)',clp(m.brutoJC)]},
       {c:['TOTAL JUAN CARLOS',clp(m.totalJC)],tot:1},{c:['TOTAL JAIME',clp(m.totalJaime)],tot:1},{c:['TOTAL ESTUDIO',clp(m.totalEstudio)],tot:1}
@@ -645,6 +646,51 @@ function pintarRC(d){
     b.appendChild(el_('h3','rc-h',x[1]+' · cobrado '+clp(o.cobrado)+' (efectivo '+clp(o.efectivo)+' · transferencia '+clp(o.transferencia)+(o.porCobrar?' · por cobrar '+clp(o.porCobrar):'')+')'));
     b.appendChild(o.productos.length?rcTabla(['Producto','Unidades','Total'],o.productos.map(function(p){return{c:[p.nombre,p.unidades,clp(p.total)]}})):par('Sin ventas cobradas en este período.','color:#b5afa6'))})
 }
+/* ---------- Excepciones contables: por cobrar, medio de pago, cortesías, otros ingresos y gastos ---------- */
+function rcExcepciones(d,b){
+  var M=d.medios||{};
+  b.appendChild(el_('h3','rc-h','Cuadre de caja y banco · saldos cobrados en el estudio'));
+  b.appendChild(rcTabla(['Medio','Monto'],[
+    {c:['💵 Efectivo (caja)',clp(M.Efectivo||0)]},{c:['🏦 Transferencia (banco)',clp(M.Transferencia||0)]},{c:['💳 Tarjeta',clp(M.Tarjeta||0)]},
+    {c:['❔ Cobrado sin medio registrado',clp(M.sinRegistrar||0)]},{c:['⏳ Por cobrar (aún no entra)',clp(M.porCobrar||0)]},
+    {c:['Abonos recibidos antes de la sesión (online / transferencia)',clp(M.abonos||0)]}]));
+  b.appendChild(par('Registra el medio al finalizar cada reserva (detalle de la reserva → «Cobro del saldo»). Sirve para cuadrar la caja y la cartola del banco al cerrar el mes.','color:#b5afa6;font-size:13px;margin:.3rem 0'));
+  var de=d.deudas||[],tot=de.reduce(function(a,x){return a+x.saldo},0);
+  b.appendChild(el_('h3','rc-h','Por cobrar · deudas de clientes'+(de.length?' · '+de.length+' · '+clp(tot):'')));
+  if(!de.length)b.appendChild(par('No hay saldos pendientes. Una reserva se marca «por cobrar» desde su detalle.','color:#b5afa6'));
+  de.forEach(function(x){var f=el_('div','fila');f.style.margin='4px 0';f.appendChild(par(fechaCorta(x.fecha)+' · '+x.banda+' / '+x.cliente+' · '+x.codigo+' · '+clp(x.saldo),'flex:1;min-width:200px'));
+    var sel=el_('select');MEDIOS.forEach(function(m){var o=el_('option','',m);o.value=m;sel.appendChild(o)});f.appendChild(sel);
+    f.appendChild(btn('Marcar pagado',function(){google.script.run.withSuccessHandler(function(r){pintar(r);cargarRC();aviso('Pago registrado ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminMarcarCobro(x.codigo,{cobro:'PAGADO',medio:sel.value})}));
+    if(x.telefono&&!/^MAN-/.test(x.telefono)){var w=el_('a','','Cobrar por WhatsApp');w.href='https://wa.me/'+x.telefono.replace(/\D/g,'')+'?text='+encodeURIComponent('Hola '+x.cliente+', te escribimos de '+((WA&&WA.negocio)||'Rockerío')+': queda un saldo pendiente de '+clp(x.saldo)+' de tu reserva '+x.codigo+' del '+fechaCorta(x.fecha)+'. ¿Cuándo podrías pagarlo? ¡Gracias!');w.target='_blank';w.rel='noopener';w.style.color='#FCC631';f.appendChild(w)}
+    b.appendChild(f)});
+  var co=d.cortesias||{n:0,lista:[]};
+  b.appendChild(el_('h3','rc-h','Cortesías y canjes · '+co.n+' · valor no cobrado '+clp(co.valor||0)));
+  b.appendChild(co.n?rcTabla(['Fecha','Reserva','Valor de lista','Motivo'],co.lista.map(function(x){return{c:[fechaCorta(x.fecha),x.codigo+' · '+x.banda,clp(x.valor),x.nota]}})):par('Sin cortesías en este período. Se marcan desde el detalle de la reserva; se ven aquí pero no suman ingreso.','color:#b5afa6'));
+  var mv=d.movimientos||{lista:[]};
+  b.appendChild(el_('h3','rc-h','Otros ingresos y gastos (con nota)'));
+  var fm=el_('div','fila');var fe=el_('input');fe.type='date';fe.value=(d.periodo==='mes'?(d.ref+'-01'):d.desde);
+  var tp=el_('select');['Gasto','Ingreso'].forEach(function(x){var o=el_('option','',x);o.value=x;tp.appendChild(o)});
+  var ds=el_('select');['Sala','Estudio'].forEach(function(x){var o=el_('option','',x);o.value=x;ds.appendChild(o)});
+  var mo=el_('input');mo.type='number';mo.min=1;mo.placeholder='Monto $';mo.style.width='110px';var nt=el_('input');nt.maxLength=150;nt.placeholder='Nota (ej. cable XLR, arreglo de parlante, arriendo extra)';nt.style.cssText='flex:1;min-width:200px';
+  [fe,tp,ds,mo,nt].forEach(function(x){fm.appendChild(x)});
+  fm.appendChild(btn('Agregar',function(){google.script.run.withSuccessHandler(function(r){pintar(r);cargarRC();aviso('Movimiento agregado ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminGuardarMovimiento({fecha:fe.value,tipo:tp.value,destino:ds.value,monto:mo.value,nota:nt.value})}));b.appendChild(fm);
+  if(mv.lista.length){var t=rcTabla(['Fecha','Tipo','Área','Monto','Nota',''],mv.lista.map(function(x){return{c:[fechaCorta(x.fecha),x.tipo,x.destino,(x.tipo==='Gasto'?'−':'+')+clp(x.monto),x.nota,'']}}));
+    [].forEach.call(t.querySelectorAll('tr'),function(tr,i){if(!i)return;var x=mv.lista[i-1];var c=tr.lastChild;c.appendChild(btnDel('Eliminar','¿Eliminar este movimiento?',function(){google.script.run.withSuccessHandler(function(r){pintar(r);cargarRC()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminEliminarMovimiento(x.id)}))});b.appendChild(t)}
+  else b.appendChild(par('Sin movimientos en este período. Los del mes entran al cierre con Jaime y Gabriela.','color:#b5afa6'));
+}
+var MEDIOS=['Efectivo','Transferencia','Tarjeta'];
+function bloqueCobro(r,d){
+  if(r.estado==='No asiste'||r.estado==='Anulada')return null;
+  var w=el_('div','mat');w.appendChild(el_('h5','','Cobro del saldo'));var f=el_('div','fila');
+  if(r.cortesia){f.appendChild(el_('span','chip ok','🎁 Cortesía o canje'+(r.notaAjuste?' · '+r.notaAjuste:'')));f.appendChild(btn('Quitar cortesía',function(){jrun('adminMarcarCortesia',r.codigo,{quitar:true});d.hidden=true},'sec'));w.appendChild(f);return w}
+  f.appendChild(el_('span','chip '+(r.cobro?'':'ok'),r.cobro?'⏳ Por cobrar '+clp(r.saldo):'✔ Saldo pagado'+(r.medio?' · '+r.medio:' · medio sin registrar')));
+  var sel=el_('select');MEDIOS.forEach(function(m){var o=el_('option','',m);o.value=m;sel.appendChild(o)});sel.value=r.medio||'Efectivo';f.appendChild(sel);
+  f.appendChild(btn('Marcar pagado',function(){jrun('adminMarcarCobro',r.codigo,{cobro:'PAGADO',medio:sel.value});d.hidden=true}));
+  if(!r.cobro)f.appendChild(btn('Dejar por cobrar',function(){jrun('adminMarcarCobro',r.codigo,{cobro:'POR COBRAR'});d.hidden=true},'sec'));
+  w.appendChild(f);
+  var g=el_('div','fila');g.style.marginTop='6px';var nt=el_('input');nt.maxLength=150;nt.placeholder='Motivo de la cortesía o canje (ej. canje por afiche)';nt.style.cssText='flex:1;min-width:200px';g.appendChild(nt);
+  g.appendChild(btn('🎁 Cortesía / canje',function(){confirmarSN('¿Marcar esta reserva como cortesía o canje? Queda en $0 y no suma ingreso (se ve en el resumen). Si hubo abono, devuélvelo aparte.',function(){jrun('adminMarcarCortesia',r.codigo,{nota:nt.value});d.hidden=true},'Sí, marcar')},'sec'));
+  w.appendChild(g);return w}
 $('rc-pdf').onclick=function(){var d=RC.data;if(!d)return;var p=$('imprimir');if(!p){p=el_('div');p.id='imprimir';document.body.appendChild(p)}p.textContent='';p.appendChild(el_('h2','','Resumen contable · '+(d.periodo==='mes'?mesTxt(d.ref):fechaCorta(d.desde)+' al '+fechaCorta(d.hasta))+' · Rockerío Producciones'));p.appendChild($('rc-box').cloneNode(true));window.print()};
 function pintarCostos(d){
   if(!$('cm').value)$('cm').value=d.mesActual;
@@ -937,6 +983,7 @@ function fichaJor(r){
   var ch=el_('div','chips');[[r.extras?'Equipo extra: '+r.extras:'',1],[r.video?'Video GoPro':'',1],[r.raw?'Material en bruto':'',1],[r.zurdo?'Baterista zurdo':'',1],[r.servicio==='Ensayo'?'Micrófonos de voz: '+r.voces:'',1]].forEach(function(x){if(x[0])ch.appendChild(el_('span','chip ok',x[0]))});
   if(!ch.firstChild)ch.appendChild(el_('span','chip','Sin adicionales'));f.appendChild(ch);
   var acc=el_('div','fila');acc.appendChild(selEstado(JOR.estados,r.estado,function(v){jrun('adminCambiarEstado',r.codigo,v);d.hidden=true}));
+  var bc=bloqueCobro(r,d);if(bc)f.appendChild(bc);
   f.appendChild(el_('h5','','Enviar por WhatsApp'));f.appendChild(waBotones(r));
   acc.appendChild(btn('Editar',function(){d.hidden=true;editarDe(r)},'sec'));
   if(r.estado!=='No asiste'&&r.estado!=='Anulada')acc.appendChild(btn('Ajustar cobro / descuento',function(){formAjuste(r,false)}));

@@ -509,6 +509,7 @@ function adminJornadas() {
         extras: Number(r[RES.extras - 1]) || 0, video: String(r[RES.video - 1]) === 'SI', raw: String(r[RES.raw - 1]) === 'SI', zurdo: String(r[RES.zurdo - 1]) === 'SI',
         voces: Number(r[RES.voces - 1]) || 0, comentarios: String(r[RES.comentarios - 1] || ''),
         total: total, abono: abono, saldo: estadoNorm_(r[RES.estado - 1]) === EST.NO_ASISTE ? 0 : total - abono, ajuste: ajusteDe_(r), notaAjuste: String(r[RES.notaAjuste - 1] || ''), totalOriginal: totalOriginal_(r), retenido: Number(r[RES.retenido - 1]) || 0, devolver: Number(r[RES.devolver - 1]) || 0,
+        cobro: String(r[RES.cobro - 1]) === 'POR COBRAR', medio: String(r[RES.medioPago - 1] || ''), cortesia: String(r[RES.cortesia - 1]) === 'SI', fechaPago: aFechaIso_(r[RES.fechaPago - 1]),
         plan: String(r[RES.plan - 1] || ''), creada: aFechaIso_(r[RES.creada - 1]), reag: Number(r[RES.reagendos - 1]) || 0
       });
     });
@@ -572,8 +573,11 @@ function repartirDescuento_(orig, desc) {
  */
 function adminAjustarReserva(codigo, d) {
   exigirAdmin_();
-  d = d || {};
-  return conBloqueo_(function () {
+  return conBloqueo_(function () { ajustarFila_(codigo, d || {}); return adminResumen(); });
+}
+
+/** Núcleo del ajuste (se llama dentro de un bloqueo). Devuelve {sh, f}. */
+function ajustarFila_(codigo, d) {
     var sh = abrirBd_().getSheetByName(HOJAS.reservas);
     var celda = sh.getLastRow() > 1 ? sh.createTextFinder(String(codigo)).matchEntireCell(true).findNext() : null;
     if (!celda || celda.getColumn() !== RES.codigo) throw new Error('No se encontró la reserva.');
@@ -603,8 +607,7 @@ function adminAjustarReserva(codigo, d) {
     sh.getRange(f, RES.base, 1, 4).setValues([[b, e, v, rw]]);
     sh.getRange(f, RES.ajuste, 1, 3).setValues([[desc, textoSeguro_(String(d.nota || '').slice(0, 200)), JSON.stringify(orig)]]);
     if (d.finalizar && estado !== EST.FINALIZADA) { sh.getRange(f, RES.estado).setValue(EST.FINALIZADA); sincronizarEstado_(sh, f); }
-    return adminResumen();
-  });
+    return { sh: sh, f: f };
 }
 
 
