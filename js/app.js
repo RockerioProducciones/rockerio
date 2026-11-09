@@ -29,7 +29,7 @@
           cfg = R.normalizarConfig(d.config); if (window.RKTema) window.RKTema.defecto(cfg.tema); return d.tienda;
         }).catch(function () { conexion = false; return null; })
       : Promise.resolve(null);
-    return Promise.all([conf, tienda]).then(function (r) { pintarTienda(r[0] || r[1]); });
+    return Promise.all([conf, tienda]).then(function (r) { pintarTienda(r[0] && r[0].length ? r[0] : r[1]); });
   }
 
   /* ---------- calendario reutilizable (reserva y planes) ----------
@@ -111,6 +111,10 @@
       return R.DIAS[d] + ' ' + (b || 'cerrado');
     });
     txt($('horarios-txt'), 'Horario de atención: ' + dias.join(' · '));
+    var hl = $('horarios-lista'); hl.textContent = ''; [1, 2, 3, 4, 5, 6, 0].forEach(function (d) { var b = (cfg.horarios[d] || []).map(function (x) { return R.horaTxt(x[0]) + ' a ' + R.horaTxt(x[1]); }).join(' y '), li = el('li', b ? '' : 'cerrado'); li.appendChild(el('span', '', R.DIAS[d])); li.appendChild(el('b', '', b || 'Cerrado')); hl.appendChild(li); });
+    var tl = String(cfg.whatsapp || ''); txt($('ct-tel'), tl.length === 11 ? '+' + tl.slice(0, 2) + ' ' + tl.slice(2, 3) + ' ' + tl.slice(3, 7) + ' ' + tl.slice(7) : '+' + tl);
+    var cm = $('ct-mail'); cm.hidden = !R.correoValido(cfg.correoContacto || ''); if (!cm.hidden) { cm.href = 'mailto:' + cfg.correoContacto; txt($('ct-correo'), cfg.correoContacto); }
+    var mapaB = $('ct-mapa'); if (cfg.direccion && !mapaB.firstChild) { var ifr = document.createElement('iframe'); ifr.src = 'https://maps.google.com/maps?q=' + encodeURIComponent(cfg.direccion) + '&output=embed'; ifr.loading = 'lazy'; ifr.title = 'Mapa de ' + cfg.nombreNegocio; ifr.referrerPolicy = 'no-referrer'; mapaB.appendChild(ifr); mapaB.hidden = false; }
     var pausa = $('pausa'); pausa.hidden = cfg.reservasActivas;
     if (!cfg.reservasActivas) {
       pausa.textContent = 'Las reservas en línea están pausadas por ahora. ';
@@ -138,8 +142,11 @@
       lista.forEach(function (x) { if (!/^https:\/\/[^\s"'<>]{4,300}$/.test(x[1] || '')) return; var l = el('a', 'enlace', x[0]); l.href = x[1]; l.target = '_blank'; l.rel = 'noopener'; cont.appendChild(l); });
       cont.hidden = !cont.firstChild;
     };
-    enlaces($('redes'), [['Instagram', cfg.redInstagram], ['Facebook', cfg.redFacebook], ['YouTube', cfg.redYoutube], ['TikTok', cfg.redTiktok], ['Spotify', cfg.redSpotify], ['Sitio web', cfg.sitioWeb]].concat(pares(cfg.enlacesExtra)));
-    $('redes-t').hidden = $('redes').hidden;
+    var RED = [['📸', 'Instagram', cfg.redInstagram, 'Instagram'], ['▶️', 'Canal de YouTube', cfg.redYoutube, 'Sesiones y videopodcasts'], ['🎵', 'YouTube Music', cfg.redYoutubeMusic, 'Lista oficial'], ['🌳', 'Linktree', cfg.redLinktree, 'Todos nuestros enlaces'], ['🟣', 'Twitch', cfg.redTwitch, 'Transmisiones en vivo'], ['📘', 'Facebook', cfg.redFacebook, 'Comunidad Rockerío'], ['🎶', 'TikTok', cfg.redTiktok, 'Videos cortos'], ['🎧', 'Spotify', cfg.redSpotify, 'Nuestra música'], ['🌐', 'Sitio web', cfg.sitioWeb, 'Página web']].concat(pares(cfg.enlacesExtra).map(function (x) { return ['🔗', x[0], x[1], 'Enlace']; }));
+    var rc = $('redes'); rc.textContent = '';
+    RED.forEach(function (x) { if (!/^https:\/\/[^\s"'<>]{4,300}$/.test(x[2] || '')) return; var l = el('a', 'ct-red'); l.href = x[2]; l.target = '_blank'; l.rel = 'noopener'; l.appendChild(el('span', 'ic', x[0])); var t = el('div'); t.appendChild(el('b', '', x[1])); t.appendChild(el('small', '', x[3])); l.appendChild(t); rc.appendChild(l); });
+    rc.hidden = !rc.firstChild;
+    $('redes-t').parentNode.hidden = $('redes').hidden;
     var mp = $('maps'); mp.hidden = !/^https:\/\//.test(cfg.mapsUrl || ''); if (!mp.hidden) mp.href = cfg.mapsUrl;
     var m2 = $('maps2'); m2.hidden = mp.hidden; $('sep2').hidden = mp.hidden; if (!m2.hidden) m2.href = cfg.mapsUrl;
     txt($('pa-texto'), cfg.proaudixTexto);
@@ -147,7 +154,7 @@
     if (cfg.proaudixWhatsapp) pl.unshift(['WhatsApp', 'https://wa.me/' + cfg.proaudixWhatsapp]);
     enlaces($('pa-links'), pl.concat(pares(cfg.proaudixEnlaces)));
     txt($('hero-t'), cfg.heroTitulo); txt($('hero-p'), cfg.heroTexto);
-    [['nosotros', 'verProduccion'], ['ficha', 'verFicha'], ['planes', 'verPlanes'], ['galeria', 'verGaleria'], ['opiniones', 'verEvaluaciones'], ['proaudix', 'verProaudix'], ['contacto', 'verContacto'], ['tienda', 'verTienda'], ['cotizar', 'verCotizar'], ['reglamento', 'verReglamento']].forEach(function (x) { if (!cfg[x[1]]) $(x[0]).hidden = true; else if (x[0] !== 'reglamento' && x[0] !== 'tienda' && x[0] !== 'galeria') $(x[0]).hidden = false; });
+    [['nosotros', 'verProduccion'], ['ficha', 'verFicha'], ['planes', 'verPlanes'], ['galeria', 'verGaleria'], ['opiniones', 'verEvaluaciones'], ['proaudix', 'verProaudix'], ['contacto', 'verContacto'], ['bandas', 'verHonor'], ['tienda', 'verTienda'], ['cotizar', 'verCotizar'], ['reglamento', 'verReglamento']].forEach(function (x) { if (!cfg[x[1]]) $(x[0]).hidden = true; else if (x[0] !== 'reglamento' && x[0] !== 'tienda' && x[0] !== 'galeria') $(x[0]).hidden = false; });
     if (!cfg.verHonor) $('bandas').hidden = true;
     pintarHoras(); refrescarAgenda(); if (fichaDatos) pintarFicha();
   }
@@ -280,27 +287,25 @@
   }
   function pintarTienda(items) {
     var cont = $('tienda-in'); cont.textContent = '';
-    if (!items || !items.length) { $('tienda').hidden = true; return; }
+    items = (items || []).filter(function (p) { return !/beb/i.test(p.categoria || ''); });
+    if (!items.length) { $('tienda').hidden = true; return; }
     $('tienda').hidden = !cfg.verTienda;
-    var cats = {};
-    items.forEach(function (p) { (cats[p.categoria] = cats[p.categoria] || []).push(p); });
-    Object.keys(cats).forEach(function (k) {
-      cont.appendChild(el('h3', '', k));
-      var rejilla = el('div', 'prods'); cont.appendChild(rejilla);
-      cats[k].forEach(function (p) {
-        var agotado = p.stock === 0, f = el('div', 'prod' + (agotado ? ' agotado' : '') + (p.foto ? ' con-foto' : ''));
-        if (p.foto) { var im = el('img', 'prod-foto'); im.src = p.foto; im.alt = p.nombre; im.loading = 'lazy'; f.appendChild(im); }
-        var izq = el('div', 'prod-txt'); izq.appendChild(el('span', '', p.nombre));
-        if (p.detalle) izq.appendChild(el('small', '', p.detalle));
-        if (agotado) izq.appendChild(el('small', '', 'Agotado'));
-        f.appendChild(izq); f.appendChild(el('span', 'pr', p.precio ? R.clp(p.precio) : 'Consultar'));
-        if (!agotado) {
-          var b = el('a', 'btn chico', 'Pedir'); b.target = '_blank'; b.rel = 'noopener';
-          b.href = wspUrl('Hola, quiero comprar: ' + p.nombre + (p.detalle ? ' (' + p.detalle + ')' : '') + (p.precio ? ' — ' + R.clp(p.precio) : '') + '. ¿Lo tienen disponible?');
-          f.appendChild(b);
-        }
-        rejilla.appendChild(f);
-      });
+    var rejilla = el('div', 'prods tienda-grid'); cont.appendChild(rejilla);
+    items.forEach(function (p) {
+      var agotado = p.stock === 0, f = el('div', 'prod' + (agotado ? ' agotado' : '') + (p.foto ? ' con-foto' : ''));
+      var fo = el('div', 'prod-fotobox');
+      if (p.foto) { var im = el('img', 'prod-foto'); im.src = p.foto; im.alt = p.nombre; im.loading = 'lazy'; fo.appendChild(im); } else fo.appendChild(el('span', 'prod-sinfoto', '🎸'));
+      f.appendChild(fo);
+      f.appendChild(el('div', 'prod-cat', p.categoria || 'Insumos'));
+      f.appendChild(el('h4', 'prod-nom', p.nombre));
+      if (p.detalle) f.appendChild(el('p', 'prod-det', p.detalle));
+      var pie = el('div', 'prod-pie'); pie.appendChild(el('span', 'pr', p.precio ? R.clp(p.precio) : 'Consultar'));
+      if (!agotado) {
+        var b = el('a', 'prod-wsp', 'Comprar por WhatsApp'); b.target = '_blank'; b.rel = 'noopener';
+        b.href = wspUrl('Hola, quiero comprar: ' + p.nombre + (p.detalle ? ' (' + p.detalle + ')' : '') + (p.precio ? ' — ' + R.clp(p.precio) : '') + '. ¿Lo tienen disponible?');
+        pie.appendChild(b);
+      } else pie.appendChild(el('span', 'prod-ago', 'Agotado'));
+      f.appendChild(pie); rejilla.appendChild(f);
     });
   }
 
@@ -320,9 +325,7 @@
     if (gm) { var t1 = el('b', '', '🎙️ ¡Ya incluyes ' + R.minutosTxt(gm) + ' de grabación con mezcla!'); ai.appendChild(t1); ai.appendChild(el('span', '', ' Por reservar ' + S.horas + ' horas de ensayo puedes usar parte de tu tiempo para llevarte un registro multipista profesional.')); ai.hidden = false; }
     else if (S.servicio === 'ensayo') { ai.appendChild(el('span', '', '💡 Desde 2 horas de ensayo incluyes minutos de grabación con mezcla: 2 h = 30 min · 3 h = 1 h · 4 h = 2 h · 5 h = 3 h, y así sucesivamente.')); ai.hidden = false; }
     else ai.hidden = true;
-    var ex = $('extras'), prev = Number(ex.value) || 0; ex.textContent = '';
-    for (var i = 0; i <= 4; i++) { var op = el('option', '', i === 0 ? 'Ninguno' : i + ' (' + R.clp(i * cfg.precioExtraEquipo * (cfg.extraModo === 'hora' ? S.horas : 1)) + ')'); op.value = i; ex.appendChild(op); }
-    ex.value = prev;
+    pintarArriendos();
     var ens = S.servicio === 'ensayo', addOk = R.addonsPermitidos(cfg, S.servicio, S.horas);
     $('adicionales').hidden = !ens;
     ['video', 'raw'].forEach(function (id) { $(id).closest('label').style.display = addOk ? '' : 'none'; if (!addOk) $(id).checked = false; });
@@ -367,36 +370,55 @@
     });
   }
 
+  /** Instrumentos y accesorios en arriendo: cada uno se elige por separado; el valor sale de la configuración. */
+  var ARRIENDOS = ['Set de platos Kingdo SN8 (B8): Hi-Hat 14” / Crash 16” / Crash 18” / Ride 20”', 'Bajo eléctrico Epiphone Thunderbird Pro IV', 'Guitarra eléctrica Squier Stratocaster Vintage Modified ’70', 'Guitarra electroacústica Takamine', 'Pedalera multiefecto para bajo', 'Pedalera multiefecto para guitarra'];
+  var arrSel = {};
+  function arriendosElegidos() { return ARRIENDOS.filter(function (n, k) { return arrSel[k]; }); }
+  function pintarArriendos() {
+    var c = $('arriendo-lista'); if (!c) return; c.textContent = '';
+    $('p-extra').textContent = R.clp(cfg.precioExtraEquipo) + (cfg.extraModo === 'hora' ? '/hr c/u' : ' c/u');
+    ARRIENDOS.forEach(function (n, k) {
+      var l = el('label', 'ex-fila-ck'), i = el('input'); i.type = 'checkbox'; i.checked = !!arrSel[k];
+      i.addEventListener('change', function () { arrSel[k] = i.checked; $('extras').value = arriendosElegidos().length; resumen(); });
+      l.appendChild(i); l.appendChild(el('span', '', n)); c.appendChild(l);
+    });
+    $('extras').value = arriendosElegidos().length;
+  }
   function solicitud() {
     return {
       servicio: S.servicio, fecha: S.fecha, inicio: S.inicio, horas: S.horas,
-      extras: Number($('extras').value) || 0, video: $('video').checked, raw: $('raw').checked,
+      extras: S.servicio === 'ensayo' ? Number($('extras').value) || 0 : 0, video: $('video').checked, raw: $('raw').checked,
       zurdo: $('zurdo').checked, voces: Number($('voces').value),
       banda: $('banda').value, nombre: $('nombre').value, telefono: $('telefono').value, correo: $('correo').value,
-      comentario: $('comentario').value, tyc: $('tyc').checked, web: $('web').value
+      comentario: ($('comentario').value + (arriendosElegidos().length && S.servicio === 'ensayo' ? ' [Arriendos: ' + arriendosElegidos().join('; ') + ']' : '')).slice(0, 500), tyc: $('tyc').checked, web: $('web').value
     };
   }
   function fila(dl, k, v) { dl.appendChild(el('dt', '', k)); dl.appendChild(el('dd', '', v)); }
   function resumen() {
-    var dl = $('tr-lista'), tot = $('tr-total'), falta = [];
-    dl.textContent = ''; tot.textContent = '';
-    fila(dl, 'Servicio', S.servicio === 'ensayo' ? 'Sala de ensayo' : 'Estudio de grabación');
-    fila(dl, 'Duración', S.horas + (S.horas === 1 ? ' hora' : ' horas'));
-    if (S.fecha) fila(dl, 'Día', R.fechaLarga(S.fecha)); else falta.push('el día');
-    if (S.inicio !== null) fila(dl, 'Horario', R.horaTxt(S.inicio) + ' a ' + R.horaTxt(S.inicio + S.horas)); else if (S.fecha) falta.push('tu horario');
+    var dl = $('tr-lista'), tot = $('tr-total'), its = $('ro-items'), falta = [];
+    dl.textContent = ''; tot.textContent = ''; its.textContent = '';
+    var ens = S.servicio === 'ensayo', hrs = S.horas + (S.horas === 1 ? ' hr' : ' hrs');
+    $('ro-titulo').textContent = (ens ? '🎸 Sala de ensayo' : '🎛️ Estudio de grabación') + ' · ' + hrs;
+    if (S.fecha) fila(dl, '📅 Día', R.fechaLarga(S.fecha)); else falta.push('el día');
+    if (S.inicio !== null) fila(dl, '🕒 Horario', R.horaTxt(S.inicio) + ' a ' + R.horaTxt(S.inicio + S.horas)); else if (S.fecha) falta.push('tu horario');
     var s = solicitud();
+    if ($('banda').value.trim() || $('nombre').value.trim()) fila(dl, '👤 Banda y contacto', ($('banda').value.trim() || '—') + ' · ' + ($('nombre').value.trim() || '—') + (R.telefonoValido(R.normalizarTelefono($('telefono').value)) ? ' (+' + R.normalizarTelefono($('telefono').value) + ')' : ''));
+    function linea(t, v) { var f = el('div', 'ro-it'); f.appendChild(el('span', '', t)); f.appendChild(el('b', '', R.clp(v))); its.appendChild(f); }
     if (S.inicio !== null) {
-      if (S.servicio === 'ensayo') {
-        if (s.extras) fila(dl, 'Equipo extra', String(s.extras));
-        if (s.video && R.addonsPermitidos(cfg, S.servicio, S.horas)) fila(dl, 'Video GoPro', 'Sí');
-        if (s.raw && R.addonsPermitidos(cfg, S.servicio, S.horas)) fila(dl, 'Material en bruto', 'Sí');
-      }
-      var p = R.calcularPrecio(cfg, s), g = R.grabacionIncluidaMin(cfg, S.servicio, S.horas);
-      tot.appendChild(el('div', 'tr-monto', R.clp(p.total)));
-      if (p.horasConveniente) tot.appendChild(el('div', 'nota ahorro', '✔ Tarifa conveniente aplicada en ' + p.horasConveniente + (p.horasConveniente === 1 ? ' hora' : ' horas') + ' (ahorras ' + R.clp(p.ahorro) + ').'));
-      tot.appendChild(el('div', 'nota', 'Abono para confirmar: ' + R.clp(p.abono) + ' · saldo en el estudio: ' + R.clp(p.saldo)));
-      if (g) tot.appendChild(el('div', 'nota', 'Incluye ' + R.minutosTxt(g) + ' de grabación.'));
+      var ok = R.addonsPermitidos(cfg, S.servicio, S.horas), p = R.calcularPrecio(cfg, s), g = R.grabacionIncluidaMin(cfg, S.servicio, S.horas);
+      if (ens && s.extras) fila(dl, '🎸 Arriendos', arriendosElegidos().map(function (n) { return n.split(':')[0]; }).join(', '));
+      if (ens && s.zurdo) fila(dl, '🥁 Batería', 'Zurdo');
+      linea((ens ? 'Sala de ensayo' : 'Estudio de grabación') + ' (' + hrs + ')', p.base);
+      if (p.extras) linea('Arriendos de equipos (' + s.extras + ')', p.extras);
+      if (p.video && s.video && ok) linea('Grabación en video GoPro Hero 13', p.video);
+      if (p.raw && s.raw && ok) linea('Material en bruto multitrack', p.raw);
+      if (p.horasConveniente) its.appendChild(el('div', 'nota ahorro', '✔ Tarifa conveniente aplicada en ' + p.horasConveniente + (p.horasConveniente === 1 ? ' hora' : ' horas') + ' (ahorras ' + R.clp(p.ahorro) + ').'));
+      if (g) its.appendChild(el('div', 'nota ahorro', '🎙️ Incluye ' + R.minutosTxt(g) + ' de grabación con mezcla.'));
+      var t1 = el('div', 'ro-tot'); t1.appendChild(el('span', '', 'Total de la sesión:')); t1.appendChild(el('b', '', R.clp(p.total))); tot.appendChild(t1);
+      var t2 = el('div', 'ro-abono'); var t2a = el('div'); t2a.appendChild(el('b', '', 'Abono requerido (' + R.clp(cfg.abonoPorHora) + ' / hr):')); t2a.appendChild(el('small', '', '(' + R.clp(cfg.abonoPorHora) + ' x ' + S.horas + (S.horas === 1 ? ' hora' : ' horas') + ' para confirmar en agenda oficial)')); t2.appendChild(t2a); t2.appendChild(el('b', 'v', R.clp(p.abono))); tot.appendChild(t2);
+      var t3 = el('div', 'ro-saldo'); var t3a = el('div'); t3a.appendChild(el('b', '', 'Saldo restante a pagar en sala:')); t3a.appendChild(el('small', '', '(Se cancela presencialmente al ingresar a tu jornada)')); t3.appendChild(t3a); t3.appendChild(el('b', 'v', R.clp(p.saldo))); tot.appendChild(t3);
     }
+    var bd = $('ro-badge'); bd.textContent = falta.length ? 'Faltan datos' : 'Datos completados'; bd.className = 'ro-badge' + (falta.length ? ' falta' : '');
     txt($('tr-falta'), falta.length ? 'Falta elegir ' + falta.join(' y ') + '.' : '');
   }
   function mostrarError(m) { var e = $('error'); e.hidden = !m; e.textContent = m || ''; if (m) e.scrollIntoView({ block: 'center' }); }
@@ -409,25 +431,23 @@
   /** o = { box, titulo, lineas: [], monto, pago: {transferencia, link, instrucciones, minutosReserva, segundos}, whatsapp } */
   function mostrarPago(o) {
     relojes.forEach(clearInterval); relojes = [];
-    var box = o.box; box.hidden = false; box.textContent = '';
-    box.appendChild(el('h3', '', o.titulo));
-    o.lineas.forEach(function (l) { box.appendChild(el('p', '', l)); });
-    var cuenta = el('div', 'cuenta'); cuenta.setAttribute('role', 'timer'); box.appendChild(cuenta);
-    var ol = el('ol', 'pasos');
-    var p1 = el('li'); p1.appendChild(el('b', '', 'Abona ' + R.clp(o.monto) + ' para confirmar tu horario')); p1.appendChild(el('div', 'nota', 'Tu horario queda tomado por ' + o.pago.minutosReserva + ' minutos; si no llega el abono, se libera solo.'));
-    if (o.pago.transferencia) {
-      var t = el('div', 'datos', o.pago.transferencia); p1.appendChild(t);
-      var cb = el('button', 'btn chico', 'Copiar datos'); cb.type = 'button'; cb.addEventListener('click', function () { copiar(o.pago.transferencia, cb); }); p1.appendChild(cb);
-    } else {
-      p1.appendChild(el('div', 'nota', 'Te enviaremos los datos de transferencia por WhatsApp.'));
-    }
-    if (o.pago.link) { var p = el('a', 'btn chico', 'Pagar en línea'); p.href = o.pago.link; p.target = '_blank'; p.rel = 'noopener'; p1.appendChild(document.createTextNode(' ')); p1.appendChild(p); }
-    ol.appendChild(p1);
-    var p2 = el('li'); p2.appendChild(el('b', '', 'Envía el comprobante por WhatsApp'));
-    p2.appendChild(el('div', 'nota', 'Abre la conversación con el detalle de tu reserva ya escrito y adjunta el comprobante.'));
-    var w = el('a', 'btn', 'Enviar comprobante por WhatsApp'); w.href = wspUrl(o.whatsapp + '\nAdjunto el comprobante del abono de ' + R.clp(o.monto) + '.'); w.target = '_blank'; w.rel = 'noopener';
-    p2.appendChild(w); ol.appendChild(p2); box.appendChild(ol);
-    iniciarCuenta(cuenta, o.pago.segundos, ol);
+    var box = o.box; box.hidden = false; box.textContent = ''; box.className = 'caja pago-of';
+    var cab = el('div', 'ro-cab'); cab.appendChild(el('b', '', '✔ Resumen oficial de la sesión')); cab.appendChild(el('span', 'ro-badge', 'Reserva registrada')); box.appendChild(cab);
+    var tk = el('div', 'ro-ticket'); var tl = el('div'); tl.appendChild(el('small', '', 'Ticket de reserva generado:')); tl.appendChild(el('b', 'cod', o.titulo.replace(/^.*?(#\S+).*$/, '$1').charAt(0) === '#' ? o.titulo.replace(/^.*?(#\S+).*$/, '$1') : o.titulo)); tk.appendChild(tl);
+    var cupo = el('div', 'ro-cupo'); cupo.setAttribute('role', 'timer'); tk.appendChild(cupo); box.appendChild(tk);
+    var res = el('div', 'ro-det'); o.lineas.forEach(function (l) { res.appendChild(el('p', '', l)); }); box.appendChild(res);
+    var tm = el('div', 'ro-abono'); var ta = el('div'); ta.appendChild(el('b', '', 'Abona ' + R.clp(o.monto) + ' para confirmar tu horario')); ta.appendChild(el('small', '', 'Tu horario queda tomado por ' + o.pago.minutosReserva + ' minutos; si no llega el abono, se libera solo.')); tm.appendChild(ta); tm.appendChild(el('b', 'v', R.clp(o.monto))); box.appendChild(tm);
+    var bts = el('div', 'ro-bts'); box.appendChild(bts);
+    if (o.pago.link) { var p = el('a', 'ro-b ro-azul', '💳 Pagar abono en línea (instantáneo)'); p.href = o.pago.link; p.target = '_blank'; p.rel = 'noopener'; bts.appendChild(p); }
+    var tr = el('div', 'ro-trans');
+    var bt = el('button', 'ro-b ro-osc', '🏦 Ver datos de transferencia bancaria'); bt.type = 'button';
+    var dt = el('div', 'ro-datos'); dt.hidden = true;
+    if (o.pago.transferencia) { dt.appendChild(el('pre', '', o.pago.transferencia)); var cb = el('button', 'btn chico', 'Copiar datos'); cb.type = 'button'; cb.addEventListener('click', function () { copiar(o.pago.transferencia, cb); }); dt.appendChild(cb); }
+    else dt.appendChild(el('p', 'nota', 'Te enviaremos los datos de transferencia por WhatsApp.'));
+    bt.addEventListener('click', function () { dt.hidden = !dt.hidden; }); tr.appendChild(bt); tr.appendChild(dt); bts.appendChild(tr);
+    var w = el('a', 'ro-b ro-wsp', '📲 Enviar comprobante por WhatsApp'); w.href = wspUrl(o.whatsapp + '\nAdjunto el comprobante del abono de ' + R.clp(o.monto) + '.'); w.target = '_blank'; w.rel = 'noopener'; bts.appendChild(w);
+    box.appendChild(el('p', 'nota', 'Abre la conversación con el detalle de tu reserva ya escrito y adjunta el comprobante.'));
+    iniciarCuenta(cupo, o.pago.segundos, bts);
     box.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
   /** Cuenta regresiva del horario tomado. Al llegar a cero avisa que se liberó. */
@@ -437,9 +457,9 @@
     var fin = Date.now() + segundos * 1000;
     function pintar() {
       var resto = Math.max(0, Math.round((fin - Date.now()) / 1000));
-      if (resto > 0) { caja.textContent = 'Tu horario está tomado por ' + String(Math.floor(resto / 60)).padStart(2, '0') + ':' + String(resto % 60).padStart(2, '0') + ' minutos. Abona antes de que termine el tiempo.'; caja.className = 'cuenta' + (resto <= 120 ? ' urgente' : ''); return true; }
-      caja.textContent = 'El tiempo terminó y el horario se liberó. Si ya abonaste, escríbenos por WhatsApp con tu comprobante; si no, vuelve a reservar.';
-      caja.className = 'cuenta vencida'; pasos.style.opacity = '.55'; return false;
+      caja.textContent = '';
+      if (resto > 0) { caja.className = 'ro-cupo'; caja.appendChild(el('small', '', '⏱ Cupo reservado por:')); caja.appendChild(el('b', '', String(Math.floor(resto / 60)).padStart(2, '0') + ':' + String(resto % 60).padStart(2, '0') + ' min')); return true; }
+      caja.className = 'ro-cupo vencida'; caja.appendChild(el('b', '', 'El tiempo terminó y el horario se liberó.')); caja.appendChild(el('small', '', 'Si ya abonaste, escríbenos por WhatsApp con tu comprobante; si no, vuelve a reservar.')); pasos.style.opacity = '.55'; return false;
     }
     if (!pintar()) return;
     var id = setInterval(function () { if (!pintar() || !document.body.contains(caja)) clearInterval(id); }, 1000);
@@ -490,7 +510,8 @@
     document.querySelectorAll('input[name=servicio]').forEach(function (r) {
       r.addEventListener('change', function () { S.servicio = r.value; pintarHoras(); alCambiarDuracion(); });
     });
-    ['extras', 'video', 'raw'].forEach(function (id) { $(id).addEventListener('change', resumen); });
+    ['video', 'raw', 'voces'].forEach(function (id) { $(id).addEventListener('change', resumen); }); ['banda', 'nombre', 'telefono'].forEach(function (id) { $(id).addEventListener('input', resumen); });
+    [].forEach.call(document.querySelectorAll('#orient button'), function (b) { b.addEventListener('click', function () { $('zurdo').checked = b.getAttribute('data-z') === '1'; [].forEach.call(document.querySelectorAll('#orient button'), function (x) { x.className = x === b ? 'on' : ''; }); resumen(); }); });
     $('form').addEventListener('submit', enviar);
   });
 })();

@@ -31,10 +31,52 @@
     c.appendChild(s); g.items.forEach(function (i) { c.appendChild(muestra(i)); }); if (abierta) c.open = true; return c;
   }
 
+  /* ---------- comparador A/B/C: la misma canción en bruto, mezclada y masterizada ---------- */
+  var ETAPAS = [
+    ['01. RAW', 'Toma directa sin procesar', 'Dinámica seca, frecuencias sin ecualizar, balance plano de microfonía.', 'En bruto'],
+    ['02. MIX', 'Mezcla y panning pro', 'Apertura estéreo, EQ correctiva, gating de batería y saturación cálida.', 'Mezclada'],
+    ['03. MASTER (-14 LUFS)', 'Master comercial para streaming', 'Compresión de bus analógica SSL, pegada, brillo analógico y volumen estándar comercial.', 'Masterizada']
+  ];
+  function comparador(grupos) {
+    var cont = $('comparador'); if (!cont) return;
+    cont.textContent = ''; cont.hidden = !grupos.length; if (!grupos.length) return;
+    cont.appendChild(el('div', 'comp-kick', 'Experiencia interactiva en tiempo real'));
+    cont.appendChild(el('h3', 'comp-tit', 'Comparador A/B/C: Raw → Mix → Master'));
+    cont.appendChild(el('p', 'comp-sub', 'Toca cualquiera de las 3 etapas para escuchar la evolución sonora de una misma canción en Rockerío Producciones: desde la captura en bruto de sala, la apertura estéreo y el balance de mezcla, hasta el punch comercial con compresión de bus analógica SSL.'));
+    var sel = el('div', 'comp-canciones'), cuerpo = el('div'); cont.appendChild(sel); cont.appendChild(cuerpo);
+    function mostrar(g, btnSel) {
+      [].forEach.call(sel.children, function (b) { b.setAttribute('aria-pressed', b === btnSel ? 'true' : 'false'); });
+      cuerpo.textContent = '';
+      if (g.descripcion) cuerpo.appendChild(el('p', 'nota', g.descripcion));
+      var fila = el('div', 'comp-etapas'), play = el('div', 'comp-play'), actual = null, tiempo = 0;
+      ETAPAS.forEach(function (e, i) {
+        var it = g.items.filter(function (x) { return x.etiqueta === e[3]; })[0]; if (!it) return;
+        var b = el('button', 'comp-et'); b.type = 'button'; b.setAttribute('aria-pressed', 'false');
+        b.appendChild(el('span', 'comp-n', e[0])); b.appendChild(el('span', 'comp-pl', '▶'));
+        b.appendChild(el('b', '', e[1])); b.appendChild(el('small', '', e[2]));
+        b.addEventListener('click', function () {
+          var a0 = play.querySelector('audio'); if (a0) tiempo = a0.currentTime;
+          [].forEach.call(fila.children, function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+          play.textContent = ''; var p = reproductor(it.enlace); play.appendChild(p);
+          if (p.tagName === 'AUDIO') { p.addEventListener('loadedmetadata', function () { try { p.currentTime = tiempo; } catch (x) { /* sin posición */ } p.play().catch(function () {}); }); p.preload = 'metadata'; }
+          actual = i;
+        });
+        fila.appendChild(b);
+      });
+      cuerpo.appendChild(fila); cuerpo.appendChild(play);
+    }
+    grupos.forEach(function (g, i) {
+      if (grupos.length > 1) { var b = el('button', 'btn chico sec-b', g.grupo); b.type = 'button'; b.addEventListener('click', function () { mostrar(g, b); }); sel.appendChild(b); }
+      else cont.insertBefore(el('div', 'comp-cancion', '🎵 ' + g.grupo), sel);
+    });
+    if (grupos.length > 1) mostrar(grupos[0], sel.firstChild); else mostrar(grupos[0], null);
+  }
+
   /* ---------- pintado ---------- */
   function pintar(c) {
     var mics = c.muestras.filter(function (g) { return g.tipo === 'Micrófono'; });
-    var otros = c.muestras.filter(function (g) { return g.tipo !== 'Micrófono'; });
+    var otros = c.muestras.filter(function (g) { return g.tipo !== 'Micrófono' && g.tipo !== 'Comparador'; });
+    comparador(c.muestras.filter(function (g) { return g.tipo === 'Comparador'; }));
     $('mics-box').hidden = !mics.length; $('escucha-box').hidden = !otros.length;
     mics.forEach(function (g) { $('mics').appendChild(tarjeta(g)); });
     otros.forEach(function (g) { $('escucha').appendChild(tarjeta(g)); });
@@ -42,6 +84,7 @@
     var K = window.RK.cfg(); $('bandas').hidden = !K.verHonor; $('nav-bandas').hidden = !K.verHonor; var ch = $('cta-honor'); if (ch) ch.hidden = !K.verHonor;
     var host = function (u) { var m = /^https:\/\/(?:www\.)?([^\/]+)/.exec(u || ''); return m ? m[1] : ''; };
     var etiq = function (u) { var h = host(u); return /spotify/.test(h) ? 'Spotify' : /bandcamp/.test(h) ? 'Bandcamp' : /youtu/.test(h) ? 'YouTube' : /instagram/.test(h) ? 'Instagram' : /soundcloud/.test(h) ? 'SoundCloud' : 'Enlace'; };
+    var vac = document.querySelector('.honor-vacio'); if (vac && c.honor.length) vac.remove();
     c.honor.forEach(function (h) {
       var k = el('div', 'card honor-card');
       var cab = el('div', 'honor-cab2');
@@ -49,15 +92,17 @@
       var t = el('div'); t.appendChild(el('h3', '', h.banda)); if (h.genero) t.appendChild(el('span', 'chip-genero', h.genero)); cab.appendChild(t); k.appendChild(cab);
       if (h.formacion) { var fo = el('p', 'nota'); fo.appendChild(document.createTextNode('Formación: ')); fo.appendChild(el('strong', '', h.formacion)); k.appendChild(fo); }
       k.appendChild(el('p', '', h.resena));
-      var r = el('p', 'redes');
-      [[h.instagram], [h.enlace], [/^https:\/\/(?:www\.)?youtube\.com\/channel|\/@/.test(h.youtube || '') ? h.youtube : '']].forEach(function (x) { if (/^https:\/\//.test(x[0])) { var a = el('a', 'chip-red', etiq(x[0])); a.href = x[0]; a.target = '_blank'; a.rel = 'noopener nofollow'; r.appendChild(a); } });
+      var r = el('p', 'redes'), redes = (h.redes && h.redes.length) ? h.redes : [['Instagram', h.instagram], [etiq(h.enlace), h.enlace], ['YouTube', /^https:\/\/(?:www\.)?youtube\.com\/channel|\/@/.test(h.youtube || '') ? h.youtube : '']].map(function (x) { return { r: x[0], u: x[1] }; });
+      redes.forEach(function (x) { if (/^https:\/\//.test(x.u)) { var a = el('a', 'chip-red', x.r); a.href = x.u; a.target = '_blank'; a.rel = 'noopener nofollow'; r.appendChild(a); } });
       if (r.firstChild) k.appendChild(r);
-      var m = /v=([\w-]{11})$/.exec(h.youtube || '');
-      if (m) { var d = el('div', 'muestra'), b = el('button', 'btn chico', '▶ Ver video'); b.type = 'button';
-        b.addEventListener('click', function () { d.replaceChild(marco('https://www.youtube-nocookie.com/embed/' + m[1], 'yt'), b); }); d.appendChild(b); k.appendChild(d); }
+      var vid = /^https:\/\/(?:www\.|m\.)?(?:youtube\.com\/watch\?(?:\S*&)?v=|youtu\.be\/)([\w-]{11})/.exec(h.ultimo || '') || /v=([\w-]{11})$/.exec(h.youtube || '');
+      if (h.ultimo || vid) { var d = el('div', 'muestra'), b;
+        if (vid) { b = el('button', 'btn chico', '▶ Último trabajo'); b.type = 'button'; b.addEventListener('click', function () { d.replaceChild(marco('https://www.youtube-nocookie.com/embed/' + vid[1], 'yt'), b); }); }
+        else if (/^https:\/\//.test(h.ultimo)) { b = el('a', 'btn chico', '▶ Último trabajo'); b.href = h.ultimo; b.target = '_blank'; b.rel = 'noopener nofollow'; }
+        if (b) { d.appendChild(b); k.appendChild(d); } }
       $('honor').appendChild(k);
     });
-    if (!c.honor.length) $('honor').appendChild(el('p', 'nota', 'Pronto verás aquí a las bandas que han pasado por el estudio. ¡Sé la primera!'));
+    
 
     $('opiniones').hidden = !K.verEvaluaciones;
     $('promedio').textContent = c.totalResenas ? 'Promedio ' + String(c.promedio).replace('.', ',') + ' de 5 · ' + c.totalResenas + (c.totalResenas === 1 ? ' opinión' : ' opiniones') : 'Sé el primero en opinar.';
@@ -90,6 +135,7 @@
     f.addEventListener('submit', function (ev) {
       ev.preventDefault(); err.hidden = ok.hidden = true;
       var datos = { accion: accion }, archivo = null; new FormData(f).forEach(function (v, k) { if (v instanceof File) { if (v.size) archivo = v; } else datos[k] = v; });
+      if (formId === 'f-honor') datos.redes = JSON.stringify(leerRedes());
       btn.disabled = true;
       (archivo ? logoB64(archivo) : Promise.resolve('')).then(function (b64) {
         if (b64) datos.logoB64 = b64;
@@ -101,13 +147,39 @@
     });
   }
 
+  /* ---------- formulario del cuadro de honor: hasta 3 redes a elección ---------- */
+  var REDES = ['YouTube', 'Instagram', 'TikTok', 'Facebook', 'Spotify', 'Bandcamp', 'SoundCloud', 'X', 'Sitio web'];
+  function leerRedes() {
+    var out = []; [].forEach.call(document.querySelectorAll('#honor-redes .red-fila'), function (f) { var u = f.querySelector('input').value.trim(); if (u) out.push({ r: f.querySelector('select').value, u: u }); }); return out;
+  }
+  function filaRed() {
+    var cont = $('honor-redes'); if (cont.children.length >= 3) return;
+    var f = el('div', 'red-fila'), sl = document.createElement('select'), inp = document.createElement('input'), x = el('button', 'btn chico sec-b', '✕');
+    REDES.forEach(function (n) { var o = document.createElement('option'); o.textContent = n; sl.appendChild(o); });
+    inp.type = 'text'; inp.maxLength = 300; inp.placeholder = 'https://… o @usuario (Instagram)'; sl.setAttribute('aria-label', 'Red social'); inp.setAttribute('aria-label', 'Enlace de la red');
+    x.type = 'button'; x.setAttribute('aria-label', 'Quitar red'); x.addEventListener('click', function () { f.remove(); $('honor-red-mas').hidden = false; });
+    f.appendChild(sl); f.appendChild(inp); f.appendChild(x); cont.appendChild(f);
+    $('honor-red-mas').hidden = cont.children.length >= 3;
+  }
+  function honorUI() {
+    var mas = $('honor-red-mas'); if (!mas) return;
+    filaRed(); mas.addEventListener('click', filaRed);
+    $('honor-ir').addEventListener('click', function (e) { e.preventDefault(); var f = $('honor-form'); f.hidden = false; f.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    var h = $('honor'); if (!h.children.length) h.appendChild(el('p', 'nota honor-vacio', 'Pronto verás aquí a las bandas que han pasado por el estudio. ¡Sé la primera en postular!'));
+  }
+
   /* ---------- arranque ---------- */
   document.addEventListener('DOMContentLoaded', function () {
-    var cot = $('f-cot');
+    var cot = $('f-cot'); honorUI();
     if (!API) { // sin servidor: la cotización va por WhatsApp y las secciones dinámicas no se muestran
       cot.addEventListener('submit', function (ev) {
         ev.preventDefault(); var d = new FormData(cot), t = cot.querySelector('select').selectedOptions[0].textContent;
         var u = RK.wsp('Hola, quiero cotizar: ' + t + '.\nNombre: ' + d.get('nombre') + '\n' + d.get('mensaje')); window.open(u, '_blank', 'noopener');
+      });
+      var fh = $('f-honor'); if (fh) fh.addEventListener('submit', function (ev) {
+        ev.preventDefault(); var d = new FormData(fh), rd = leerRedes().map(function (x) { return x.r + ': ' + x.u; }).join(' | ');
+        if (!String(d.get('banda')).trim() || String(d.get('resena')).trim().length < 10) { var er = fh.querySelector('.error'); er.textContent = 'Escribe el nombre de tu banda y una mini reseña.'; er.hidden = false; return; }
+        window.open(RK.wsp('Hola, quiero postular mi banda al cuadro de honor.\nBanda: ' + d.get('banda') + '\nEstilo: ' + (d.get('genero') || '-') + '\nRedes: ' + (rd || '-') + '\nÚltimo trabajo: ' + (d.get('ultimo') || '-') + '\nReseña: ' + d.get('resena') + '\nContacto: ' + d.get('telefono')), '_blank', 'noopener');
       });
       return;
     }

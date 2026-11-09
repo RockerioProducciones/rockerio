@@ -23,7 +23,7 @@
 <header class="top">
   <a href="#inicio" class="marca"><img src="assets/logo-horizontal-dorado.png" alt="ROCKERÍO Producciones"></a>
   <nav>
-    <a href="#reservar">Reservar</a><a href="#planes">Planes</a><a href="#ficha">Ficha técnica</a><a href="#reglamento">Reglamento</a><a href="#bandas" id="nav-bandas" hidden>Bandas</a><a href="#cotizar">Cotizar</a><a href="#tienda">Tienda</a><a href="#contacto">Contacto</a>
+    <a href="#reservar">Reservar</a><a href="#planes">Planes</a><a href="#ficha">Ficha técnica</a><a href="#reglamento">Reglamento</a><a href="#bandas" id="nav-bandas">Bandas</a><a href="#cotizar">Cotizar</a><a href="#tienda">Tienda</a><a href="#contacto">Contacto</a>
   </nav>
 </header>
 
@@ -50,7 +50,7 @@
   <a class="tarjeta" href="#proaudix" data-vista="proaudix" data-ico="🛡️"><b>ProAudix</b><span>Colegas audiovisuales</span></a>
   <a class="tarjeta" href="#contacto" data-vista="contacto" data-ico="📞"><b>Contacto</b><span>Redes y cómo llegar</span></a>
   <a class="tarjeta" href="#tienda" data-vista="tienda" data-ico="🛍️"><b>Tienda</b><span>Insumos y accesorios musicales</span></a>
-  <a class="tarjeta" href="#bandas" data-vista="bandas" data-ico="🏅" hidden><b>Cuadro de honor</b><span>Bandas que pasaron por aquí</span></a>
+  <a class="tarjeta" href="#bandas" data-vista="bandas" data-ico="🏅"><b>Cuadro de honor</b><span>Bandas que pasaron por aquí</span></a>
   <a class="tarjeta" href="#cotizar" data-vista="cotizar" data-ico="📝"><b>Cotizar</b><span>Producción y consultas</span></a>
   <a class="tarjeta" href="#reglamento" data-vista="reglamento" data-ico="📖"><b>Reglamento</b><span>Cómo funciona todo</span></a>
 </div>
@@ -90,11 +90,14 @@
       </fieldset>
       <fieldset id="adicionales" class="paso off">
         <legend>4 · Adicionales (opcional)</legend>
-        <div class="arriendo"><b>🎸 Arriendo de instrumentos y accesorios · <span id="p-extra"></span></b><ul><li>Set de platos Kingdo SN8 B8: Hi-Hat 14” / Crash 16” / Crash 18” / Ride 20”</li><li>Guitarra eléctrica Squier Stratocaster Vintage Modified ’70</li><li>Bajo eléctrico Epiphone Thunderbird Pro IV</li><li>Guitarra electroacústica Takamine</li><li>Pedalera multiefecto para guitarra</li><li>Pedalera multiefecto para bajo</li></ul><label>¿Cuántos arriendas?<select id="extras"></select></label></div>
-        <label class="chk"><input type="checkbox" id="video"><span>Grabación con video GoPro Hero 13 <em id="p-video"></em></span></label>
-        <label class="chk"><input type="checkbox" id="raw"><span>Entrega de material en bruto (opcional) <em id="p-raw"></em></span></label>
-        <label class="chk"><input type="checkbox" id="zurdo"><span>Baterista zurdo</span></label>
-        <label>Micrófonos de voz<select id="voces"><option>0</option><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
+        <p class="ex-tit">⚡ Extras simplificados y opcionales</p>
+        <div class="ex-card"><div class="ex-cab"><b>1. Arriendos de equipos y accesorios</b><span id="p-extra"></span></div>
+          <div id="arriendo-lista" class="ex-lista"></div><input type="hidden" id="extras" value="0"></div>
+        <label class="ex-card ex-chk chk"><input type="checkbox" id="video"><span><b>2. Grabación en video GoPro Hero 13 <em id="p-video"></em></b><small>Registro audiovisual de la sesión de sala.</small></span></label>
+        <label class="ex-card ex-chk chk"><input type="checkbox" id="raw"><span><b>3. Material en bruto multitrack <em id="p-raw"></em></b><small>Entrega directa de pistas crudas multicanal por enlace en la nube (opcional).</small></span></label>
+        <div class="ex-card ex-rider"><div class="ex-cab"><b>🥁 Rider express de sala (opcional)</b></div>
+          <div class="ex-fila"><div><span class="lbl">Orientación de batería</span><div class="segm ex-segm" id="orient" role="group"><button type="button" class="on" data-z="0">Diestro</button><button type="button" data-z="1">Zurdo</button></div><input type="checkbox" id="zurdo" hidden></div>
+          <label>Micrófonos vocales<select id="voces"><option value="0">Sin micrófonos vocales</option><option value="1">1 micrófono vocal</option><option value="2" selected>2 micrófonos vocales</option><option value="3">3 micrófonos vocales</option><option value="4">4 micrófonos vocales</option></select></label></div></div>
       </fieldset>
       <fieldset id="paso-datos" class="paso off">
         <legend>5 · Tus datos</legend>
@@ -111,15 +114,18 @@
       </fieldset>
       <fieldset id="paso-resumen" class="paso">
         <legend>6 · Revisa y confirma</legend>
-        <aside id="tu-reserva" class="tu-reserva" aria-live="polite">
-          <h3>Tu reserva</h3>
+        <aside id="tu-reserva" class="tu-reserva resumen-of" aria-live="polite">
+          <div class="ro-cab"><b>✔ Resumen oficial de la sesión</b><span id="ro-badge" class="ro-badge"></span></div>
+          <div id="ro-titulo" class="ro-titulo"></div>
           <dl id="tr-lista"></dl>
+          <div id="ro-items" class="ro-items"></div>
           <div id="tr-total"></div>
           <p id="tr-falta" class="nota"></p>
+          <div class="ro-pol"><b>⚠ Política de almacenamiento de material (2 meses):</b> una vez entregado el material a la banda, conservamos las sesiones por un plazo máximo de 2 meses. Si no se retira o descarga el material en ese período, las sesiones se programarán para su eliminación definitiva.</div>
         </aside>
         <label class="chk"><input type="checkbox" id="tyc" required><span id="tyc-txt"></span></label>
         <p class="error" id="error" role="alert" hidden></p>
-        <button class="btn" id="enviar" type="submit">Solicitar reserva</button>
+        <button class="btn" id="enviar" type="submit">Confirmar y tomar mi horario</button>
       </fieldset>
       <div class="wiz-acc" id="wiz-acc"><button type="button" class="btn" id="wiz-sig">Siguiente ›</button></div>
     </form>
@@ -129,8 +135,13 @@
 
 <section id="planes" class="sec">
   <h2>Planes mensuales</h2>
-  <p class="sub">Un pack de 4 reservas de ensayo (de 2 o 3 horas) para usar durante el mes en curso o el siguiente. Tus reservas quedan confirmadas al validar tu pago. Los cambios se piden con 24 horas de anticipación; de lo contrario se retiene el abono de $5.000 por hora.</p>
-  <div id="plan-cards" class="grid"></div>
+  <p class="sub">Asegura 4 ensayos fijos para tu banda, con grabación incluida y condiciones preferentes. Elige el plan según las horas que necesitas.</p>
+  <div id="plan-cards" class="grid plan-grid"></div>
+  <div class="plan-cond caja"><h3>Condiciones del plan mensual</h3>
+    <ul><li><b>Pago inicial:</b> se abona la totalidad del plan al inicio, para fijar tus 4 reservas en la agenda.</li>
+    <li><b>Agendamiento:</b> eliges los 4 ensayos de una vez, dentro del mes en curso o del siguiente.</li>
+    <li><b>Flexibilidad:</b> puedes pedir cambios avisando con al menos 24 horas de anticipación. Si no avisas a tiempo, se retiene el abono de $5.000 por hora solicitada.</li>
+    <li><b>Grabación incluida:</b> cada ensayo del plan incluye minutos de grabación con mezcla, según las horas de la sesión.</li></ul></div>
   <div id="plan-wiz" class="caja" hidden>
     <h3 id="plan-tit"></h3>
     <p>Elige tus sesiones: <b id="plan-prog"></b></p>
@@ -151,6 +162,7 @@
 <section id="nosotros" class="sec">
   <h2>Producción</h2>
   <div class="caja intro-prod"><h3 id="nosotros-t"></h3><div id="nosotros-in" class="texto"></div></div>
+  <div class="caja comp-ab" id="comparador" hidden></div>
   <div class="prod-bloque"><h3>Enfoque y pasión</h3>
     <p>Mi pasión y especialidad es el rock y sus géneros derivados, con una dedicación especial hacia las bandas instrumentales. Me apasiona acompañar la música en sus distintas etapas:</p>
     <ul class="reg-lista"><li>Bandas de jóvenes que están partiendo y dando forma a sus primeros proyectos.</li><li>Proyectos emergentes que ya están en ruta buscando consolidar su sonido.</li><li>Músicos que vuelven a juntarse tras años de pausas para revivir sus canciones con la experiencia de hoy.</li></ul></div>
@@ -177,24 +189,25 @@
   </div>
 </section>
 
-<section id="bandas" class="sec" hidden>
+<section id="bandas" class="sec">
   <h2>Cuadro de honor</h2>
-  <div class="honor-cab"><span class="honor-ico">🏅</span><div><h3>Cuadro de honor · Rockerío y ProAudix</h3><p class="sub">Bandas, solistas y proyectos musicales que graban y ensayan con nosotros.</p></div></div>
-  <p class="honor-cta"><a class="btn" href="#bandas" id="honor-ir">Quiero aparecer aquí →</a></p>
+  <div class="honor-cab honor-cab-g">
+    <span class="honor-ico">🏅</span>
+    <div><h3>Cuadro de honor · Bandas y artistas con las que hemos trabajado</h3><p class="sub">Músicos, solistas y agrupaciones destacadas que graban, ensayan y producen en Rockerío SpA.</p></div>
+    <a class="btn honor-post" href="#bandas" id="honor-ir">+ Postular mi banda al cuadro de honor</a>
+  </div>
   <div id="honor" class="grid honor-grid"></div>
-  <div class="honor-invita caja" id="honor-form">
-    <h3>🏅 Súmate al cuadro de honor</h3>
-    <p class="sub">¿Grabaste o ensayaste en Rockerío Producciones? Toma solo 1 minuto: cuéntanos de tu banda y la mostramos aquí. Revisamos cada solicitud antes de publicarla.</p>
-    <ol class="honor-pasos"><li><b>1</b> Llena lo básico</li><li><b>2</b> Revisamos tu solicitud</li><li><b>3</b> Apareces en el cuadro</li></ol>
+  <div class="honor-invita caja" id="honor-form" hidden>
+    <h3>🏅 Postula tu banda</h3>
+    <p class="sub">¿Grabaste o ensayaste en Rockerío Producciones? Toma 1 minuto: cuéntanos de tu banda y la mostramos aquí. Revisamos cada solicitud antes de publicarla.</p>
+    <ol class="honor-pasos"><li><b>1</b> Llena el formulario</li><li><b>2</b> Revisamos tu solicitud</li><li><b>3</b> Apareces en el cuadro</li></ol>
     <form id="f-honor" class="form" novalidate>
-      <div class="fila"><label>Nombre de la banda o proyecto *<input name="banda" maxlength="60" required placeholder="Ej. Los Ensayos"></label><label>Género o estilo<input name="genero" maxlength="60" placeholder="Ej. Rock progresivo y metal"></label></div>
+      <div class="fila"><label>Logo de tu banda<input name="logoArchivo" type="file" accept="image/png,image/jpeg,image/webp"></label><label>Nombre de la banda o proyecto *<input name="banda" maxlength="60" required placeholder="Ej. Los Ensayos"></label></div>
+      <div class="fila"><label>Estilo musical<input name="genero" maxlength="60" placeholder="Ej. Rock progresivo y metal"></label><label>Formación (opcional)<input name="formacion" maxlength="120" placeholder="Ej. Guitarra, bajo, batería y voz"></label></div>
+      <fieldset class="honor-redes"><legend>Canal de YouTube o redes sociales (elige hasta 3)</legend><div id="honor-redes"></div><button type="button" class="btn chico sec-b" id="honor-red-mas">+ Agregar red</button></fieldset>
+      <label>Link de tu último trabajo<input name="ultimo" type="url" maxlength="300" placeholder="https://youtu.be/… (video, single, disco)"></label>
+      <label>Mini reseña de tu banda *<textarea name="resena" rows="3" maxlength="500" required placeholder="Quiénes son, qué grabaron o ensayaron aquí…"></textarea><small class="contador" id="honor-cont">0 / 500</small></label>
       <div class="fila"><label>WhatsApp de contacto *<input name="telefono" type="tel" required value="+569 " placeholder="+569 1234 5678"></label><label>Correo *<input name="correo" type="email" required placeholder="tu@correo.cl"></label></div>
-      <label>Cuéntanos de tu banda *<textarea name="resena" rows="3" maxlength="500" required placeholder="Quiénes son, qué grabaron o ensayaron aquí…"></textarea><small class="contador" id="honor-cont">0 / 500</small></label>
-      <details class="honor-mas"><summary>＋ Agregar más datos (opcional): logo, redes y formación</summary>
-        <label>Formación<input name="formacion" maxlength="120" placeholder="Ej. Guitarra, bajo, batería y voz"></label>
-        <div class="fila"><label>Instagram (@usuario)<input name="instagram" maxlength="60"></label><label>Canal o video de YouTube<input name="youtube" type="url" placeholder="https://youtu.be/…"></label></div>
-        <div class="fila"><label>Spotify, Bandcamp u otro enlace<input name="enlace" type="url" placeholder="https://…"></label><label>Logo de tu banda (imagen)<input name="logoArchivo" type="file" accept="image/png,image/jpeg,image/webp"></label></div>
-      </details>
       <input type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true" class="trampa">
       <p class="error" hidden></p><p class="ok" hidden></p><button class="btn" type="submit">Enviar mi banda</button>
     </form>
@@ -229,8 +242,8 @@
 <section id="galeria" class="sec"><h2>Galería</h2><div id="galeria-info"></div><div id="galeria-car" class="carr-caja"></div><div class="playlist caja" data-playlist hidden></div><div id="galeria-in" class="galeria"></div></section>
 
 <section id="tienda" class="sec">
-  <h2>Tienda de insumos</h2>
-  <p class="sub">Retiro en el estudio. Toca «Pedir» y te atendemos por WhatsApp.</p>
+  <h2>Tienda de música e insumos</h2>
+  <p class="sub">Encuentra cuerdas, uñetas, straplocks, baterías 9V y más directo en sala. Pide el tuyo y coordina por WhatsApp.</p>
   <div id="tienda-in"></div>
   <p class="alianza"><span>Tienda en alianza con</span> <img src="assets/marcas/proaudix.jpg" alt="ProAudix" loading="lazy"></p>
 </section>
@@ -249,10 +262,13 @@
 
 <section id="contacto" class="sec">
   <h2>Contacto</h2>
-  <p id="dir"></p>
-  <p class="botones"><a class="btn" id="wsp" target="_blank" rel="noopener">Escribir por WhatsApp</a> <a class="btn sec-b" id="maps" target="_blank" rel="noopener" hidden>Cómo llegar</a></p>
-  <h3 id="redes-t" hidden>Redes y enlaces</h3><div id="redes" class="enlaces"></div>
-  <p class="nota" id="horarios-txt"></p>
+  <div class="ct-dir caja"><span class="ct-pin">📍</span><div class="ct-dir-t"><h3>Dónde estamos</h3><p id="dir"></p><p class="nota">Estacionamiento exterior (sujeto a disponibilidad). Llega 5 a 10 minutos antes de tu hora.</p></div><a class="btn sec-b" id="maps" target="_blank" rel="noopener" hidden>Cómo llegar</a></div>
+  <div id="ct-mapa" class="ct-mapa" hidden></div>
+  <div class="caja"><h3 id="redes-t">Nuestras redes sociales</h3><div id="redes" class="ct-redes"></div></div>
+  <div class="caja"><h3>Contacto directo y consultas</h3>
+    <div class="ct-directo"><a class="ct-b ct-wsp" id="wsp" target="_blank" rel="noopener"><b>WhatsApp directo</b><span id="ct-tel"></span></a><a class="ct-b ct-mail" id="ct-mail" hidden><b>Correo electrónico</b><span id="ct-correo"></span></a></div></div>
+  <div class="caja"><h3>Horario de atención</h3><ul id="horarios-lista" class="ct-horas"></ul><p class="nota" id="horarios-txt" hidden></p></div>
+  <div class="caja ct-quien"><h3>Quién te atiende</h3><p><b>Juan Carlos Retamal González</b></p><p class="nota">Técnico Superior en Informática e Ingeniero en Sonido · Rockerío SpA, con el respaldo de ProAudix.</p></div>
 </section>
 </main>
 

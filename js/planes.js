@@ -8,10 +8,17 @@
     var cfg = RK.cfg(), cont = $('plan-cards'); cont.textContent = '';
     ['plan8', 'plan12'].forEach(function (tipo) {
       var p = R.planInfo(cfg, tipo); if (!p || !p.precio) return;
-      var c = el('div', 'card'); c.appendChild(el('h3', '', p.nombre));
-      c.appendChild(el('p', '', 'Pack de 4 reservas de ' + p.horasPorSesion + ' horas'));
-      c.appendChild(el('p', 'tr-monto', R.clp(p.precio)));
-      c.appendChild(el('p', 'nota', R.clp(p.porSesion) + ' por reserva · úsalas este mes o el siguiente · cambios hasta ' + cfg.horasAnulacion + ' h antes'));
+      var c = el('div', 'card plan-card ' + (tipo === 'plan8' ? 'plan-azul' : 'plan-morado'));
+      c.appendChild(el('span', 'plan-badge', tipo === 'plan8' ? 'Ideal para empezar' : 'Para bandas en producción'));
+      c.appendChild(el('h3', '', p.nombre)); c.appendChild(el('p', 'tr-monto', R.clp(p.precio)));
+      var g = R.grabacionIncluidaMin(cfg, 'ensayo', p.horasPorSesion), normal = p.sesiones * p.horasPorSesion * cfg.precioEnsayoHora, ul = el('ul', 'plan-lista-b');
+      [p.sesiones + ' ensayos de ' + p.horasPorSesion + ' horas, ' + (p.sesiones * p.horasPorSesion) + ' horas en total',
+        g ? 'Incluye ' + R.minutosTxt(g) + ' de grabación con mezcla en cada ensayo' : '',
+        'Sala acondicionada con backline completo',
+        'Úsalas este mes o el siguiente; cambios hasta ' + cfg.horasAnulacion + ' h antes',
+        normal > p.precio ? 'Ahorras ' + R.clp(normal - p.precio) + ' frente a reservar suelto' : ''
+      ].forEach(function (t) { if (t) ul.appendChild(el('li', '', t)); });
+      c.appendChild(ul); c.appendChild(el('p', 'nota', R.clp(p.porSesion) + ' por ensayo'));
       var usaWeb = RK.conectado() && cfg.reservasActivas, b;
       if (usaWeb) { b = el('button', 'btn', 'Elegir mis sesiones'); b.type = 'button'; b.addEventListener('click', function () { abrir(tipo); }); }
       else { b = el('a', 'btn', 'Consultar por WhatsApp'); b.href = RK.wsp('Hola, quiero el ' + p.nombre.toLowerCase() + ' (' + R.clp(p.precio) + ').'); b.target = '_blank'; b.rel = 'noopener'; }

@@ -253,6 +253,54 @@ function adminAnularVenta(id) {
   });
 }
 
+/** Ajusta el stock de un producto (por nombre) sumando `delta` unidades. Si el producto no lleva stock, no hace nada. */
+function ajustarStockPorNombre_(tipo, nombre, delta) {
+  var cat = hojaCatalogo_(tipo), n = cat.getLastRow();
+  if (n > 1) cat.getRange(2, 1, n - 1, 5).getValues().some(function (p, i) {
+    if (String(p[1]) !== String(nombre) || p[4] === '') return false;
+    var nuevo = Number(p[4]) + delta; if (nuevo < 0) throw new Error('Stock insuficiente para ese cambio: quedan ' + p[4] + '.');
+    cat.getRange(i + 2, 5).setValue(nuevo); return true;
+  });
+}
+
+/** Corrige una venta mal ingresada: cantidad, forma de pago y nota. Ajusta el stock y el total. d = {cantidad, pago, nota}. */
+function adminEditarVenta(id, d) {
+  exigirAdmin_();
+  d = d || {};
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.ventas), f = filaPorTexto_(sh, id, VT.id);
+    if (!f) throw new Error('Venta no encontrada.');
+    var r = sh.getRange(f, 1, 1, COLS_VENTAS).getValues()[0], pagoAnt = pagoNorm_(r[VT.pago - 1]);
+    if (pagoAnt === PAGO.ANULADA) throw new Error('Esa venta está anulada; no se puede editar.');
+    var cant = Number(d.cantidad), pago = pagoNorm_(d.pago);
+    if (!(cant >= 1 && cant <= 99 && cant % 1 === 0)) throw new Error('Cantidad inválida.');
+    if (PAGOS_VENTA.indexOf(pago) < 0) throw new Error('Elige cómo se pagó.');
+    var tipo = String(r[VT.tipo - 1]) === ETIQUETA_TIPO.bebestible ? 'bebestible' : 'musica';
+    var dif = cant - Number(r[VT.cantidad - 1]);
+    if (dif !== 0) ajustarStockPorNombre_(tipo, r[VT.producto - 1], -dif);
+    sh.getRange(f, VT.cantidad).setValue(cant);
+    sh.getRange(f, VT.total).setValue(cant * (Number(r[VT.precio - 1]) || 0));
+    sh.getRange(f, VT.pago).setValue(pago);
+    if (pagoAnt === PAGO.PENDIENTE && pago !== PAGO.PENDIENTE) sh.getRange(f, VT.cobro).setValue(new Date());
+    if (pago === PAGO.PENDIENTE) sh.getRange(f, VT.cobro).setValue('');
+    sh.getRange(f, VT.nota).setValue(textoSeguro_(limpiar_(d.nota, 200)));
+    return adminResumen();
+  });
+}
+
+/** Elimina del todo una venta (por ejemplo, una duplicada). Si no estaba anulada, devuelve las unidades al stock. */
+function adminEliminarVenta(id) {
+  exigirAdmin_();
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.ventas), f = filaPorTexto_(sh, id, VT.id);
+    if (!f) throw new Error('Venta no encontrada.');
+    var r = sh.getRange(f, 1, 1, COLS_VENTAS).getValues()[0];
+    if (pagoNorm_(r[VT.pago - 1]) !== PAGO.ANULADA) ajustarStockPorNombre_(String(r[VT.tipo - 1]) === ETIQUETA_TIPO.bebestible ? 'bebestible' : 'musica', r[VT.producto - 1], Number(r[VT.cantidad - 1]) || 0);
+    sh.deleteRow(f);
+    return adminResumen();
+  });
+}
+
 /* ---------- costos mensuales (luz, caja chica…) ---------- */
 
 function leerCostos_() {

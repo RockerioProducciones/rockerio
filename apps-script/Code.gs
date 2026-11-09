@@ -38,12 +38,12 @@ var RES = {
   codigo: 1, creada: 2, estado: 3, servicio: 4, fecha: 5, inicio: 6, fin: 7, horas: 8, banda: 9, contacto: 10,
   telefono: 11, correo: 12, extras: 13, video: 14, raw: 15, total: 16, abono: 17, saldo: 18,
   zurdo: 19, voces: 20, comentarios: 21, evento: 22,
-  base: 23, extrasM: 24, videoM: 25, rawM: 26, abonoRecibido: 27, retenido: 28, devolver: 29, plan: 30, recordatorio: 31
+  base: 23, extrasM: 24, videoM: 25, rawM: 26, abonoRecibido: 27, retenido: 28, devolver: 29, plan: 30, recordatorio: 31, reagendos: 32
 };
 var ENCABEZADO_RESERVAS = ['Código', 'Creada', 'Estado', 'Servicio', 'Fecha', 'Inicio', 'Fin', 'Horas', 'Banda', 'Contacto',
   'Teléfono', 'Correo', 'Equipo extra', 'Video', 'Material en bruto', 'Total', 'Abono', 'Saldo',
   'Baterista zurdo', 'Micrófonos de voz', 'Comentarios', 'ID del evento',
-  'Monto horas', 'Monto extras', 'Monto video', 'Monto material bruto', 'Abono recibido', 'Abono retenido', 'Abono a devolver', 'Plan', 'Recordatorio WhatsApp'];
+  'Monto horas', 'Monto extras', 'Monto video', 'Monto material bruto', 'Abono recibido', 'Abono retenido', 'Abono a devolver', 'Plan', 'Recordatorio WhatsApp', 'Reagendos'];
 
 /** Los cinco estados de una reserva (así aparecen en la hoja y en el portal). */
 var EST = {
@@ -185,7 +185,7 @@ function tiendaPublica_() {
   if (n < 2) return [];
   var out = [];
   sh.getRange(2, 1, n - 1, 7).getValues().forEach(function (r) {
-    if (!Reglas.aBool(r[5], false) || !r[1]) return;
+    if (!Reglas.aBool(r[5], false) || !r[1] || /beb/i.test(String(r[0]))) return;
     var precio = Reglas.aNumero(r[3], null);
     var stock = r[4] === '' ? null : Reglas.aNumero(r[4], null);
     out.push({ categoria: String(r[0] || 'Otros'), nombre: String(r[1]), detalle: String(r[2] || ''), precio: precio, stock: stock, foto: fotoValida_(r[6]) });
@@ -583,7 +583,23 @@ function textoSeguro_(v) {
 function abrirBd_() {
   var id = PropertiesService.getScriptProperties().getProperty('SHEET_ID');
   if (!id) throw new Error('Falta ejecutar la función instalar().');
-  return SpreadsheetApp.openById(id);
+  var ss = SpreadsheetApp.openById(id);
+  asegurarEsquema_(ss);
+  return ss;
+}
+
+/** Agrega a la hoja de reservas la columna «Reagendos» si falta (hojas de versiones anteriores). Se revisa una vez cada 6 horas. */
+function asegurarEsquema_(ss) {
+  var cache = CacheService.getScriptCache();
+  if (cache.get('esq3')) return;
+  try {
+    var sh = ss.getSheetByName(HOJAS.reservas);
+    if (sh) {
+      if (sh.getMaxColumns() < RES.reagendos) sh.insertColumnsAfter(sh.getMaxColumns(), RES.reagendos - sh.getMaxColumns());
+      if (!sh.getRange(1, RES.reagendos).getValue()) sh.getRange(1, RES.reagendos).setValue('Reagendos').setFontWeight('bold');
+    }
+    cache.put('esq3', '1', 21600);
+  } catch (e) { /* si falla, se reintenta en la próxima solicitud */ }
 }
 
 function getCalendar_() {
@@ -621,6 +637,7 @@ function instalar() {
   prepararSimple_(ss, HOJAS.inhabiles, ['Fecha', 'Motivo'], [], { 1: 'yyyy-mm-dd' });
   prepararReservas_(ss);
   ss.getSheetByName(HOJAS.reservas).getRange(1, RES.recordatorio).setValue('Recordatorio WhatsApp').setFontWeight('bold');
+  ss.getSheetByName(HOJAS.reservas).getRange(1, RES.reagendos).setValue('Reagendos').setFontWeight('bold');
   prepararSimple_(ss, HOJAS.clientes, ['Teléfono', 'Correo', 'Banda', 'Contacto', 'Reservas', 'Primera reserva', 'Última reserva', 'Carpeta de material (Drive)', 'Nombre', 'Apellido'], [], { 1: '@', 6: 'yyyy-mm-dd', 7: 'yyyy-mm-dd' });
   prepararSimple_(ss, HOJAS.bloqueos, ['Fecha', 'Desde (hora)', 'Hasta (hora)', 'Motivo'], [], { 1: 'yyyy-mm-dd', 2: '@', 3: '@' });
   prepararTienda_(ss);
@@ -633,7 +650,7 @@ function instalar() {
   prepararSimple_(ss, HOJAS.planes, ['Código', 'Creado', 'Plan', 'Horas por sesión', 'Banda', 'Contacto', 'Teléfono', 'Correo', 'Total', 'Pagado', 'Sesiones agendadas'], [], { 2: 'yyyy-mm-dd', 7: '@', 9: '$#,##0' });
   prepararSimple_(ss, HOJAS.muestras, ['Grupo (micrófono, canción o ensayo)', 'Tipo', 'Etiqueta', 'Enlace del audio', 'Descripción (solo la primera fila del grupo)', 'Visible'],
     [['Shure SM57', 'Micrófono', 'Caja', 'https://drive.google.com/file/d/ID_DEL_ARCHIVO/view', 'Escribe aquí qué es y para qué lo usas.', 'NO']], { 6: '@' });
-  prepararSimple_(ss, HOJAS.honor, ['Fecha', 'Estado', 'Banda', 'Teléfono', 'Correo', 'Logo (URL)', 'Instagram', 'Enlace', 'YouTube', 'Reseña', 'Género', 'Formación'], [], { 1: 'yyyy-mm-dd', 4: '@' });
+  prepararSimple_(ss, HOJAS.honor, ['Fecha', 'Estado', 'Banda', 'Teléfono', 'Correo', 'Logo (URL)', 'Instagram', 'Enlace', 'YouTube', 'Reseña', 'Género', 'Formación', 'Redes (JSON)', 'Último trabajo'], [], { 1: 'yyyy-mm-dd', 4: '@' });
   prepararSimple_(ss, HOJAS.resenas, ['Fecha', 'Estado', 'Código de reserva', 'Banda', 'Nombre', 'Teléfono', 'Estrellas', 'Comentario'], [], { 1: 'yyyy-mm-dd', 6: '@' });
   prepararSimple_(ss, HOJAS.solicitudes, ['Fecha', 'Estado', 'Tipo', 'Nombre', 'Teléfono', 'Correo', 'Mensaje', 'Monto cotizado', 'Detalle de la cotización'], [], { 1: 'yyyy-mm-dd', 5: '@', 8: '$#,##0' });
   prepararBalance_(ss);

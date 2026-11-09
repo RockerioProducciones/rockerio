@@ -63,7 +63,7 @@ var Reglas = (function () {
     heroTitulo: 'Tu banda suena aquí', heroTexto: 'Sala de ensayo y estudio de grabación en Quinta Normal, Santiago.',
     verProduccion: true, verFicha: true, verPlanes: true, verGaleria: true, verEvaluaciones: true, verProaudix: true, verContacto: true, verTienda: true, verHonor: true, verCotizar: true, verReglamento: true,
     // Contacto y redes (enlaces https://; vacío = no se muestra)
-    sitioWeb: '', redInstagram: '', redFacebook: '', redYoutube: '', redTiktok: '', redSpotify: '', mapsUrl: '',
+    sitioWeb: '', redInstagram: 'https://instagram.com/rockerio_producciones', redFacebook: '', redYoutube: '', redTiktok: '', redSpotify: '', redYoutubeMusic: 'https://music.youtube.com/playlist?list=PLVvxu7INRfmo', redTwitch: '', redLinktree: '', correoContacto: 'rockerioestudio@gmail.com', mapsUrl: '',
     enlacesExtra: '',             // una línea por enlace: «Texto | https://…»
     // Apartado ProAudix (colega audiovisual)
     proaudixTexto: 'ProAudix es el espacio matriz e infraestructura integral donde desarrollamos y albergamos las operaciones de Rockerío Producciones SpA. La tienda de insumos y los bebestibles del estudio los atiende ProAudix.',
@@ -218,7 +218,7 @@ var Reglas = (function () {
     c.tema = aTexto(raw.tema, d.tema) || d.tema;
     c.presentacionTitulo = aTexto(raw.presentacionTitulo, d.presentacionTitulo) || d.presentacionTitulo;
     c.presentacion = aTexto(raw.presentacion, d.presentacion);
-    ['sitioWeb', 'redInstagram', 'redFacebook', 'redYoutube', 'redTiktok', 'redSpotify', 'mapsUrl', 'enlacesExtra', 'proaudixWeb', 'proaudixInstagram', 'proaudixFacebook', 'proaudixYoutube', 'proaudixEnlaces'].forEach(function (k) { c[k] = aTexto(raw[k], d[k]); });
+    ['sitioWeb', 'redInstagram', 'redFacebook', 'redYoutube', 'redTiktok', 'redSpotify', 'redYoutubeMusic', 'redTwitch', 'redLinktree', 'correoContacto', 'mapsUrl', 'enlacesExtra', 'proaudixWeb', 'proaudixInstagram', 'proaudixFacebook', 'proaudixYoutube', 'proaudixEnlaces'].forEach(function (k) { c[k] = aTexto(raw[k], d[k]); });
     c.heroTitulo = aTexto(raw.heroTitulo, d.heroTitulo) || d.heroTitulo; c.heroTexto = aTexto(raw.heroTexto, d.heroTexto) || d.heroTexto;
     ['verProduccion', 'verFicha', 'verPlanes', 'verGaleria', 'verEvaluaciones', 'verProaudix', 'verContacto', 'verTienda', 'verHonor', 'verCotizar', 'verReglamento'].forEach(function (k) { c[k] = aBool(raw[k], d[k]); });
     c.proaudixTexto = aTexto(raw.proaudixTexto, d.proaudixTexto) || d.proaudixTexto;
@@ -574,12 +574,12 @@ var RES = {
   codigo: 1, creada: 2, estado: 3, servicio: 4, fecha: 5, inicio: 6, fin: 7, horas: 8, banda: 9, contacto: 10,
   telefono: 11, correo: 12, extras: 13, video: 14, raw: 15, total: 16, abono: 17, saldo: 18,
   zurdo: 19, voces: 20, comentarios: 21, evento: 22,
-  base: 23, extrasM: 24, videoM: 25, rawM: 26, abonoRecibido: 27, retenido: 28, devolver: 29, plan: 30, recordatorio: 31
+  base: 23, extrasM: 24, videoM: 25, rawM: 26, abonoRecibido: 27, retenido: 28, devolver: 29, plan: 30, recordatorio: 31, reagendos: 32
 };
 var ENCABEZADO_RESERVAS = ['Código', 'Creada', 'Estado', 'Servicio', 'Fecha', 'Inicio', 'Fin', 'Horas', 'Banda', 'Contacto',
   'Teléfono', 'Correo', 'Equipo extra', 'Video', 'Material en bruto', 'Total', 'Abono', 'Saldo',
   'Baterista zurdo', 'Micrófonos de voz', 'Comentarios', 'ID del evento',
-  'Monto horas', 'Monto extras', 'Monto video', 'Monto material bruto', 'Abono recibido', 'Abono retenido', 'Abono a devolver', 'Plan', 'Recordatorio WhatsApp'];
+  'Monto horas', 'Monto extras', 'Monto video', 'Monto material bruto', 'Abono recibido', 'Abono retenido', 'Abono a devolver', 'Plan', 'Recordatorio WhatsApp', 'Reagendos'];
 
 /** Los cinco estados de una reserva (así aparecen en la hoja y en el portal). */
 var EST = {
@@ -721,7 +721,7 @@ function tiendaPublica_() {
   if (n < 2) return [];
   var out = [];
   sh.getRange(2, 1, n - 1, 7).getValues().forEach(function (r) {
-    if (!Reglas.aBool(r[5], false) || !r[1]) return;
+    if (!Reglas.aBool(r[5], false) || !r[1] || /beb/i.test(String(r[0]))) return;
     var precio = Reglas.aNumero(r[3], null);
     var stock = r[4] === '' ? null : Reglas.aNumero(r[4], null);
     out.push({ categoria: String(r[0] || 'Otros'), nombre: String(r[1]), detalle: String(r[2] || ''), precio: precio, stock: stock, foto: fotoValida_(r[6]) });
@@ -1119,7 +1119,23 @@ function textoSeguro_(v) {
 function abrirBd_() {
   var id = PropertiesService.getScriptProperties().getProperty('SHEET_ID');
   if (!id) throw new Error('Falta ejecutar la función instalar().');
-  return SpreadsheetApp.openById(id);
+  var ss = SpreadsheetApp.openById(id);
+  asegurarEsquema_(ss);
+  return ss;
+}
+
+/** Agrega a la hoja de reservas la columna «Reagendos» si falta (hojas de versiones anteriores). Se revisa una vez cada 6 horas. */
+function asegurarEsquema_(ss) {
+  var cache = CacheService.getScriptCache();
+  if (cache.get('esq3')) return;
+  try {
+    var sh = ss.getSheetByName(HOJAS.reservas);
+    if (sh) {
+      if (sh.getMaxColumns() < RES.reagendos) sh.insertColumnsAfter(sh.getMaxColumns(), RES.reagendos - sh.getMaxColumns());
+      if (!sh.getRange(1, RES.reagendos).getValue()) sh.getRange(1, RES.reagendos).setValue('Reagendos').setFontWeight('bold');
+    }
+    cache.put('esq3', '1', 21600);
+  } catch (e) { /* si falla, se reintenta en la próxima solicitud */ }
 }
 
 function getCalendar_() {
@@ -1157,6 +1173,7 @@ function instalar() {
   prepararSimple_(ss, HOJAS.inhabiles, ['Fecha', 'Motivo'], [], { 1: 'yyyy-mm-dd' });
   prepararReservas_(ss);
   ss.getSheetByName(HOJAS.reservas).getRange(1, RES.recordatorio).setValue('Recordatorio WhatsApp').setFontWeight('bold');
+  ss.getSheetByName(HOJAS.reservas).getRange(1, RES.reagendos).setValue('Reagendos').setFontWeight('bold');
   prepararSimple_(ss, HOJAS.clientes, ['Teléfono', 'Correo', 'Banda', 'Contacto', 'Reservas', 'Primera reserva', 'Última reserva', 'Carpeta de material (Drive)', 'Nombre', 'Apellido'], [], { 1: '@', 6: 'yyyy-mm-dd', 7: 'yyyy-mm-dd' });
   prepararSimple_(ss, HOJAS.bloqueos, ['Fecha', 'Desde (hora)', 'Hasta (hora)', 'Motivo'], [], { 1: 'yyyy-mm-dd', 2: '@', 3: '@' });
   prepararTienda_(ss);
@@ -1169,7 +1186,7 @@ function instalar() {
   prepararSimple_(ss, HOJAS.planes, ['Código', 'Creado', 'Plan', 'Horas por sesión', 'Banda', 'Contacto', 'Teléfono', 'Correo', 'Total', 'Pagado', 'Sesiones agendadas'], [], { 2: 'yyyy-mm-dd', 7: '@', 9: '$#,##0' });
   prepararSimple_(ss, HOJAS.muestras, ['Grupo (micrófono, canción o ensayo)', 'Tipo', 'Etiqueta', 'Enlace del audio', 'Descripción (solo la primera fila del grupo)', 'Visible'],
     [['Shure SM57', 'Micrófono', 'Caja', 'https://drive.google.com/file/d/ID_DEL_ARCHIVO/view', 'Escribe aquí qué es y para qué lo usas.', 'NO']], { 6: '@' });
-  prepararSimple_(ss, HOJAS.honor, ['Fecha', 'Estado', 'Banda', 'Teléfono', 'Correo', 'Logo (URL)', 'Instagram', 'Enlace', 'YouTube', 'Reseña', 'Género', 'Formación'], [], { 1: 'yyyy-mm-dd', 4: '@' });
+  prepararSimple_(ss, HOJAS.honor, ['Fecha', 'Estado', 'Banda', 'Teléfono', 'Correo', 'Logo (URL)', 'Instagram', 'Enlace', 'YouTube', 'Reseña', 'Género', 'Formación', 'Redes (JSON)', 'Último trabajo'], [], { 1: 'yyyy-mm-dd', 4: '@' });
   prepararSimple_(ss, HOJAS.resenas, ['Fecha', 'Estado', 'Código de reserva', 'Banda', 'Nombre', 'Teléfono', 'Estrellas', 'Comentario'], [], { 1: 'yyyy-mm-dd', 6: '@' });
   prepararSimple_(ss, HOJAS.solicitudes, ['Fecha', 'Estado', 'Tipo', 'Nombre', 'Teléfono', 'Correo', 'Mensaje', 'Monto cotizado', 'Detalle de la cotización'], [], { 1: 'yyyy-mm-dd', 5: '@', 8: '$#,##0' });
   prepararBalance_(ss);
@@ -1485,7 +1502,7 @@ function ordenarHojas_(ss) {
   ss.setActiveSheet(ss.getSheetByName(HOJAS.reservas));
 }
 
-/* ===== Admin ===== */
+/* ===== AdminApi ===== */
 /**
  * PORTAL DE ADMINISTRACIÓN
  * Se publica como una SEGUNDA implementación con acceso "Solo yo". Google exige iniciar sesión,
@@ -1572,8 +1589,56 @@ function adminBloquear(fecha, desde, hasta, motivo) {
   var d = aHora_(desde), h = aHora_(hasta);
   if ((d === null) !== (h === null)) throw new Error('Indica desde y hasta, o deja ambos vacíos para bloquear todo el día.');
   if (d !== null && !(d >= 0 && h <= 24 && h > d)) throw new Error('Rango de horas inválido.');
+  // El bloqueo no se rige por el horario oficial, pero no puede quedar encima de una reserva vigente.
+  var choques = reservasVigentesEn_(String(fecha)).filter(function (x) { return d === null || (x.ini < h && x.fin > d); });
+  if (choques.length) throw new Error('Ese bloqueo quedaría sobre la reserva de ' + choques[0].banda + ' (' + Reglas.horaTxt(choques[0].ini) + ' a ' + Reglas.horaTxt(choques[0].fin) + '). Reagéndala o elige otro horario.');
   abrirBd_().getSheetByName(HOJAS.bloqueos).appendRow([String(fecha), d === null ? '' : String(d), h === null ? '' : String(h), textoSeguro_(String(motivo || '').slice(0, 100))]);
   return adminResumen();
+}
+
+/** Reservas vigentes (que ocupan agenda) de un día: [{ini, fin, banda, codigo}] con horas enteras. */
+function reservasVigentesEn_(fecha, excluirCodigo) {
+  var sh = abrirBd_().getSheetByName(HOJAS.reservas), n = sh.getLastRow(), out = [];
+  if (n < 2) return out;
+  sh.getRange(2, 1, n - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r) {
+    if (!r[RES.codigo - 1] || String(r[RES.codigo - 1]) === String(excluirCodigo || '') || aFechaIso_(r[RES.fecha - 1]) !== fecha) return;
+    if (ESTADOS_QUE_OCUPAN.indexOf(estadoNorm_(r[RES.estado - 1])) < 0) return;
+    var i = aHora_(r[RES.inicio - 1]), h = Number(r[RES.horas - 1]) || 0;
+    if (i !== null) out.push({ ini: i, fin: i + h, banda: String(r[RES.banda - 1]), codigo: String(r[RES.codigo - 1]) });
+  });
+  return out;
+}
+
+/** Reagenda una reserva (misma duración, mismo precio). Máximo `reagendoCambios` veces; como administrador puedes hacer una excepción con excepcion=true.
+ *  Nunca puede quedar sobre otra reserva ni sobre un bloqueo. */
+function adminReagendar(codigo, fecha, inicio, excepcion) {
+  exigirAdmin_();
+  fecha = String(fecha || ''); inicio = Number(inicio);
+  if (!Reglas.fechaValida(fecha)) throw new Error('Elige una fecha válida.');
+  if (!(inicio >= 0 && inicio <= 23 && inicio === Math.floor(inicio))) throw new Error('Elige la hora de inicio.');
+  var cfg = getCfg_();
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.reservas), celda = sh.getLastRow() > 1 ? sh.createTextFinder(String(codigo)).matchEntireCell(true).findNext() : null;
+    if (!celda || celda.getColumn() !== RES.codigo) throw new Error('No se encontró la reserva.');
+    var f = celda.getRow(), r = sh.getRange(f, 1, 1, ENCABEZADO_RESERVAS.length).getValues()[0], estado = estadoNorm_(r[RES.estado - 1]);
+    if ([EST.SIN_ABONO, EST.CON_ABONO].indexOf(estado) < 0) throw new Error('Solo se pueden reagendar reservas vigentes (no finalizadas, anuladas ni inasistencias).');
+    var horas = Number(r[RES.horas - 1]) || 1;
+    if (inicio + horas > 24) throw new Error('La sesión terminaría después de medianoche.');
+    var hechos = Number(r[RES.reagendos - 1]) || 0, max = Number(cfg.reagendoCambios) || 2;
+    if (hechos >= max && !excepcion) throw new Error('LIMITE: esta reserva ya se reagendó ' + hechos + ' ' + (hechos === 1 ? 'vez' : 'veces') + ' (máximo ' + max + ').');
+    reservasVigentesEn_(fecha, codigo).forEach(function (x) { if (x.ini < inicio + horas && x.fin > inicio) throw new Error('CHOQUE: ese horario quedaría sobre la reserva de ' + x.banda + ' (' + Reglas.horaTxt(x.ini) + ' a ' + Reglas.horaTxt(x.fin) + ').'); });
+    var oc = ocupadasRango_(fecha, 1)[fecha] || [], propias = [];
+    if (aFechaIso_(r[RES.fecha - 1]) === fecha) { var i0 = aHora_(r[RES.inicio - 1]); for (var q = i0; i0 !== null && q < i0 + horas; q++) propias.push(q); }
+    for (var h = inicio; h < inicio + horas; h++) if (oc.indexOf(h) >= 0 && propias.indexOf(h) < 0) throw new Error('CHOQUE: ese horario está bloqueado u ocupado (' + h + ':00). Quita el bloqueo o elige otro.');
+    sh.getRange(f, RES.fecha).setValue(fechaHora_(fecha, 0));
+    sh.getRange(f, RES.inicio).setNumberFormat('@').setValue(Reglas.horaTxt(inicio));
+    sh.getRange(f, RES.fin).setNumberFormat('@').setValue(Reglas.horaTxt(inicio + horas));
+    sh.getRange(f, RES.reagendos).setValue(hechos + 1);
+    sh.getRange(f, RES.recordatorio).setValue('');
+    var ev = r[RES.evento - 1] ? obtenerEvento_(getCalendar_(), r[RES.evento - 1]) : null;
+    if (ev) ev.setTime(fechaHora_(fecha, inicio), fechaHora_(fecha, inicio + horas));
+    return adminResumen();
+  });
 }
 
 function adminDesbloquear(fila) {
@@ -1638,6 +1703,7 @@ function respaldar() {
     var archivos = [], f = carpeta.getFiles();
     while (f.hasNext()) archivos.push(f.next());
     archivos.sort(function (a, b) { return b.getDateCreated() - a.getDateCreated(); });
+    archivos = archivos.filter(function (a) { return /^Respaldo /.test(a.getName()); });
     archivos.slice(RESPALDOS_A_CONSERVAR).forEach(function (a) { a.setTrashed(true); });
     props.setProperty('ULTIMO_RESPALDO', hoy);
     return 'Respaldo creado: ' + copia.getName() + ' (se conservan ' + RESPALDOS_A_CONSERVAR + ').';
@@ -1654,6 +1720,61 @@ function respaldar() {
 function adminRespaldar() {
   exigirAdmin_();
   return respaldar();
+}
+
+function carpetaRespaldos_() {
+  var it = DriveApp.getFoldersByName(CARPETA_RESPALDOS);
+  return it.hasNext() ? it.next() : DriveApp.createFolder(CARPETA_RESPALDOS);
+}
+
+/** Lista las copias disponibles (más nuevas primero). */
+function adminListarRespaldos() {
+  exigirAdmin_();
+  var out = [], f = carpetaRespaldos_().getFiles();
+  while (f.hasNext()) {
+    var a = f.next();
+    out.push({ id: a.getId(), nombre: a.getName(), creado: Utilities.formatDate(a.getDateCreated(), 'America/Santiago', 'yyyy-MM-dd HH:mm'), t: a.getDateCreated().getTime() });
+  }
+  out.sort(function (a, b) { return b.t - a.t; });
+  return out.slice(0, 60).map(function (x) { delete x.t; return x; });
+}
+
+/**
+ * Restaura TODA la información desde una copia. Seguridad:
+ * 1) exige que la copia sea un archivo de la carpeta de respaldos y tenga las hojas clave;
+ * 2) antes de tocar nada guarda una copia «Previo a restaurar» del estado actual (se puede deshacer);
+ * 3) copia hoja por hoja solo los datos (no borra hojas, fórmulas de formato ni enlaces).
+ */
+function adminRestaurar(id) {
+  exigirAdmin_();
+  return conBloqueo_(function () {
+    var carpeta = carpetaRespaldos_(), ok = false, f = carpeta.getFiles();
+    while (f.hasNext()) if (f.next().getId() === String(id)) ok = true;
+    if (!ok) throw new Error('Esa copia no está en la carpeta de respaldos.');
+    var origen = SpreadsheetApp.openById(id), destino = abrirBd_();
+    [HOJAS.reservas, HOJAS.clientes].forEach(function (n) {
+      if (!origen.getSheetByName(n)) throw new Error('La copia no tiene la hoja «' + n + '». No se restauró nada.');
+    });
+    var previo = DriveApp.getFileById(PropertiesService.getScriptProperties().getProperty('SHEET_ID'))
+      .makeCopy('Previo a restaurar ' + ahoraChile_().fecha + ' ' + Utilities.formatDate(new Date(), Reglas.TZ, 'HH-mm') + ' · Rockerío', carpeta);
+    var n = 0;
+    origen.getSheets().forEach(function (h) {
+      var d = destino.getSheetByName(h.getName());
+      if (!d) return;
+      var filas = h.getLastRow(), cols = h.getLastColumn();
+      var vals = filas && cols ? h.getRange(1, 1, filas, cols).getValues() : [];
+      d.clearContents();
+      if (vals.length) {
+        if (d.getMaxRows() < vals.length) d.insertRowsAfter(d.getMaxRows(), vals.length - d.getMaxRows());
+        if (d.getMaxColumns() < cols) d.insertColumnsAfter(d.getMaxColumns(), cols - d.getMaxColumns());
+        d.getRange(1, 1, vals.length, cols).setValues(vals);
+      }
+      n++;
+    });
+    try { limpiarCacheContenido_(); } catch (e) { /* sin caché */ }
+    try { CacheService.getScriptCache().removeAll(['esq3']); } catch (e) { /* sin caché */ }
+    return 'Restaurado ✔ (' + n + ' hojas). Antes de restaurar se guardó «' + previo.getName() + '». Recarga el portal.';
+  });
 }
 
 /* ---------- Clientes y material (carpeta de Drive por banda) ---------- */
@@ -1891,7 +2012,7 @@ function adminJornadas() {
         extras: Number(r[RES.extras - 1]) || 0, video: String(r[RES.video - 1]) === 'SI', raw: String(r[RES.raw - 1]) === 'SI', zurdo: String(r[RES.zurdo - 1]) === 'SI',
         voces: Number(r[RES.voces - 1]) || 0, comentarios: String(r[RES.comentarios - 1] || ''),
         total: total, abono: abono, saldo: total - abono, retenido: Number(r[RES.retenido - 1]) || 0, devolver: Number(r[RES.devolver - 1]) || 0,
-        plan: String(r[RES.plan - 1] || ''), creada: aFechaIso_(r[RES.creada - 1])
+        plan: String(r[RES.plan - 1] || ''), creada: aFechaIso_(r[RES.creada - 1]), reag: Number(r[RES.reagendos - 1]) || 0
       });
     });
     reservas.sort(function (a, b) { return (b.fecha + b.inicio) < (a.fecha + a.inicio) ? -1 : 1; }); // más reciente primero
@@ -1915,7 +2036,7 @@ function adminJornadas() {
     if (r.fecha && r.fecha >= hoy && (!c.proxima || r.fecha < c.proxima)) c.proxima = r.fecha;
   });
   var clientes = Object.keys(porTel).map(function (t) { return porTel[t]; }).sort(function (a, b) { return b.jornadas - a.jornadas || (a.banda < b.banda ? -1 : 1); });
-  return { hoy: hoy, reservas: reservas, bloqueos: bloqueos, inhabiles: inhabiles, clientes: clientes, estados: ESTADOS, wa: waDatos_() };
+  return { hoy: hoy, reservas: reservas, bloqueos: bloqueos, inhabiles: inhabiles, clientes: clientes, estados: ESTADOS, wa: waDatos_(), maxReag: getCfg_().reagendoCambios };
 }
 
 /* ===== Contenido ===== */
@@ -1927,7 +2048,8 @@ function adminJornadas() {
 var ESTADOS_MOD = ['PENDIENTE', 'APROBADA', 'RECHAZADA'];
 var ESTADOS_SOL = ['NUEVA', 'COTIZADA', 'ACEPTADA', 'RECHAZADA', 'CERRADA'];
 var TIPOS_SOL = { plan8: 'Plan mensual de 8 horas', plan12: 'Plan mensual de 12 horas', produccion: 'Producción musical', otro: 'Otra consulta' };
-var TIPOS_MUESTRA = ['Micrófono', 'Canción', 'Ensayo', 'Otro'];
+var TIPOS_MUESTRA = ['Micrófono', 'Canción', 'Ensayo', 'Comparador', 'Otro'];
+var REDES_HONOR = ['Instagram', 'YouTube', 'TikTok', 'Facebook', 'Spotify', 'Bandcamp', 'SoundCloud', 'X', 'Sitio web'];
 
 /* ---------- limpieza y validación (funciones puras, con pruebas en tests/contenido.test.js) ---------- */
 
@@ -1947,6 +2069,24 @@ function instagram_(v) {
   var s = String(v || '').trim();
   var m = /^(?:https:\/\/(?:www\.)?instagram\.com\/)?@?([\w.]{1,30})\/?(?:\?\S*)?$/.exec(s);
   return m ? 'https://instagram.com/' + m[1] : '';
+}
+
+/** Hasta 3 redes elegidas por la banda: [{r:'TikTok', u:'https://…'}]. Devuelve {lista, error}. */
+function redesHonor_(v) {
+  var arr = v;
+  if (typeof v === 'string') { try { arr = JSON.parse(v || '[]'); } catch (e) { return { lista: [], error: 'Revisa las redes sociales.' }; } }
+  if (!Array.isArray(arr)) return { lista: [], error: '' };
+  var out = [];
+  for (var i = 0; i < arr.length; i++) {
+    var x = arr[i] || {}, r = String(x.r || ''), u = String(x.u || '').trim();
+    if (!u) continue;
+    if (out.length >= 3) return { lista: [], error: 'Puedes agregar hasta 3 redes.' };
+    if (REDES_HONOR.indexOf(r) < 0) return { lista: [], error: 'Red social no válida.' };
+    var url = r === 'Instagram' ? instagram_(u) : r === 'YouTube' ? urlHttps_(u) : urlHttps_(u);
+    if (!url) return { lista: [], error: 'El enlace de ' + r + ' no es válido (debe empezar con https://' + (r === 'Instagram' ? ' o ser @usuario' : '') + ').' };
+    out.push({ r: r, u: url });
+  }
+  return { lista: out, error: '' };
 }
 
 /** Tope de envíos por hora para un tipo de formulario (protege la hoja de spam). Devuelve true si se excedió. */
@@ -1979,6 +2119,7 @@ function registrarHonor_(sol) {
   var logo = String(sol.logo || '').trim() ? urlHttps_(sol.logo) : '', enlace = String(sol.enlace || '').trim() ? urlHttps_(sol.enlace) : '';
   var yt = String(sol.youtube || '').trim() ? ytUrl_(sol.youtube) : '', ig = String(sol.instagram || '').trim() ? instagram_(sol.instagram) : '';
   var resena = limpiar_(sol.resena, 500), genero = limpiar_(sol.genero, 60), formacion = limpiar_(sol.formacion, 120);
+  var rd = redesHonor_(sol.redes), ultimo = String(sol.ultimo || '').trim() ? urlHttps_(sol.ultimo) : '';
   var e = null;
   if (banda.length < 2) e = 'Escribe el nombre de tu banda o proyecto.';
   else if (!Reglas.telefonoValido(tel)) e = 'Revisa tu teléfono.';
@@ -1987,6 +2128,8 @@ function registrarHonor_(sol) {
   else if (String(sol.enlace || '').trim() && !enlace) e = 'El enlace debe empezar con https://';
   else if (String(sol.youtube || '').trim() && !yt) e = 'El enlace de YouTube no es válido.';
   else if (String(sol.instagram || '').trim() && !ig) e = 'El Instagram no es válido (usa @usuario o el enlace).';
+  else if (rd.error) e = rd.error;
+  else if (String(sol.ultimo || '').trim() && !ultimo) e = 'El enlace de tu último trabajo debe empezar con https://';
   else if (resena.length < 10) e = 'Cuéntanos algo de tu banda (mínimo 10 caracteres).';
   if (e) return { ok: false, codigo: 'DATOS', error: e };
   if (String(sol.logoB64 || '').trim()) {
@@ -2000,7 +2143,7 @@ function registrarHonor_(sol) {
       var hay = sh.getRange(2, 1, n - 1, 4).getValues().some(function (r) { return String(r[1]) === 'PENDIENTE' && String(r[3]) === tel; });
       if (hay) { res = { ok: false, codigo: 'DUPLICADA', error: 'Ya tienes una solicitud en revisión.' }; return; }
     }
-    sh.appendRow([new Date(), 'PENDIENTE', textoSeguro_(banda), tel, textoSeguro_(correo), logo, ig, enlace, yt, textoSeguro_(resena), textoSeguro_(genero), textoSeguro_(formacion)]);
+    sh.appendRow([new Date(), 'PENDIENTE', textoSeguro_(banda), tel, textoSeguro_(correo), logo, ig, enlace, yt, textoSeguro_(resena), textoSeguro_(genero), textoSeguro_(formacion), rd.lista.length ? JSON.stringify(rd.lista) : '', ultimo]);
     res = { ok: true, mensaje: '¡Gracias! Revisaremos tu información y la publicaremos pronto.' };
   });
   if (res.ok) avisarAdmin_('Nueva solicitud para el cuadro de honor: ' + banda, 'Banda: ' + banda + '\nTeléfono: +' + tel + '\n\nApruébala en el portal de administración.');
@@ -2077,9 +2220,10 @@ function contenidoPublico_() {
   }
   var sh = ss.getSheetByName(HOJAS.honor);
   if (sh.getLastRow() > 1) {
-    sh.getRange(2, 1, sh.getLastRow() - 1, 12).getValues().forEach(function (r) {
+    sh.getRange(2, 1, sh.getLastRow() - 1, 14).getValues().forEach(function (r) {
       if (String(r[1]) !== 'APROBADA') return;
-      out.honor.push({ banda: String(r[2]), logo: String(r[5]), instagram: String(r[6]), enlace: String(r[7]), youtube: String(r[8]), resena: String(r[9]), genero: String(r[10] || ''), formacion: String(r[11] || '') });
+      var rd = []; try { rd = JSON.parse(String(r[12] || '[]')); } catch (e) { rd = []; }
+      out.honor.push({ banda: String(r[2]), logo: String(r[5]), instagram: String(r[6]), enlace: String(r[7]), youtube: String(r[8]), resena: String(r[9]), genero: String(r[10] || ''), formacion: String(r[11] || ''), redes: rd, ultimo: String(r[13] || '') });
     });
   }
   var sr = ss.getSheetByName(HOJAS.resenas), suma = 0;
@@ -2109,8 +2253,8 @@ function leerModeracion_(nombreHoja, ncols, mapa) {
 }
 
 function leerHonor_() {
-  return leerModeracion_(HOJAS.honor, 12, function (r) {
-    return { estado: String(r[1]), banda: String(r[2]), telefono: String(r[3]), correo: String(r[4]), logo: String(r[5]), instagram: String(r[6]), enlace: String(r[7]), youtube: String(r[8]), resena: String(r[9]), genero: String(r[10] || ''), formacion: String(r[11] || '') };
+  return leerModeracion_(HOJAS.honor, 14, function (r) {
+    return { estado: String(r[1]), banda: String(r[2]), telefono: String(r[3]), correo: String(r[4]), logo: String(r[5]), instagram: String(r[6]), enlace: String(r[7]), youtube: String(r[8]), resena: String(r[9]), genero: String(r[10] || ''), formacion: String(r[11] || ''), redes: String(r[12] || ''), ultimo: String(r[13] || '') };
   });
 }
 function leerResenas_() {
@@ -2192,6 +2336,35 @@ function adminGuardarMuestra(p) {
   return conBloqueo_(function () {
     var sh = abrirBd_().getSheetByName(HOJAS.muestras);
     if (p.fila) sh.getRange(filaProducto_(sh, p.fila), 1, 1, 6).setValues([fila]); else sh.appendRow(fila);
+    limpiarCacheContenido_();
+    return adminResumen();
+  });
+}
+
+/** Comparador A/B/C: una canción en tres versiones. d = {titulo, descripcion, bruto, mezclada, master}. Reemplaza la canción si ya existía. */
+function adminGuardarComparador(d) {
+  exigirAdmin_();
+  var titulo = limpiar_(d.titulo, 80);
+  if (!titulo) throw new Error('Escribe el nombre de la canción.');
+  var vers = [['En bruto', d.bruto], ['Mezclada', d.mezclada], ['Masterizada', d.master]];
+  vers.forEach(function (v) {
+    var e = String(v[1] || '').trim();
+    if (!/^https:\/\/\S{4,400}$/.test(e) && !/^audio\/[\w\-. \/]{1,150}$/.test(e)) throw new Error('Falta el enlace de la versión «' + v[0] + '» (debe empezar con https://).');
+  });
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.muestras), n = sh.getLastRow();
+    for (var i = n; i >= 2; i--) { var r = sh.getRange(i, 1, 1, 2).getValues()[0]; if (String(r[1]) === 'Comparador' && String(r[0]) === titulo) sh.deleteRow(i); }
+    vers.forEach(function (v) { sh.appendRow([textoSeguro_(titulo), 'Comparador', v[0], String(v[1]).trim(), textoSeguro_(limpiar_(d.descripcion, 300)), 'SI']); });
+    limpiarCacheContenido_();
+    return adminResumen();
+  });
+}
+
+function adminEliminarComparador(titulo) {
+  exigirAdmin_();
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.muestras), n = sh.getLastRow();
+    for (var i = n; i >= 2; i--) { var r = sh.getRange(i, 1, 1, 2).getValues()[0]; if (String(r[1]) === 'Comparador' && String(r[0]) === String(titulo)) sh.deleteRow(i); }
     limpiarCacheContenido_();
     return adminResumen();
   });
@@ -2280,6 +2453,15 @@ function adminSubirAudio(p) {
   return adminGuardarMuestra({ fila: null, grupo: p.grupo, tipo: p.tipo, etiqueta: p.etiqueta, descripcion: p.descripcion, enlace: 'https://drive.google.com/file/d/' + id + '/view', visible: true });
 }
 
+/** Sube un audio a Drive y devuelve solo su enlace (para armar el comparador). */
+function adminSubirArchivoAudio(p) {
+  exigirAdmin_();
+  var bytes = decodificar_(p.b64, 12 * 1024 * 1024), t = tipoAudio_(bytes);
+  if (!t) throw new Error('El archivo debe ser un audio mp3, wav, m4a u ogg.');
+  var id = guardarPublico_(carpetaDrive_(CARPETA_AUDIOS), limpiar_(p.grupo, 40).replace(/[^\w\- ]/g, '') + '-' + limpiar_(p.etiqueta, 20).replace(/[^\w\- ]/g, '') + '-' + Date.now() + '.' + t[1], t[0], bytes);
+  return 'https://drive.google.com/file/d/' + id + '/view';
+}
+
 /** Edita los datos de una banda del cuadro de honor (y opcionalmente cambia el logo). */
 function adminEditarHonor(fila, d) {
   exigirAdmin_();
@@ -2311,13 +2493,15 @@ function adminAgregarHonor(d) {
   if (String(d.enlace || '').trim() && !enlace) throw new Error('El enlace debe empezar con https://');
   if (String(d.youtube || '').trim() && !yt) throw new Error('El enlace de YouTube no es válido.');
   if (String(d.instagram || '').trim() && !ig) throw new Error('El Instagram no es válido.');
+  var rd = redesHonor_(d.redes); if (rd.error) throw new Error(rd.error);
+  var ultimo = String(d.ultimo || '').trim() ? urlHttps_(d.ultimo) : ''; if (String(d.ultimo || '').trim() && !ultimo) throw new Error('El enlace del último trabajo debe empezar con https://');
   var tel = String(d.telefono || '').trim() ? Reglas.normalizarTelefono(d.telefono) : '';
   if (tel && !Reglas.telefonoValido(tel)) throw new Error('Revisa el teléfono.');
   var correo = limpiar_(d.correo, 120).toLowerCase();
   if (correo && !Reglas.correoValido(correo)) throw new Error('Revisa el correo.');
   if (String(d.logoB64 || '').trim()) logo = guardarLogo_(d.logoB64, banda);
   return conBloqueo_(function () {
-    abrirBd_().getSheetByName(HOJAS.honor).appendRow([new Date(), 'APROBADA', textoSeguro_(banda), tel, textoSeguro_(correo), logo, ig, enlace, yt, textoSeguro_(limpiar_(d.resena, 500)), textoSeguro_(limpiar_(d.genero, 60)), textoSeguro_(limpiar_(d.formacion, 120))]);
+    abrirBd_().getSheetByName(HOJAS.honor).appendRow([new Date(), 'APROBADA', textoSeguro_(banda), tel, textoSeguro_(correo), logo, ig, enlace, yt, textoSeguro_(limpiar_(d.resena, 500)), textoSeguro_(limpiar_(d.genero, 60)), textoSeguro_(limpiar_(d.formacion, 120)), rd.lista.length ? JSON.stringify(rd.lista) : '', ultimo]);
     limpiarCacheContenido_();
     return adminResumen();
   });
@@ -2791,6 +2975,54 @@ function adminAnularVenta(id) {
   });
 }
 
+/** Ajusta el stock de un producto (por nombre) sumando `delta` unidades. Si el producto no lleva stock, no hace nada. */
+function ajustarStockPorNombre_(tipo, nombre, delta) {
+  var cat = hojaCatalogo_(tipo), n = cat.getLastRow();
+  if (n > 1) cat.getRange(2, 1, n - 1, 5).getValues().some(function (p, i) {
+    if (String(p[1]) !== String(nombre) || p[4] === '') return false;
+    var nuevo = Number(p[4]) + delta; if (nuevo < 0) throw new Error('Stock insuficiente para ese cambio: quedan ' + p[4] + '.');
+    cat.getRange(i + 2, 5).setValue(nuevo); return true;
+  });
+}
+
+/** Corrige una venta mal ingresada: cantidad, forma de pago y nota. Ajusta el stock y el total. d = {cantidad, pago, nota}. */
+function adminEditarVenta(id, d) {
+  exigirAdmin_();
+  d = d || {};
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.ventas), f = filaPorTexto_(sh, id, VT.id);
+    if (!f) throw new Error('Venta no encontrada.');
+    var r = sh.getRange(f, 1, 1, COLS_VENTAS).getValues()[0], pagoAnt = pagoNorm_(r[VT.pago - 1]);
+    if (pagoAnt === PAGO.ANULADA) throw new Error('Esa venta está anulada; no se puede editar.');
+    var cant = Number(d.cantidad), pago = pagoNorm_(d.pago);
+    if (!(cant >= 1 && cant <= 99 && cant % 1 === 0)) throw new Error('Cantidad inválida.');
+    if (PAGOS_VENTA.indexOf(pago) < 0) throw new Error('Elige cómo se pagó.');
+    var tipo = String(r[VT.tipo - 1]) === ETIQUETA_TIPO.bebestible ? 'bebestible' : 'musica';
+    var dif = cant - Number(r[VT.cantidad - 1]);
+    if (dif !== 0) ajustarStockPorNombre_(tipo, r[VT.producto - 1], -dif);
+    sh.getRange(f, VT.cantidad).setValue(cant);
+    sh.getRange(f, VT.total).setValue(cant * (Number(r[VT.precio - 1]) || 0));
+    sh.getRange(f, VT.pago).setValue(pago);
+    if (pagoAnt === PAGO.PENDIENTE && pago !== PAGO.PENDIENTE) sh.getRange(f, VT.cobro).setValue(new Date());
+    if (pago === PAGO.PENDIENTE) sh.getRange(f, VT.cobro).setValue('');
+    sh.getRange(f, VT.nota).setValue(textoSeguro_(limpiar_(d.nota, 200)));
+    return adminResumen();
+  });
+}
+
+/** Elimina del todo una venta (por ejemplo, una duplicada). Si no estaba anulada, devuelve las unidades al stock. */
+function adminEliminarVenta(id) {
+  exigirAdmin_();
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.ventas), f = filaPorTexto_(sh, id, VT.id);
+    if (!f) throw new Error('Venta no encontrada.');
+    var r = sh.getRange(f, 1, 1, COLS_VENTAS).getValues()[0];
+    if (pagoNorm_(r[VT.pago - 1]) !== PAGO.ANULADA) ajustarStockPorNombre_(String(r[VT.tipo - 1]) === ETIQUETA_TIPO.bebestible ? 'bebestible' : 'musica', r[VT.producto - 1], Number(r[VT.cantidad - 1]) || 0);
+    sh.deleteRow(f);
+    return adminResumen();
+  });
+}
+
 /* ---------- costos mensuales (luz, caja chica…) ---------- */
 
 function leerCostos_() {
@@ -2885,18 +3117,18 @@ function prepararSocios_() {
 
 function leerSocios_() {
   var t = leerTokens_();
-  return Object.keys(t).map(function (k) { return { token: k, nombre: t[k].nombre, creado: t[k].creado || '' }; })
+  return Object.keys(t).map(function (k) { return { token: k, nombre: t[k].nombre, creado: t[k].creado || '', tipo: t[k].tipo === 'social' ? 'social' : 'colega' }; })
     .sort(function (a, b) { return a.nombre < b.nombre ? -1 : 1; });
 }
 
-function adminCrearSocio(nombre) {
+function adminCrearSocio(nombre, tipo) {
   exigirAdmin_();
   nombre = limpiar_(nombre, 40);
   if (!nombre) throw new Error('Escribe el nombre del socio.');
   return conBloqueo_(function () {
     var t = leerTokens_();
     if (Object.keys(t).length >= 10) throw new Error('Máximo 10 enlaces de socios.');
-    t[nuevoToken_()] = { nombre: nombre, creado: ahoraChile_().fecha };
+    t[nuevoToken_()] = { nombre: nombre, creado: ahoraChile_().fecha, tipo: tipo === 'social' ? 'social' : 'colega' };
     guardarTokens_(t);
     return adminResumen();
   });
@@ -2909,7 +3141,7 @@ function adminRegenerarSocio(token) {
     var t = leerTokens_();
     if (!t[token]) throw new Error('Enlace no encontrado.');
     var datos = t[token]; delete t[token];
-    t[nuevoToken_()] = { nombre: datos.nombre, creado: ahoraChile_().fecha };
+    t[nuevoToken_()] = { nombre: datos.nombre, creado: ahoraChile_().fecha, tipo: datos.tipo || 'colega' };
     guardarTokens_(t);
     return adminResumen();
   });
@@ -2924,6 +3156,9 @@ function adminEliminarSocio(token) {
     return adminResumen();
   });
 }
+
+/** 'social' (solo agenda) o 'colega' (agenda + ventas + resúmenes). */
+function tipoSocio_(token) { var t = leerTokens_()[String(token || '')]; return t && t.tipo === 'social' ? 'social' : 'colega'; }
 
 /** Devuelve el nombre del socio o '' si el token no vale. Frena a quien prueba tokens al azar. */
 function socioDe_(token) {
@@ -2940,19 +3175,19 @@ function catalogoSocios_(tipo) {
     .map(function (p) { return { fila: p.fila, categoria: p.categoria, nombre: p.nombre, detalle: p.detalle, precio: p.precio, stock: p.stock, foto: fotoValida_(p.foto) }; });
 }
 
-/** Agenda de los próximos 30 días: solo banda, hora, servicio y estado. Sin teléfonos, correos ni montos. */
+/** Agenda desde el 1° del mes actual hasta ~3 meses adelante: solo banda, hora, servicio y estado. Sin teléfonos, correos ni montos. */
 function agendaDetalle_() {
-  var ss = abrirBd_(), hoy = ahoraChile_().fecha, fin = Reglas.sumarDias(hoy, 30), out = [];
+  var ss = abrirBd_(), hoy = ahoraChile_().fecha, desde = hoy.slice(0, 8) + '01', fin = Reglas.sumarDias(hoy, 95), out = [];
   var sr = ss.getSheetByName(HOJAS.reservas), n = sr.getLastRow();
   if (n > 1) sr.getRange(2, 1, n - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r) {
     var f = aFechaIso_(r[RES.fecha - 1]), e = estadoNorm_(r[RES.estado - 1]);
-    if (!r[RES.codigo - 1] || f < hoy || f > fin || e === EST.ANULADA) return;
+    if (!r[RES.codigo - 1] || f < desde || f > fin || e === EST.ANULADA) return;
     out.push({ fecha: f, inicio: String(r[RES.inicio - 1]), fin: String(r[RES.fin - 1]), servicio: String(r[RES.servicio - 1]), banda: String(r[RES.banda - 1]), estado: e });
   });
   var sb = ss.getSheetByName(HOJAS.bloqueos), m = sb.getLastRow();
   if (m > 1) sb.getRange(2, 1, m - 1, 4).getValues().forEach(function (r) {
     var f = aFechaIso_(r[0]);
-    if (f && f >= hoy && f <= fin) out.push({ fecha: f, inicio: String(r[1] || ''), fin: String(r[2] || ''), servicio: 'Bloqueo', banda: String(r[3] || 'No disponible'), estado: 'Bloqueo' });
+    if (f && f >= desde && f <= fin) out.push({ fecha: f, inicio: String(r[1] || ''), fin: String(r[2] || ''), servicio: 'Bloqueo', banda: String(r[3] || 'No disponible'), estado: 'Bloqueo' });
   });
   out.sort(function (a, b) { return (a.fecha + a.inicio) < (b.fecha + b.inicio) ? -1 : 1; });
   return out;
@@ -2981,14 +3216,15 @@ function resumenGeneral_(mes) {
 function sociosDatos_(token, mes) {
   var nombre = socioDe_(token);
   if (!nombre) return { ok: false, codigo: 'ENLACE', error: 'Este enlace no es válido o fue desactivado. Pide uno nuevo.' };
+  if (tipoSocio_(token) === 'social') return { ok: true, socio: nombre, tipo: 'social', ahora: ahoraChile_(), agenda: agendaDetalle_() };
   var v = datosVentas_(mes);
-  return { ok: true, socio: nombre, ahora: ahoraChile_(), agenda: agendaDetalle_(), musica: catalogoSocios_('musica'), bebestibles: catalogoSocios_('bebestible'),
+  return { ok: true, socio: nombre, tipo: 'colega', ahora: ahoraChile_(), agenda: agendaDetalle_(), musica: catalogoSocios_('musica'), bebestibles: catalogoSocios_('bebestible'),
     resumen: v.resumen, ventas: v.ventas, pendientes: v.pendientes, general: resumenGeneral_(mes) };
 }
 
 function sociosVender_(sol) {
   var nombre = socioDe_(sol.t);
-  if (!nombre) return { ok: false, codigo: 'ENLACE', error: 'Enlace no válido.' };
+  if (!nombre || tipoSocio_(sol.t) === 'social') return { ok: false, codigo: 'ENLACE', error: 'Enlace no válido.' };
   if (limiteGlobal_('socios_venta', 200)) return { ok: false, codigo: 'TASA', error: 'Demasiadas ventas seguidas. Intenta más tarde.' };
   try {
     var id = conBloqueo_(function () { return registrarVenta_(tipoCatalogo_(sol.tipo), sol.fila, sol.cantidad, sol.pago, nombre, sol.nota); });
@@ -2999,7 +3235,7 @@ function sociosVender_(sol) {
 /** Venta por carrito desde el enlace de socios: sol = {t, tipo, items:[{fila,cantidad}], pago, nota}. */
 function sociosCarrito_(sol) {
   var nombre = socioDe_(sol.t);
-  if (!nombre) return { ok: false, codigo: 'ENLACE', error: 'Enlace no válido.' };
+  if (!nombre || tipoSocio_(sol.t) === 'social') return { ok: false, codigo: 'ENLACE', error: 'Enlace no válido.' };
   if (limiteGlobal_('socios_venta', 200)) return { ok: false, codigo: 'TASA', error: 'Demasiadas ventas seguidas. Intenta más tarde.' };
   try {
     var ids = conBloqueo_(function () { return registrarCarrito_(tipoCatalogo_(sol.tipo), sol.items, sol.pago, nombre, sol.nota); });
@@ -3009,7 +3245,7 @@ function sociosCarrito_(sol) {
 
 function sociosCobrar_(sol) {
   var nombre = socioDe_(sol.t);
-  if (!nombre) return { ok: false, codigo: 'ENLACE', error: 'Enlace no válido.' };
+  if (!nombre || tipoSocio_(sol.t) === 'social') return { ok: false, codigo: 'ENLACE', error: 'Enlace no válido.' };
   try {
     conBloqueo_(function () { cobrarVenta_(String(sol.id || ''), sol.pago, nombre); });
     return { ok: true };
@@ -3225,6 +3461,10 @@ var ESQUEMA = [
   ['redYoutube', 'YouTube', 'url', 'Contacto y redes', 'Enlace de tu canal.'],
   ['redTiktok', 'TikTok', 'url', 'Contacto y redes', 'Enlace de tu perfil.'],
   ['redSpotify', 'Spotify', 'url', 'Contacto y redes', 'Enlace de tu perfil o lista.'],
+  ['redYoutubeMusic', 'YouTube Music (lista oficial)', 'url', 'Contacto y redes', 'Enlace de tu lista de YouTube Music.'],
+  ['redTwitch', 'Twitch', 'url', 'Contacto y redes', 'Enlace de tu canal de transmisiones en vivo.'],
+  ['redLinktree', 'Linktree', 'url', 'Contacto y redes', 'Enlace de tu Linktree con todos tus enlaces.'],
+  ['correoContacto', 'Correo de contacto (se muestra en el sitio)', 'texto', 'Contacto y redes', 'Ej.: rockerioestudio@gmail.com. Es el que ven los clientes en Contacto.'],
   ['mapsUrl', 'Cómo llegar (Google Maps)', 'url', 'Contacto y redes', 'Enlace de Google Maps a la dirección del estudio.'],
   ['enlacesExtra', 'Otros enlaces de interés', 'enlaces', 'Contacto y redes', 'Una línea por enlace: Texto | https://enlace. Máximo 8.'],
   ['proaudixTexto', 'ProAudix: descripción', 'texto', 'ProAudix', 'Texto de presentación del apartado ProAudix.', 400],

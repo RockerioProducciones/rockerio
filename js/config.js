@@ -2,7 +2,7 @@
    Pega aquí la URL de tu aplicación web de Apps Script (termina en /exec).
    Si queda vacía, el sitio funciona igual y las reservas se envían por WhatsApp. */
 window.ROCKERIO = {
-  APPS_SCRIPT_URL: '',
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxu06g3wG70bThU4BHlQ45r5pvzwWzu_S1IGaUf8L2LADN2sAFGaBseHxLTsyH7Zhlv/exec',
   ADMIN_URL: 'https://script.google.com/macros/s/AKfycbwntEC4c0eGGCGziU-sqOT9wiCmo0a1t71HYrTAtRFOKZtmgjoQ81yjwdTmcTsL7osU/exec?admin=1',  // URL del despliegue de administración (Apps Script, "Solo yo"); /admin redirige aquí
   SITIO_URL: 'https://script.google.com/macros/s/AKfycbxu06g3wG70bThU4BHlQ45r5pvzwWzu_S1IGaUf8L2LADN2sAFGaBseHxLTsyH7Zhlv/exec'   // opcional, por ejemplo https://tuusuario.github.io/rockerio
 };

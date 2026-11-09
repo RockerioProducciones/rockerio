@@ -23,18 +23,18 @@ function prepararSocios_() {
 
 function leerSocios_() {
   var t = leerTokens_();
-  return Object.keys(t).map(function (k) { return { token: k, nombre: t[k].nombre, creado: t[k].creado || '' }; })
+  return Object.keys(t).map(function (k) { return { token: k, nombre: t[k].nombre, creado: t[k].creado || '', tipo: t[k].tipo === 'social' ? 'social' : 'colega' }; })
     .sort(function (a, b) { return a.nombre < b.nombre ? -1 : 1; });
 }
 
-function adminCrearSocio(nombre) {
+function adminCrearSocio(nombre, tipo) {
   exigirAdmin_();
   nombre = limpiar_(nombre, 40);
   if (!nombre) throw new Error('Escribe el nombre del socio.');
   return conBloqueo_(function () {
     var t = leerTokens_();
     if (Object.keys(t).length >= 10) throw new Error('Máximo 10 enlaces de socios.');
-    t[nuevoToken_()] = { nombre: nombre, creado: ahoraChile_().fecha };
+    t[nuevoToken_()] = { nombre: nombre, creado: ahoraChile_().fecha, tipo: tipo === 'social' ? 'social' : 'colega' };
     guardarTokens_(t);
     return adminResumen();
   });
@@ -47,7 +47,7 @@ function adminRegenerarSocio(token) {
     var t = leerTokens_();
     if (!t[token]) throw new Error('Enlace no encontrado.');
     var datos = t[token]; delete t[token];
-    t[nuevoToken_()] = { nombre: datos.nombre, creado: ahoraChile_().fecha };
+    t[nuevoToken_()] = { nombre: datos.nombre, creado: ahoraChile_().fecha, tipo: datos.tipo || 'colega' };
     guardarTokens_(t);
     return adminResumen();
   });
@@ -62,6 +62,9 @@ function adminEliminarSocio(token) {
     return adminResumen();
   });
 }
+
+/** 'social' (solo agenda) o 'colega' (agenda + ventas + resúmenes). */
+function tipoSocio_(token) { var t = leerTokens_()[String(token || '')]; return t && t.tipo === 'social' ? 'social' : 'colega'; }
 
 /** Devuelve el nombre del socio o '' si el token no vale. Frena a quien prueba tokens al azar. */
 function socioDe_(token) {
@@ -78,19 +81,19 @@ function catalogoSocios_(tipo) {
     .map(function (p) { return { fila: p.fila, categoria: p.categoria, nombre: p.nombre, detalle: p.detalle, precio: p.precio, stock: p.stock, foto: fotoValida_(p.foto) }; });
 }
 
-/** Agenda de los próximos 30 días: solo banda, hora, servicio y estado. Sin teléfonos, correos ni montos. */
+/** Agenda desde el 1° del mes actual hasta ~3 meses adelante: solo banda, hora, servicio y estado. Sin teléfonos, correos ni montos. */
 function agendaDetalle_() {
-  var ss = abrirBd_(), hoy = ahoraChile_().fecha, fin = Reglas.sumarDias(hoy, 30), out = [];
+  var ss = abrirBd_(), hoy = ahoraChile_().fecha, desde = hoy.slice(0, 8) + '01', fin = Reglas.sumarDias(hoy, 95), out = [];
   var sr = ss.getSheetByName(HOJAS.reservas), n = sr.getLastRow();
   if (n > 1) sr.getRange(2, 1, n - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r) {
     var f = aFechaIso_(r[RES.fecha - 1]), e = estadoNorm_(r[RES.estado - 1]);
-    if (!r[RES.codigo - 1] || f < hoy || f > fin || e === EST.ANULADA) return;
+    if (!r[RES.codigo - 1] || f < desde || f > fin || e === EST.ANULADA) return;
     out.push({ fecha: f, inicio: String(r[RES.inicio - 1]), fin: String(r[RES.fin - 1]), servicio: String(r[RES.servicio - 1]), banda: String(r[RES.banda - 1]), estado: e });
   });
   var sb = ss.getSheetByName(HOJAS.bloqueos), m = sb.getLastRow();
   if (m > 1) sb.getRange(2, 1, m - 1, 4).getValues().forEach(function (r) {
     var f = aFechaIso_(r[0]);
-    if (f && f >= hoy && f <= fin) out.push({ fecha: f, inicio: String(r[1] || ''), fin: String(r[2] || ''), servicio: 'Bloqueo', banda: String(r[3] || 'No disponible'), estado: 'Bloqueo' });
+    if (f && f >= desde && f <= fin) out.push({ fecha: f, inicio: String(r[1] || ''), fin: String(r[2] || ''), servicio: 'Bloqueo', banda: String(r[3] || 'No disponible'), estado: 'Bloqueo' });
   });
   out.sort(function (a, b) { return (a.fecha + a.inicio) < (b.fecha + b.inicio) ? -1 : 1; });
   return out;
@@ -119,14 +122,15 @@ function resumenGeneral_(mes) {
 function sociosDatos_(token, mes) {
   var nombre = socioDe_(token);
   if (!nombre) return { ok: false, codigo: 'ENLACE', error: 'Este enlace no es válido o fue desactivado. Pide uno nuevo.' };
+  if (tipoSocio_(token) === 'social') return { ok: true, socio: nombre, tipo: 'social', ahora: ahoraChile_(), agenda: agendaDetalle_() };
   var v = datosVentas_(mes);
-  return { ok: true, socio: nombre, ahora: ahoraChile_(), agenda: agendaDetalle_(), musica: catalogoSocios_('musica'), bebestibles: catalogoSocios_('bebestible'),
+  return { ok: true, socio: nombre, tipo: 'colega', ahora: ahoraChile_(), agenda: agendaDetalle_(), musica: catalogoSocios_('musica'), bebestibles: catalogoSocios_('bebestible'),
     resumen: v.resumen, ventas: v.ventas, pendientes: v.pendientes, general: resumenGeneral_(mes) };
 }
 
 function sociosVender_(sol) {
   var nombre = socioDe_(sol.t);
-  if (!nombre) return { ok: false, codigo: 'ENLACE', error: 'Enlace no válido.' };
+  if (!nombre || tipoSocio_(sol.t) === 'social') return { ok: false, codigo: 'ENLACE', error: 'Enlace no válido.' };
   if (limiteGlobal_('socios_venta', 200)) return { ok: false, codigo: 'TASA', error: 'Demasiadas ventas seguidas. Intenta más tarde.' };
   try {
     var id = conBloqueo_(function () { return registrarVenta_(tipoCatalogo_(sol.tipo), sol.fila, sol.cantidad, sol.pago, nombre, sol.nota); });
@@ -137,7 +141,7 @@ function sociosVender_(sol) {
 /** Venta por carrito desde el enlace de socios: sol = {t, tipo, items:[{fila,cantidad}], pago, nota}. */
 function sociosCarrito_(sol) {
   var nombre = socioDe_(sol.t);
-  if (!nombre) return { ok: false, codigo: 'ENLACE', error: 'Enlace no válido.' };
+  if (!nombre || tipoSocio_(sol.t) === 'social') return { ok: false, codigo: 'ENLACE', error: 'Enlace no válido.' };
   if (limiteGlobal_('socios_venta', 200)) return { ok: false, codigo: 'TASA', error: 'Demasiadas ventas seguidas. Intenta más tarde.' };
   try {
     var ids = conBloqueo_(function () { return registrarCarrito_(tipoCatalogo_(sol.tipo), sol.items, sol.pago, nombre, sol.nota); });
@@ -147,7 +151,7 @@ function sociosCarrito_(sol) {
 
 function sociosCobrar_(sol) {
   var nombre = socioDe_(sol.t);
-  if (!nombre) return { ok: false, codigo: 'ENLACE', error: 'Enlace no válido.' };
+  if (!nombre || tipoSocio_(sol.t) === 'social') return { ok: false, codigo: 'ENLACE', error: 'Enlace no válido.' };
   try {
     conBloqueo_(function () { cobrarVenta_(String(sol.id || ''), sol.pago, nombre); });
     return { ok: true };

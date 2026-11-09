@@ -6,7 +6,8 @@
 var ESTADOS_MOD = ['PENDIENTE', 'APROBADA', 'RECHAZADA'];
 var ESTADOS_SOL = ['NUEVA', 'COTIZADA', 'ACEPTADA', 'RECHAZADA', 'CERRADA'];
 var TIPOS_SOL = { plan8: 'Plan mensual de 8 horas', plan12: 'Plan mensual de 12 horas', produccion: 'Producción musical', otro: 'Otra consulta' };
-var TIPOS_MUESTRA = ['Micrófono', 'Canción', 'Ensayo', 'Otro'];
+var TIPOS_MUESTRA = ['Micrófono', 'Canción', 'Ensayo', 'Comparador', 'Otro'];
+var REDES_HONOR = ['Instagram', 'YouTube', 'TikTok', 'Facebook', 'Spotify', 'Bandcamp', 'SoundCloud', 'X', 'Sitio web'];
 
 /* ---------- limpieza y validación (funciones puras, con pruebas en tests/contenido.test.js) ---------- */
 
@@ -26,6 +27,24 @@ function instagram_(v) {
   var s = String(v || '').trim();
   var m = /^(?:https:\/\/(?:www\.)?instagram\.com\/)?@?([\w.]{1,30})\/?(?:\?\S*)?$/.exec(s);
   return m ? 'https://instagram.com/' + m[1] : '';
+}
+
+/** Hasta 3 redes elegidas por la banda: [{r:'TikTok', u:'https://…'}]. Devuelve {lista, error}. */
+function redesHonor_(v) {
+  var arr = v;
+  if (typeof v === 'string') { try { arr = JSON.parse(v || '[]'); } catch (e) { return { lista: [], error: 'Revisa las redes sociales.' }; } }
+  if (!Array.isArray(arr)) return { lista: [], error: '' };
+  var out = [];
+  for (var i = 0; i < arr.length; i++) {
+    var x = arr[i] || {}, r = String(x.r || ''), u = String(x.u || '').trim();
+    if (!u) continue;
+    if (out.length >= 3) return { lista: [], error: 'Puedes agregar hasta 3 redes.' };
+    if (REDES_HONOR.indexOf(r) < 0) return { lista: [], error: 'Red social no válida.' };
+    var url = r === 'Instagram' ? instagram_(u) : r === 'YouTube' ? urlHttps_(u) : urlHttps_(u);
+    if (!url) return { lista: [], error: 'El enlace de ' + r + ' no es válido (debe empezar con https://' + (r === 'Instagram' ? ' o ser @usuario' : '') + ').' };
+    out.push({ r: r, u: url });
+  }
+  return { lista: out, error: '' };
 }
 
 /** Tope de envíos por hora para un tipo de formulario (protege la hoja de spam). Devuelve true si se excedió. */
@@ -58,6 +77,7 @@ function registrarHonor_(sol) {
   var logo = String(sol.logo || '').trim() ? urlHttps_(sol.logo) : '', enlace = String(sol.enlace || '').trim() ? urlHttps_(sol.enlace) : '';
   var yt = String(sol.youtube || '').trim() ? ytUrl_(sol.youtube) : '', ig = String(sol.instagram || '').trim() ? instagram_(sol.instagram) : '';
   var resena = limpiar_(sol.resena, 500), genero = limpiar_(sol.genero, 60), formacion = limpiar_(sol.formacion, 120);
+  var rd = redesHonor_(sol.redes), ultimo = String(sol.ultimo || '').trim() ? urlHttps_(sol.ultimo) : '';
   var e = null;
   if (banda.length < 2) e = 'Escribe el nombre de tu banda o proyecto.';
   else if (!Reglas.telefonoValido(tel)) e = 'Revisa tu teléfono.';
@@ -66,6 +86,8 @@ function registrarHonor_(sol) {
   else if (String(sol.enlace || '').trim() && !enlace) e = 'El enlace debe empezar con https://';
   else if (String(sol.youtube || '').trim() && !yt) e = 'El enlace de YouTube no es válido.';
   else if (String(sol.instagram || '').trim() && !ig) e = 'El Instagram no es válido (usa @usuario o el enlace).';
+  else if (rd.error) e = rd.error;
+  else if (String(sol.ultimo || '').trim() && !ultimo) e = 'El enlace de tu último trabajo debe empezar con https://';
   else if (resena.length < 10) e = 'Cuéntanos algo de tu banda (mínimo 10 caracteres).';
   if (e) return { ok: false, codigo: 'DATOS', error: e };
   if (String(sol.logoB64 || '').trim()) {
@@ -79,7 +101,7 @@ function registrarHonor_(sol) {
       var hay = sh.getRange(2, 1, n - 1, 4).getValues().some(function (r) { return String(r[1]) === 'PENDIENTE' && String(r[3]) === tel; });
       if (hay) { res = { ok: false, codigo: 'DUPLICADA', error: 'Ya tienes una solicitud en revisión.' }; return; }
     }
-    sh.appendRow([new Date(), 'PENDIENTE', textoSeguro_(banda), tel, textoSeguro_(correo), logo, ig, enlace, yt, textoSeguro_(resena), textoSeguro_(genero), textoSeguro_(formacion)]);
+    sh.appendRow([new Date(), 'PENDIENTE', textoSeguro_(banda), tel, textoSeguro_(correo), logo, ig, enlace, yt, textoSeguro_(resena), textoSeguro_(genero), textoSeguro_(formacion), rd.lista.length ? JSON.stringify(rd.lista) : '', ultimo]);
     res = { ok: true, mensaje: '¡Gracias! Revisaremos tu información y la publicaremos pronto.' };
   });
   if (res.ok) avisarAdmin_('Nueva solicitud para el cuadro de honor: ' + banda, 'Banda: ' + banda + '\nTeléfono: +' + tel + '\n\nApruébala en el portal de administración.');
@@ -156,9 +178,10 @@ function contenidoPublico_() {
   }
   var sh = ss.getSheetByName(HOJAS.honor);
   if (sh.getLastRow() > 1) {
-    sh.getRange(2, 1, sh.getLastRow() - 1, 12).getValues().forEach(function (r) {
+    sh.getRange(2, 1, sh.getLastRow() - 1, 14).getValues().forEach(function (r) {
       if (String(r[1]) !== 'APROBADA') return;
-      out.honor.push({ banda: String(r[2]), logo: String(r[5]), instagram: String(r[6]), enlace: String(r[7]), youtube: String(r[8]), resena: String(r[9]), genero: String(r[10] || ''), formacion: String(r[11] || '') });
+      var rd = []; try { rd = JSON.parse(String(r[12] || '[]')); } catch (e) { rd = []; }
+      out.honor.push({ banda: String(r[2]), logo: String(r[5]), instagram: String(r[6]), enlace: String(r[7]), youtube: String(r[8]), resena: String(r[9]), genero: String(r[10] || ''), formacion: String(r[11] || ''), redes: rd, ultimo: String(r[13] || '') });
     });
   }
   var sr = ss.getSheetByName(HOJAS.resenas), suma = 0;
@@ -188,8 +211,8 @@ function leerModeracion_(nombreHoja, ncols, mapa) {
 }
 
 function leerHonor_() {
-  return leerModeracion_(HOJAS.honor, 12, function (r) {
-    return { estado: String(r[1]), banda: String(r[2]), telefono: String(r[3]), correo: String(r[4]), logo: String(r[5]), instagram: String(r[6]), enlace: String(r[7]), youtube: String(r[8]), resena: String(r[9]), genero: String(r[10] || ''), formacion: String(r[11] || '') };
+  return leerModeracion_(HOJAS.honor, 14, function (r) {
+    return { estado: String(r[1]), banda: String(r[2]), telefono: String(r[3]), correo: String(r[4]), logo: String(r[5]), instagram: String(r[6]), enlace: String(r[7]), youtube: String(r[8]), resena: String(r[9]), genero: String(r[10] || ''), formacion: String(r[11] || ''), redes: String(r[12] || ''), ultimo: String(r[13] || '') };
   });
 }
 function leerResenas_() {
@@ -271,6 +294,35 @@ function adminGuardarMuestra(p) {
   return conBloqueo_(function () {
     var sh = abrirBd_().getSheetByName(HOJAS.muestras);
     if (p.fila) sh.getRange(filaProducto_(sh, p.fila), 1, 1, 6).setValues([fila]); else sh.appendRow(fila);
+    limpiarCacheContenido_();
+    return adminResumen();
+  });
+}
+
+/** Comparador A/B/C: una canción en tres versiones. d = {titulo, descripcion, bruto, mezclada, master}. Reemplaza la canción si ya existía. */
+function adminGuardarComparador(d) {
+  exigirAdmin_();
+  var titulo = limpiar_(d.titulo, 80);
+  if (!titulo) throw new Error('Escribe el nombre de la canción.');
+  var vers = [['En bruto', d.bruto], ['Mezclada', d.mezclada], ['Masterizada', d.master]];
+  vers.forEach(function (v) {
+    var e = String(v[1] || '').trim();
+    if (!/^https:\/\/\S{4,400}$/.test(e) && !/^audio\/[\w\-. \/]{1,150}$/.test(e)) throw new Error('Falta el enlace de la versión «' + v[0] + '» (debe empezar con https://).');
+  });
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.muestras), n = sh.getLastRow();
+    for (var i = n; i >= 2; i--) { var r = sh.getRange(i, 1, 1, 2).getValues()[0]; if (String(r[1]) === 'Comparador' && String(r[0]) === titulo) sh.deleteRow(i); }
+    vers.forEach(function (v) { sh.appendRow([textoSeguro_(titulo), 'Comparador', v[0], String(v[1]).trim(), textoSeguro_(limpiar_(d.descripcion, 300)), 'SI']); });
+    limpiarCacheContenido_();
+    return adminResumen();
+  });
+}
+
+function adminEliminarComparador(titulo) {
+  exigirAdmin_();
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.muestras), n = sh.getLastRow();
+    for (var i = n; i >= 2; i--) { var r = sh.getRange(i, 1, 1, 2).getValues()[0]; if (String(r[1]) === 'Comparador' && String(r[0]) === String(titulo)) sh.deleteRow(i); }
     limpiarCacheContenido_();
     return adminResumen();
   });
@@ -359,6 +411,15 @@ function adminSubirAudio(p) {
   return adminGuardarMuestra({ fila: null, grupo: p.grupo, tipo: p.tipo, etiqueta: p.etiqueta, descripcion: p.descripcion, enlace: 'https://drive.google.com/file/d/' + id + '/view', visible: true });
 }
 
+/** Sube un audio a Drive y devuelve solo su enlace (para armar el comparador). */
+function adminSubirArchivoAudio(p) {
+  exigirAdmin_();
+  var bytes = decodificar_(p.b64, 12 * 1024 * 1024), t = tipoAudio_(bytes);
+  if (!t) throw new Error('El archivo debe ser un audio mp3, wav, m4a u ogg.');
+  var id = guardarPublico_(carpetaDrive_(CARPETA_AUDIOS), limpiar_(p.grupo, 40).replace(/[^\w\- ]/g, '') + '-' + limpiar_(p.etiqueta, 20).replace(/[^\w\- ]/g, '') + '-' + Date.now() + '.' + t[1], t[0], bytes);
+  return 'https://drive.google.com/file/d/' + id + '/view';
+}
+
 /** Edita los datos de una banda del cuadro de honor (y opcionalmente cambia el logo). */
 function adminEditarHonor(fila, d) {
   exigirAdmin_();
@@ -390,13 +451,15 @@ function adminAgregarHonor(d) {
   if (String(d.enlace || '').trim() && !enlace) throw new Error('El enlace debe empezar con https://');
   if (String(d.youtube || '').trim() && !yt) throw new Error('El enlace de YouTube no es válido.');
   if (String(d.instagram || '').trim() && !ig) throw new Error('El Instagram no es válido.');
+  var rd = redesHonor_(d.redes); if (rd.error) throw new Error(rd.error);
+  var ultimo = String(d.ultimo || '').trim() ? urlHttps_(d.ultimo) : ''; if (String(d.ultimo || '').trim() && !ultimo) throw new Error('El enlace del último trabajo debe empezar con https://');
   var tel = String(d.telefono || '').trim() ? Reglas.normalizarTelefono(d.telefono) : '';
   if (tel && !Reglas.telefonoValido(tel)) throw new Error('Revisa el teléfono.');
   var correo = limpiar_(d.correo, 120).toLowerCase();
   if (correo && !Reglas.correoValido(correo)) throw new Error('Revisa el correo.');
   if (String(d.logoB64 || '').trim()) logo = guardarLogo_(d.logoB64, banda);
   return conBloqueo_(function () {
-    abrirBd_().getSheetByName(HOJAS.honor).appendRow([new Date(), 'APROBADA', textoSeguro_(banda), tel, textoSeguro_(correo), logo, ig, enlace, yt, textoSeguro_(limpiar_(d.resena, 500)), textoSeguro_(limpiar_(d.genero, 60)), textoSeguro_(limpiar_(d.formacion, 120))]);
+    abrirBd_().getSheetByName(HOJAS.honor).appendRow([new Date(), 'APROBADA', textoSeguro_(banda), tel, textoSeguro_(correo), logo, ig, enlace, yt, textoSeguro_(limpiar_(d.resena, 500)), textoSeguro_(limpiar_(d.genero, 60)), textoSeguro_(limpiar_(d.formacion, 120)), rd.lista.length ? JSON.stringify(rd.lista) : '', ultimo]);
     limpiarCacheContenido_();
     return adminResumen();
   });

@@ -60,7 +60,7 @@ var Reglas = (function () {
     heroTitulo: 'Tu banda suena aquí', heroTexto: 'Sala de ensayo y estudio de grabación en Quinta Normal, Santiago.',
     verProduccion: true, verFicha: true, verPlanes: true, verGaleria: true, verEvaluaciones: true, verProaudix: true, verContacto: true, verTienda: true, verHonor: true, verCotizar: true, verReglamento: true,
     // Contacto y redes (enlaces https://; vacío = no se muestra)
-    sitioWeb: '', redInstagram: '', redFacebook: '', redYoutube: '', redTiktok: '', redSpotify: '', mapsUrl: '',
+    sitioWeb: '', redInstagram: 'https://instagram.com/rockerio_producciones', redFacebook: '', redYoutube: '', redTiktok: '', redSpotify: '', redYoutubeMusic: 'https://music.youtube.com/playlist?list=PLVvxu7INRfmo', redTwitch: '', redLinktree: '', correoContacto: 'rockerioestudio@gmail.com', mapsUrl: '',
     enlacesExtra: '',             // una línea por enlace: «Texto | https://…»
     // Apartado ProAudix (colega audiovisual)
     proaudixTexto: 'ProAudix es el espacio matriz e infraestructura integral donde desarrollamos y albergamos las operaciones de Rockerío Producciones SpA. La tienda de insumos y los bebestibles del estudio los atiende ProAudix.',
@@ -215,7 +215,7 @@ var Reglas = (function () {
     c.tema = aTexto(raw.tema, d.tema) || d.tema;
     c.presentacionTitulo = aTexto(raw.presentacionTitulo, d.presentacionTitulo) || d.presentacionTitulo;
     c.presentacion = aTexto(raw.presentacion, d.presentacion);
-    ['sitioWeb', 'redInstagram', 'redFacebook', 'redYoutube', 'redTiktok', 'redSpotify', 'mapsUrl', 'enlacesExtra', 'proaudixWeb', 'proaudixInstagram', 'proaudixFacebook', 'proaudixYoutube', 'proaudixEnlaces'].forEach(function (k) { c[k] = aTexto(raw[k], d[k]); });
+    ['sitioWeb', 'redInstagram', 'redFacebook', 'redYoutube', 'redTiktok', 'redSpotify', 'redYoutubeMusic', 'redTwitch', 'redLinktree', 'correoContacto', 'mapsUrl', 'enlacesExtra', 'proaudixWeb', 'proaudixInstagram', 'proaudixFacebook', 'proaudixYoutube', 'proaudixEnlaces'].forEach(function (k) { c[k] = aTexto(raw[k], d[k]); });
     c.heroTitulo = aTexto(raw.heroTitulo, d.heroTitulo) || d.heroTitulo; c.heroTexto = aTexto(raw.heroTexto, d.heroTexto) || d.heroTexto;
     ['verProduccion', 'verFicha', 'verPlanes', 'verGaleria', 'verEvaluaciones', 'verProaudix', 'verContacto', 'verTienda', 'verHonor', 'verCotizar', 'verReglamento'].forEach(function (k) { c[k] = aBool(raw[k], d[k]); });
     c.proaudixTexto = aTexto(raw.proaudixTexto, d.proaudixTexto) || d.proaudixTexto;

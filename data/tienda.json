@@ -1,1 +1,146 @@
-[]
+[
+ {
+  "categoria": "Cuerdas",
+  "nombre": "Alice 1ª (individual)",
+  "detalle": "Cuerda suelta Alice, 1ª",
+  "precio": null,
+  "stock": 9,
+  "foto": "assets/tienda/alice-1.jpg"
+ },
+ {
+  "categoria": "Cuerdas",
+  "nombre": "Alice 2ª (individual)",
+  "detalle": "Cuerda suelta Alice, 2ª",
+  "precio": null,
+  "stock": 10,
+  "foto": "assets/tienda/alice-2.jpg"
+ },
+ {
+  "categoria": "Cuerdas",
+  "nombre": "Alice 3ª (individual)",
+  "detalle": "Cuerda suelta Alice, 3ª",
+  "precio": null,
+  "stock": 10,
+  "foto": "assets/tienda/alice-3.jpg"
+ },
+ {
+  "categoria": "Cuerdas",
+  "nombre": "Alice 4ª (individual)",
+  "detalle": "Cuerda suelta Alice, 4ª",
+  "precio": null,
+  "stock": 10,
+  "foto": "assets/tienda/alice-4.jpg"
+ },
+ {
+  "categoria": "Cuerdas",
+  "nombre": "Alice 5ª (individual)",
+  "detalle": "Cuerda suelta Alice, 5ª",
+  "precio": null,
+  "stock": 10,
+  "foto": "assets/tienda/alice-5.jpg"
+ },
+ {
+  "categoria": "Cuerdas",
+  "nombre": "Alice 6ª (individual)",
+  "detalle": "Cuerda suelta Alice, 6ª",
+  "precio": null,
+  "stock": 7,
+  "foto": "assets/tienda/alice-6.jpg"
+ },
+ {
+  "categoria": "Cuerdas",
+  "nombre": "Ernie Ball Power Slinky 11-48",
+  "detalle": "Set guitarra eléctrica (2220)",
+  "precio": 12000,
+  "stock": null,
+  "foto": "assets/tienda/ernie-power.jpg"
+ },
+ {
+  "categoria": "Cuerdas",
+  "nombre": "Ernie Ball Hybrid Slinky 9-46",
+  "detalle": "Set guitarra eléctrica (2222)",
+  "precio": 12000,
+  "stock": null,
+  "foto": "assets/tienda/ernie-hybrid.jpg"
+ },
+ {
+  "categoria": "Cuerdas",
+  "nombre": "Ernie Ball Super Slinky 9-42",
+  "detalle": "Set guitarra eléctrica (2223)",
+  "precio": 12000,
+  "stock": null,
+  "foto": "assets/tienda/ernie-super.jpg"
+ },
+ {
+  "categoria": "Cuerdas",
+  "nombre": "BlackSmith Electric Medium 11/49",
+  "detalle": "Set guitarra eléctrica",
+  "precio": null,
+  "stock": null,
+  "foto": "assets/tienda/blacksmith-1149.jpg"
+ },
+ {
+  "categoria": "Percusión",
+  "nombre": "Baquetas de madera",
+  "detalle": "Par de baquetas",
+  "precio": null,
+  "stock": null,
+  "foto": "assets/tienda/baquetas-madera.jpg"
+ },
+ {
+  "categoria": "Percusión",
+  "nombre": "Baquetas de plástico neón",
+  "detalle": "Par, rosado y blanco",
+  "precio": null,
+  "stock": null,
+  "foto": "assets/tienda/baquetas-neon.jpg"
+ },
+ {
+  "categoria": "Accesorios",
+  "nombre": "Correa Fender",
+  "detalle": "Strap de guitarra, roja o mostaza",
+  "precio": 12000,
+  "stock": 5,
+  "foto": "assets/tienda/correas-fender.jpg"
+ },
+ {
+  "categoria": "Accesorios",
+  "nombre": "Baterías 9V",
+  "detalle": "Pilas para pedales y activos",
+  "precio": null,
+  "stock": 18,
+  "foto": ""
+ },
+ {
+  "categoria": "Accesorios",
+  "nombre": "Strap locks",
+  "detalle": "Set de 2 unidades",
+  "precio": null,
+  "stock": 23,
+  "foto": ""
+ },
+ {
+  "categoria": "Accesorios",
+  "nombre": "Uñetas Gibson",
+  "detalle": "Uñeta suelta",
+  "precio": null,
+  "stock": 18,
+  "foto": "assets/tienda/unetas-gibson-fotos.jpg"
+ },
+ {
+  "categoria": "Accesorios",
+  "nombre": "Uñetas Alice",
+  "detalle": "0.58 a 1.20 mm",
+  "precio": 1000,
+  "stock": 47,
+  "foto": "assets/tienda/unetas-alice-fotos.jpg"
+ },
+ {
+  "categoria": "Accesorios",
+  "nombre": "Uñetas Fender Heavy",
+  "detalle": "Uñeta suelta",
+  "precio": 1000,
+  "stock": 42,
+  "foto": "assets/tienda/unetas-fender-fotos.jpg"
+ }
+]

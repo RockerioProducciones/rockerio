@@ -24,6 +24,5 @@
   var mo = new MutationObserver(function () { tarjetas(); mostrar(); });
   secs.forEach(function (s) { mo.observe(s, { attributes: true, attributeFilter: ['hidden'] }); });
   window.addEventListener('hashchange', mostrar);
-  var ir = document.getElementById('honor-ir'); if (ir) ir.addEventListener('click', function (e) { e.preventDefault(); var f = document.getElementById('honor-form'); if (f) f.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
   tarjetas(); mostrar();
 })();
