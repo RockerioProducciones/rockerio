@@ -23,7 +23,7 @@ function prepararSocios_() {
 
 function leerSocios_() {
   var t = leerTokens_();
-  return Object.keys(t).map(function (k) { return { token: k, nombre: t[k].nombre, creado: t[k].creado || '', tipo: t[k].tipo === 'social' ? 'social' : 'colega' }; })
+  return Object.keys(t).map(function (k) { return { token: k, nombre: t[k].nombre, creado: t[k].creado || '', tipo: t[k].tipo === 'social' ? 'social' : 'colega', rol: t[k].rol || '' }; })
     .sort(function (a, b) { return a.nombre < b.nombre ? -1 : 1; });
 }
 
@@ -64,14 +64,14 @@ function adminEliminarSocio(token) {
 }
 
 /** 'social' (solo agenda) o 'colega' (agenda + ventas + resúmenes). */
-function tipoSocio_(token) { var t = leerTokens_()[String(token || '')]; return t && t.tipo === 'social' ? 'social' : 'colega'; }
+function tipoSocio_(token) { var t = leerTokens_()[String(token || '').toLowerCase()]; return t && t.tipo === 'social' ? 'social' : 'colega'; }
 
 /** Devuelve el nombre del socio o '' si el token no vale. Frena a quien prueba tokens al azar. */
 function socioDe_(token) {
-  token = String(token || '');
+  token = String(token || '').toLowerCase();
   var cache = CacheService.getScriptCache();
   if (Number(cache.get('tokmal') || 0) >= 40) return '';
-  var t = leerTokens_(), ok = /^[a-f0-9]{64}$/.test(token) && t[token];
+  var t = leerTokens_(), ok = /^[a-z0-9._-]{4,64}$/.test(token) && t[token];
   if (!ok) { cache.put('tokmal', String(Number(cache.get('tokmal') || 0) + 1), 600); return ''; }
   return t[token].nombre;
 }
@@ -156,4 +156,30 @@ function sociosCobrar_(sol) {
     conBloqueo_(function () { cobrarVenta_(String(sol.id || ''), sol.pago, nombre); });
     return { ok: true };
   } catch (e) { return { ok: false, codigo: 'DATOS', error: String(e.message || e) }; }
+}
+
+
+/** Enlaces fijos del sitio: /proaudix (colegas: agenda + ventas + resúmenes) y /agenda (familia: solo agenda). Cada uno se abre con una clave simple. */
+var ROLES_ENLACE = { proaudix: { tipo: 'colega', nombre: 'ProAudix · Gaby y Jaime' }, agenda: { tipo: 'social', nombre: 'Agenda · Familia' } };
+
+/**
+ * Fija la clave de un enlace fijo. rol = 'proaudix' | 'agenda'. La clave anterior deja de servir al instante.
+ * 6 a 40 caracteres: letras, números, punto, guion o guion bajo (no distingue mayúsculas).
+ */
+function adminGuardarClaveEnlace(rol, clave) {
+  exigirAdmin_();
+  var def = ROLES_ENLACE[rol]; if (!def) throw new Error('Enlace no válido.');
+  clave = String(clave || '').trim().toLowerCase();
+  if (!/^[a-z0-9._-]{6,40}$/.test(clave)) throw new Error('La clave debe tener entre 6 y 40 caracteres: letras, números, punto, guion o guion bajo (sin espacios).');
+  return conBloqueo_(function () {
+    var t = leerTokens_(), nombre = def.nombre;
+    Object.keys(t).forEach(function (k) {
+      var e = t[k];
+      if (e.rol === rol || (!e.rol && (e.tipo === 'social' ? 'social' : 'colega') === def.tipo && !Object.keys(t).some(function (o) { return t[o].rol === rol; }))) { if (k !== clave) delete t[k]; }
+    });
+    if (t[clave] && t[clave].rol !== rol) throw new Error('Esa clave ya la usa otro enlace. Elige otra.');
+    t[clave] = { nombre: nombre, creado: ahoraChile_().fecha, tipo: def.tipo, rol: rol };
+    guardarTokens_(t);
+    return adminResumen();
+  });
 }

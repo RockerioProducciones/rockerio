@@ -61,3 +61,6 @@
 html{color-scheme:dark}
 body{background:var(--bg2)}
 .pg{max-width:min(1500px,100%)!important}
+.login-clave{display:flex;flex-direction:column;gap:10px;max-width:360px;margin:1.2rem auto;padding:1.2rem;border:1px solid var(--borde);border-radius:16px;background:var(--panel)}
+.login-clave input{font-size:1.2rem;padding:.7rem;border-radius:10px;border:1px solid var(--borde);background:var(--bg2);color:var(--txt)}
+.login-clave small{color:var(--mut)}

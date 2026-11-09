@@ -96,7 +96,7 @@ Todo vive en **tu cuenta de Google** (rockerioestudio@gmail.com), nada en GitHub
 En el portal, sección «Enlaces para compartir» (primero escribe la dirección del sitio en «Sitio»):
 
 1. **Enlace de socio** (uno por persona; ya vienen creados Jaime Encina y Gabriela Martelli): agenda en solo lectura con bandas y horarios, tienda de música, bebestibles, historial de ventas y resumen del mes, y cobro de lo pendiente. No ven teléfonos, correos ni montos de reservas. Cada venta queda con el nombre de quien la hizo.
-2. **Agenda pública** (`/agenda.html`): solo horas libres y ocupadas, sin nombres. Para familia y clientes.
+2. **Agenda pública** (`/disponibilidad.html`): solo horas libres y ocupadas, sin nombres. Para familia y clientes.
 
 El enlace de socio es una clave larga y secreta: quien lo tenga puede entrar, así que envíalo solo por mensaje directo. «Cambiar enlace» invalida el anterior al instante; «Eliminar» quita el acceso. Si alguien deja de ser socio, elimínalo.
 

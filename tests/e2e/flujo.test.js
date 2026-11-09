@@ -234,6 +234,18 @@ t('anular una venta repone el stock y la saca de los totales', () => {
   const rs = g.admin('adminResumen'); const antes = rs.productos.find((p) => /Prueba/.test(p.nombre)).stock, venta = rs.ventas.ventas.find((x) => x.pago === 'Venta efectivo' && /Prueba/.test(x.producto));
   g.admin('adminAnularVenta', venta.id); const desp = g.admin('adminResumen').productos.find((p) => /Prueba/.test(p.nombre)).stock; assert.strictEqual(desp, antes + venta.cantidad, 'antes ' + antes + ' desp ' + desp + ' cant ' + venta.cantidad + ' ' + venta.producto);
 });
+t('claves fijas de /proaudix y /agenda: se crean, entran, se cambian y no se repiten', () => {
+  let r = g.admin('adminGuardarClaveEnlace', 'proaudix', 'Gaby-Jaime26');
+  assert.ok(r.socios.some((x) => x.rol === 'proaudix'));
+  let d = g.get({ accion: 'socios', t: 'gaby-jaime26' }); assert.ok(d.ok && d.musica.length >= 1, 'colega entra con su clave');
+  g.admin('adminGuardarClaveEnlace', 'agenda', 'familia2026');
+  d = g.get({ accion: 'socios', t: 'familia2026' }); assert.ok(d.ok && d.tipo === 'social', 'familia solo agenda');
+  assert.throws(() => g.admin('adminGuardarClaveEnlace', 'agenda', 'gaby-jaime26'), /usa|otra|existe/i);
+  assert.throws(() => g.admin('adminGuardarClaveEnlace', 'agenda', 'abc'), /6/);
+  g.admin('adminGuardarClaveEnlace', 'proaudix', 'nuevaclave1');
+  assert.strictEqual(g.get({ accion: 'socios', t: 'gaby-jaime26' }).ok, false, 'la clave anterior deja de servir');
+  assert.ok(g.get({ accion: 'socios', t: 'nuevaclave1' }).ok);
+});
 t('revocar el enlace de un socio lo desactiva al instante', () => {
   g.admin('adminEliminarSocio', tok); assert.strictEqual(g.get({ accion: 'socios', t: tok }).ok, false);
 });

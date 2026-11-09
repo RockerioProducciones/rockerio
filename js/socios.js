@@ -8,10 +8,12 @@
   function clp(n) { return R.clp(n); }
   function aviso(t, ok) { var a = $('aviso'); a.textContent = t; a.hidden = !t; a.className = 'aviso-msg' + (ok ? ' ok' : ''); if (t) setTimeout(function () { a.hidden = true; }, 6000); }
 
+  var MODO = (document.body.getAttribute('data-modo') || ''), CLAVE_LS = 'rk_clave_' + (MODO || 'socios');
   try {
     var u = new URL(location.href), t = u.searchParams.get('t');
     if (t) { sessionStorage.setItem('rk_socio', t); history.replaceState(null, '', location.pathname); }
     token = sessionStorage.getItem('rk_socio') || '';
+    if (!token) token = localStorage.getItem(CLAVE_LS) || '';
   } catch (e) { token = ''; }
 
   function post(accion, cuerpo) {
@@ -20,11 +22,19 @@
   }
   function cargar() {
     return fetch(API + '?accion=socios&t=' + encodeURIComponent(token) + (mes ? '&mes=' + encodeURIComponent(mes) : '')).then(function (r) { return r.json(); }).then(function (d) {
-      if (!d.ok) { $('hola').textContent = 'Enlace no válido'; $('tabs').textContent = ''; aviso(d.error || 'Este enlace no es válido.'); return; }
-      datos = d; mes = d.resumen.mes; pintar();
+      if (!d.ok) { try { localStorage.removeItem(CLAVE_LS); sessionStorage.removeItem('rk_socio'); } catch (e) { /* sin almacenamiento */ } token = ''; $('tabs').textContent = ''; pedirClave('Clave incorrecta. Revisa que esté bien escrita.'); return; }
+      try { if (MODO) localStorage.setItem(CLAVE_LS, token); } catch (e) { /* sin almacenamiento */ }
+      $('login').hidden = true; datos = d; mes = d.resumen ? d.resumen.mes : ''; pintar();
     }).catch(function () { aviso('No pudimos cargar los datos. Revisa tu conexión.'); });
   }
-  if (!API || !token) { $('hola').textContent = 'Enlace no válido'; aviso('Abre el enlace que te envió Juan Carlos.'); return; }
+  function pedirClave(msg) {
+    $('hola').textContent = MODO === 'social' ? 'Agenda del estudio' : MODO === 'colega' ? 'Portal ProAudix' : 'Portal de socios';
+    var f = $('login'); f.hidden = false; if (msg) aviso(msg);
+    f.onsubmit = function (e) { e.preventDefault(); var v = $('clave').value.trim().toLowerCase(); if (!v) return; token = v; cargar(); };
+    $('clave').focus();
+  }
+  if (!API) { $('hola').textContent = 'Sitio sin conexión'; aviso('El sitio aún no está conectado al sistema.'); return; }
+  if (!token) { pedirClave(''); return; }
 
   var TODAS = [['agenda', 'Agenda'], ['musica', 'Tienda de música'], ['bebestible', 'Bebestibles'], ['historial', 'Historial y resumen']], TABS = TODAS;
   function pintar() {

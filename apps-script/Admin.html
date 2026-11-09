@@ -337,10 +337,14 @@ section.tab-off{display:none!important}
 <div class="fila"><button id="cierre" class="sec">Cerrar el mes seleccionado arriba</button><span style="color:#b5afa6">Se cierra solo el día 1 de cada mes (guarda una copia fija del balance).</span></div>
 <table><tbody id="htab"></tbody></table></section>
 <section><h2>Enlaces para compartir</h2>
-<p style="color:#b5afa6;margin:0 0 .5em">El enlace de cada socio es secreto: quien lo tenga puede ver la agenda y vender. Compártelo solo por mensaje privado. «Cambiar enlace» deja inválido el anterior al instante.</p>
+<p style="color:#b5afa6;margin:0 0 .5em">Dos enlaces fijos. Cada persona entra escribiendo una clave que tú eliges aquí. Si cambias la clave, la anterior deja de funcionar al instante.</p>
+<div class="fila"><label for="surl" style="min-width:150px">Dirección del sitio</label><input id="surl" placeholder="https://rockerioproducciones.github.io/rockerio" style="flex:1;min-width:220px"><button id="surlg" class="sec">Guardar</button></div>
+<div id="enl"></div>
+<details style="margin-top:.8em"><summary style="cursor:pointer;color:#b5afa6">Avanzado: enlaces secretos individuales</summary>
+<p style="color:#b5afa6;margin:.4em 0">Enlaces antiguos de un solo uso por persona. Siguen funcionando si ya los compartiste.</p>
 <div id="socs"></div>
-<div class="fila"><input id="sn" maxlength="40" placeholder="Nombre (ej. Jaime, o Familia)" style="flex:1;min-width:160px"><select id="sti"><option value="colega">Colega: agenda + ventas + resúmenes</option><option value="social">Social / familia: solo agenda (lectura)</option></select><button id="sg">Crear enlace</button></div>
-<h3 style="margin:.8em 0 .2em;font-size:15px">Agenda para familia y clientes (solo lectura)</h3><div id="pubag"></div></section>
+<div class="fila"><input id="sn" maxlength="40" placeholder="Nombre (ej. Jaime, o Familia)" style="flex:1;min-width:160px"><select id="sti"><option value="colega">Colega: agenda + ventas + resúmenes</option><option value="social">Social / familia: solo agenda (lectura)</option></select><button id="sg">Crear enlace</button></div></details>
+<h3 style="margin:.8em 0 .2em;font-size:15px">Disponibilidad pública (solo libre / ocupado)</h3><div id="pubag"></div></section>
 <section><h2>Respaldo</h2><div class="fila"><button id="resp">Respaldar ahora</button><span style="color:#b5afa6">Se hace solo cada noche en tu Drive (carpeta «Rockerío · Respaldos», últimas 30 copias).</span></div><div id="resp-lista" style="margin-top:.8rem"></div></section>
 <section><h2>Bloqueos</h2><div class="fila">
 <input type="date" id="bf"><input type="number" id="bd" min="0" max="23" placeholder="Desde (h)" style="width:100px"><input type="number" id="bh" min="1" max="24" placeholder="Hasta (h)" style="width:100px"><input id="bm" maxlength="100" placeholder="Motivo" style="flex:1;min-width:140px"><button id="bloq">Bloquear</button></div>
@@ -654,13 +658,23 @@ function enlaceCopiable(cont,url){
 }
 function pintarSocios(d){
   var base=(d.sitioUrl||'').replace(/\/+$/,''),box=$('socs');box.textContent='';var pa=$('pubag');pa.textContent='';
-  if(!base){box.appendChild(par('Primero escribe la dirección del sitio en la sección «Sitio» y guarda.','color:#FCC631'));}
-  (d.socios||[]).forEach(function(s){var w=caja();w.appendChild(par(s.nombre+' · '+(s.tipo==='social'?'Social / familia (solo agenda)':'Colega (agenda + ventas + resúmenes)')+' · creado '+s.creado,'font-weight:700'));
+  var u=$('surl');if(document.activeElement!==u)u.value=d.sitioUrl||'https://rockerioproducciones.github.io/rockerio';
+  var urlBase=(u.value||'').replace(/\/+$/,''),en=$('enl');en.textContent='';
+  [['proaudix','Gaby y Jaime (ProAudix)','Agenda completa, ventas, resúmenes y cierre del mes.'],['agenda','Familia / agenda','Solo ver la agenda, sin ventas ni dinero.']].forEach(function(r){
+    var tk=(d.socios||[]).filter(function(x){return x.rol===r[0]})[0],w=caja();
+    w.appendChild(par(r[1],'font-weight:700'));w.appendChild(par(r[2],'color:#b5afa6;margin:2px 0 6px'));
+    if(urlBase)enlaceCopiable(w,urlBase+'/'+r[0]);
+    var f=document.createElement('div');f.className='fila';f.style.marginTop='6px';
+    var i=document.createElement('input');i.placeholder=tk?'Clave actual: '+tk.token:'Elige una clave (6 a 40, letras y números)';i.maxLength=40;i.autocapitalize='none';i.style.cssText='flex:1;min-width:200px';
+    f.appendChild(i);f.appendChild(btn(tk?'Cambiar clave':'Crear clave',function(){var v=i.value.trim().toLowerCase();if(!/^[a-z0-9._-]{6,40}$/.test(v)){aviso('La clave debe tener entre 6 y 40 letras, números, punto, guion o guion bajo.');return}ejecutar('adminGuardarClaveEnlace',r[0],v);aviso('Clave guardada ✔')}));
+    w.appendChild(f);en.appendChild(w)});
+  (d.socios||[]).forEach(function(s){if(s.rol)return;var w=caja();w.appendChild(par(s.nombre+' · '+(s.tipo==='social'?'Social / familia (solo agenda)':'Colega (agenda + ventas + resúmenes)')+' · creado '+s.creado,'font-weight:700'));
     if(base)enlaceCopiable(w,base+'/socios.html?t='+s.token);
     var b=document.createElement('div');b.className='fila';b.style.marginTop='6px';b.appendChild(btn('Cambiar enlace',function(){ejecutar('adminRegenerarSocio',s.token)},'sec'));
     var e=btnDel('Eliminar','¿Eliminar este enlace? Quien lo tenga dejará de poder entrar.',function(){ejecutar('adminEliminarSocio',s.token)});b.appendChild(e);w.appendChild(b);box.appendChild(w)});
-  if(base)enlaceCopiable(pa,base+'/agenda.html');
+  if(urlBase)enlaceCopiable(pa,urlBase+'/disponibilidad.html');
 }
+$('surlg').onclick=function(){ejecutar('adminGuardarAjustes',{sitioUrl:$('surl').value.trim()});aviso('Dirección guardada ✔')};
 $('sg').onclick=function(){ejecutar('adminCrearSocio',$('sn').value,$('sti').value);$('sn').value=''};
 
 /* Regla general del portal: todo "eliminar" pide confirmación Sí / No. */
