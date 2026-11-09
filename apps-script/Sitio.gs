@@ -158,25 +158,9 @@ function adminSubirImagenSitio(p) {
   return 'https://lh3.googleusercontent.com/d/' + id;
 }
 
-/**
- * Datos para armar el editor: lo guardado y el sitio publicado tal como está hoy (HTML y archivos originales).
- * El HTML se lee del sitio real para que el editor siempre muestre lo que el diseño actual permite editar.
- */
+/** Datos para armar el editor: lo guardado y la dirección del sitio. El sitio publicado lo lee el navegador (no requiere permisos extra de Google). */
 function adminSitioDatos() {
   exigirAdmin_();
-  var cfg = getCfg_(), base = String(cfg.sitioUrl || '').replace(/\/+$/, '');
-  var out = { sitio: leerSitio_(), base: base, tema: cfg.tema, html: '', ficha: null, galeria: null, playlist: null, aviso: '' };
-  if (!base) { out.aviso = 'Primero escribe la dirección del sitio en Socios y respaldo → Enlaces para compartir.'; return out; }
-  function leer(ruta, max) {
-    try {
-      var r = UrlFetchApp.fetch(base + '/' + ruta + (ruta.indexOf('?') < 0 ? '?v=' + Date.now() : ''), { muteHttpExceptions: true, followRedirects: true });
-      return r.getResponseCode() === 200 ? r.getContentText().slice(0, max) : null;
-    } catch (e) { return null; }
-  }
-  out.html = leer('index.html', 200000) || '';
-  [['ficha', 'data/ficha.json'], ['galeria', 'data/galeria.json'], ['playlist', 'data/playlist.json']].forEach(function (x) {
-    var t = leer(x[1], 90000); if (t) { try { out[x[0]] = JSON.parse(t); } catch (e) { /* sin original */ } }
-  });
-  if (!out.html) out.aviso = 'No pude leer el sitio publicado (' + base + '). Revisa la dirección o intenta en un minuto.';
-  return out;
+  var cfg = getCfg_();
+  return { sitio: leerSitio_(), base: String(cfg.sitioUrl || '').replace(/\/+$/, '') || 'https://rockerioproducciones.github.io/rockerio', tema: cfg.tema, html: '', ficha: null, galeria: null, playlist: null, aviso: '' };
 }

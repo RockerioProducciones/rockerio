@@ -242,7 +242,7 @@ section.tab-off{display:none!important}
 }
 @media print{body>*:not(#imprimir){display:none!important}#imprimir{display:block!important;color:#000;background:#fff;padding:12px}#imprimir table{width:100%;border-collapse:collapse}#imprimir th,#imprimir td{border:1px solid #888;padding:4px 6px;font-size:11px;text-align:left;color:#000;display:table-cell}#imprimir th{display:table-cell}}
 #imprimir{display:none}
-.sitio-caja{border:1px solid var(--borde);border-radius:12px;padding:.8rem;margin:.7rem 0;background:rgba(0,0,0,.18)}.sitio-caja h4{margin:0 0 .3rem;color:var(--oro,#FCC631);font-size:1rem}.sitio-txt{margin:.5rem 0}.sitio-txt label{display:block;font-weight:600;font-size:.88rem;margin-bottom:2px}.sitio-foto{display:flex;gap:.7rem;align-items:flex-start;margin:.5rem 0;padding:.4rem 0;border-bottom:1px solid var(--borde)}.sitio-foto img,.sitio-vid{width:96px;height:72px;object-fit:cover;border-radius:8px;flex:0 0 auto;background:#222;display:flex;align-items:center;justify-content:center;font-size:1.6rem}.sitio-foto-c{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}.sitio-det{border:1px solid var(--borde);border-radius:10px;padding:.5rem .7rem;margin:.5rem 0}.sitio-det summary{cursor:pointer;font-weight:700}#sitio-tabs{display:flex;gap:.3rem;overflow-x:auto;flex-wrap:nowrap;margin:.5rem 0}#sitio-tabs button{white-space:nowrap}
+.sitio-caja{border:1px solid var(--borde);border-radius:12px;padding:.8rem;margin:.7rem 0;background:rgba(0,0,0,.18)}.sitio-caja h4{margin:0 0 .3rem;color:var(--oro,#FCC631);font-size:1rem}.sitio-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.7rem;margin:.6rem 0}.sitio-card{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:1rem;border:1px solid var(--borde);border-radius:14px;background:var(--panel);cursor:pointer}.sitio-card:hover{border-color:var(--oro,#FCC631)}.sitio-card .ic{font-size:1.8rem}.sitio-card b{font-size:1.05rem;color:var(--txt,#f3efe8)}.sitio-card small{color:var(--mut,#b5afa6)}.sitio-cab{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem 1rem;margin:.2rem 0 .6rem}.sitio-cab h3{margin:0}.sitio-ver{margin-left:auto;font-weight:600}.sitio-subir{display:inline-block;padding:.55rem .9rem;border-radius:10px;background:var(--oro,#FCC631);color:#1a1204;font-weight:800;cursor:pointer;align-self:flex-start}.sitio-subir input{display:none}.sitio-orig{font-size:.8rem;color:var(--mut,#b5afa6)}.sitio-barra{position:sticky;bottom:0;display:flex;align-items:center;gap:.8rem;padding:.7rem;margin-top:1rem;background:linear-gradient(0deg,var(--panel,#161514) 70%,transparent);border-top:1px solid var(--borde)}.sitio-barra button{font-size:1rem;padding:.7rem 1.4rem}.sitio-barra small{color:var(--mut,#b5afa6)}.sitio-txt{margin:.5rem 0}.sitio-txt label{display:block;font-weight:600;font-size:.88rem;margin-bottom:2px}.sitio-foto{display:flex;gap:.7rem;align-items:flex-start;margin:.5rem 0;padding:.4rem 0;border-bottom:1px solid var(--borde)}.sitio-foto img,.sitio-vid{width:96px;height:72px;object-fit:cover;border-radius:8px;flex:0 0 auto;background:#222;display:flex;align-items:center;justify-content:center;font-size:1.6rem}.sitio-foto-c{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}.sitio-det{border:1px solid var(--borde);border-radius:10px;padding:.5rem .7rem;margin:.5rem 0}.sitio-det summary{cursor:pointer;font-weight:700}#sitio-tabs{display:flex;gap:.3rem;overflow-x:auto;flex-wrap:nowrap;margin:.5rem 0}#sitio-tabs button{white-space:nowrap}
 </style></head><body>
 <div class="cab"><h1>Portal de control <small>· Rockerío Producciones</small><span class="badge-adm">ADMIN</span></h1><div class="cab-acc"><a id="ver-sitio" href="#" target="_blank" rel="noopener" hidden>Ver sitio público ↗</a><button type="button" id="campana" title="Pendientes">🔔<i id="campana-n" hidden></i></button></div></div>
 <div id="msg"></div>
@@ -562,7 +562,7 @@ function pos(id,tipo,titulo,ico,prods,d){
     hist.slice(0,80).forEach(function(x){var f=el_('div','pos-l');f.appendChild(el_('span','',x.fecha+' · '+x.cantidad+' × '+x.producto+' · '+x.pago+(x.vendedor?' · '+x.vendedor:'')));f.appendChild(el_('span','m',clp(x.total)));if(x.pago!=='Anulada'){var q=el_('span','q');q.appendChild(btn('Editar',function(){formVenta(x)},'sec'));q.appendChild(anular(x));f.appendChild(q)}hb.appendChild(f)});caja.appendChild(hb)}
 }
 function formVenta(x){
-  var d=$('jdet');d.textContent='';d.hidden=false;d.onclick=function(e){if(e.target===d)d.hidden=true};
+  var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);
   var f=el_('div','ficha-j');f.appendChild(el_('h3','','Corregir venta '+x.id));f.appendChild(el_('div','sub',x.fecha+' · '+x.producto+' · '+clp(x.precio)+' c/u'));
   var fm=el_('div','rm-form'),v={cantidad:x.cantidad,pago:x.pago,nota:x.nota};
   var l1=el_('label');l1.appendChild(document.createTextNode('Cantidad'));var i1=document.createElement('input');i1.type='number';i1.min=1;i1.max=99;i1.value=v.cantidad;i1.oninput=function(){v.cantidad=i1.value};l1.appendChild(i1);fm.appendChild(l1);
@@ -573,7 +573,7 @@ function formVenta(x){
   var acc=el_('div','fila');acc.appendChild(btn('Guardar cambios',function(){google.script.run.withSuccessHandler(function(r){d.hidden=true;pintar(r);aviso('Venta corregida ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminEditarVenta(x.id,v)}));acc.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
 }
 function formProd(tipo,p){
-  var d=$('jdet');d.textContent='';d.hidden=false;d.onclick=function(e){if(e.target===d)d.hidden=true};
+  var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);
   var f=el_('div','ficha-j');f.appendChild(el_('h3','',p?'Editar producto':'Nuevo producto'));
   var v={nombre:p?p.nombre:'',detalle:p?p.detalle:'',precio:p?p.precio:'',stock:p?p.stock:'',categoria:p?p.categoria:(tipo==='musica'?'':'Bebestibles'),visible:p?p.visible:true},b64='';
   var fm=el_('div','rm-form');
@@ -705,7 +705,7 @@ function bloqueCobro(r,d){
   g.appendChild(btn('🎁 Cortesía / canje',function(){confirmarSN('¿Marcar esta reserva como cortesía o canje? Queda en $0 y no suma ingreso (se ve en el resumen). Si hubo abono, devuélvelo aparte.',function(){jrun('adminMarcarCortesia',r.codigo,{nota:nt.value});d.hidden=true},'Sí, marcar')},'sec'));
   w.appendChild(g);return w}
 function verificarIngresos(){var m=RC.data?(RC.data.periodo==='mes'?RC.data.ref:RC.data.desde.slice(0,7)):'';
-  var d=$('jdet');d.textContent='';d.hidden=false;d.onclick=function(e){if(e.target===d)d.hidden=true};var f=el_('div','ficha-j');f.appendChild(el_('h3','','Verificación de ingresos'));f.appendChild(par('Revisando…','color:#b5afa6'));d.appendChild(f);
+  var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);var f=el_('div','ficha-j');f.appendChild(el_('h3','','Verificación de ingresos'));f.appendChild(par('Revisando…','color:#b5afa6'));d.appendChild(f);
   google.script.run.withSuccessHandler(function(r){f.textContent='';f.appendChild(el_('h3','','Verificación de ingresos · '+mesTxt(r.mes)));
     var T=r.totales;f.appendChild(par('Ingresos brutos del resumen: '+clp(T.ingresosBrutos)+' · recalculados reserva por reserva: '+clp(T.recalculado)+' · '+T.finalizadas+' reservas finalizadas.','color:#b5afa6;margin:.3rem 0'));
     r.checks.forEach(function(c){var b=el_('div',c.nivel==='ok'?'rc-ok':'rc-warn');b.style.margin='6px 0';b.appendChild(el_('b','',(c.nivel==='ok'?'✔ ':c.nivel==='error'?'✖ ':'⚠ ')+c.titulo));b.appendChild(el_('div','',c.detalle));
@@ -848,33 +848,41 @@ c.appendChild(btn('Agregar al cuadro de honor',function(){var o={};Object.keys(F
   if(fl.files[0]){redimLogo(fl.files[0]).then(function(b){o.logoB64=b.b64||b;enviar()}).catch(function(er){aviso(er.message)})}else enviar()}))})();
 ejecutar('adminResumen');
 
-/* ---------- Editor del sitio web (se arma leyendo el sitio publicado: si cambia el diseño, cambia el editor) ---------- */
-var ST={datos:null,sec:'inicio',doc:null,cargando:false};
+/* ---------- Editor del sitio web: tarjetas de secciones → editar → un solo botón «Guardar cambios» ---------- */
+var ST={datos:null,sec:'',doc:null,cargando:false,tareas:[],vista:'lista'};
 var SEC_VER={nosotros:'verProduccion',ficha:'verFicha',planes:'verPlanes',galeria:'verGaleria',opiniones:'verEvaluaciones',proaudix:'verProaudix',contacto:'verContacto',bandas:'verHonor',tienda:'verTienda',cotizar:'verCotizar',reglamento:'verReglamento'};
 var SEC_ICO={inicio:'🏠',nosotros:'🎚️',ficha:'🎛️',galeria:'🖼️',tienda:'🛍️',proaudix:'🛡️',contacto:'📞',reglamento:'📖',planes:'🏷️',opiniones:'⭐',bandas:'🏅',cotizar:'📝'};
+var SEC_DESC={inicio:'Título, frase y logo de la portada',nosotros:'Presentación, filosofía y fotos de Producción',ficha:'Equipos, micrófonos y audios de muestra',galeria:'Fotos, videos y playlist',tienda:'Texto de la tienda',proaudix:'Textos, logo y enlaces de ProAudix',contacto:'Dirección, redes sociales y enlaces',reglamento:'Reglas que aceptan los clientes'};
 var SEC_CFG={inicio:['heroTitulo','heroTexto','avisoBanner'],contacto:['direccion','correoContacto','whatsapp','mapsUrl','sitioWeb','redInstagram','redFacebook','redYoutube','redTiktok','redSpotify','redYoutubeMusic','redTwitch','redLinktree','enlacesExtra'],proaudix:['proaudixTexto','proaudixWhatsapp','proaudixWeb','proaudixInstagram','proaudixFacebook','proaudixYoutube','proaudixEnlaces']};
+var SEC_FIJAS=[['inicio','Portada'],['nosotros','Producción'],['ficha','Ficha técnica'],['galeria','Galería'],['proaudix','ProAudix'],['contacto','Contacto y redes'],['reglamento','Reglamento']];
 var SITIO_GRUPOS=['Portada y secciones','Contacto y redes','ProAudix'];
 function sBase(){return(ST.datos&&ST.datos.base)||''}
 function sUrl(u){return /^assets\//.test(u||'')?sBase()+'/'+u:u}
 function mdDe(e){var o='';[].forEach.call(e.childNodes,function(n){o+=n.nodeName==='STRONG'?'**'+n.textContent+'**':n.textContent});return o.replace(/\s+/g,' ').trim()}
 function redimFoto(file){return new Promise(function(ok,mal){if(!/^image\/(png|jpeg|webp)$/.test(file.type)){mal(new Error('La foto debe ser PNG, JPG o WebP.'));return}var im=new Image(),u=URL.createObjectURL(file);im.onload=function(){var k=Math.min(1,1600/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);var q=.86,p=c.toDataURL('image/jpeg',q);while(p.length>1900000&&q>.4){q-=.1;p=c.toDataURL('image/jpeg',q)}if(p.length>1900000)mal(new Error('La foto es muy pesada aun reducida.'));else ok(p)};im.onerror=function(){mal(new Error('No pudimos leer esa imagen.'))};im.src=u})}
-/* Sube una foto a Drive y entrega su enlace por callback */
-function subirFoto(file,nombre,fin){aviso('Subiendo foto…');redimFoto(file).then(function(b64){google.script.run.withSuccessHandler(function(u){aviso('Foto subida ✔');fin(u)}).withFailureHandler(function(e){aviso(e.message||'No se pudo subir')}).adminSubirImagenSitio({b64:b64,nombre:nombre})}).catch(function(er){aviso(er.message)})}
-function guardarParte(parte,valor,msg){google.script.run.withSuccessHandler(function(r){ST.datos.sitio=r;aviso(msg||'Guardado ✔ (el sitio se actualiza en unos minutos)');pintarSitioPanel()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminGuardarSitio(parte,JSON.stringify(valor))}
+function subirFoto(file,nombre,fin){aviso('Subiendo foto…');redimFoto(file).then(function(b64){google.script.run.withSuccessHandler(function(u){aviso('Foto subida ✔ (recuerda «Guardar cambios»)');fin(u)}).withFailureHandler(function(e){aviso(e.message||'No se pudo subir')}).adminSubirImagenSitio({b64:b64,nombre:nombre})}).catch(function(er){aviso(er.message)})}
+/* Registra una parte para guardarla con el botón general */
+function tarea(fn){ST.tareas.push(fn)}
+function tareaParte(parte,get){tarea(function(sig,mal){var v=get();google.script.run.withSuccessHandler(function(r){ST.datos.sitio=r;sig()}).withFailureHandler(mal).adminGuardarSitio(parte,JSON.stringify(v))})}
+function guardarSeccion(){var ts=ST.tareas.slice();if(!ts.length){aviso('No hay nada que guardar aquí.');return}aviso('Guardando…');
+  (function sig(){var t=ts.shift();if(!t){aviso('Guardado ✔ El sitio se actualiza en unos minutos.');return}t(sig,function(e){aviso(e.message||'No se pudo guardar')})})()}
+/* El sitio publicado se lee desde el navegador (sin permisos extra de Google) */
+function leerSitioWeb(base,fin){var o={html:'',ficha:null,galeria:null,playlist:null,error:''};if(!base){o.error='Falta la dirección del sitio (Socios y respaldo → Enlaces para compartir).';fin(o);return}
+  function g(ruta,json){return fetch(base+'/'+ruta+'?v='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error(String(r.status));return json?r.json():r.text()})}
+  Promise.all([g('index.html',false).catch(function(e){o.error='No pude abrir '+base+' ('+(e.message||'sin conexión')+'). Revisa la dirección del sitio.';return ''}),g('data/ficha.json',true).catch(function(){return null}),g('data/galeria.json',true).catch(function(){return null}),g('data/playlist.json',true).catch(function(){return null})]).then(function(r){o.html=r[0];o.ficha=r[1];o.galeria=r[2];o.playlist=r[3];fin(o)})}
 function cargarSitio(){if(ST.cargando)return;ST.cargando=true;$('sitio-panel').textContent='Leyendo el sitio publicado…';
-  google.script.run.withSuccessHandler(function(d){ST.cargando=false;ST.datos=d;ST.doc=d.html?new DOMParser().parseFromString(d.html,'text/html'):null;pintarSitio()}).withFailureHandler(function(e){ST.cargando=false;$('sitio-panel').textContent=e.message||'Error'}).adminSitioDatos()}
-function seccionesSitio(){var o=[],doc=ST.doc;if(!doc)return o;
-  [].forEach.call(doc.querySelectorAll('main > section.sec, main > section[id]'),function(x){var id=x.id,h=x.querySelector('h2');
-    var tiene=x.querySelector('[data-ed],[data-ed-foto]')||id==='inicio'||['nosotros','ficha','galeria','reglamento','contacto','proaudix'].indexOf(id)>=0;
-    if(tiene)o.push({id:id,titulo:id==='inicio'?'Portada':(h?h.textContent.trim():id)})});return o}
-function pintarSitio(){var d=ST.datos,top=$('sitio-top');top.textContent='';
-  if(d.aviso)top.appendChild(par(d.aviso,'color:#FCC631;margin:.3rem 0'));
-  var inf=par('Diseño activo: «'+(d.tema||'rockerio')+'». Este editor se arma con lo que el diseño del sitio permite editar; si cambias el tema o el diseño, aquí aparecen sus textos y fotos. ','color:#b5afa6;font-size:13px;margin:.3rem 0');
-  if(d.base){var a=link('Ver el sitio ↗',d.base);a.style.marginLeft='6px';inf.appendChild(a)}top.appendChild(inf);
-  var tb=$('sitio-tabs');tb.textContent='';var ss=seccionesSitio();if(!ss.length){$('sitio-panel').textContent=d.aviso||'No se pudo leer el sitio.';return}
-  if(!ss.some(function(x){return x.id===ST.sec}))ST.sec=ss[0].id;
-  ss.forEach(function(x){var b=document.createElement('button');b.type='button';b.textContent=(SEC_ICO[x.id]||'•')+' '+x.titulo;b.className=x.id===ST.sec?'on':'';b.onclick=function(){ST.sec=x.id;pintarSitio()};tb.appendChild(b)});
-  pintarSitioPanel()}
+  google.script.run.withSuccessHandler(function(d){leerSitioWeb(d.base,function(w){ST.cargando=false;d.html=w.html;d.ficha=w.ficha;d.galeria=w.galeria;d.playlist=w.playlist;d.aviso=w.error;ST.datos=d;ST.doc=w.html?new DOMParser().parseFromString(w.html,'text/html'):null;pintarSitio()})}).withFailureHandler(function(e){ST.cargando=false;$('sitio-panel').textContent=e.message||'Error'}).adminSitioDatos()}
+function seccionesSitio(){var o=[],ya={};
+  SEC_FIJAS.forEach(function(x){o.push({id:x[0],titulo:x[1]});ya[x[0]]=1});
+  if(ST.doc)[].forEach.call(ST.doc.querySelectorAll('main > section[id]'),function(x){var id=x.id;if(!ya[id]&&x.querySelector('[data-ed],[data-ed-foto]')){var h=x.querySelector('h2');o.push({id:id,titulo:h?h.textContent.trim():id});ya[id]=1}});return o}
+function contarSec(id){var sx=ST.doc&&ST.doc.getElementById(id),t=0,f=0;if(sx){t=sx.querySelectorAll('[data-ed]').length;f=sx.querySelectorAll('[data-ed-foto]').length}return{t:t,f:f}}
+function pintarSitio(){var d=ST.datos,top=$('sitio-top'),tb=$('sitio-tabs');top.textContent='';tb.textContent='';tb.className='sitio-grid';
+  if(ST.sec){pintarSitioPanel();return}
+  $('sitio-panel').textContent='';
+  if(d.aviso)top.appendChild(par('⚠ '+d.aviso+' Igual puedes editar lo que está disponible; para ver todos los textos y fotos pulsa «Volver a leer el sitio».','color:#FCC631;margin:.3rem 0'));
+  seccionesSitio().forEach(function(x){var b=document.createElement('button');b.type='button';b.className='sitio-card';var c=contarSec(x.id);
+    b.appendChild(el_('span','ic',SEC_ICO[x.id]||'📄'));b.appendChild(el_('b','',x.titulo));b.appendChild(el_('small','',SEC_DESC[x.id]||(c.t+c.f?(c.t+' textos · '+c.f+' fotos'):'Editar')));b.onclick=function(){ST.sec=x.id;pintarSitio();window.scrollTo(0,0)};tb.appendChild(b)})}
+function volverLista(){ST.sec='';ST.tareas=[];pintarSitio()}
 function campoCfg(a){var w=document.createElement('div');w.style.cssText='margin:8px 0';var l=document.createElement('label');l.textContent=a.etiqueta;l.style.cssText='display:block;font-weight:600';w.appendChild(l);var i;
   if(a.tipo==='sino'){i=document.createElement('select');['SI','NO'].forEach(function(x){var o=document.createElement('option');o.textContent=x;i.appendChild(o)})}
   else if(a.tipo==='lista'){i=document.createElement('select');a.opciones.forEach(function(x){var o=document.createElement('option');o.textContent=x;i.appendChild(o)})}
@@ -882,32 +890,36 @@ function campoCfg(a){var w=document.createElement('div');w.style.cssText='margin
   else{i=document.createElement('input');i.style.width='100%';i.maxLength=300}
   i.value=a.valor;i.setAttribute('data-clave',a.clave);w.appendChild(i);w.appendChild(par(a.ayuda,'color:#b5afa6;font-size:13px'));return w}
 function sCaja(t,sub){var c=document.createElement('div');c.className='sitio-caja';c.appendChild(el_('h4','',t));if(sub)c.appendChild(par(sub,'color:#b5afa6;font-size:13px;margin:0 0 .4rem'));return c}
-function pintarSitioPanel(){var p=$('sitio-panel');if(!ST.datos||!ST.doc){return}Object.keys(SUB).forEach(function(k){$('sitio-guarda').appendChild(SUB[k])});p.textContent='';var sid=ST.sec,sx=ST.doc.getElementById(sid),aj=(ultimo&&ultimo.ajustes)||[];
+function pintarSitioPanel(){var p=$('sitio-panel'),top=$('sitio-top');if(!ST.datos)return;Object.keys(SUB).forEach(function(k){$('sitio-guarda').appendChild(SUB[k])});p.textContent='';top.textContent='';ST.tareas=[];
+  var sid=ST.sec,sx=ST.doc&&ST.doc.getElementById(sid),aj=(ultimo&&ultimo.ajustes)||[],tit=(seccionesSitio().filter(function(x){return x.id===sid})[0]||{}).titulo||sid;
+  var cab=el_('div','sitio-cab');cab.appendChild(btn('‹ Todas las secciones',volverLista,'sec'));cab.appendChild(el_('h3','',(SEC_ICO[sid]||'')+' '+tit));
   var ver=SEC_VER[sid],va=ver&&aj.filter(function(a){return a.clave===ver})[0];
-  if(va){var f=el_('div','fila');f.appendChild(el_('b','','Mostrar esta sección en el sitio'));var sl=el_('select');['SI','NO'].forEach(function(x){var o=el_('option','',x);sl.appendChild(o)});sl.value=va.valor;f.appendChild(sl);
-    f.appendChild(btn('Aplicar',function(){var o={};o[ver]=sl.value;ejecutar('adminGuardarAjustes',o);aviso('Listo ✔')},'sec'));p.appendChild(f)}
+  if(va){var lb=el_('label','sitio-ver');var ck=el_('input');ck.type='checkbox';ck.checked=va.valor==='SI';ck.setAttribute('data-clave',ver);ck.onchange=function(){ck.value=ck.checked?'SI':'NO'};ck.value=va.valor;lb.appendChild(ck);lb.appendChild(document.createTextNode(' Mostrar esta sección en el sitio'));cab.appendChild(lb);
+    tarea(function(sig,mal){google.script.run.withSuccessHandler(function(){sig()}).withFailureHandler(mal).adminGuardarAjustes(Object.fromEntries([[ver,ck.checked?'SI':'NO']]))})}
+  top.appendChild(cab);
   var cl=SEC_CFG[sid];
-  if(cl){var cc=sCaja('Datos de esta sección','Se guardan en la configuración y se aplican al sitio en un par de minutos.');cl.forEach(function(k){var a=aj.filter(function(x){return x.clave===k})[0];if(a)cc.appendChild(campoCfg(a))});
-    cc.appendChild(btn('Guardar',function(){var o={};[].forEach.call(cc.querySelectorAll('[data-clave]'),function(i){o[i.getAttribute('data-clave')]=i.value});ejecutar('adminGuardarAjustes',o);aviso('Guardado ✔')}));p.appendChild(cc)}
+  if(cl){var cc=sCaja('Datos de esta sección');cl.forEach(function(k){var a=aj.filter(function(x){return x.clave===k})[0];if(a)cc.appendChild(campoCfg(a))});p.appendChild(cc);
+    tarea(function(sig,mal){var o={};[].forEach.call(cc.querySelectorAll('[data-clave]'),function(i){o[i.getAttribute('data-clave')]=i.value});google.script.run.withSuccessHandler(function(){sig()}).withFailureHandler(mal).adminGuardarAjustes(o)})}
   var tx=(ST.datos.sitio.textos)||{},ft=(ST.datos.sitio.fotos)||{};
   var els=sx?[].slice.call(sx.querySelectorAll('[data-ed]')):[],fts=sx?[].slice.call(sx.querySelectorAll('[data-ed-foto]')):[];
-  if(sid==='inicio'){var h=ST.doc.querySelector('.hero');if(h){els=els.concat([].slice.call(h.querySelectorAll('[data-ed]')));fts=fts.concat([].slice.call(h.querySelectorAll('[data-ed-foto]')))}}
-  if(fts.length){var fc=sCaja('Fotos y logos','Sube una foto (se reduce sola) o pega un enlace https. «Original» vuelve a la foto del sitio.');
+  if(sid==='inicio'){var h=ST.doc&&ST.doc.querySelector('.hero');if(h){els=els.concat([].slice.call(h.querySelectorAll('[data-ed]')));fts=fts.concat([].slice.call(h.querySelectorAll('[data-ed-foto]')))}}
+  if(fts.length){var fc=sCaja('Fotos y logos'),fi=[];
     fts.forEach(function(e){var k=e.getAttribute('data-ed-foto'),row=el_('div','sitio-foto'),im=el_('img');im.alt='';im.src=sUrl(ft[k]||e.getAttribute('src'));row.appendChild(im);
-      var col=el_('div','sitio-foto-c');col.appendChild(el_('b','',e.getAttribute('data-ed-l')||k));var u=el_('input');u.placeholder='https://… (o sube una foto)';u.value=ft[k]||'';u.style.width='100%';col.appendChild(u);
-      var fl=el_('input');fl.type='file';fl.accept='image/png,image/jpeg,image/webp';fl.onchange=function(){if(fl.files[0])subirFoto(fl.files[0],k,function(url){u.value=url;im.src=url})};col.appendChild(fl);
-      var b2=el_('div','fila');b2.appendChild(btn('Guardar',function(){var o=Object.assign({},ST.datos.sitio.fotos||{});if(u.value.trim())o[k]=u.value.trim();else delete o[k];guardarParte('fotos',o)}));
-      b2.appendChild(btn('Original',function(){var o=Object.assign({},ST.datos.sitio.fotos||{});delete o[k];guardarParte('fotos',o)},'sec'));col.appendChild(b2);row.appendChild(col);fc.appendChild(row)});p.appendChild(fc)}
-  if(els.length){var tc=sCaja('Textos','Escribe **así** para dejar una parte en negrita. «Original» vuelve al texto del sitio.'),campos=[];
+      var col=el_('div','sitio-foto-c');col.appendChild(el_('b','',e.getAttribute('data-ed-l')||k));var cur={v:ft[k]||''};
+      var lab=el_('label','sitio-subir','📷 Cambiar foto');var fl=el_('input');fl.type='file';fl.accept='image/png,image/jpeg,image/webp';fl.onchange=function(){if(fl.files[0])subirFoto(fl.files[0],k,function(url){cur.v=url;im.src=url})};lab.appendChild(fl);col.appendChild(lab);
+      col.appendChild(btn('Volver a la original',function(){cur.v='';im.src=sUrl(e.getAttribute('src'))},'sec'));row.appendChild(col);fc.appendChild(row);fi.push([k,cur])});p.appendChild(fc);
+    tareaParte('fotos',function(){var o=Object.assign({},ST.datos.sitio.fotos||{});fi.forEach(function(x){if(x[1].v)o[x[0]]=x[1].v;else delete o[x[0]]});return o})}
+  if(els.length){var tc=sCaja('Textos','Para dejar una parte en negrita escríbela así: **negrita**.'),campos=[];
     els.forEach(function(e){var k=e.getAttribute('data-ed'),def=mdDe(e),wrap=el_('div','sitio-txt');wrap.appendChild(el_('label','',e.getAttribute('data-ed-l')||k));
       var t=el_('textarea');t.rows=Math.max(1,Math.min(6,Math.ceil((tx[k]||def).length/70)));t.maxLength=1500;t.value=tx[k]||def;t.style.width='100%';wrap.appendChild(t);
-      var rb=btn('Original',function(){t.value=def;t.rows=Math.max(1,Math.ceil(def.length/70))},'sec');rb.style.marginTop='3px';wrap.appendChild(rb);tc.appendChild(wrap);campos.push([k,t,def])});
-    tc.appendChild(btn('Guardar textos de esta sección',function(){var o=Object.assign({},ST.datos.sitio.textos||{});campos.forEach(function(c){var v=c[1].value.trim();if(!v||v===c[2])delete o[c[0]];else o[c[0]]=v});guardarParte('textos',o)}));p.appendChild(tc)}
+      var rb=el_('a','sitio-orig','↺ texto original');rb.href='#';rb.onclick=function(ev){ev.preventDefault();t.value=def};wrap.appendChild(rb);tc.appendChild(wrap);campos.push([k,t,def])});p.appendChild(tc);
+    tareaParte('textos',function(){var o=Object.assign({},ST.datos.sitio.textos||{});campos.forEach(function(c){var v=c[1].value.trim();if(!v||v===c[2])delete o[c[0]];else o[c[0]]=v});return o})}
   if(sid==='ficha')p.appendChild(editorFicha());
   if(sid==='galeria'){p.appendChild(editorGaleria());p.appendChild(editorPlaylist())}
   var mover={nosotros:['Presentación personal','Comparador de sonido (Raw → Mix → Master)'],ficha:['Muestras de audio'],reglamento:['Reglamento interno']}[sid]||[];
   mover.forEach(function(t){var o=SUB[t];if(o)p.appendChild(o)});
-  if(!p.firstChild)p.appendChild(par('Esta sección no tiene elementos editables en el diseño actual.','color:#b5afa6'))}
+  if(ST.datos.aviso&&!ST.doc)top.appendChild(par('⚠ '+ST.datos.aviso,'color:#FCC631;font-size:13px;margin:.3rem 0'));
+  var bar=el_('div','sitio-barra');bar.appendChild(btn('💾 Guardar cambios',guardarSeccion));bar.appendChild(el_('small','','Guarda todo lo de esta sección. Presentación, reglamento y audios tienen su propio botón.'));p.appendChild(bar)}
 
 /* --- ficha técnica --- */
 function inp(v,ph,w,fn){var i=el_('input');i.value=v||'';i.placeholder=ph||'';if(w)i.style.width=w;i.oninput=function(){fn(i.value)};return i}
@@ -932,7 +944,7 @@ function editorFicha(){var c=sCaja('Ficha técnica','Cada pestaña de la ficha: 
     var f=el_('div','fila');f.style.marginTop='8px';f.appendChild(btn('↑ Subir pestaña',function(){mover(datos,i,-1);pint()},'sec'));f.appendChild(btn('↓ Bajar pestaña',function(){mover(datos,i,1);pint()},'sec'));f.appendChild(btnDel('Eliminar pestaña','¿Eliminar la pestaña «'+s.titulo+'» de la ficha?',function(){datos.splice(i,1);pint()}));d.appendChild(f);lista.appendChild(d)})}
   function d2(i){var x=lista.querySelectorAll('details')[i];if(x)x.open=true}
   pint();var f=el_('div','fila');f.style.marginTop='8px';f.appendChild(btn('+ Pestaña nueva',function(){datos.push({id:'sec'+(datos.length+1),icono:'🎵',titulo:'Nueva pestaña',resumen:'',stats:[],fotos:[],bloques:[]});pint();d2(datos.length-1)},'sec'));
-  f.appendChild(btn('Guardar ficha',function(){guardarParte('ficha',datos)}));f.appendChild(btnDel('Volver al original','¿Volver la ficha técnica a como estaba originalmente? Se pierden tus cambios.',function(){guardarParte('ficha',[])}));c.appendChild(f);return c}
+  f.appendChild(btnDel('Volver al original','¿Volver la ficha técnica a como estaba originalmente? Se pierden tus cambios.',function(){ST.tareas=[];tareaParte('ficha',function(){return[]});guardarSeccion();setTimeout(function(){pintarSitioPanel()},900)}));c.appendChild(f);tareaParte('ficha',function(){return datos});return c}
 
 /* --- galería (fotos y videos) --- */
 function editorGaleria(){var c=sCaja('Galería de fotos y videos','Las fotos se ven en el carrusel y la galería; los videos son enlaces de YouTube.');
@@ -943,11 +955,11 @@ function editorGaleria(){var c=sCaja('Galería de fotos y videos','Las fotos se 
     if(g.video)col.appendChild(inp(g.video,'Enlace de YouTube','100%',function(v){g.video=v}));else{col.appendChild(inp(g.src,'Enlace de la foto','100%',function(v){g.src=v}));var fl=el_('input');fl.type='file';fl.accept='image/png,image/jpeg,image/webp';fl.onchange=function(){if(fl.files[0])subirFoto(fl.files[0],'galeria-'+i,function(u){g.src=u;pint()})};col.appendChild(fl)}
     var b=el_('div','fila');b.appendChild(btn('↑',function(){mover(datos,i,-1);pint()},'sec'));b.appendChild(btn('↓',function(){mover(datos,i,1);pint()},'sec'));b.appendChild(btn('Quitar',function(){datos.splice(i,1);pint()},'sec'));col.appendChild(b);r.appendChild(col);lista.appendChild(r)})}
   pint();var f=el_('div','fila');f.style.marginTop='8px';f.appendChild(btn('+ Foto',function(){datos.push({src:'',titulo:'',descripcion:''});pint()},'sec'));f.appendChild(btn('+ Video (YouTube)',function(){datos.push({video:'',titulo:'',descripcion:''});pint()},'sec'));
-  f.appendChild(btn('Guardar galería',function(){guardarParte('galeria',datos)}));f.appendChild(btnDel('Volver al original','¿Volver la galería a como estaba originalmente?',function(){guardarParte('galeria',[])}));c.appendChild(f);return c}
+  f.appendChild(btnDel('Volver al original','¿Volver la galería a como estaba originalmente?',function(){ST.tareas=[];tareaParte('galeria',function(){return[]});guardarSeccion();setTimeout(function(){pintarSitioPanel()},900)}));c.appendChild(f);tareaParte('galeria',function(){return datos});return c}
 function editorPlaylist(){var c=sCaja('Playlist de YouTube Music','Se muestra en Producción y Galería. Pega el enlace de tu lista (debe incluir «list=…»).');
   var o=ST.datos.sitio.playlist&&ST.datos.sitio.playlist.url?ST.datos.sitio.playlist:(ST.datos.playlist||{});var v={url:o.url||'',titulo:o.titulo||'',texto:o.texto||''};
   c.appendChild(inp(v.url,'https://music.youtube.com/playlist?list=…','100%',function(x){v.url=x}));c.appendChild(inp(v.titulo,'Título','100%',function(x){v.titulo=x}));c.appendChild(inp(v.texto,'Texto de apoyo','100%',function(x){v.texto=x}));
-  var f=el_('div','fila');f.appendChild(btn('Guardar playlist',function(){guardarParte('playlist',v)}));f.appendChild(btn('Original',function(){guardarParte('playlist',{})},'sec'));c.appendChild(f);return c}
+  tareaParte('playlist',function(){return v});return c}
 
 /* Las secciones de contenido que ya existían se reubican dentro del editor, en la pestaña que corresponde. */
 var SUB={};
@@ -974,7 +986,7 @@ function abrirArea(k){
   var a=AREAS.filter(function(x){return x[0]===k})[0];if(!a)return;
   document.body.setAttribute('data-panel',k);$('barra-t').textContent=a[1];[].forEach.call(document.querySelectorAll('.menu-a .area'),function(x){x.classList.toggle('on',x.getAttribute('data-p')===k)});
   [].forEach.call(document.querySelectorAll('section'),function(s){s.classList.toggle('on',s.getAttribute('data-p')===k)});
-  var b=$('barra');b.style.setProperty('--acc',getComputedStyle(document.querySelector('[data-p='+k+']')||document.body).getPropertyValue('--acc'));window.scrollTo(0,0);if(k==='jornadas')cargarJor();if(k==='conta')cargarRC();if(k==='contenido'&&!ST.datos)cargarSitio();
+  var b=$('barra');b.style.setProperty('--acc',getComputedStyle(document.querySelector('[data-p='+k+']')||document.body).getPropertyValue('--acc'));window.scrollTo(0,0);if(k==='jornadas')cargarJor();else refrescarResumen();if(k==='conta')cargarRC();if(k==='contenido'&&!ST.datos)cargarSitio();
 }
 function irInicio(){document.body.removeAttribute('data-panel');window.scrollTo(0,0)}
 $('inicio-a').onclick=irInicio;
@@ -994,7 +1006,12 @@ function pintarMenu(d){
 var JOR=null,jv='cal',jmes=null,jsel=null,jfEstado='',jbusca='',jAnu=false;
 var CLASE_EST={'Reservado (sin abono)':'sin','Reservado (con abono)':'con','Finalizada':'fin','No asiste':'noa','Anulada':'anu'};
 function cargarJor(){google.script.run.withSuccessHandler(function(d){JOR=d;if(!jmes)jmes=d.hoy.slice(0,7);pintarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminJornadas()}
-function jrun(fn){var a=[].slice.call(arguments,1);google.script.run.withSuccessHandler(function(r){if(r&&r.reservas&&r.estados)pintar(r);cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')})[fn].apply(null,a)}
+/* Cierra una ventana al tocar el fondo, pero solo si el toque empezó y terminó en el fondo (así no se cierra al arrastrar para seleccionar texto). */
+function cierraFuera(d){var md=false;d.onmousedown=function(e){md=e.target===d};d.ontouchstart=function(e){md=e.target===d};d.onclick=function(e){if(e.target===d&&md)d.hidden=true;md=false}}
+var RES_VIEJO=false,RES_T=null;
+function refrescarResumen(){if(!RES_VIEJO)return;RES_VIEJO=false;ejecutar('adminResumen')}
+/* Acción rápida sobre reservas: una sola llamada que devuelve las jornadas; el resumen general se actualiza solo en segundo plano. */
+function jrun(fn){var a=[].slice.call(arguments,1);google.script.run.withSuccessHandler(function(r){JOR=r;if(!jmes)jmes=r.hoy.slice(0,7);pintarJor();RES_VIEJO=true;clearTimeout(RES_T);RES_T=setTimeout(refrescarResumen,12000)}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminRapido(fn,a)}
 function mesTxt(m){var n=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];return n[Number(m.slice(5,7))-1]+' '+m.slice(0,4)}
 function sumMes(m,k){var y=Number(m.slice(0,4)),x=Number(m.slice(5,7))+k;if(x<1){x=12;y--}if(x>12){x=1;y++}return y+'-'+String(x).padStart(2,'0')}
 function deDia(f){return(JOR.reservas||[]).filter(function(r){return r.fecha===f&&(jAnu||r.estado!=='Anulada')}).sort(function(a,b){return a.inicio<b.inicio?-1:1})}
@@ -1056,7 +1073,7 @@ function libresPara(f,horas,codigo){
   (JOR.bloqueos||[]).forEach(function(b){if(b.fecha!==f)return;var a=b.desde===''?0:Number(b.desde),z=b.hasta===''?24:Number(b.hasta);for(var h=a;h<z;h++)oc[h]=1});
   var out=[];for(var s=0;s<=24-horas;s++){var ok=true;for(var k=s;k<s+horas;k++)if(oc[k]){ok=false;break}if(ok)out.push(s)}return out}
 function formReag(r){
-  var d=$('jdet');d.textContent='';d.hidden=false;d.onclick=function(e){if(e.target===d)d.hidden=true};
+  var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);
   var f=el_('div','ficha-j');f.appendChild(el_('h3','','Reagendar · '+r.banda));f.appendChild(el_('div','sub',r.codigo+' · actual: '+r.fechaTxt+', '+r.inicio+' a '+r.fin+' ('+r.horas+(r.horas===1?' hora':' horas')+')'));
   var max=JOR.maxReag||2,usados=r.reag||0,lim=usados>=max;
   var av=el_('div','chips');av.appendChild(el_('span','chip '+(lim?'':'ok'),'Reagendos usados: '+usados+' de '+max));f.appendChild(av);
@@ -1073,7 +1090,7 @@ function formReag(r){
   var acc=el_('div','fila');acc.style.marginTop='10px';acc.appendChild(btn('Reagendar',function(){if(s2.value===''){aviso('Elige una hora disponible.');return}if(lim)confirmarSN('Esta reserva ya usó sus '+max+' reagendamientos. ¿Hacer una excepción?',function(){enviar(true)},'Sí, hacer excepción');else enviar(false)}));acc.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
 }
 function formBloq(fecha){
-  var d=$('jdet');d.textContent='';d.hidden=false;d.onclick=function(e){if(e.target===d)d.hidden=true};
+  var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);
   var f=el_('div','ficha-j');f.appendChild(el_('h3','','Bloquear agenda / personal'));f.appendChild(par('Los bloqueos no se rigen por el horario oficial: puedes bloquear cualquier hora (mantención, ensayo propio, tiempo personal). Solo no pueden quedar encima de una reserva.','color:#b5afa6;font-size:.85rem;margin-bottom:8px'));
   var fm=el_('div','rm-form'),v={fecha:fecha};
   var l1=el_('label');l1.appendChild(document.createTextNode('Día'));var i1=document.createElement('input');i1.type='date';i1.value=fecha;l1.appendChild(i1);fm.appendChild(l1);
@@ -1099,7 +1116,7 @@ function diaJor(f){
 }
 function editarDe(r){abrirRM({codigo:r.codigo,servicio:/grab|estudio/i.test(r.servicio)?'grabacion':'ensayo',fecha:r.fecha,inicio:parseInt(r.inicio,10),horas:r.horas,banda:r.banda,nombre:r.contacto,telefono:r.telefono,correo:r.correo,estado:r.estado,total:r.total,extras:r.extras,video:r.video,raw:r.raw})}
 function fichaJor(r){
-  var d=$('jdet');d.textContent='';d.hidden=false;d.onclick=function(e){if(e.target===d)d.hidden=true};
+  var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);
   var f=el_('div','ficha-j');f.style.setProperty('--c',({sin:'#FCC631',con:'#4ade80',fin:'#60a5fa',noa:'#c084fc',anu:'#8a8581'})[CLASE_EST[r.estado]||'sin']);
   f.appendChild(el_('h3','',r.banda));f.appendChild(el_('div','sub',r.codigo+' · '+r.servicio+(r.plan?' · Plan '+r.plan:'')));
   var kv=el_('dl','kv');function fila(k,v){if(v===''||v===null||v===undefined)return;kv.appendChild(el_('dt','',k));kv.appendChild(el_('dd','',String(v)))}
@@ -1109,7 +1126,7 @@ function fichaJor(r){
   fila('Comentarios',r.comentarios);fila('Creada',r.creada);f.appendChild(kv);
   var ch=el_('div','chips');[[r.extras?'Equipo extra: '+r.extras:'',1],[r.video?'Video GoPro':'',1],[r.raw?'Material en bruto':'',1],[r.zurdo?'Baterista zurdo':'',1],[r.servicio==='Ensayo'?'Micrófonos de voz: '+r.voces:'',1]].forEach(function(x){if(x[0])ch.appendChild(el_('span','chip ok',x[0]))});
   if(!ch.firstChild)ch.appendChild(el_('span','chip','Sin adicionales'));f.appendChild(ch);
-  var acc=el_('div','fila');acc.appendChild(selEstado(JOR.estados,r.estado,function(v){if(v==='Finalizada'&&r.estado!=='Finalizada'){formAjuste(r,true);return}jrun('adminCambiarEstado',r.codigo,v);d.hidden=true}));
+  var acc=el_('div','fila');var se1=selEstado(JOR.estados,r.estado,function(v){if(v===r.estado)return;if(v==='Finalizada'){se1.value=r.estado;formAjuste(r,true);return}se1.value=r.estado;confirmarSN('¿Cambiar el estado de esta reserva a «'+v+'»?',function(){jrun('adminCambiarEstado',r.codigo,v);d.hidden=true},'Sí, cambiar')});acc.appendChild(se1);
   var bc=bloqueCobro(r,d);if(bc)f.appendChild(bc);
   f.appendChild(el_('h5','','Enviar por WhatsApp'));f.appendChild(waBotones(r));
   acc.appendChild(btn('Editar',function(){d.hidden=true;editarDe(r)},'sec'));
@@ -1123,7 +1140,7 @@ function fichaJor(r){
 
 
 function formRetencion(r){
-  var d=$('jdet');d.textContent='';d.hidden=false;d.onclick=function(e){if(e.target===d)d.hidden=true};
+  var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);
   var f=el_('div','ficha-j');f.appendChild(el_('h3','','Retención · '+r.banda));
   f.appendChild(el_('div','sub',r.codigo+' · '+r.estado+' · '+r.horas+(r.horas===1?' hora':' horas')+' · abono '+clp(r.abono)+' · retención actual '+clp(r.retenido)));
   var g=el_('div','aj-grid');var l=el_('label','','Monto que se retiene ($) — 0 = perdonar');var i=el_('input');i.type='number';i.min=0;i.value=r.retenido;l.appendChild(i);g.appendChild(l);
@@ -1133,7 +1150,7 @@ function formRetencion(r){
   acc.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
 }
 function formAjuste(r,fin){
-  var d=$('jdet');d.textContent='';d.hidden=false;d.onclick=function(e){if(e.target===d)d.hidden=true};
+  var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);
   var f=el_('div','ficha-j');f.appendChild(el_('h3','',(fin?'Finalizar · ':'Cobro de la reserva · ')+r.banda));
   var orig=r.totalOriginal||r.total;
   f.appendChild(el_('div','sub',r.codigo+' · '+r.fechaTxt+' · '+r.inicio+' a '+r.fin+' ('+r.horas+(r.horas===1?' hora':' horas')+') · valor de lista '+clp(orig)+' · abono recibido '+clp(r.abono)));
@@ -1148,7 +1165,7 @@ function formAjuste(r,fin){
   rap.appendChild(btn('Valor de lista '+clp(orig),function(){tot.value=orig;resumenAj()},'sec'));f.appendChild(rap);
   f.appendChild(el_('div','sub','Lo que escribas aquí es lo que cuenta en el balance, el resumen contable y el cierre del mes. El valor de lista queda guardado.'));
   var acc=el_('div','fila');
-  function enviar(fz){var v=Number(tot.value);if(!isFinite(v)||v<0||tot.value===''){aviso('Escribe un valor válido (0 o más).');return}google.script.run.withSuccessHandler(function(r2){d.hidden=true;if(r2&&r2.reservas&&r2.estados)pintar(r2);aviso(fz?'Reserva finalizada ✔':'Cobro guardado ✔');if(typeof cargarJor==='function')cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminAjustarReserva(r.codigo,{totalFinal:v,nota:nt.value,finalizar:fz})}
+  function enviar(fz){var v=Number(tot.value);if(!isFinite(v)||v<0||tot.value===''){aviso('Escribe un valor válido (0 o más).');return}d.hidden=true;aviso(fz?'Reserva finalizada ✔':'Cobro guardado ✔');jrun('adminAjustarReserva',r.codigo,{totalFinal:v,nota:nt.value,finalizar:fz})}
   if(fin)acc.appendChild(btn('Finalizar',function(){enviar(true)}));
   else{acc.appendChild(btn('Guardar',function(){enviar(false)}));if(r.estado!=='Finalizada')acc.appendChild(btn('Guardar y finalizar',function(){enviar(true)},'sec'))}
   acc.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
@@ -1194,7 +1211,7 @@ function listaCli(){
   c.appendChild(g);if(!g.firstChild)c.appendChild(par('Sin clientes todavía.','color:#b5afa6'));
 }
 function fichaCli(x){
-  var d=$('jdet');d.textContent='';d.hidden=false;d.onclick=function(e){if(e.target===d)d.hidden=true};
+  var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);
   var f=el_('div','ficha-j');f.appendChild(el_('h3','',x.banda||'(sin banda)'));f.appendChild(el_('div','sub',x.contacto+' · +'+x.telefono+(x.correo?' · '+x.correo:'')));
   var tot=el_('div','tot');[['Jornadas',x.jornadas],['Finalizadas',x.finalizadas],['Gastado',clp(x.gastado)]].forEach(function(y){var e=el_('div');e.appendChild(el_('b','',y[1]));e.appendChild(document.createTextNode(' '+y[0]));tot.appendChild(e)});f.appendChild(tot);
   var rs=(JOR.reservas||[]).filter(function(r){return r.telefono===x.telefono});
@@ -1213,7 +1230,7 @@ function abrirRM(pre){
   if(pre.banda)RM.paso=1;pintarRM();
 }
 function pintarRM(){
-  var d=$('jdet');d.textContent='';d.hidden=false;d.onclick=function(e){if(e.target===d)d.hidden=true};
+  var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);
   var f=el_('div','ficha-j');f.appendChild(el_('h3','',RM.codigo?'Editar reserva '+RM.codigo:'Nueva reserva manual'));f.appendChild(par('Sin restricción de horario: puedes agendar cualquier día y hora.','color:#b5afa6;font-size:.82rem;margin-bottom:.5rem'));
   var ps=el_('div','rm-pasos');['1 · Servicio','2 · Fecha y hora','3 · Datos','4 · Resumen'].forEach(function(t,i){ps.appendChild(el_('span',RM.paso===i+1?'on':'',t))});f.appendChild(ps);
   var c=el_('div');f.appendChild(c);
@@ -1269,7 +1286,7 @@ function guardarRM(forzar){
 }
 /* ---------- Ficha manual de cliente ---------- */
 function formCli(x){
-  x=x||{};var d=$('jdet');d.textContent='';d.hidden=false;d.onclick=function(e){if(e.target===d)d.hidden=true};
+  x=x||{};var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);
   var f=el_('div','ficha-j');f.appendChild(el_('h3','',x.telefono?'Editar cliente':'Nuevo cliente'));
   var fm=el_('div','rm-form'),v={nombre:x.nombre||'',apellido:x.apellido||'',correo:x.correo||'',banda:x.banda||'',telefono:/^MAN-/.test(x.telefono||'')?'':(x.telefono||''),enlace:x.enlace||''};
   function campo(k,et,tipo,full,ph,dis){var l=el_('label',full?'full':'');l.appendChild(document.createTextNode(et));var i=document.createElement('input');i.type=tipo||'text';i.value=v[k];if(ph)i.placeholder=ph;if(dis)i.disabled=true;i.oninput=function(){v[k]=i.value};l.appendChild(i);fm.appendChild(l)}
@@ -1282,7 +1299,7 @@ function formCli(x){
 }
 var LISTA_INICIAL='Agustin Caceres;Banda;+56990830392\nAlejandro Hernandez;Don Carpo - Homenaje Papp;+56940261434\nAlfonso Oneto;La Gran America JR;+56965353500\nAlvaro Vasquez;Retro Cumbia;+56991452739\nAlvaro Zavala;LIES;+56959797928\nByron Malvino;Skaro Vivir;+56947423849\nCarlos Higuera;Los Bufones de la Corte;+56999495693\nCatalina Aldana;Minainus;+56961136048\nCesar Vidal;Malditos Calavera;+56984585703\nClaudio Godoy;Magnecio;+56945170332\nClaudio Maulen;Grupo Karay;+56977439882\nCristian Toro;Seventh Son (Iron Maiden);+56935055408\nDaniel Tobar;La Mafia;+56929754935\nDiego Candia;Tiempos de Perro;+56967853155\nDiego Rioseco;Jackmosis;+56978734568\nFelipe Huerta;Funky Marranos (Chancho e;+56954284803\nFelipe Montero;Saeskin;+56952065140\nGabriel Villagran;Las Bandoleras y sus Band;+56959741569\nIgnacio Flores;Un Whisky por Charly;+56973983639\nJaime Garcia;CDM;+56966300794\nJean Gardy Inocent;Melody Band;+56938773394\nJob Eulices;V2Nird;+56973178921\nJorge Puchi;NERCON;+56975667320\nJose Luis Villagran;MIG-21;+56933202000\nJuan Ordoñes;CDM;+56995276030\nLuis Tapia;Katary;+56971418262\nMathias Arroyo;Los Amigos de tu Mamá;+56922265382\nMauricio Salinas;Los Reggaeseros;+56942613361\nOsvaldo Lizama;Sismo;+56984332396\nPedro Maldonado;V.H.S.;+56997902146\nPhilipe Llulle;Full Revolt;+56953192992\nRoberto Alegria;Post Bruma;+56985197647\nSergio Chamorro;J Matt y su Banda;+56997775054\nVicente Espinoza;Mapochossippi;+56997294715\nVictor Cuminao;Los Costeros del Sur;+56954706687\nYonny Montecinos;Jackmosis;+56987507782';
 function importarCli(){
-  var d=$('jdet');d.textContent='';d.hidden=false;d.onclick=function(e){if(e.target===d)d.hidden=true};
+  var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);
   var f=el_('div','ficha-j');f.appendChild(el_('h3','','Importar lista de clientes'));
   f.appendChild(par('Una línea por cliente: Nombre Apellido ; Banda ; Teléfono. Ya viene cargada la lista del padrón del 06-11-2026 (36 contactos). Los que ya existan se omiten.','color:#b5afa6;font-size:.82rem;margin-bottom:.5rem'));
   var ta=document.createElement('textarea');ta.rows=14;ta.style.cssText='width:100%;font-size:.8rem';ta.value=LISTA_INICIAL;f.appendChild(ta);

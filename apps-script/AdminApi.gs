@@ -23,8 +23,21 @@ function paginaAdmin_() {
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
+/** Cuando es true, adminResumen() no arma el resumen completo (lo usan las acciones rápidas de «Reservas y jornadas»). */
+var LIGERO_ = false;
+var RAPIDAS_ = ['adminCambiarEstado', 'adminReagendar', 'adminAjustarReserva', 'adminMarcarCobro', 'adminMarcarCortesia', 'adminAjustarRetencion', 'adminGuardarEnlace', 'adminEliminarReserva', 'adminCuadrarReservas', 'adminDesbloquear'];
+/** Ejecuta una acción sobre reservas y devuelve solo «Reservas y jornadas» (una llamada en vez de dos: se nota mucho menos la espera). */
+function adminRapido(nombre, args) {
+  exigirAdmin_();
+  if (RAPIDAS_.indexOf(nombre) < 0) throw new Error('Acción no permitida.');
+  LIGERO_ = true;
+  try { globalThis[nombre].apply(null, Array.isArray(args) ? args : []); } finally { LIGERO_ = false; }
+  return adminJornadas();
+}
+
 function adminResumen(mesVentas) {
   exigirAdmin_();
+  if (LIGERO_) return { ligero: true };
   var ss = abrirBd_(), hoy = ahoraChile_().fecha;
   var cfg = getCfg_();
 
