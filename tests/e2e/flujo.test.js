@@ -601,6 +601,31 @@ t('editor del sitio: textos, fotos, ficha, galería y playlist se validan, se gu
   ['textos', 'fotos', 'galeria', 'ficha', 'playlist'].forEach((x) => g.admin('adminGuardarSitio', x, x === 'galeria' || x === 'ficha' ? [] : {}));
   assert.deepStrictEqual(g.get({ accion: 'config' }).sitio, {}, 'vaciar una parte vuelve al sitio original');
 });
+t('finalizar con el valor que yo dejo (plan pagado antes) y verificación de ingresos', () => {
+  const fecha = sumar(f3, 49), mes = fecha.slice(0, 7);
+  const r = g.admin('adminReservaManual', { servicio: 'ensayo', fecha, inicio: 12, horas: 2, banda: 'Plan octubre', nombre: 'Ana', telefono: '+56 9 2222 0001', estado: 'Reservado (con abono)' });
+  assert.ok(r.ok, JSON.stringify(r));
+  g.admin('adminAjustarReserva', r.codigo, { totalFinal: 2000, nota: 'Pagada en plan de octubre; solo un plato', finalizar: true });
+  const x = g.admin('adminJornadas').reservas.find((q) => q.codigo === r.codigo);
+  assert.strictEqual(x.estado, 'Finalizada'); assert.strictEqual(x.total, 2000); assert.ok(/plato/.test(x.notaAjuste));
+  const c = g.admin('adminResumenContable', 'mes', mes); assert.strictEqual(c.detalle.find((q) => q.codigo === r.codigo).total, 2000, 'solo $2.000 entran al mes');
+  const v = g.admin('adminVerificarIngresos', mes);
+  assert.strictEqual(v.totales.diferencia, 0, 'el resumen coincide con el recálculo'); assert.ok(v.checks.length >= 8);
+  assert.strictEqual(v.checks[0].nivel, 'ok');
+  // una reserva pasada sin finalizar se avisa
+  const vieja = g.admin('adminReservaManual', { servicio: 'ensayo', fecha: sumar(f3, 49), inicio: 16, horas: 1, banda: 'Olvidada', nombre: 'Luis', telefono: '+56 9 2222 0002', estado: 'Reservado (con abono)' });
+  assert.ok(vieja.ok);
+});
+t('venta de tienda con fecha pasada para el historial', () => {
+  const pr = g.admin('adminResumen').productos.find((p) => p.precio !== '' && (p.stock === '' || p.stock > 2)); assert.ok(pr, 'hay producto');
+  const hoy = g.admin('adminResumen').hoy, ayer = hoy.slice(0, 7) + '-01';
+  const rs = g.admin('adminVenderCarrito', 'musica', [{ fila: pr.fila, cantidad: 1 }], 'Venta efectivo', 'Venta de la semana pasada', ayer);
+  const vt = rs.ventas.ventas.find((q) => q.id === rs.idsVenta[0]); assert.strictEqual(vt.fecha, ayer); assert.ok(/semana pasada/.test(vt.nota));
+  assert.throws(() => g.admin('adminVenderCarrito', 'musica', [{ fila: pr.fila, cantidad: 1 }], 'Venta efectivo', '', sumar(hoy, 5)), /futura/);
+  assert.throws(() => g.admin('adminVenderCarrito', 'musica', [{ fila: pr.fila, cantidad: 1 }], 'Venta efectivo', '', '2026-13-45'), /válida/);
+  g.admin('adminEditarVenta', vt.id, { cantidad: 1, pago: 'Venta efectivo', nota: 'ok', fecha: hoy.slice(0, 7) + '-01' });
+  assert.strictEqual(g.admin('adminResumen').ventas.ventas.find((q) => q.id === vt.id).fecha, hoy.slice(0, 7) + '-01');
+});
 t('editar la retención de No asiste (perdonar o cambiar el monto)', () => {
   const x = g.admin('adminJornadas').reservas.find((q) => q.estado === 'No asiste'); assert.ok(x, 'hay una No asiste');
   g.admin('adminAjustarRetencion', x.codigo, 0, 'Se perdona'); const y = g.admin('adminJornadas').reservas.find((q) => q.codigo === x.codigo); assert.strictEqual(y.retenido, 0);

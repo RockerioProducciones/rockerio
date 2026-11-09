@@ -207,6 +207,52 @@ function adminEliminarMovimiento(id) {
 }
 
 /* ====================================================================
+ *  VERIFICACIÓN DE INGRESOS: recalcula el mes desde las filas crudas y avisa de todo lo que pueda estar mal
+ * ==================================================================== */
+
+/** mes = AAAA-MM. Devuelve {mes, totales, checks:[{nivel: ok|aviso|error, titulo, detalle, lista}]}. Solo lectura. */
+function adminVerificarIngresos(mes) {
+  exigirAdmin_();
+  mes = mesValido_(mes) ? mes : mesActual_();
+  var R = rangoPeriodo_('mes', mes), cfg = getCfg_(), hoy = ahoraChile_().fecha, ss = abrirBd_(), fee = Number(cfg.noAsisteCobroPorHora) || 0;
+  var res = adminResumenContable('mes', mes), checks = [];
+  var sinFinalizar = [], sobrepago = [], sinMedio = [], retenDist = [], duplicadas = {}, dups = [], descuadre = [];
+  var recomputado = 0, finalizadas = 0, sr = ss.getSheetByName(HOJAS.reservas), n = sr.getLastRow();
+  if (n > 1) sr.getRange(2, 1, n - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r) {
+    var f = aFechaIso_(r[RES.fecha - 1]); if (!f || f < R.desde || f > R.hasta) return;
+    var est = estadoNorm_(r[RES.estado - 1]), total = Number(r[RES.total - 1]) || 0, abono = Number(r[RES.abono - 1]) || 0, h = Number(r[RES.horas - 1]) || 0;
+    var item = { fecha: f, codigo: String(r[RES.codigo - 1]), banda: String(r[RES.banda - 1]), estado: est, total: total, abono: abono };
+    if (est === EST.FINALIZADA) {
+      finalizadas++; recomputado += total;
+      var montos = sumaMontos_(r); if (montos !== total) descuadre.push({ fecha: f, codigo: item.codigo, banda: item.banda, total: total, montos: montos });
+      if (abono > total && r[RES.cortesia - 1] !== 'SI') sobrepago.push(item);
+      if (r[RES.cobro - 1] !== 'POR COBRAR' && r[RES.cortesia - 1] !== 'SI' && total > abono && MEDIOS_PAGO.indexOf(String(r[RES.medioPago - 1])) < 0) sinMedio.push(item);
+      var k = f + '|' + horaCelda_(r[RES.inicio - 1]) + '|' + String(r[RES.servicio - 1]); (duplicadas[k] = duplicadas[k] || []).push(item);
+    } else if (est === EST.NO_ASISTE) {
+      var ret = Number(r[RES.retenido - 1]) || 0; recomputado += ret;
+      if (ret !== fee * h) retenDist.push({ fecha: f, codigo: item.codigo, banda: item.banda, retenido: ret, esperado: fee * h });
+    } else if (est === EST.ANULADA) {
+      recomputado += Number(r[RES.retenido - 1]) || 0;
+    } else if ((est === EST.CON_ABONO || est === EST.SIN_ABONO) && f < hoy) {
+      sinFinalizar.push(item);
+    }
+  });
+  Object.keys(duplicadas).forEach(function (k) { if (duplicadas[k].length > 1) dups = dups.concat(duplicadas[k]); });
+  var dif = res.ingresosBrutos - recomputado;
+  checks.push({ nivel: dif === 0 ? 'ok' : 'error', titulo: 'El resumen coincide con las reservas', detalle: 'Resumen contable: ' + Reglas.clp(res.ingresosBrutos) + ' · recalculado desde cada reserva: ' + Reglas.clp(recomputado) + (dif === 0 ? '' : ' · diferencia ' + Reglas.clp(dif)) });
+  checks.push({ nivel: descuadre.length ? 'error' : 'ok', titulo: 'Total de cada reserva = montos que usa el balance', detalle: descuadre.length ? descuadre.length + ' reserva(s) no cuadran. Usa «Cuadrar» en el resumen contable.' : 'Todas cuadran.', lista: descuadre });
+  checks.push({ nivel: sinFinalizar.length ? 'aviso' : 'ok', titulo: 'Reservas pasadas sin finalizar (no cuentan como ingreso)', detalle: sinFinalizar.length ? sinFinalizar.length + ' reserva(s) con fecha pasada siguen «Reservado». Finalízalas, márcalas «No asiste» o anúlalas.' : 'No hay reservas olvidadas.', lista: sinFinalizar });
+  checks.push({ nivel: (res.deudas || []).length ? 'aviso' : 'ok', titulo: 'Saldos por cobrar', detalle: (res.deudas || []).length ? (res.deudas.length + ' deuda(s) por ' + Reglas.clp(res.deudas.reduce(function (a, x) { return a + x.saldo; }, 0)) + ' (el ingreso ya está contado en el mes de la sesión).') : 'No hay deudas.', lista: res.deudas || [] });
+  checks.push({ nivel: sobrepago.length ? 'aviso' : 'ok', titulo: 'Abono mayor que el total de la reserva', detalle: sobrepago.length ? 'En estas reservas se recibió más abono que el valor contabilizado: ¿corresponde devolver o es de un plan pagado antes?' : 'Sin sobrepagos.', lista: sobrepago });
+  checks.push({ nivel: sinMedio.length ? 'aviso' : 'ok', titulo: 'Saldos cobrados sin medio de pago', detalle: sinMedio.length ? 'Falta registrar si fue efectivo, transferencia o tarjeta (para cuadrar caja y banco).' : 'Todos tienen medio de pago.', lista: sinMedio });
+  checks.push({ nivel: retenDist.length ? 'aviso' : 'ok', titulo: '«No asiste» con retención distinta a la tarifa', detalle: retenDist.length ? 'Tarifa vigente: ' + Reglas.clp(fee) + ' por hora. Revisa si fue un perdón o un cambio a propósito.' : 'Todas usan la tarifa vigente.', lista: retenDist });
+  checks.push({ nivel: dups.length ? 'aviso' : 'ok', titulo: 'Posibles reservas duplicadas', detalle: dups.length ? 'Misma fecha, hora y servicio finalizados más de una vez.' : 'No hay duplicadas.', lista: dups });
+  var ventas = leerVentas_(), vSinFecha = ventas.filter(function (v) { return !v.fecha; }).length, vViejas = ventas.filter(function (v) { return v.pago === PAGO.PENDIENTE && v.fecha && v.fecha < Reglas.sumarDias(hoy, -30); });
+  checks.push({ nivel: vSinFecha || vViejas.length ? 'aviso' : 'ok', titulo: 'Ventas de tienda y bebestibles', detalle: (vSinFecha ? vSinFecha + ' venta(s) sin fecha. ' : '') + (vViejas.length ? vViejas.length + ' entregada(s) en sala sin cobrar hace más de 30 días.' : '') || 'Sin problemas.', lista: vViejas.map(function (v) { return { fecha: v.fecha, codigo: v.id, banda: v.producto, total: v.total }; }) });
+  return { ok: true, mes: mes, totales: { ingresosBrutos: res.ingresosBrutos, recalculado: recomputado, finalizadas: finalizadas, diferencia: dif }, checks: checks };
+}
+
+/* ====================================================================
  *  RESUMEN CONTABLE POR PERÍODO (semana o mes) — para cerrar con los socios
  * ==================================================================== */
 

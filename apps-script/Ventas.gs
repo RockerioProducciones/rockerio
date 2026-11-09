@@ -113,7 +113,17 @@ function siguienteIdVenta_() {
 }
 
 /** Registra una venta: descuenta stock (si el producto lo lleva) y la anota. Debe llamarse dentro de conBloqueo_. */
-function registrarVenta_(tipo, fila, cantidad, pago, vendedor, nota) {
+/** Fecha de la venta: vacía = ahora. Con fecha (AAAA-MM-DD, no futura) se registra en esa fecha, para cargar el historial. */
+function fechaVenta_(fecha) {
+  if (!fecha) return new Date();
+  fecha = String(fecha);
+  if (!Reglas.fechaValida(fecha)) throw new Error('La fecha de la venta no es válida.');
+  if (fecha > ahoraChile_().fecha) throw new Error('La fecha de la venta no puede ser futura.');
+  return fechaHora_(fecha, 12);
+}
+
+function registrarVenta_(tipo, fila, cantidad, pago, vendedor, nota, fecha) {
+  var fv = fechaVenta_(fecha);
   pago = pagoNorm_(pago);
   if (PAGOS_VENTA.indexOf(pago) < 0) throw new Error('Elige cómo se pagó: efectivo, transferencia o pago pendiente.');
   cantidad = Number(cantidad);
@@ -127,14 +137,15 @@ function registrarVenta_(tipo, fila, cantidad, pago, vendedor, nota) {
     sh.getRange(f, 5).setValue(stock - cantidad);
   }
   var id = siguienteIdVenta_();
-  abrirBd_().getSheetByName(HOJAS.ventas).appendRow([new Date(), textoSeguro_(String(r[1])), cantidad, precio, precio * cantidad,
+  abrirBd_().getSheetByName(HOJAS.ventas).appendRow([fv, textoSeguro_(String(r[1])), cantidad, precio, precio * cantidad,
     ETIQUETA_TIPO[tipoCatalogo_(tipo)], pago, textoSeguro_(limpiar_(vendedor, 40)), textoSeguro_(limpiar_(nota, 120)), '', id]);
   return id;
 }
 
 /** Registra un carrito completo (varios productos) con una sola forma de pago. Valida todo antes de descontar nada.
  *  items = [{fila, cantidad}]. Debe llamarse dentro de conBloqueo_. Devuelve los ids de venta. */
-function registrarCarrito_(tipo, items, pago, vendedor, nota) {
+function registrarCarrito_(tipo, items, pago, vendedor, nota, fecha) {
+  fechaVenta_(fecha);
   if (!items || !items.length) throw new Error('El carrito está vacío.');
   if (items.length > 40) throw new Error('Demasiados productos en una venta.');
   pago = pagoNorm_(pago);
@@ -147,7 +158,7 @@ function registrarCarrito_(tipo, items, pago, vendedor, nota) {
     if (!r[1] || Reglas.aNumero(r[3], null) === null) throw new Error('«' + r[1] + '» no tiene precio.');
     if (r[4] !== '' && Number(r[4]) < c) throw new Error('Stock insuficiente de «' + r[1] + '»: quedan ' + r[4] + '.');
   });
-  return Object.keys(juntos).map(function (k) { return registrarVenta_(tipo, Number(k), juntos[k], pago, vendedor, nota); });
+  return Object.keys(juntos).map(function (k) { return registrarVenta_(tipo, Number(k), juntos[k], pago, vendedor, nota, fecha); });
 }
 
 /** Cambia una venta «pendiente» a efectivo o transferencia. Debe llamarse dentro de conBloqueo_. */
@@ -220,14 +231,14 @@ function datosVentas_(mes) {
 
 /* ---------- administrador: ventas ---------- */
 
-function adminVender(tipo, fila, cantidad, pago, nota) {
+function adminVender(tipo, fila, cantidad, pago, nota, fecha) {
   exigirAdmin_();
-  return conBloqueo_(function () { registrarVenta_(tipo, fila, cantidad, pago, 'Administración', nota || ''); return adminResumen(); });
+  return conBloqueo_(function () { registrarVenta_(tipo, fila, cantidad, pago, 'Administración', nota || '', fecha); return adminResumen(); });
 }
 /** Venta por carrito desde el portal: items = [{fila, cantidad}], pago = una de PAGOS_VENTA. */
-function adminVenderCarrito(tipo, items, pago, nota) {
+function adminVenderCarrito(tipo, items, pago, nota, fecha) {
   exigirAdmin_();
-  return conBloqueo_(function () { var ids = registrarCarrito_(tipo, items, pago, 'Administración', nota || ''); var r = adminResumen(); r.idsVenta = ids; return r; });
+  return conBloqueo_(function () { var ids = registrarCarrito_(tipo, items, pago, 'Administración', nota || '', fecha); var r = adminResumen(); r.idsVenta = ids; return r; });
 }
 function adminCobrar(id, pago) {
   exigirAdmin_();
@@ -284,6 +295,7 @@ function adminEditarVenta(id, d) {
     if (pagoAnt === PAGO.PENDIENTE && pago !== PAGO.PENDIENTE) sh.getRange(f, VT.cobro).setValue(new Date());
     if (pago === PAGO.PENDIENTE) sh.getRange(f, VT.cobro).setValue('');
     sh.getRange(f, VT.nota).setValue(textoSeguro_(limpiar_(d.nota, 200)));
+    if (d.fecha) sh.getRange(f, VT.fecha).setValue(fechaVenta_(d.fecha));
     return adminResumen();
   });
 }
