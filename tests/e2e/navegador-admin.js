@@ -13,7 +13,7 @@ const { sembrar } = require('./demo.js');
     ok(!(await p.locator('#sec-wa').isVisible()) && await p.locator('#sec-jor').isVisible(), nombre + ': arranca en Reservas y jornadas con la barra de pestañas');
     await p.screenshot({ path: 'a-' + nombre + '-inicio.png' });
     if (nombre === 'pc') {
-      for (const [k, sel] of [['reservas', '#res'], ['solicitudes', '#sol'], ['tienda', '#sec-musica'], ['contenido', '#rgt'], ['mensajes', '#wam'], ['config', '#ajustes'], ['conta', '#sec-rc'], ['socios', '#resp']]) {
+      for (const [k, sel] of [['reservas', '#res'], ['solicitudes', '#sol'], ['tienda', '#sec-musica'], ['contenido', '#sitio-panel'], ['mensajes', '#wam'], ['config', '#ajustes'], ['conta', '#sec-rc'], ['socios', '#resp']]) {
         await p.click('.area[data-p=' + k + ']'); await p.waitForTimeout(250);
         ok(await p.locator(sel).first().isVisible(), 'área ' + k + ' abre su contenido'); await p.screenshot({ path: 'a-' + k + '.png' });
       }
@@ -26,14 +26,30 @@ const { sembrar } = require('./demo.js');
       // configuración: abrir grupos nuevos y guardar
       await p.click('.area[data-p=config]'); await p.waitForTimeout(200);
       const grupos = await p.locator('#ajustes summary').allTextContents(); console.log('grupos:', grupos.join(' | '));
-      ok(grupos.includes('Contacto y redes') && grupos.includes('ProAudix') && grupos.includes('Portada y secciones'), 'grupos nuevos de configuración');
-      await p.locator('#ajustes summary', { hasText: 'Contacto y redes' }).click();
-      await p.fill('[data-clave=redInstagram]', 'https://instagram.com/rockerio'); await p.fill('[data-clave=enlacesExtra]', 'Mi canal | https://youtube.com/@rockerio');
-      await p.click('#ajg'); await p.waitForTimeout(500);
-      ok(g.get({ accion: 'config' }).config.redInstagram === 'https://instagram.com/rockerio', 'guardar desde el portal llega al sitio público');
-      await p.fill('[data-clave=redInstagram]', 'javascript:alert(1)'); await p.click('#ajg'); await p.waitForTimeout(400);
+      ok(!grupos.includes('Contacto y redes') && !grupos.includes('ProAudix'), 'los textos del sitio ya no están en Configuración (pasaron al editor del sitio)');
+      // ---- Editor del sitio web (se arma leyendo el sitio publicado) ----
+      g.admin('adminGuardarAjustes', { sitioUrl: 'https://sitio.test' });
+      await p.click('.area[data-p=contenido]'); await p.reload(); await p.waitForSelector('.area'); await p.click('.area[data-p=contenido]'); await p.waitForSelector('#sitio-tabs button', { timeout: 6000 }); await p.waitForTimeout(300);
+      const tabs = await p.locator('#sitio-tabs button').allTextContents(); console.log('pestañas del sitio:', tabs.join(' | '));
+      ok(['Portada', 'Producción', 'Ficha técnica', 'Galería', 'ProAudix', 'Contacto', 'Reglamento'].every((t) => tabs.some((x) => x.includes(t))), 'el editor ofrece las secciones del diseño actual');
+      await p.locator('#sitio-tabs button', { hasText: 'Producción' }).click(); await p.waitForTimeout(200);
+      ok(await p.locator('#sitio-panel .sitio-txt textarea').count() >= 8 && await p.locator('#sitio-panel .sitio-foto img').count() >= 1 && await p.locator('#sec-sitio #prx').count() === 1, 'Producción: textos del sitio, foto y presentación personal');
+      const tsit = p.locator('#sitio-panel .sitio-txt textarea').first(); await tsit.fill('Mi enfoque cambiado desde el portal');
+      await p.locator('#sitio-panel button', { hasText: 'Guardar textos' }).click(); await p.waitForTimeout(500);
+      ok(Object.values(g.get({ accion: 'config' }).sitio.textos || {}).includes('Mi enfoque cambiado desde el portal'), 'guardar un texto lo deja disponible para el sitio público');
+      await p.screenshot({ path: 'a-sitio-produccion.png', fullPage: true });
+      await p.locator('#sitio-tabs button', { hasText: 'Ficha técnica' }).click(); await p.waitForTimeout(200);
+      ok(await p.locator('#sitio-panel details.sitio-det').count() === 7, 'ficha técnica: 7 pestañas editables');
+      await p.locator('#sitio-panel details.sitio-det summary').first().click(); await p.screenshot({ path: 'a-sitio-ficha.png', fullPage: true });
+      await p.locator('#sitio-tabs button', { hasText: 'Galería' }).click(); await p.waitForTimeout(200);
+      ok(await p.locator('#sitio-panel .sitio-foto').count() === 10, 'galería: 10 fotos editables');
+      await p.locator('#sitio-tabs button', { hasText: 'Contacto' }).click(); await p.waitForTimeout(200);
+      await p.fill('#sitio-panel [data-clave=redInstagram]', 'https://instagram.com/rockerio'); await p.locator('#sitio-panel button', { hasText: /^Guardar$/ }).first().click(); await p.waitForTimeout(500);
+      ok(g.get({ accion: 'config' }).config.redInstagram === 'https://instagram.com/rockerio', 'redes sociales: guardar desde el editor llega al sitio público');
+      await p.fill('#sitio-panel [data-clave=redInstagram]', 'javascript:alert(1)'); await p.locator('#sitio-panel button', { hasText: /^Guardar$/ }).first().click(); await p.waitForTimeout(400);
       ok(/https/.test(await p.locator('#msg').textContent()), 'enlace inválido muestra el error en pantalla');
-      await p.locator('#ajustes summary', { hasText: 'Portada y secciones' }).click(); await p.locator('#ajustes summary', { hasText: 'Portada y secciones' }).scrollIntoViewIfNeeded(); await p.waitForTimeout(150);
+      await p.locator('#sitio-tabs button', { hasText: 'Reglamento' }).click(); await p.waitForTimeout(200); ok(await p.locator('#rgt').isVisible(), 'reglamento dentro del editor del sitio');
+      await p.click('.area[data-p=config]'); await p.waitForTimeout(200);
       await p.screenshot({ path: 'a-config-abierta.png' });
       // WhatsApp botón por reserva
       await p.click('.area[data-p=reservas]'); await p.waitForTimeout(200);

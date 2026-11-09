@@ -18,6 +18,21 @@
     return fetch(url, opts).then(function (r) { return r.json(); }).finally(function () { clearTimeout(t); });
   }
   function json(ruta) { return fetch(ruta).then(function (r) { return r.json(); }); }
+  /* Lo que edita la dueña desde el portal («Sitio web») se aplica encima del contenido original del sitio. */
+  var sitio = {};
+  function dato(parte, ruta) { var v = sitio[parte]; return (v && (Array.isArray(v) ? v.length : Object.keys(v).length)) ? Promise.resolve(parte === 'ficha' ? { secciones: v } : v) : json(ruta); }
+  function conNegritas(e, t) {
+    e.textContent = '';
+    String(t).split(/\*\*(.+?)\*\*/g).forEach(function (p, i) { if (!p) return; if (i % 2) e.appendChild(el('strong', '', p)); else e.appendChild(document.createTextNode(p)); });
+  }
+  function aplicarSitio() {
+    var tx = sitio.textos || {}, ft = sitio.fotos || {};
+    [].forEach.call(document.querySelectorAll('[data-ed]'), function (e) { var v = tx[e.getAttribute('data-ed')]; if (typeof v === 'string' && v) conNegritas(e, v); });
+    [].forEach.call(document.querySelectorAll('[data-ed-foto]'), function (e) { var v = ft[e.getAttribute('data-ed-foto')]; if (typeof v === 'string' && /^(https:\/\/|assets\/)/.test(v)) e.src = v; });
+    if (sitio.ficha && sitio.ficha.length) { fichaDatos = { secciones: sitio.ficha }; pintarFicha(); }
+    if (sitio.galeria && sitio.galeria.length) pintarGaleria();
+    if (sitio.playlist && sitio.playlist.url) pintarPlaylist();
+  }
 
   /* ---------- carga ---------- */
   function cargar() {
@@ -26,7 +41,7 @@
       ? pedir(API + '?accion=config').then(function (d) {
           if (!d.ok) throw new Error('config');
           conexion = true; if (d.ahora) ahora = d.ahora;
-          cfg = R.normalizarConfig(d.config); if (window.RKTema) window.RKTema.defecto(cfg.tema); return d.tienda;
+          cfg = R.normalizarConfig(d.config); if (window.RKTema) window.RKTema.defecto(cfg.tema); sitio = d.sitio || {}; try { aplicarSitio(); } catch (e) { /* el sitio sigue con su contenido original */ } return d.tienda;
         }).catch(function () { conexion = false; return null; })
       : Promise.resolve(null);
     return Promise.all([conf, tienda]).then(function (r) { pintarTienda(r[0] && r[0].length ? r[0] : r[1]); });
@@ -218,7 +233,7 @@
   }
   var fichaTab = null;
   function pintarFicha() {
-    if (!fichaDatos) { json('data/ficha.json').then(function (d) { fichaDatos = d; pintarFicha(); }).catch(function () { $('ficha').hidden = true; }); return; }
+    if (!fichaDatos) { dato('ficha', 'data/ficha.json').then(function (d) { fichaDatos = fichaDatos || d; pintarFicha(); }).catch(function () { $('ficha').hidden = true; }); return; }
     var cont = $('ficha-in'); cont.textContent = ''; cont.className = 'ficha-app';
     var v = { precioEnsayoHora: R.clp(cfg.precioEnsayoHora), plan8: R.clp(cfg.plan8), plan12: R.clp(cfg.plan12), abonoPorHora: R.clp(cfg.abonoPorHora), horasAnulacion: cfg.horasAnulacion };
     var secs = fichaDatos.secciones || []; if (!secs.length) { $('ficha').hidden = true; return; }
@@ -278,8 +293,11 @@
     b.addEventListener('click', function () { var fr = el('iframe'); fr.src = emb; fr.allowFullscreen = true; fr.loading = 'lazy'; fr.referrerPolicy = 'no-referrer'; fr.title = f.alt || 'Video'; c.replaceChild(fr, b); });
     c.appendChild(b); return c;
   }
+  var seqG = 0, seqP = 0;
   function pintarGaleria() {
-    json('data/galeria.json').then(function (g) {
+    var n = ++seqG;
+    dato('galeria', 'data/galeria.json').then(function (g) {
+      if (n !== seqG) return;
       var cont = $('galeria-in'); cont.textContent = '';
       var fotos = g.filter(function (f) { return f.src; }), videos = g.filter(function (f) { return f.video; });
       var info = $('galeria-info'); if (info) { info.textContent = ''; info.appendChild(infografia([['📸', String(fotos.length), 'fotos del estudio'], ['🎛️', '2', 'salas: ensayo y grabación'], ['🎙️', '17', 'micrófonos de estudio'], ['🎚️', '32', 'canales Midas M32']])); }
@@ -291,7 +309,9 @@
   }
   /** Reproductor de tu playlist de YouTube Music (data/playlist.json) en Producción y Galería. */
   function pintarPlaylist() {
-    json('data/playlist.json').then(function (d) {
+    var n = ++seqP;
+    dato('playlist', 'data/playlist.json').then(function (d) {
+      if (n !== seqP) return;
       var m = /[?&]list=([\w-]+)/.exec(d.url || ''); if (!m) return;
       [].forEach.call(document.querySelectorAll('[data-playlist]'), function (c) {
         c.textContent = ''; c.appendChild(el('h3', '', '🎵 ' + (d.titulo || 'Nuestra playlist')));

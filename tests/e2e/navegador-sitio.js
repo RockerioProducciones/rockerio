@@ -57,6 +57,15 @@ const { sembrar } = require('./demo.js');
     await p.goto('http://localhost:8099/#' + id); await p.waitForTimeout(500);
     ok(await p.locator(sel).first().isVisible(), 'vista ' + id); await p.screenshot({ path: 'v-' + id + '.png' });
   }
+  // contenido editado desde el portal («Sitio web») se aplica sobre el sitio
+  g.admin('adminGuardarSitio', 'textos', { 'nos.fil.p1': '**Texto nuevo:** editado desde el portal' });
+  g.admin('adminGuardarSitio', 'galeria', [{ src: 'assets/sala-1.jpg', titulo: 'Única foto editada' }]);
+  await p.goto('http://localhost:8099/#nosotros'); await p.reload(); await p.waitForFunction(() => window.RK && window.RK.conectado()); await p.waitForTimeout(700);
+  const ft = await p.evaluate(() => document.querySelector('[data-ed="nos.fil.p1"]').innerHTML);
+  console.log(/<strong>Texto nuevo:<\/strong> editado desde el portal/.test(ft) ? '  ok  el texto editado y su negrita se ven en el sitio' : 'FALLA texto editado: ' + ft);
+  await p.goto('http://localhost:8099/#galeria'); await p.reload(); await p.waitForFunction(() => window.RK && window.RK.conectado()); await p.waitForTimeout(700);
+  const nfotos = await p.locator('#galeria-in .galeria img').count(); console.log(nfotos === 1 ? '  ok  la galería editada reemplaza a la original' : 'FALLA galería: ' + nfotos);
+  ['textos', 'galeria'].forEach((x) => g.admin('adminGuardarSitio', x, x === 'galeria' ? [] : {}));
   await p.goto('http://localhost:8099/#bandas'); await p.waitForTimeout(700);
   await p.goto('http://localhost:8099/#reservar'); await p.reload(); await p.waitForFunction(() => window.RK && window.RK.conectado()); await p.waitForTimeout(600);
   ok((await p.inputValue('#telefono')).startsWith('+569'), 'el teléfono ya trae +569');

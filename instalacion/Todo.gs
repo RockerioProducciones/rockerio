@@ -571,7 +571,8 @@ var HOJAS = {
   solicitudes: 'Solicitudes',
   planes: 'Planes',
   balance: 'Balance',
-  movimientos: 'Movimientos'
+  movimientos: 'Movimientos',
+  sitio: 'Sitio'
 };
 
 var ENCABEZADO_MOVIMIENTOS = ['ID', 'Fecha', 'Tipo (Ingreso/Gasto)', 'Destino (Sala/Estudio)', 'Monto', 'Nota'];
@@ -621,7 +622,7 @@ function doGet(e) {
   try {
     switch (p.accion) {
       case 'config':
-        return json_({ ok: true, config: configPublica_(), tienda: tiendaPublica_(), ahora: ahoraChile_() });
+        return json_({ ok: true, config: configPublica_(), tienda: tiendaPublica_(), sitio: sitioPublico_(), ahora: ahoraChile_() });
       case 'contenido':
         return json_({ ok: true, contenido: contenidoPublico_() });
       case 'agenda':
@@ -1152,7 +1153,7 @@ function abrirBd_() {
 /** Agrega a la hoja de reservas la columna «Reagendos» si falta (hojas de versiones anteriores). Se revisa una vez cada 6 horas. */
 function asegurarEsquema_(ss) {
   var cache = CacheService.getScriptCache();
-  if (cache.get('esq5')) return;
+  if (cache.get('esq6')) return;
   try {
     var sh = ss.getSheetByName(HOJAS.reservas);
     if (sh) {
@@ -1162,6 +1163,7 @@ function asegurarEsquema_(ss) {
       });
     }
     prepararSimple_(ss, HOJAS.movimientos, ENCABEZADO_MOVIMIENTOS, [], { 2: 'yyyy-mm-dd', 5: '$#,##0' });
+    prepararSimple_(ss, HOJAS.sitio, ['Parte', 'Contenido (JSON)', 'Actualizado'], [], {});
     // Una sola vez: el cuadro de honor queda visible en la portada (si estaba apagado por una versión anterior).
     var props = PropertiesService.getScriptProperties();
     if (!props.getProperty('MIG_VISIBLES_2')) {
@@ -1180,7 +1182,7 @@ function asegurarEsquema_(ss) {
       }
       props.setProperty('MIG_HONOR_1', '1');
     }
-    cache.put('esq5', '1', 21600);
+    cache.put('esq6', '1', 21600);
   } catch (e) { /* si falla, se reintenta en la próxima solicitud */ }
 }
 
@@ -1228,6 +1230,7 @@ function instalar() {
   ss.getSheetByName(HOJAS.ventas).getRange(2, VT.pago, 5000, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(PAGOS_VENTA.concat([PAGO.ANULADA]), true).setAllowInvalid(false).build());
   prepararSimple_(ss, HOJAS.costos, ['Mes (AAAA-MM)', 'Luz total (boleta)', 'Aporte ProAudix', 'Caja chica', 'Otros gastos de sala', 'Notas', 'Luz con factura a nombre del negocio (SI/NO)'], [], { 1: '@', 2: '$#,##0', 3: '$#,##0', 4: '$#,##0', 5: '$#,##0' });
   prepararSimple_(ss, HOJAS.movimientos, ENCABEZADO_MOVIMIENTOS, [], { 2: 'yyyy-mm-dd', 5: '$#,##0' });
+  prepararSimple_(ss, HOJAS.sitio, ['Parte', 'Contenido (JSON)', 'Actualizado'], [], {});
   prepararSimple_(ss, HOJAS.compras, ['Fecha', 'Proveedor', 'RUT proveedor', 'Tipo de documento', 'N° documento', 'Descripción', 'Categoría', 'Neto', 'IVA', 'Total pagado'], [], { 1: 'yyyy-mm-dd', 3: '@', 5: '@', 8: '$#,##0', 9: '$#,##0', 10: '$#,##0' });
   prepararSimple_(ss, HOJAS.historial, ['Mes', 'Cerrado el', 'Ingresos brutos', 'Total sala', 'Total estudio', 'Material en bruto', 'Tienda y bebestibles', 'Luz que paga la sala', 'Utilidad de la sala', 'Juan Carlos', 'Jaime', 'Estudio', 'IVA a pagar', 'Remanente de IVA', 'PPM', 'Utilidad tributaria', 'Provisión impuesto 1ª categoría'], [], { 1: '@', 2: 'yyyy-mm-dd hh:mm' });
   prepararSimple_(ss, HOJAS.planes, ['Código', 'Creado', 'Plan', 'Horas por sesión', 'Banda', 'Contacto', 'Teléfono', 'Correo', 'Total', 'Pagado', 'Sesiones agendadas'], [], { 2: 'yyyy-mm-dd', 7: '@', 9: '$#,##0' });
@@ -1545,7 +1548,7 @@ function prepararBalance_(ss) {
 }
 
 function ordenarHojas_(ss) {
-  [HOJAS.reservas, HOJAS.config, HOJAS.horarios, HOJAS.bloqueos, HOJAS.inhabiles, HOJAS.clientes, HOJAS.planes, HOJAS.solicitudes, HOJAS.tienda, HOJAS.bebestibles, HOJAS.ventas, HOJAS.costos, HOJAS.compras, HOJAS.movimientos, HOJAS.historial, HOJAS.tributario, HOJAS.muestras, HOJAS.honor, HOJAS.resenas, HOJAS.balance]
+  [HOJAS.reservas, HOJAS.config, HOJAS.horarios, HOJAS.bloqueos, HOJAS.inhabiles, HOJAS.clientes, HOJAS.planes, HOJAS.solicitudes, HOJAS.tienda, HOJAS.bebestibles, HOJAS.ventas, HOJAS.costos, HOJAS.compras, HOJAS.movimientos, HOJAS.sitio, HOJAS.historial, HOJAS.tributario, HOJAS.muestras, HOJAS.honor, HOJAS.resenas, HOJAS.balance]
     .forEach(function (nombre, i) {
       var sh = ss.getSheetByName(nombre);
       if (sh) { ss.setActiveSheet(sh); ss.moveActiveSheet(i + 1); }
@@ -4118,4 +4121,188 @@ function waDatos_() {
   return { plantillas: { msgRecordatorio: cfg.msgRecordatorio, msgConfirmacion: cfg.msgConfirmacion, msgCobroAbono: cfg.msgCobroAbono, msgGracias: cfg.msgGracias, msgResena: cfg.msgResena, msgDescarga: cfg.msgDescarga, msgHonor: cfg.msgHonor },
     negocio: cfg.nombreNegocio, direccion: cfg.direccion, horasAnulacion: cfg.horasAnulacion, sitio: cfg.sitioUrl, auto: cfg.waAutoActivo,
     tieneToken: !!PropertiesService.getScriptProperties().getProperty('WA_TOKEN') };
+}
+
+/* ===== Sitio ===== */
+/**
+ * EDITOR DEL SITIO WEB: textos, fotos, ficha técnica, galería y playlist que ve el público.
+ *
+ * Lo editable NO está fijo en este código: el portal lee el sitio publicado y ofrece editar todo elemento marcado con
+ * data-ed (texto) o data-ed-foto (imagen) en index.html. Si cambia el diseño del sitio, el editor cambia con él.
+ * Los cambios se guardan en la hoja «Sitio» (una fila por parte, en JSON) y el sitio los aplica encima de lo original;
+ * borrar una parte devuelve el sitio a su contenido original.
+ */
+
+var SITIO_PARTES = ['textos', 'fotos', 'ficha', 'galeria', 'playlist'];
+var SITIO_MAX_CELDA = 45000;
+var CARPETA_SITIO = 'Rockerío · Fotos del sitio';
+
+/* ---------- validación (funciones puras; pruebas en tests/sitio.test.js) ---------- */
+
+function clave_(k) { return /^[a-zA-Z0-9_.-]{1,40}$/.test(String(k)) ? String(k) : ''; }
+
+/** Texto largo: conserva saltos de línea (hasta 1500 caracteres) y quita caracteres de control. */
+function textoLargo_(v, max) {
+  return String(v === null || v === undefined ? '' : v).replace(/\r/g, '').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim().slice(0, max || 1500);
+}
+
+/** Imagen del sitio: ruta del propio sitio (assets/…) o enlace https. Cualquier otra cosa se descarta. */
+function urlImagenSitio_(v) {
+  var s = String(v || '').trim();
+  if (/^assets\/[\w\/.\-]{1,120}$/.test(s) && s.indexOf('..') < 0) return s;
+  return /^https:\/\/[^\s<>"'\\]{4,400}$/.test(s) ? s : '';
+}
+
+function limpiarTextosSitio_(o) {
+  var out = {}, n = 0;
+  Object.keys(o && typeof o === 'object' ? o : {}).forEach(function (k) {
+    var c = clave_(k), v = textoLargo_(o[k], 1500);
+    if (c && v && n < 120) { out[c] = v; n++; }
+  });
+  return out;
+}
+
+function limpiarFotosSitio_(o) {
+  var out = {}, n = 0;
+  Object.keys(o && typeof o === 'object' ? o : {}).forEach(function (k) {
+    var c = clave_(k), u = urlImagenSitio_(o[k]);
+    if (c && u && n < 40) { out[c] = u; n++; }
+  });
+  return out;
+}
+
+function fotoItem_(f) {
+  f = f || {};
+  var src = urlImagenSitio_(f.src); if (!src) return null;
+  return { src: src, titulo: limpiar_(f.titulo, 80), descripcion: limpiar_(f.descripcion, 220), alt: limpiar_(f.alt || f.titulo, 120) };
+}
+
+function limpiarGaleriaSitio_(arr) {
+  var out = [];
+  (Array.isArray(arr) ? arr : []).slice(0, 60).forEach(function (f) {
+    f = f || {};
+    if (String(f.video || '').trim()) {
+      var yt = ytUrl_(f.video);
+      if (yt) out.push({ video: yt, titulo: limpiar_(f.titulo, 80), descripcion: limpiar_(f.descripcion, 220), alt: limpiar_(f.alt || f.titulo, 120) });
+      return;
+    }
+    var it = fotoItem_(f); if (it) out.push(it);
+  });
+  return out;
+}
+
+function limpiarFichaSitio_(arr) {
+  var out = [];
+  (Array.isArray(arr) ? arr : []).slice(0, 12).forEach(function (s, i) {
+    s = s || {};
+    var titulo = limpiar_(s.titulo, 80); if (!titulo) return;
+    var sec = { id: String(s.id || '').replace(/[^a-z0-9_-]/gi, '').slice(0, 30) || ('sec' + (i + 1)), icono: limpiar_(s.icono, 6), titulo: titulo, resumen: limpiar_(s.resumen, 300), stats: [], fotos: [], bloques: [] };
+    (Array.isArray(s.stats) ? s.stats : []).slice(0, 6).forEach(function (t) {
+      if (Array.isArray(t) && (t[1] || t[2])) sec.stats.push([limpiar_(t[0], 6), limpiar_(t[1], 24), limpiar_(t[2], 40)]);
+    });
+    (Array.isArray(s.fotos) ? s.fotos : []).slice(0, 16).forEach(function (f) { var it = fotoItem_(f); if (it) sec.fotos.push({ src: it.src, titulo: it.titulo, descripcion: it.descripcion }); });
+    (Array.isArray(s.bloques) ? s.bloques : []).slice(0, 12).forEach(function (b) {
+      b = b || {}; var items = (Array.isArray(b.items) ? b.items : []).slice(0, 30).map(function (x) { return limpiar_(x, 300); }).filter(String);
+      if (limpiar_(b.titulo, 80) || items.length) sec.bloques.push({ titulo: limpiar_(b.titulo, 80), items: items });
+    });
+    if (s.mics) sec.mics = true;
+    if (s.escucha) sec.escucha = true;
+    out.push(sec);
+  });
+  return out;
+}
+
+function limpiarPlaylistSitio_(o) {
+  o = o || {};
+  var u = urlHttps_(o.url);
+  if (u && !/[?&]list=[\w-]+/.test(u)) u = '';
+  return u ? { url: u, titulo: limpiar_(o.titulo, 80), texto: limpiar_(o.texto, 200) } : {};
+}
+
+function validarParteSitio_(parte, valor) {
+  switch (parte) {
+    case 'textos': return limpiarTextosSitio_(valor);
+    case 'fotos': return limpiarFotosSitio_(valor);
+    case 'ficha': return limpiarFichaSitio_(valor);
+    case 'galeria': return limpiarGaleriaSitio_(valor);
+    case 'playlist': return limpiarPlaylistSitio_(valor);
+  }
+  throw new Error('Parte del sitio no válida.');
+}
+
+/* ---------- almacenamiento ---------- */
+
+function hojaSitio_() {
+  var ss = abrirBd_(), sh = ss.getSheetByName(HOJAS.sitio);
+  if (!sh) { sh = ss.insertSheet(HOJAS.sitio); sh.getRange(1, 1, 1, 3).setValues([['Parte', 'Contenido (JSON)', 'Actualizado']]).setFontWeight('bold'); sh.setFrozenRows(1); }
+  return sh;
+}
+
+/** Lee todo lo guardado: {textos, fotos, ficha, galeria, playlist}; lo que no esté guardado no aparece (= original). */
+function leerSitio_() {
+  var sh = hojaSitio_(), n = sh.getLastRow(), out = {};
+  if (n < 2) return out;
+  sh.getRange(2, 1, n - 1, 2).getValues().forEach(function (r) {
+    var k = String(r[0]); if (SITIO_PARTES.indexOf(k) < 0 || !r[1]) return;
+    try { out[k] = JSON.parse(String(r[1])); } catch (e) { /* fila dañada: se ignora y el sitio usa el original */ }
+  });
+  return out;
+}
+
+/** Lo que recibe el sitio público (con caché corto). */
+function sitioPublico_() {
+  var cache = CacheService.getScriptCache(), c = cache.get('sitio');
+  if (c) { try { return JSON.parse(c); } catch (e) { /* se recalcula */ } }
+  var s = leerSitio_(), txt = JSON.stringify(s);
+  if (txt.length < 90000) cache.put('sitio', txt, 300);
+  return s;
+}
+
+/** Guarda una parte. valor vacío ({} o []) = vuelve al contenido original del sitio. */
+function adminGuardarSitio(parte, valor) {
+  exigirAdmin_();
+  if (typeof valor === 'string') { try { valor = JSON.parse(valor); } catch (e) { throw new Error('No se pudo leer lo que enviaste.'); } }
+  var limpio = validarParteSitio_(String(parte), valor), vacio = Array.isArray(limpio) ? !limpio.length : !Object.keys(limpio).length;
+  var txt = JSON.stringify(limpio);
+  if (txt.length > SITIO_MAX_CELDA) throw new Error('Es demasiado contenido para guardar de una vez. Quita algunas fotos o textos.');
+  return conBloqueo_(function () {
+    var sh = hojaSitio_(), f = sh.getLastRow() > 1 ? filaPorTexto_(sh, parte, 1) : 0;
+    if (vacio) { if (f) sh.deleteRow(f); }
+    else if (f) sh.getRange(f, 2, 1, 2).setValues([[txt, fechaHora_(ahoraChile_().fecha, 0)]]);
+    else sh.appendRow([parte, txt, fechaHora_(ahoraChile_().fecha, 0)]);
+    CacheService.getScriptCache().remove('sitio');
+    return leerSitio_();
+  });
+}
+
+/** Sube una foto del sitio a tu Drive (hasta 1,5 MB, PNG/JPG/WebP) y devuelve su enlace público. */
+function adminSubirImagenSitio(p) {
+  exigirAdmin_();
+  var bytes = decodificar_(p && p.b64, 1536 * 1024), t = tipoImagen_(bytes);
+  if (!t) throw new Error('La foto debe ser PNG, JPG o WebP.');
+  var id = guardarPublico_(carpetaDrive_(CARPETA_SITIO), 'sitio-' + limpiar_(p.nombre, 30).replace(/[^\w\- ]/g, '') + '-' + Date.now() + '.' + t[1], t[0], bytes);
+  return 'https://lh3.googleusercontent.com/d/' + id;
+}
+
+/**
+ * Datos para armar el editor: lo guardado y el sitio publicado tal como está hoy (HTML y archivos originales).
+ * El HTML se lee del sitio real para que el editor siempre muestre lo que el diseño actual permite editar.
+ */
+function adminSitioDatos() {
+  exigirAdmin_();
+  var cfg = getCfg_(), base = String(cfg.sitioUrl || '').replace(/\/+$/, '');
+  var out = { sitio: leerSitio_(), base: base, tema: cfg.tema, html: '', ficha: null, galeria: null, playlist: null, aviso: '' };
+  if (!base) { out.aviso = 'Primero escribe la dirección del sitio en Socios y respaldo → Enlaces para compartir.'; return out; }
+  function leer(ruta, max) {
+    try {
+      var r = UrlFetchApp.fetch(base + '/' + ruta + (ruta.indexOf('?') < 0 ? '?v=' + Date.now() : ''), { muteHttpExceptions: true, followRedirects: true });
+      return r.getResponseCode() === 200 ? r.getContentText().slice(0, max) : null;
+    } catch (e) { return null; }
+  }
+  out.html = leer('index.html', 200000) || '';
+  [['ficha', 'data/ficha.json'], ['galeria', 'data/galeria.json'], ['playlist', 'data/playlist.json']].forEach(function (x) {
+    var t = leer(x[1], 90000); if (t) { try { out[x[0]] = JSON.parse(t); } catch (e) { /* sin original */ } }
+  });
+  if (!out.html) out.aviso = 'No pude leer el sitio publicado (' + base + '). Revisa la dirección o intenta en un minuto.';
+  return out;
 }

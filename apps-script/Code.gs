@@ -31,7 +31,8 @@ var HOJAS = {
   solicitudes: 'Solicitudes',
   planes: 'Planes',
   balance: 'Balance',
-  movimientos: 'Movimientos'
+  movimientos: 'Movimientos',
+  sitio: 'Sitio'
 };
 
 var ENCABEZADO_MOVIMIENTOS = ['ID', 'Fecha', 'Tipo (Ingreso/Gasto)', 'Destino (Sala/Estudio)', 'Monto', 'Nota'];
@@ -81,7 +82,7 @@ function doGet(e) {
   try {
     switch (p.accion) {
       case 'config':
-        return json_({ ok: true, config: configPublica_(), tienda: tiendaPublica_(), ahora: ahoraChile_() });
+        return json_({ ok: true, config: configPublica_(), tienda: tiendaPublica_(), sitio: sitioPublico_(), ahora: ahoraChile_() });
       case 'contenido':
         return json_({ ok: true, contenido: contenidoPublico_() });
       case 'agenda':
@@ -612,7 +613,7 @@ function abrirBd_() {
 /** Agrega a la hoja de reservas la columna «Reagendos» si falta (hojas de versiones anteriores). Se revisa una vez cada 6 horas. */
 function asegurarEsquema_(ss) {
   var cache = CacheService.getScriptCache();
-  if (cache.get('esq5')) return;
+  if (cache.get('esq6')) return;
   try {
     var sh = ss.getSheetByName(HOJAS.reservas);
     if (sh) {
@@ -622,6 +623,7 @@ function asegurarEsquema_(ss) {
       });
     }
     prepararSimple_(ss, HOJAS.movimientos, ENCABEZADO_MOVIMIENTOS, [], { 2: 'yyyy-mm-dd', 5: '$#,##0' });
+    prepararSimple_(ss, HOJAS.sitio, ['Parte', 'Contenido (JSON)', 'Actualizado'], [], {});
     // Una sola vez: el cuadro de honor queda visible en la portada (si estaba apagado por una versión anterior).
     var props = PropertiesService.getScriptProperties();
     if (!props.getProperty('MIG_VISIBLES_2')) {
@@ -640,7 +642,7 @@ function asegurarEsquema_(ss) {
       }
       props.setProperty('MIG_HONOR_1', '1');
     }
-    cache.put('esq5', '1', 21600);
+    cache.put('esq6', '1', 21600);
   } catch (e) { /* si falla, se reintenta en la próxima solicitud */ }
 }
 
@@ -688,6 +690,7 @@ function instalar() {
   ss.getSheetByName(HOJAS.ventas).getRange(2, VT.pago, 5000, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(PAGOS_VENTA.concat([PAGO.ANULADA]), true).setAllowInvalid(false).build());
   prepararSimple_(ss, HOJAS.costos, ['Mes (AAAA-MM)', 'Luz total (boleta)', 'Aporte ProAudix', 'Caja chica', 'Otros gastos de sala', 'Notas', 'Luz con factura a nombre del negocio (SI/NO)'], [], { 1: '@', 2: '$#,##0', 3: '$#,##0', 4: '$#,##0', 5: '$#,##0' });
   prepararSimple_(ss, HOJAS.movimientos, ENCABEZADO_MOVIMIENTOS, [], { 2: 'yyyy-mm-dd', 5: '$#,##0' });
+  prepararSimple_(ss, HOJAS.sitio, ['Parte', 'Contenido (JSON)', 'Actualizado'], [], {});
   prepararSimple_(ss, HOJAS.compras, ['Fecha', 'Proveedor', 'RUT proveedor', 'Tipo de documento', 'N° documento', 'Descripción', 'Categoría', 'Neto', 'IVA', 'Total pagado'], [], { 1: 'yyyy-mm-dd', 3: '@', 5: '@', 8: '$#,##0', 9: '$#,##0', 10: '$#,##0' });
   prepararSimple_(ss, HOJAS.historial, ['Mes', 'Cerrado el', 'Ingresos brutos', 'Total sala', 'Total estudio', 'Material en bruto', 'Tienda y bebestibles', 'Luz que paga la sala', 'Utilidad de la sala', 'Juan Carlos', 'Jaime', 'Estudio', 'IVA a pagar', 'Remanente de IVA', 'PPM', 'Utilidad tributaria', 'Provisión impuesto 1ª categoría'], [], { 1: '@', 2: 'yyyy-mm-dd hh:mm' });
   prepararSimple_(ss, HOJAS.planes, ['Código', 'Creado', 'Plan', 'Horas por sesión', 'Banda', 'Contacto', 'Teléfono', 'Correo', 'Total', 'Pagado', 'Sesiones agendadas'], [], { 2: 'yyyy-mm-dd', 7: '@', 9: '$#,##0' });
@@ -1005,7 +1008,7 @@ function prepararBalance_(ss) {
 }
 
 function ordenarHojas_(ss) {
-  [HOJAS.reservas, HOJAS.config, HOJAS.horarios, HOJAS.bloqueos, HOJAS.inhabiles, HOJAS.clientes, HOJAS.planes, HOJAS.solicitudes, HOJAS.tienda, HOJAS.bebestibles, HOJAS.ventas, HOJAS.costos, HOJAS.compras, HOJAS.movimientos, HOJAS.historial, HOJAS.tributario, HOJAS.muestras, HOJAS.honor, HOJAS.resenas, HOJAS.balance]
+  [HOJAS.reservas, HOJAS.config, HOJAS.horarios, HOJAS.bloqueos, HOJAS.inhabiles, HOJAS.clientes, HOJAS.planes, HOJAS.solicitudes, HOJAS.tienda, HOJAS.bebestibles, HOJAS.ventas, HOJAS.costos, HOJAS.compras, HOJAS.movimientos, HOJAS.sitio, HOJAS.historial, HOJAS.tributario, HOJAS.muestras, HOJAS.honor, HOJAS.resenas, HOJAS.balance]
     .forEach(function (nombre, i) {
       var sh = ss.getSheetByName(nombre);
       if (sh) { ss.setActiveSheet(sh); ss.moveActiveSheet(i + 1); }

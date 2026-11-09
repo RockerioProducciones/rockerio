@@ -141,6 +141,7 @@ section{border-top:1px solid var(--borde);border-radius:14px;background:var(--pa
 .cli:hover{transform:none}
 .cli b::before{content:"♪ ";color:var(--oro)}
 .cli .mat{margin-top:.6rem;border:1px solid var(--borde);border-radius:10px;padding:.5rem;background:rgba(0,0,0,.3)}
+.ficha-j .mat{margin:.6rem 0;border:1px solid var(--borde);border-radius:10px;padding:.5rem;background:rgba(0,0,0,.25)}.ficha-j .wa-btns{flex-wrap:wrap;gap:.35rem}.wa-btns button{padding:.35rem .6rem;font-size:.82rem}
 .cli .mat h5{margin:0 0 .3rem;font:700 .65rem Inter,sans-serif;letter-spacing:.1em;color:var(--mut);text-transform:uppercase}
 .cli .mat .fila{gap:.3rem}.cli .mat a,.cli .mat button{font:600 .72rem Inter,sans-serif;padding:.3rem .55rem;border-radius:7px;text-decoration:none;min-height:0}
 .cli .hist{margin-top:.5rem;display:flex;justify-content:space-between;border-top:1px solid var(--borde);padding-top:.45rem;font-size:.78rem;color:var(--mut)}.cli .hist b{display:inline;font:700 .85rem Inter,sans-serif;color:var(--oro)}.cli .hist b::before{content:""}
@@ -240,6 +241,7 @@ section.tab-off{display:none!important}
 }
 @media print{body>*:not(#imprimir){display:none!important}#imprimir{display:block!important;color:#000;background:#fff;padding:12px}#imprimir table{width:100%;border-collapse:collapse}#imprimir th,#imprimir td{border:1px solid #888;padding:4px 6px;font-size:11px;text-align:left;color:#000;display:table-cell}#imprimir th{display:table-cell}}
 #imprimir{display:none}
+.sitio-caja{border:1px solid var(--borde);border-radius:12px;padding:.8rem;margin:.7rem 0;background:rgba(0,0,0,.18)}.sitio-caja h4{margin:0 0 .3rem;color:var(--oro,#FCC631);font-size:1rem}.sitio-txt{margin:.5rem 0}.sitio-txt label{display:block;font-weight:600;font-size:.88rem;margin-bottom:2px}.sitio-foto{display:flex;gap:.7rem;align-items:flex-start;margin:.5rem 0;padding:.4rem 0;border-bottom:1px solid var(--borde)}.sitio-foto img,.sitio-vid{width:96px;height:72px;object-fit:cover;border-radius:8px;flex:0 0 auto;background:#222;display:flex;align-items:center;justify-content:center;font-size:1.6rem}.sitio-foto-c{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}.sitio-det{border:1px solid var(--borde);border-radius:10px;padding:.5rem .7rem;margin:.5rem 0}.sitio-det summary{cursor:pointer;font-weight:700}#sitio-tabs{display:flex;gap:.3rem;overflow-x:auto;flex-wrap:nowrap;margin:.5rem 0}#sitio-tabs button{white-space:nowrap}
 </style></head><body>
 <div class="cab"><h1>Portal de control <small>· Rockerío Producciones</small><span class="badge-adm">ADMIN</span></h1><div class="cab-acc"><a id="ver-sitio" href="#" target="_blank" rel="noopener" hidden>Ver sitio público ↗</a><button type="button" id="campana" title="Pendientes">🔔<i id="campana-n" hidden></i></button></div></div>
 <div id="msg"></div>
@@ -291,6 +293,10 @@ section.tab-off{display:none!important}
 <p style="color:#b5afa6;margin:0 0 .5em">Envía solo el recordatorio del día anterior (18:00) a reservas confirmadas. Requiere WhatsApp Business Platform de Meta: número registrado, plantilla aprobada y token. Meta puede cobrar por conversación; fuera de la ventana de 24 h solo se permiten plantillas aprobadas. Cuerpo sugerido de la plantilla: «Hola {{1}}, te recordamos tu reserva de {{2}} el {{3}} de {{4}} a {{5}}. ¡Te esperamos!». Activa el envío y completa ID del número y nombre de plantilla en <b>Configuración &gt; WhatsApp</b>.</p>
 <div class="fila"><input id="wat" type="password" autocomplete="off" placeholder="Token de la API (no se vuelve a mostrar)" style="flex:1;min-width:240px"><button id="watg">Guardar token</button><button id="watb" class="sec">Borrar token</button><span id="watest" style="color:#b5afa6"></span></div>
 <div class="fila" style="margin-top:6px"><input id="wan" placeholder="Tu WhatsApp para probar (56912345678)" style="width:230px"><button id="wap" class="sec">Enviar mensaje de prueba</button></div></section>
+<section id="sec-sitio" data-p="contenido"><h2>Editor del sitio web</h2>
+<p style="color:#b5afa6;margin:0 0 .5em">Aquí editas lo que ven tus clientes: textos, fotos, galería, ficha técnica, audios y videos. Elige una sección del sitio.</p>
+<div id="sitio-guarda" hidden></div><div id="sitio-top"></div><div class="tabs" id="sitio-tabs"></div><div id="sitio-panel"></div>
+<div class="fila" style="margin-top:10px"><button type="button" class="sec" id="sitio-recargar">Volver a leer el sitio</button></div></section>
 <section><h2>Reglamento interno</h2>
 <p style="color:#b5afa6;margin:0 0 .5em">Es el texto que ven los clientes en el sitio. Usa «## » para los títulos de sección y «- » para las viñetas. {horasAnulacion}, {retencionPorHora}, {reagendoSemanas}, {reagendoCambios} y {minutosReserva} se reemplazan solos con los valores de Configuración. Vacío = vuelve al texto original.</p>
 <textarea id="rgt" rows="14" maxlength="6000" style="width:100%"></textarea><div style="margin-top:6px"><button id="rgg">Guardar reglamento</button></div></section>
@@ -338,7 +344,7 @@ section.tab-off{display:none!important}
 <table><tbody id="htab"></tbody></table></section>
 <section><h2>Enlaces para compartir</h2>
 <p style="color:#b5afa6;margin:0 0 .5em">Dos enlaces fijos. Cada persona entra escribiendo una clave que tú eliges aquí. Si cambias la clave, la anterior deja de funcionar al instante.</p>
-<div class="fila"><label for="surl" style="min-width:150px">Dirección del sitio</label><input id="surl" placeholder="https://rockerioproducciones.github.io/rockerio" style="flex:1;min-width:220px"><button id="surlg" class="sec">Guardar</button></div>
+<div class="fila"><label for="surl2" style="min-width:150px">Dirección del sitio</label><input id="surl2" placeholder="https://rockerioproducciones.github.io/rockerio" style="flex:1;min-width:220px"><button id="surlg2" class="sec">Guardar</button></div>
 <div id="enl"></div>
 <details style="margin-top:.8em"><summary style="cursor:pointer;color:#b5afa6">Avanzado: enlaces secretos individuales</summary>
 <p style="color:#b5afa6;margin:.4em 0">Enlaces antiguos de un solo uso por persona. Siguen funcionando si ya los compartiste.</p>
@@ -442,6 +448,7 @@ function pintarTemas(d){var c=$('temas-sw');if(!c)return;var act='';(d.ajustes||
 function pintarAjustes(d){pintarTemas(d);
   var cont=$('ajustes'),abiertos={};[].forEach.call(cont.querySelectorAll('details[open] > summary'),function(x){abiertos[x.textContent]=1});cont.textContent='';var grupo='',det=null;
   (d.ajustes||[]).forEach(function(a){
+    if(SITIO_GRUPOS.indexOf(a.grupo)>=0&&!/^ver/.test(a.clave))return;
     if(a.grupo!==grupo){grupo=a.grupo;det=document.createElement('details');det.open=!!abiertos[grupo];det.style.cssText='margin:6px 0;border:1px solid #454240;border-radius:8px;padding:6px 10px';var sm=document.createElement('summary');sm.textContent=grupo;sm.style.cssText='cursor:pointer;font-weight:700;color:#FCC631';det.appendChild(sm);cont.appendChild(det)}
     var w=document.createElement('div');w.style.cssText='margin:8px 0';var l=document.createElement('label');l.textContent=a.etiqueta;l.style.cssText='display:block;font-weight:600';w.appendChild(l);
     var i;
@@ -708,7 +715,7 @@ function enlaceCopiable(cont,url){
 }
 function pintarSocios(d){
   var base=(d.sitioUrl||'').replace(/\/+$/,''),box=$('socs');box.textContent='';var pa=$('pubag');pa.textContent='';
-  var u=$('surl');if(document.activeElement!==u)u.value=d.sitioUrl||'https://rockerioproducciones.github.io/rockerio';
+  var u=$('surl2');if(document.activeElement!==u)u.value=d.sitioUrl||'https://rockerioproducciones.github.io/rockerio';
   var urlBase=(u.value||'').replace(/\/+$/,''),en=$('enl');en.textContent='';
   [['proaudix','Gaby y Jaime (ProAudix)','Agenda completa, ventas, resúmenes y cierre del mes.'],['agenda','Familia / agenda','Solo ver la agenda, sin ventas ni dinero.']].forEach(function(r){
     var tk=(d.socios||[]).filter(function(x){return x.rol===r[0]})[0],w=caja();
@@ -724,7 +731,7 @@ function pintarSocios(d){
     var e=btnDel('Eliminar','¿Eliminar este enlace? Quien lo tenga dejará de poder entrar.',function(){ejecutar('adminEliminarSocio',s.token)});b.appendChild(e);w.appendChild(b);box.appendChild(w)});
   if(urlBase)enlaceCopiable(pa,urlBase+'/disponibilidad.html');
 }
-$('surlg').onclick=function(){ejecutar('adminGuardarAjustes',{sitioUrl:$('surl').value.trim()});aviso('Dirección guardada ✔')};
+$('surlg2').onclick=function(){ejecutar('adminGuardarAjustes',{sitioUrl:$('surl2').value.trim()});aviso('Dirección guardada ✔')};
 $('sg').onclick=function(){ejecutar('adminCrearSocio',$('sn').value,$('sti').value);$('sn').value=''};
 
 /* Regla general del portal: todo "eliminar" pide confirmación Sí / No. */
@@ -828,6 +835,113 @@ c.appendChild(btn('Agregar al cuadro de honor',function(){var o={};Object.keys(F
   if(fl.files[0]){redimLogo(fl.files[0]).then(function(b){o.logoB64=b.b64||b;enviar()}).catch(function(er){aviso(er.message)})}else enviar()}))})();
 ejecutar('adminResumen');
 
+/* ---------- Editor del sitio web (se arma leyendo el sitio publicado: si cambia el diseño, cambia el editor) ---------- */
+var ST={datos:null,sec:'inicio',doc:null,cargando:false};
+var SEC_VER={nosotros:'verProduccion',ficha:'verFicha',planes:'verPlanes',galeria:'verGaleria',opiniones:'verEvaluaciones',proaudix:'verProaudix',contacto:'verContacto',bandas:'verHonor',tienda:'verTienda',cotizar:'verCotizar',reglamento:'verReglamento'};
+var SEC_ICO={inicio:'🏠',nosotros:'🎚️',ficha:'🎛️',galeria:'🖼️',tienda:'🛍️',proaudix:'🛡️',contacto:'📞',reglamento:'📖',planes:'🏷️',opiniones:'⭐',bandas:'🏅',cotizar:'📝'};
+var SEC_CFG={inicio:['heroTitulo','heroTexto','avisoBanner'],contacto:['direccion','correoContacto','whatsapp','mapsUrl','sitioWeb','redInstagram','redFacebook','redYoutube','redTiktok','redSpotify','redYoutubeMusic','redTwitch','redLinktree','enlacesExtra'],proaudix:['proaudixTexto','proaudixWhatsapp','proaudixWeb','proaudixInstagram','proaudixFacebook','proaudixYoutube','proaudixEnlaces']};
+var SITIO_GRUPOS=['Portada y secciones','Contacto y redes','ProAudix'];
+function sBase(){return(ST.datos&&ST.datos.base)||''}
+function sUrl(u){return /^assets\//.test(u||'')?sBase()+'/'+u:u}
+function mdDe(e){var o='';[].forEach.call(e.childNodes,function(n){o+=n.nodeName==='STRONG'?'**'+n.textContent+'**':n.textContent});return o.replace(/\s+/g,' ').trim()}
+function redimFoto(file){return new Promise(function(ok,mal){if(!/^image\/(png|jpeg|webp)$/.test(file.type)){mal(new Error('La foto debe ser PNG, JPG o WebP.'));return}var im=new Image(),u=URL.createObjectURL(file);im.onload=function(){var k=Math.min(1,1600/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);var q=.86,p=c.toDataURL('image/jpeg',q);while(p.length>1900000&&q>.4){q-=.1;p=c.toDataURL('image/jpeg',q)}if(p.length>1900000)mal(new Error('La foto es muy pesada aun reducida.'));else ok(p)};im.onerror=function(){mal(new Error('No pudimos leer esa imagen.'))};im.src=u})}
+/* Sube una foto a Drive y entrega su enlace por callback */
+function subirFoto(file,nombre,fin){aviso('Subiendo foto…');redimFoto(file).then(function(b64){google.script.run.withSuccessHandler(function(u){aviso('Foto subida ✔');fin(u)}).withFailureHandler(function(e){aviso(e.message||'No se pudo subir')}).adminSubirImagenSitio({b64:b64,nombre:nombre})}).catch(function(er){aviso(er.message)})}
+function guardarParte(parte,valor,msg){google.script.run.withSuccessHandler(function(r){ST.datos.sitio=r;aviso(msg||'Guardado ✔ (el sitio se actualiza en unos minutos)');pintarSitioPanel()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminGuardarSitio(parte,JSON.stringify(valor))}
+function cargarSitio(){if(ST.cargando)return;ST.cargando=true;$('sitio-panel').textContent='Leyendo el sitio publicado…';
+  google.script.run.withSuccessHandler(function(d){ST.cargando=false;ST.datos=d;ST.doc=d.html?new DOMParser().parseFromString(d.html,'text/html'):null;pintarSitio()}).withFailureHandler(function(e){ST.cargando=false;$('sitio-panel').textContent=e.message||'Error'}).adminSitioDatos()}
+function seccionesSitio(){var o=[],doc=ST.doc;if(!doc)return o;
+  [].forEach.call(doc.querySelectorAll('main > section.sec, main > section[id]'),function(x){var id=x.id,h=x.querySelector('h2');
+    var tiene=x.querySelector('[data-ed],[data-ed-foto]')||id==='inicio'||['nosotros','ficha','galeria','reglamento','contacto','proaudix'].indexOf(id)>=0;
+    if(tiene)o.push({id:id,titulo:id==='inicio'?'Portada':(h?h.textContent.trim():id)})});return o}
+function pintarSitio(){var d=ST.datos,top=$('sitio-top');top.textContent='';
+  if(d.aviso)top.appendChild(par(d.aviso,'color:#FCC631;margin:.3rem 0'));
+  var inf=par('Diseño activo: «'+(d.tema||'rockerio')+'». Este editor se arma con lo que el diseño del sitio permite editar; si cambias el tema o el diseño, aquí aparecen sus textos y fotos. ','color:#b5afa6;font-size:13px;margin:.3rem 0');
+  if(d.base){var a=link('Ver el sitio ↗',d.base);a.style.marginLeft='6px';inf.appendChild(a)}top.appendChild(inf);
+  var tb=$('sitio-tabs');tb.textContent='';var ss=seccionesSitio();if(!ss.length){$('sitio-panel').textContent=d.aviso||'No se pudo leer el sitio.';return}
+  if(!ss.some(function(x){return x.id===ST.sec}))ST.sec=ss[0].id;
+  ss.forEach(function(x){var b=document.createElement('button');b.type='button';b.textContent=(SEC_ICO[x.id]||'•')+' '+x.titulo;b.className=x.id===ST.sec?'on':'';b.onclick=function(){ST.sec=x.id;pintarSitio()};tb.appendChild(b)});
+  pintarSitioPanel()}
+function campoCfg(a){var w=document.createElement('div');w.style.cssText='margin:8px 0';var l=document.createElement('label');l.textContent=a.etiqueta;l.style.cssText='display:block;font-weight:600';w.appendChild(l);var i;
+  if(a.tipo==='sino'){i=document.createElement('select');['SI','NO'].forEach(function(x){var o=document.createElement('option');o.textContent=x;i.appendChild(o)})}
+  else if(a.tipo==='lista'){i=document.createElement('select');a.opciones.forEach(function(x){var o=document.createElement('option');o.textContent=x;i.appendChild(o)})}
+  else if(a.tipo==='enlaces'){i=document.createElement('textarea');i.rows=4;i.maxLength=1200;i.style.width='100%';i.placeholder='Texto | https://enlace'}
+  else{i=document.createElement('input');i.style.width='100%';i.maxLength=300}
+  i.value=a.valor;i.setAttribute('data-clave',a.clave);w.appendChild(i);w.appendChild(par(a.ayuda,'color:#b5afa6;font-size:13px'));return w}
+function sCaja(t,sub){var c=document.createElement('div');c.className='sitio-caja';c.appendChild(el_('h4','',t));if(sub)c.appendChild(par(sub,'color:#b5afa6;font-size:13px;margin:0 0 .4rem'));return c}
+function pintarSitioPanel(){var p=$('sitio-panel');if(!ST.datos||!ST.doc){return}Object.keys(SUB).forEach(function(k){$('sitio-guarda').appendChild(SUB[k])});p.textContent='';var sid=ST.sec,sx=ST.doc.getElementById(sid),aj=(ultimo&&ultimo.ajustes)||[];
+  var ver=SEC_VER[sid],va=ver&&aj.filter(function(a){return a.clave===ver})[0];
+  if(va){var f=el_('div','fila');f.appendChild(el_('b','','Mostrar esta sección en el sitio'));var sl=el_('select');['SI','NO'].forEach(function(x){var o=el_('option','',x);sl.appendChild(o)});sl.value=va.valor;f.appendChild(sl);
+    f.appendChild(btn('Aplicar',function(){var o={};o[ver]=sl.value;ejecutar('adminGuardarAjustes',o);aviso('Listo ✔')},'sec'));p.appendChild(f)}
+  var cl=SEC_CFG[sid];
+  if(cl){var cc=sCaja('Datos de esta sección','Se guardan en la configuración y se aplican al sitio en un par de minutos.');cl.forEach(function(k){var a=aj.filter(function(x){return x.clave===k})[0];if(a)cc.appendChild(campoCfg(a))});
+    cc.appendChild(btn('Guardar',function(){var o={};[].forEach.call(cc.querySelectorAll('[data-clave]'),function(i){o[i.getAttribute('data-clave')]=i.value});ejecutar('adminGuardarAjustes',o);aviso('Guardado ✔')}));p.appendChild(cc)}
+  var tx=(ST.datos.sitio.textos)||{},ft=(ST.datos.sitio.fotos)||{};
+  var els=sx?[].slice.call(sx.querySelectorAll('[data-ed]')):[],fts=sx?[].slice.call(sx.querySelectorAll('[data-ed-foto]')):[];
+  if(sid==='inicio'){var h=ST.doc.querySelector('.hero');if(h){els=els.concat([].slice.call(h.querySelectorAll('[data-ed]')));fts=fts.concat([].slice.call(h.querySelectorAll('[data-ed-foto]')))}}
+  if(fts.length){var fc=sCaja('Fotos y logos','Sube una foto (se reduce sola) o pega un enlace https. «Original» vuelve a la foto del sitio.');
+    fts.forEach(function(e){var k=e.getAttribute('data-ed-foto'),row=el_('div','sitio-foto'),im=el_('img');im.alt='';im.src=sUrl(ft[k]||e.getAttribute('src'));row.appendChild(im);
+      var col=el_('div','sitio-foto-c');col.appendChild(el_('b','',e.getAttribute('data-ed-l')||k));var u=el_('input');u.placeholder='https://… (o sube una foto)';u.value=ft[k]||'';u.style.width='100%';col.appendChild(u);
+      var fl=el_('input');fl.type='file';fl.accept='image/png,image/jpeg,image/webp';fl.onchange=function(){if(fl.files[0])subirFoto(fl.files[0],k,function(url){u.value=url;im.src=url})};col.appendChild(fl);
+      var b2=el_('div','fila');b2.appendChild(btn('Guardar',function(){var o=Object.assign({},ST.datos.sitio.fotos||{});if(u.value.trim())o[k]=u.value.trim();else delete o[k];guardarParte('fotos',o)}));
+      b2.appendChild(btn('Original',function(){var o=Object.assign({},ST.datos.sitio.fotos||{});delete o[k];guardarParte('fotos',o)},'sec'));col.appendChild(b2);row.appendChild(col);fc.appendChild(row)});p.appendChild(fc)}
+  if(els.length){var tc=sCaja('Textos','Escribe **así** para dejar una parte en negrita. «Original» vuelve al texto del sitio.'),campos=[];
+    els.forEach(function(e){var k=e.getAttribute('data-ed'),def=mdDe(e),wrap=el_('div','sitio-txt');wrap.appendChild(el_('label','',e.getAttribute('data-ed-l')||k));
+      var t=el_('textarea');t.rows=Math.max(1,Math.min(6,Math.ceil((tx[k]||def).length/70)));t.maxLength=1500;t.value=tx[k]||def;t.style.width='100%';wrap.appendChild(t);
+      var rb=btn('Original',function(){t.value=def;t.rows=Math.max(1,Math.ceil(def.length/70))},'sec');rb.style.marginTop='3px';wrap.appendChild(rb);tc.appendChild(wrap);campos.push([k,t,def])});
+    tc.appendChild(btn('Guardar textos de esta sección',function(){var o=Object.assign({},ST.datos.sitio.textos||{});campos.forEach(function(c){var v=c[1].value.trim();if(!v||v===c[2])delete o[c[0]];else o[c[0]]=v});guardarParte('textos',o)}));p.appendChild(tc)}
+  if(sid==='ficha')p.appendChild(editorFicha());
+  if(sid==='galeria'){p.appendChild(editorGaleria());p.appendChild(editorPlaylist())}
+  var mover={nosotros:['Presentación personal','Comparador de sonido (Raw → Mix → Master)'],ficha:['Muestras de audio'],reglamento:['Reglamento interno']}[sid]||[];
+  mover.forEach(function(t){var o=SUB[t];if(o)p.appendChild(o)});
+  if(!p.firstChild)p.appendChild(par('Esta sección no tiene elementos editables en el diseño actual.','color:#b5afa6'))}
+
+/* --- ficha técnica --- */
+function inp(v,ph,w,fn){var i=el_('input');i.value=v||'';i.placeholder=ph||'';if(w)i.style.width=w;i.oninput=function(){fn(i.value)};return i}
+function mover(arr,i,d){var j=i+d;if(j<0||j>=arr.length)return;var t=arr[i];arr[i]=arr[j];arr[j]=t}
+function editorFicha(){var c=sCaja('Ficha técnica','Cada pestaña de la ficha: título, resumen, datos destacados, fotos y listas de equipos. Guarda al terminar.');
+  var orig=ST.datos.ficha&&ST.datos.ficha.secciones,usa=ST.datos.sitio.ficha;
+  var datos=JSON.parse(JSON.stringify(usa&&usa.length?usa:(orig||[])));
+  if(!datos.length){c.appendChild(par('No pude leer la ficha original del sitio.','color:#FCC631'));return c}
+  var lista=el_('div');c.appendChild(lista);
+  function pint(){lista.textContent='';datos.forEach(function(s,i){var d=document.createElement('details');d.className='sitio-det';var sm=el_('summary','',(s.icono||'')+' '+s.titulo);d.appendChild(sm);
+    var g=el_('div','fila');g.appendChild(inp(s.icono,'Icono',  '60px',function(v){s.icono=v}));g.appendChild(inp(s.titulo,'Título','200px',function(v){s.titulo=v;sm.textContent=(s.icono||'')+' '+v}));d.appendChild(g);
+    var rs=el_('textarea');rs.rows=2;rs.maxLength=300;rs.style.width='100%';rs.placeholder='Resumen';rs.value=s.resumen||'';rs.oninput=function(){s.resumen=rs.value};d.appendChild(rs);
+    d.appendChild(el_('h5','','Datos destacados (hasta 6)'));s.stats=s.stats||[];s.stats.forEach(function(t,k){var r=el_('div','fila');[0,1,2].forEach(function(n){r.appendChild(inp(t[n],['Icono','Valor','Texto'][n],n?'130px':'60px',function(v){t[n]=v}))});r.appendChild(btn('✕',function(){s.stats.splice(k,1);pint();d2(i)},'sec'));d.appendChild(r)});
+    if(s.stats.length<6)d.appendChild(btn('+ Dato',function(){s.stats.push(['','',''] );pint();d2(i)},'sec'));
+    d.appendChild(el_('h5','','Fotos'));s.fotos=s.fotos||[];s.fotos.forEach(function(f,k){var r=el_('div','sitio-foto'),im=el_('img');im.alt='';im.src=sUrl(f.src);r.appendChild(im);var col=el_('div','sitio-foto-c');
+      col.appendChild(inp(f.titulo,'Título','100%',function(v){f.titulo=v}));col.appendChild(inp(f.descripcion,'Descripción','100%',function(v){f.descripcion=v}));col.appendChild(inp(f.src,'Enlace de la foto','100%',function(v){f.src=v;im.src=sUrl(v)}));
+      var fl=el_('input');fl.type='file';fl.accept='image/png,image/jpeg,image/webp';fl.onchange=function(){if(fl.files[0])subirFoto(fl.files[0],s.id+'-'+k,function(u){f.src=u;pint();d2(i)})};col.appendChild(fl);
+      var b=el_('div','fila');b.appendChild(btn('↑',function(){mover(s.fotos,k,-1);pint();d2(i)},'sec'));b.appendChild(btn('↓',function(){mover(s.fotos,k,1);pint();d2(i)},'sec'));b.appendChild(btn('Quitar',function(){s.fotos.splice(k,1);pint();d2(i)},'sec'));col.appendChild(b);r.appendChild(col);d.appendChild(r)});
+    d.appendChild(btn('+ Foto',function(){s.fotos.push({src:'',titulo:'',descripcion:''});pint();d2(i)},'sec'));
+    d.appendChild(el_('h5','','Listas de equipos (un elemento por línea)'));s.bloques=s.bloques||[];s.bloques.forEach(function(b,k){var r=el_('div');r.appendChild(inp(b.titulo,'Título de la lista','100%',function(v){b.titulo=v}));var ta=el_('textarea');ta.rows=4;ta.style.width='100%';ta.value=(b.items||[]).join('\n');ta.oninput=function(){b.items=ta.value.split('\n').map(function(x){return x.trim()}).filter(String)};r.appendChild(ta);r.appendChild(btn('Quitar lista',function(){s.bloques.splice(k,1);pint();d2(i)},'sec'));d.appendChild(r)});
+    d.appendChild(btn('+ Lista',function(){s.bloques.push({titulo:'',items:[]});pint();d2(i)},'sec'));
+    var f=el_('div','fila');f.style.marginTop='8px';f.appendChild(btn('↑ Subir pestaña',function(){mover(datos,i,-1);pint()},'sec'));f.appendChild(btn('↓ Bajar pestaña',function(){mover(datos,i,1);pint()},'sec'));f.appendChild(btnDel('Eliminar pestaña','¿Eliminar la pestaña «'+s.titulo+'» de la ficha?',function(){datos.splice(i,1);pint()}));d.appendChild(f);lista.appendChild(d)})}
+  function d2(i){var x=lista.querySelectorAll('details')[i];if(x)x.open=true}
+  pint();var f=el_('div','fila');f.style.marginTop='8px';f.appendChild(btn('+ Pestaña nueva',function(){datos.push({id:'sec'+(datos.length+1),icono:'🎵',titulo:'Nueva pestaña',resumen:'',stats:[],fotos:[],bloques:[]});pint();d2(datos.length-1)},'sec'));
+  f.appendChild(btn('Guardar ficha',function(){guardarParte('ficha',datos)}));f.appendChild(btnDel('Volver al original','¿Volver la ficha técnica a como estaba originalmente? Se pierden tus cambios.',function(){guardarParte('ficha',[])}));c.appendChild(f);return c}
+
+/* --- galería (fotos y videos) --- */
+function editorGaleria(){var c=sCaja('Galería de fotos y videos','Las fotos se ven en el carrusel y la galería; los videos son enlaces de YouTube.');
+  var orig=ST.datos.galeria,usa=ST.datos.sitio.galeria,datos=JSON.parse(JSON.stringify(usa&&usa.length?usa:(Array.isArray(orig)?orig:[])));var lista=el_('div');c.appendChild(lista);
+  function pint(){lista.textContent='';datos.forEach(function(g,i){var r=el_('div','sitio-foto');
+    if(g.video){r.appendChild(el_('div','sitio-vid','▶'))}else{var im=el_('img');im.alt='';im.src=sUrl(g.src);r.appendChild(im)}
+    var col=el_('div','sitio-foto-c');col.appendChild(inp(g.titulo,'Título','100%',function(v){g.titulo=v}));col.appendChild(inp(g.descripcion,'Descripción','100%',function(v){g.descripcion=v}));
+    if(g.video)col.appendChild(inp(g.video,'Enlace de YouTube','100%',function(v){g.video=v}));else{col.appendChild(inp(g.src,'Enlace de la foto','100%',function(v){g.src=v}));var fl=el_('input');fl.type='file';fl.accept='image/png,image/jpeg,image/webp';fl.onchange=function(){if(fl.files[0])subirFoto(fl.files[0],'galeria-'+i,function(u){g.src=u;pint()})};col.appendChild(fl)}
+    var b=el_('div','fila');b.appendChild(btn('↑',function(){mover(datos,i,-1);pint()},'sec'));b.appendChild(btn('↓',function(){mover(datos,i,1);pint()},'sec'));b.appendChild(btn('Quitar',function(){datos.splice(i,1);pint()},'sec'));col.appendChild(b);r.appendChild(col);lista.appendChild(r)})}
+  pint();var f=el_('div','fila');f.style.marginTop='8px';f.appendChild(btn('+ Foto',function(){datos.push({src:'',titulo:'',descripcion:''});pint()},'sec'));f.appendChild(btn('+ Video (YouTube)',function(){datos.push({video:'',titulo:'',descripcion:''});pint()},'sec'));
+  f.appendChild(btn('Guardar galería',function(){guardarParte('galeria',datos)}));f.appendChild(btnDel('Volver al original','¿Volver la galería a como estaba originalmente?',function(){guardarParte('galeria',[])}));c.appendChild(f);return c}
+function editorPlaylist(){var c=sCaja('Playlist de YouTube Music','Se muestra en Producción y Galería. Pega el enlace de tu lista (debe incluir «list=…»).');
+  var o=ST.datos.sitio.playlist&&ST.datos.sitio.playlist.url?ST.datos.sitio.playlist:(ST.datos.playlist||{});var v={url:o.url||'',titulo:o.titulo||'',texto:o.texto||''};
+  c.appendChild(inp(v.url,'https://music.youtube.com/playlist?list=…','100%',function(x){v.url=x}));c.appendChild(inp(v.titulo,'Título','100%',function(x){v.titulo=x}));c.appendChild(inp(v.texto,'Texto de apoyo','100%',function(x){v.texto=x}));
+  var f=el_('div','fila');f.appendChild(btn('Guardar playlist',function(){guardarParte('playlist',v)}));f.appendChild(btn('Original',function(){guardarParte('playlist',{})},'sec'));c.appendChild(f);return c}
+
+/* Las secciones de contenido que ya existían se reubican dentro del editor, en la pestaña que corresponde. */
+var SUB={};
+(function(){['Presentación personal','Reglamento interno','Muestras de audio','Comparador de sonido (Raw → Mix → Master)'].forEach(function(t){
+  [].forEach.call(document.querySelectorAll('section'),function(s){var h=s.querySelector('h2');if(h&&h.textContent.trim()===t&&!SUB[t]){var d=document.createElement('div');d.className='sitio-caja';var h4=document.createElement('h4');h4.textContent=t==='Comparador de sonido (Raw → Mix → Master)'?'Comparador de sonido (Raw → Mix → Master)':t;d.appendChild(h4);h.remove();while(s.firstChild)d.appendChild(s.firstChild);s.remove();SUB[t]=d;$('sitio-guarda').appendChild(d)}})})})();
+(function(){var b=document.querySelector('#sitio-recargar');if(b)b.onclick=function(){ST.datos=null;cargarSitio()}})();
+
 /* ---------- áreas (un panel a la vez) ---------- */
 var AREAS=[
  ['jornadas','Reservas y jornadas','Calendario, historial y clientes'],
@@ -835,23 +949,23 @@ var AREAS=[
  ['solicitudes','Solicitudes','Cotizaciones, honor y evaluaciones',function(c){return (c.solicitudes||0)+(c.honor||0)+(c.resenas||0)}],
  ['tienda','Tienda de música','Productos, ventas y cobros'],
  ['bebestibles','Bebestibles','Agua, jugos, bebidas y cervezas'],
- ['contenido','Contenido','Presentación, reglamento y audios'],
+ ['contenido','Sitio web','Textos, fotos, audios y videos de la web'],
  ['mensajes','WhatsApp','Mensajes y recordatorios'],
  ['config','Configuración','Precios, reglas, secciones y redes'],
  ['conta','Contabilidad','Costos, cierre de mes e impuestos'],
  ['socios','Socios y respaldo','Enlaces para compartir y copias']
 ];
-var DE={'Reservas y jornadas':'jornadas','Reservas':'reservas','Bloqueos':'reservas','Planes mensuales':'reservas','Clientes y material':'reservas','Cotizaciones y solicitudes':'solicitudes','Cuadro de honor':'solicitudes','Reseñas':'solicitudes','Ventas del mes':'tienda','Presentación personal':'contenido','Reglamento interno':'contenido','Muestras de audio':'contenido','Comparador de sonido (Raw → Mix → Master)':'config','Mensajes de WhatsApp':'mensajes','Configuración':'config','Sitio':'config','Costos del mes y cierre':'conta','Contabilidad formal':'conta','Enlaces para compartir':'socios','Respaldo':'socios'};
+var DE={'Editor del sitio web':'contenido','Reservas y jornadas':'jornadas','Reservas':'reservas','Bloqueos':'reservas','Planes mensuales':'reservas','Clientes y material':'reservas','Cotizaciones y solicitudes':'solicitudes','Cuadro de honor':'solicitudes','Reseñas':'solicitudes','Ventas del mes':'tienda','Presentación personal':'contenido','Reglamento interno':'contenido','Muestras de audio':'contenido','Comparador de sonido (Raw → Mix → Master)':'contenido','Mensajes de WhatsApp':'mensajes','Configuración':'config','Sitio':'config','Costos del mes y cierre':'conta','Contabilidad formal':'conta','Enlaces para compartir':'socios','Respaldo':'socios'};
 [].forEach.call(document.querySelectorAll('section'),function(s){var h=s.querySelector('h2'),p=s.id==='sec-musica'?'tienda':s.id==='sec-beb'?'bebestibles':(s.id==='sec-conta'||s.id==='sec-ct'||s.id==='sec-rc')?'conta':s.id==='sec-wa'?'mensajes':(h&&DE[h.textContent.trim()]);if(p)s.setAttribute('data-p',p)});
 function abrirArea(k){
   var a=AREAS.filter(function(x){return x[0]===k})[0];if(!a)return;
   document.body.setAttribute('data-panel',k);$('barra-t').textContent=a[1];[].forEach.call(document.querySelectorAll('.menu-a .area'),function(x){x.classList.toggle('on',x.getAttribute('data-p')===k)});
   [].forEach.call(document.querySelectorAll('section'),function(s){s.classList.toggle('on',s.getAttribute('data-p')===k)});
-  var b=$('barra');b.style.setProperty('--acc',getComputedStyle(document.querySelector('[data-p='+k+']')||document.body).getPropertyValue('--acc'));window.scrollTo(0,0);if(k==='jornadas')cargarJor();if(k==='conta')cargarRC();
+  var b=$('barra');b.style.setProperty('--acc',getComputedStyle(document.querySelector('[data-p='+k+']')||document.body).getPropertyValue('--acc'));window.scrollTo(0,0);if(k==='jornadas')cargarJor();if(k==='conta')cargarRC();if(k==='contenido'&&!ST.datos)cargarSitio();
 }
 function irInicio(){document.body.removeAttribute('data-panel');window.scrollTo(0,0)}
 $('inicio-a').onclick=irInicio;
-var ICO={jornadas:'📅',reservas:'💳',solicitudes:'📥',tienda:'🎸',bebestibles:'🥤',contenido:'🎨',mensajes:'💬',config:'⚙️',conta:'📊',socios:'🔗'};
+var ICO={jornadas:'📅',reservas:'💳',solicitudes:'📥',tienda:'🎸',bebestibles:'🥤',contenido:'🌐',mensajes:'💬',config:'⚙️',conta:'📊',socios:'🔗'};
 function pintarMenu(d){
   var m=$('menu-a');m.textContent='';var c=d.cuenta||{};
   AREAS.forEach(function(a){var b=document.createElement('button');b.type='button';b.className='area'+(document.body.getAttribute('data-panel')===a[0]?' on':'');b.setAttribute('data-p',a[0]);b.setAttribute('data-ico',ICO[a[0]]||'•');

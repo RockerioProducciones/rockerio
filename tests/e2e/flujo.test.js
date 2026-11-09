@@ -585,6 +585,22 @@ t('cobro pendiente, medio de pago, cortesía y otros ingresos/gastos', () => {
   assert.strictEqual(g.admin('adminResumenContable', 'mes', mes).movimientos.lista.length, 1);
   assert.ok(base.ok);
 });
+t('editor del sitio: textos, fotos, ficha, galería y playlist se validan, se guardan y llegan al sitio público', () => {
+  g.admin('adminGuardarSitio', 'textos', { 'nos.filo1': '**Honestidad:** sin humo <b>x</b>', 'mala clave!': 'x', vacia: '   ' });
+  let pub = g.get({ accion: 'config' }).sitio;
+  assert.ok(pub.textos['nos.filo1'].startsWith('**Honestidad:**'), 'texto guardado'); assert.strictEqual(Object.keys(pub.textos).length, 1, 'claves inválidas o vacías se descartan');
+  g.admin('adminGuardarSitio', 'fotos', { heroLogo: 'https://lh3.googleusercontent.com/d/abc123', prodFoto: 'javascript:alert(1)', otra: 'assets/sala-1.jpg', mala: 'assets/../x.jpg' });
+  pub = g.get({ accion: 'config' }).sitio; assert.deepStrictEqual(Object.keys(pub.fotos).sort(), ['heroLogo', 'otra'], 'solo https o assets/');
+  g.admin('adminGuardarSitio', 'galeria', [{ src: 'assets/sala-1.jpg', titulo: 'Sala' }, { src: 'http://inseguro/x.jpg' }, { video: 'https://youtu.be/dQw4w9WgXcQ', titulo: 'Video' }, { video: 'https://malo.com/v' }]);
+  pub = g.get({ accion: 'config' }).sitio; assert.strictEqual(pub.galeria.length, 2); assert.ok(pub.galeria[1].video.indexOf('youtube.com/watch?v=dQw4w9WgXcQ') > 0);
+  g.admin('adminGuardarSitio', 'ficha', [{ titulo: 'Sala', icono: '🎸', stats: [['🥁', '5', 'piezas']], fotos: [{ src: 'assets/sala-1.jpg', titulo: 'a' }], bloques: [{ titulo: 'Equipos', items: ['uno', 'dos'] }] }, { titulo: '' }]);
+  pub = g.get({ accion: 'config' }).sitio; assert.strictEqual(pub.ficha.length, 1); assert.strictEqual(pub.ficha[0].bloques[0].items.length, 2);
+  g.admin('adminGuardarSitio', 'playlist', { url: 'https://music.youtube.com/playlist?list=PLabc123', titulo: 'Trabajos' });
+  assert.ok(g.get({ accion: 'config' }).sitio.playlist.url.includes('list=PLabc123'));
+  assert.throws(() => g.admin('adminGuardarSitio', 'otra', {}), /no válida/);
+  ['textos', 'fotos', 'galeria', 'ficha', 'playlist'].forEach((x) => g.admin('adminGuardarSitio', x, x === 'galeria' || x === 'ficha' ? [] : {}));
+  assert.deepStrictEqual(g.get({ accion: 'config' }).sitio, {}, 'vaciar una parte vuelve al sitio original');
+});
 t('editar la retención de No asiste (perdonar o cambiar el monto)', () => {
   const x = g.admin('adminJornadas').reservas.find((q) => q.estado === 'No asiste'); assert.ok(x, 'hay una No asiste');
   g.admin('adminAjustarRetencion', x.codigo, 0, 'Se perdona'); const y = g.admin('adminJornadas').reservas.find((q) => q.codigo === x.codigo); assert.strictEqual(y.retenido, 0);

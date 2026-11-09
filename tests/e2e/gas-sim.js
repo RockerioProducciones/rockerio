@@ -104,7 +104,7 @@ function crear() {
     getProjectTriggers: () => estado.triggers.slice(), deleteTrigger: (t) => { estado.triggers = estado.triggers.filter((x) => x !== t); },
     newTrigger: (fn) => { const t = { fn, getHandlerFunction: () => fn }; const b = new Proxy({}, { get: (_, k) => (k === 'create' ? () => { estado.triggers.push(t); return t; } : () => b) }); return b; },
   };
-  ctx.UrlFetchApp = { fetch: (url, o) => { estado.whatsapp.push({ url, o }); return { getResponseCode: () => 200, getContentText: () => '{"messages":[{"id":"wamid.SIM"}]}' }; } };
+  ctx.UrlFetchApp = { fetch: (url, o) => { const ms = /^https:\/\/sitio\.test\/([^?]*)/.exec(url); if (ms) { const fl = path.join(__dirname, '..', '..', ms[1]); return fs.existsSync(fl) ? { getResponseCode: () => 200, getContentText: () => fs.readFileSync(fl, 'utf8') } : { getResponseCode: () => 404, getContentText: () => '' }; } estado.whatsapp.push({ url, o }); return { getResponseCode: () => 200, getContentText: () => '{"messages":[{"id":"wamid.SIM"}]}' }; } };
   ctx.DriveApp = { createFolder: (n) => { const c = { n, url: 'https://drive.google.com/drive/folders/' + (++estado.ids), getUrl: () => c.url, getId: () => c.url, getName: () => n, getFiles: () => { const l = (estado.copias || []).filter((f) => !f.papelera); let i = 0; return { hasNext: () => i < l.length, next: () => l[i++] }; }, setSharing() { return c; }, createFile: (b) => { const id = 'F' + (++estado.ids) + 'abc'; (estado.archivos = estado.archivos || []).push({ id, n: b.n, tipo: b.t, bytes: b.b }); return { getId: () => id, setSharing() {} }; } }; estado.carpetas[n] = c; return c; }, getFoldersByName: (n) => { const c = estado.carpetas[n]; let usado = !c; return { hasNext: () => !usado, next: () => { usado = true; return c; } }; }, getFileById: () => ({ setTrashed() {}, getName: () => 'x', makeCopy: (n) => { estado.copias = estado.copias || []; const f = { n, creado: new Date(), getName: () => n, getDateCreated: () => f.creado, setTrashed: () => { f.papelera = true; } }; estado.copias.push(f); return f; } }), Access: { ANYONE_WITH_LINK: 1 }, Permission: { VIEW: 1 } };
   ctx.Logger = { log() {} };
   /* reloj controlable */
@@ -113,7 +113,7 @@ function crear() {
   ctx.__ahora = () => Date.now() + desfase;
   vm.runInContext(`(function(){ var Orig = Date; function F(a,b,c,d,e,f,g){ var n=arguments.length; if(n===0) return new Orig(__ahora()); if(n===1) return new Orig(a); return new Orig(a,b,c||1,d||0,e||0,f||0,g||0);} F.prototype=Orig.prototype; F.UTC=Orig.UTC; F.parse=Orig.parse; F.now=function(){return __ahora();}; Date=F; })()`, ctx);
   const dir = path.join(__dirname, '../../apps-script');
-  ['Reglas', 'Code', 'AdminApi', 'Contenido', 'Planes', 'Ventas', 'Socios', 'Contabilidad', 'Ajustes', 'WhatsApp'].forEach((f) => vm.runInContext(fs.readFileSync(path.join(dir, f + '.gs'), 'utf8'), ctx, { filename: f + '.gs' }));
+  ['Reglas', 'Code', 'AdminApi', 'Contenido', 'Planes', 'Ventas', 'Socios', 'Contabilidad', 'Ajustes', 'WhatsApp', 'Sitio'].forEach((f) => vm.runInContext(fs.readFileSync(path.join(dir, f + '.gs'), 'utf8'), ctx, { filename: f + '.gs' }));
   const J = (o) => JSON.parse(JSON.stringify(o));
   const api = {
     ctx, estado, cal, ss,
