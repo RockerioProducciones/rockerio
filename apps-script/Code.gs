@@ -513,7 +513,7 @@ function sincronizarEstado_(sh, f) {
 /**
  * Registra el efecto en dinero de un cambio de estado (alimenta el Balance):
  *  - Reservado (con abono) / Finalizada: se da el abono por recibido.
- *  - No asiste: el abono recibido queda retenido.
+ *  - No asiste: se cobra noAsisteCobroPorHora ($5.000) por cada hora reservada, haya abono o no (el abono se descuenta; lo que falte se cobra al cliente).
  *  - Anulada: con abono recibido y a tiempo (>= horasAnulacion) se retiene retencionPorHora por hora y el resto se devuelve;
  *    tarde, se retiene todo (salvo que anulacionTardiaRetiene = NO).
  */
@@ -524,7 +524,8 @@ function liquidar_(sh, f, r, estado) {
   var abono = Number(r[RES.abono - 1]) || 0, horas = Number(r[RES.horas - 1]) || 0;
   var retenido = '', devolver = '';
   if (estado === EST.NO_ASISTE) {
-    retenido = recibido ? abono : 0; devolver = 0;
+    // «No asiste»: se cobran $X por cada hora reservada, haya abono o no. Lo abonado se descuenta; el resto queda por cobrar al cliente.
+    retenido = (Number(cfg.noAsisteCobroPorHora) || 0) * horas; devolver = recibido ? Math.max(0, abono - retenido) : 0;
   } else if (estado === EST.ANULADA) {
     if (r[RES.retenido - 1] !== '' && r[RES.retenido - 1] !== null) return; // ya liquidada: no recalcular con otra hora
     if (!recibido) { retenido = 0; devolver = 0; }
@@ -561,7 +562,7 @@ function fechaHora_(iso, hora) {
 }
 
 function aFechaIso_(v) {
-  if (v instanceof Date && !isNaN(v)) return Utilities.formatDate(v, Reglas.TZ, 'yyyy-MM-dd');
+  if (Object.prototype.toString.call(v) === '[object Date]' && !isNaN(v)) return Utilities.formatDate(v, Reglas.TZ, 'yyyy-MM-dd');
   var s = String(v || '').trim();
   return Reglas.fechaValida(s) ? s : '';
 }
@@ -612,6 +613,14 @@ function asegurarEsquema_(ss) {
     }
     // Una sola vez: el cuadro de honor queda visible en la portada (si estaba apagado por una versión anterior).
     var props = PropertiesService.getScriptProperties();
+    if (!props.getProperty('MIG_VISIBLES_2')) {
+      var hv = ss.getSheetByName(HOJAS.config), nv = hv ? hv.getLastRow() : 0;
+      if (nv > 1) {
+        var kv = hv.getRange(2, 1, nv - 1, 1).getValues();
+        for (var w = 0; w < kv.length; w++) if (['verHonor', 'verTienda'].indexOf(String(kv[w][0])) >= 0) hv.getRange(w + 2, 2).setValue('SI');
+      }
+      props.setProperty('MIG_VISIBLES_2', '1');
+    }
     if (!props.getProperty('MIG_HONOR_1')) {
       var hc = ss.getSheetByName(HOJAS.config), nh = hc ? hc.getLastRow() : 0;
       if (nh > 1) {
@@ -753,6 +762,7 @@ function prepararConfig_(ss) {
     ['minutosReserva', d.minutosReserva, 'Minutos que el horario queda tomado esperando el abono (entre 5 y 180). Pasado ese tiempo se libera solo y el cliente ve una cuenta regresiva.'],
     ['horasAnulacion', d.horasAnulacion, 'Horas de anticipación para anular o reagendar.'],
     ['retencionPorHora', d.retencionPorHora, 'Pesos que se retienen por hora al anular.'],
+    ['noAsisteCobroPorHora', d.noAsisteCobroPorHora, 'Pesos que se cobran por cada hora reservada cuando el cliente no asiste (haya abonado o no).'],
     ['escalaGrabacion', d.escalaGrabacion, 'Grabación incluida en el ensayo, como horas:minutos. Vacío = no se ofrece. CONFIRMAR que sigue vigente.'],
     ['pagoTransferencia', 'SI', 'SI o NO. Muestra los datos de transferencia al terminar la reserva (si escribiste datosTransferencia).'],
     ['datosTransferencia', '', 'Texto público con tus datos para transferir. Vacío = se los envías por WhatsApp. Ojo: lo que escribas aquí lo ve cualquiera.'],
@@ -776,7 +786,7 @@ function prepararConfig_(ss) {
     ['waVersion', d.waVersion, 'Versión de la API Graph de Meta (por ejemplo v23.0). Meta retira versiones antiguas: si falla, revisa la vigente.'],
     ['reagendoSemanas', d.reagendoSemanas, 'Plazo máximo (semanas) para reagendar una reserva. Se muestra en el reglamento; el reagendado hoy se coordina por WhatsApp.'],
     ['reagendoCambios', d.reagendoCambios, 'Máximo de cambios por reserva. Se muestra en el reglamento.'],
-    ['reglamento', d.reglamento, 'Reglamento interno que ve el cliente. ## = título de sección, - = viñeta. {horasAnulacion}, {retencionPorHora}, {reagendoSemanas}, {reagendoCambios} y {minutosReserva} se reemplazan solos. Se edita también desde el portal.'],
+    ['reglamento', d.reglamento, 'Reglamento interno que ve el cliente. ## = título de sección, - = viñeta. {horasAnulacion}, {retencionPorHora}, {reagendoSemanas}, {reagendoCambios}, {noAsisteCobroPorHora} y {minutosReserva} se reemplazan solos. Se edita también desde el portal.'],
     ['repartoSalaJC', d.repartoSalaJC, 'Sala de ensayo: % de Juan Carlos. Junto con repartoSalaJaime debe sumar 100.'],
     ['repartoSalaJaime', d.repartoSalaJaime, 'Sala de ensayo: % de Jaime.'],
     ['repartoEstudioJC', d.repartoEstudioJC, 'Estudio de grabación: % de Juan Carlos. Junto con repartoEstudioEstudio debe sumar 100.'],

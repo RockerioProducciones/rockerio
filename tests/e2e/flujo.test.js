@@ -503,4 +503,20 @@ t('las horas que Sheets guarda como hora (fecha 1899) se muestran HH:mm y cuenta
   assert.strictEqual(C.horaCelda_(''), '');
 });
 
+t('«No asiste» cobra $5.000 por hora reservada, haya abono o no, y aparece en el resumen contable', () => {
+  const r = g.post(sol({ fecha: sumar(f3, 14), inicio: 18, horas: 2, telefono: '56933334444', banda: 'Faltones', nombre: 'Pedro Soto', correo: 'p@p.cl' })); assert.ok(r.ok, JSON.stringify(r));
+  g.admin('adminCambiarEstado', r.codigo, 'No asiste');
+  const f = g.hoja('Reservas').find((x) => x[0] === r.codigo);
+  assert.strictEqual(Number(f[C.RES.retenido - 1]), 10000, 'retenido 2 h x 5.000 aunque no haya abono');
+  const c = g.admin('adminResumenContable', 'mes', sumar(f3, 14).slice(0, 7));
+  assert.ok(c.sala.retenidos >= 10000);
+});
+t('resumen contable mensual y semanal: sala, estudio, tienda, bebestibles y reparto', () => {
+  const m = g.admin('adminResumenContable', 'mes', hoy.slice(0, 7));
+  ['sala', 'estudio', 'arriendos', 'bruto', 'musica', 'bebestibles', 'mes', 'detalle', 'noAsiste'].forEach((k) => assert.ok(m[k] !== undefined, 'falta ' + k));
+  assert.ok(m.sala.total >= 0 && typeof m.mes.totalJC === 'number' && m.mes.pct.salaJC + m.mes.pct.salaJaime === 100);
+  const w = g.admin('adminResumenContable', 'semana', hoy);
+  assert.ok(w.periodo === 'semana' && w.mes === undefined && w.desde <= hoy && w.hasta >= hoy);
+});
+
 console.log('\n' + ok + ' pasos correctos, ' + fallas + ' con falla.');

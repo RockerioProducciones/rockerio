@@ -121,7 +121,7 @@
       var a = el('a', '', 'Escríbenos por WhatsApp'); a.href = wspUrl('Hola, quiero reservar'); pausa.appendChild(a);
     }
     /* reglamento: «## » = título, «- » = viñeta, otra línea = párrafo; los {valores} salen de la configuración */
-    var valores = { abonoPorHora: R.clp(cfg.abonoPorHora), devolucionPorHora: R.clp(cfg.abonoPorHora - cfg.retencionPorHora), horasAnulacion: cfg.horasAnulacion, retencionPorHora: R.clp(cfg.retencionPorHora), reagendoSemanas: cfg.reagendoSemanas, reagendoCambios: cfg.reagendoCambios, minutosReserva: cfg.minutosReserva };
+    var valores = { abonoPorHora: R.clp(cfg.abonoPorHora), devolucionPorHora: R.clp(cfg.abonoPorHora - cfg.retencionPorHora), horasAnulacion: cfg.horasAnulacion, retencionPorHora: R.clp(cfg.retencionPorHora), noAsisteCobroPorHora: R.clp(cfg.noAsisteCobroPorHora || 5000), reagendoSemanas: cfg.reagendoSemanas, reagendoCambios: cfg.reagendoCambios, minutosReserva: cfg.minutosReserva };
     var rg = $('reglamento-in'); rg.textContent = ''; var lista = null;
     String(cfg.reglamento || '').split(/\r?\n/).forEach(function (l) {
       l = l.trim().replace(/\{(\w+)\}/g, function (m, k) { return valores[k] !== undefined ? valores[k] : m; });
@@ -398,6 +398,7 @@
     var dl = $('tr-lista'), tot = $('tr-total'), its = $('ro-items'), falta = [];
     dl.textContent = ''; tot.textContent = ''; its.textContent = '';
     var ens = S.servicio === 'ensayo', hrs = S.horas + (S.horas === 1 ? ' hr' : ' hrs');
+    txt($('ro-fee'), R.clp(Number(cfg.noAsisteCobroPorHora) || 5000));
     $('ro-titulo').textContent = (ens ? '🎸 Sala de ensayo' : '🎛️ Estudio de grabación') + ' · ' + hrs;
     if (S.fecha) fila(dl, '📅 Día', R.fechaLarga(S.fecha)); else falta.push('el día');
     if (S.inicio !== null) fila(dl, '🕒 Horario', R.horaTxt(S.inicio) + ' a ' + R.horaTxt(S.inicio + S.horas)); else if (S.fecha) falta.push('tu horario');

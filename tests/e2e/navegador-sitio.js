@@ -29,7 +29,7 @@ const { sembrar } = require('./demo.js');
   ok(await p.locator('#adicionales').isVisible(), 'avanza a adicionales');
   ok(await p.locator('#arriendo-lista .ex-fila-ck').count() === 6, 'seis arriendos individuales');
   const antesT = await p.textContent('#tr-total'); await p.locator('#arriendo-lista .ex-fila-ck').nth(1).click(); await p.locator('#arriendo-lista .ex-fila-ck').nth(3).click(); await p.waitForTimeout(200);
-  ok((await p.textContent('#tr-total')) !== antesT && /Arriendos/.test(await p.textContent('#tr-lista')), 'elegir arriendos cambia el total y se ve en el resumen');
+  ok((await p.textContent('#tr-total')) !== antesT && /Epiphone|Takamine|Squier|Kingdo|Kingdo/.test(await p.textContent('#ro-items')), 'elegir arriendos cambia el total y se ve en el resumen');
   await p.locator('#orient button[data-z="1"]').click(); ok(await p.locator('#zurdo').isChecked(), 'orientación zurdo');
   await p.screenshot({ path: '5-paso4.png', fullPage: true });
   await p.click('#wiz-sig'); await p.waitForTimeout(300);

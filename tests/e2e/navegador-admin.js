@@ -13,10 +13,16 @@ const { sembrar } = require('./demo.js');
     ok(!(await p.locator('#sec-wa').isVisible()) && await p.locator('#sec-jor').isVisible(), nombre + ': arranca en Reservas y jornadas con la barra de pestañas');
     await p.screenshot({ path: 'a-' + nombre + '-inicio.png' });
     if (nombre === 'pc') {
-      for (const [k, sel] of [['reservas', '#res'], ['solicitudes', '#sol'], ['tienda', '#sec-musica'], ['contenido', '#rgt'], ['mensajes', '#wam'], ['config', '#ajustes'], ['conta', '#sec-conta'], ['socios', '#resp']]) {
+      for (const [k, sel] of [['reservas', '#res'], ['solicitudes', '#sol'], ['tienda', '#sec-musica'], ['contenido', '#rgt'], ['mensajes', '#wam'], ['config', '#ajustes'], ['conta', '#sec-rc'], ['socios', '#resp']]) {
         await p.click('.area[data-p=' + k + ']'); await p.waitForTimeout(250);
         ok(await p.locator(sel).first().isVisible(), 'área ' + k + ' abre su contenido'); await p.screenshot({ path: 'a-' + k + '.png' });
       }
+      await p.click('.area[data-p=conta]'); await p.waitForTimeout(600);
+      ok(/Resumen por área/i.test(await p.locator('#rc-box').innerText()) && /No asiste/i.test(await p.locator('#rc-box').innerText()), 'contabilidad: resumen por área y No asiste');
+      await p.screenshot({ path: 'a-conta-resumen.png', fullPage: true });
+      await p.click('.rc-p[data-rp=semana]'); await p.waitForTimeout(500); ok(/Ingresos por día/i.test(await p.locator('#rc-box').innerText()), 'contabilidad: resumen semanal');
+      await p.click('.ct-tabs button[data-ct=trib]'); await p.waitForTimeout(200); ok(await p.locator('#sec-conta').isVisible() && !(await p.locator('#sec-rc').isVisible()), 'contabilidad: pestaña de simulaciones tributarias');
+      await p.click('.ct-tabs button[data-ct=res]'); await p.waitForTimeout(200);
       // configuración: abrir grupos nuevos y guardar
       await p.click('.area[data-p=config]'); await p.waitForTimeout(200);
       const grupos = await p.locator('#ajustes summary').allTextContents(); console.log('grupos:', grupos.join(' | '));

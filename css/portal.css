@@ -60,3 +60,4 @@
 @media(max-width:700px){.ag-cab h2{font-size:1.4rem}.ag-dow .f{display:none}.ag-dow .a{display:inline}.ag-dia{min-height:58px;padding:3px}.ag-ev,.ag-mas{display:none}.ag-pts{display:flex}.ag-grid{gap:3px}}
 html{color-scheme:dark}
 body{background:var(--bg2)}
+.pg{max-width:min(1500px,100%)!important}

@@ -52,7 +52,7 @@ var Reglas = (function () {
     waVersion: 'v23.0',           // versión de la API Graph de Meta
     reagendoSemanas: 2,           // plazo máximo para reagendar una reserva (semanas). Se muestra en el reglamento
     reagendoCambios: 2,           // máximo de cambios por reserva. Se muestra en el reglamento
-    reglamento: "Para garantizar la mejor experiencia, fluidez en la agenda y el cuidado de los equipos, compartimos nuestras condiciones de servicio.\n\n## 📅 Reservas, reagendamientos y anulaciones\n- Confirmación: el abono confirma la fecha y hora en nuestra agenda.\n- Cambios: puedes reagendar o anular con al menos {horasAnulacion} horas de anticipación.\n- Flexibilidad: reagendamos en un plazo máximo de {reagendoSemanas} semanas (máximo {reagendoCambios} cambios por reserva).\n- Anulación: la devolución se realiza vía transferencia, descontando {retencionPorHora} por cada hora abonada (cargo por comisión de la plataforma).\n- Si estás atrasado o no puedes asistir, avísanos con tiempo para buscar una solución dentro de lo posible.\n- El horario queda tomado {minutosReserva} minutos mientras se realiza el abono; si no llega, se libera solo.\n\n## 🎟️ Planes mensuales\n- Un plan es un pack de 4 reservas: opción de 8 horas (4 ensayos de 2 horas) u opción de 12 horas (4 ensayos de 3 horas).\n- Al validar tu pago se ingresan tus 4 reservas, idealmente dentro del mes en curso o del siguiente.\n- Cambios: igual que en ensayo y grabación, con al menos {horasAnulacion} horas de anticipación. Si no avisas a tiempo, nos quedamos con el abono de {abonoPorHora} por cada hora solicitada.\n\n## ⏰ Horarios y puntualidad\n- Llegada: recomendamos llegar 5 a 10 minutos antes para preparar aspectos técnicos antes de tocar.\n- Salida: solicitamos desocupar la sala 5 minutos antes de terminar el bloque, en respeto a la banda siguiente.\n\n## 🚫 Normas dentro de la sala\n- Prohibido fumar y consumir líquidos dentro de la sala (para proteger los equipos y la higiene). Disponemos de espacio en el patio para compartir.\n- Mantener la puerta cerrada mientras estén tocando, para cuidar el entorno y la acústica.\n\n## 🎒 Cuidado de pertenencias y espacios\n- Revisa todas tus pertenencias antes de retirarte. No nos hacemos responsables por pérdidas.\n- Mantenemos el orden y aseo constante en salas, estudio de grabación y áreas comunes.\n- Contamos con estacionamiento exterior (sujeto a disponibilidad).\n\nNuestra misión es entregarte la mejor experiencia para ti y tu banda. ¡Mantengamos siempre un ambiente de respeto y buena onda entre todos, así disfrutamos de la música! 🤘🔥",   // texto del reglamento; ## = título, - = viñeta; {horasAnulacion} etc. se reemplazan solos
+    reglamento: "Para garantizar la mejor experiencia, fluidez en la agenda y el cuidado de los equipos, compartimos nuestras condiciones de servicio.\n\n## 📅 Reservas, reagendamientos y anulaciones\n- Confirmación: el abono confirma la fecha y hora en nuestra agenda.\n- Cambios: puedes reagendar o anular con al menos {horasAnulacion} horas de anticipación.\n- Flexibilidad: reagendamos en un plazo máximo de {reagendoSemanas} semanas (máximo {reagendoCambios} cambios por reserva).\n- Anulación: la devolución se realiza vía transferencia, descontando {retencionPorHora} por cada hora abonada (cargo por comisión de la plataforma).\n- Si estás atrasado o no puedes asistir, avísanos con tiempo para buscar una solución dentro de lo posible.\n- El abono confirma tu reserva.\n- El horario queda tomado {minutosReserva} minutos mientras se realiza el abono; si no llega, se libera solo.\n- Si la reserva queda en estado «No asiste» se cobran {noAsisteCobroPorHora} por cada hora reservada, haya abono o no (lo abonado se descuenta y el resto se cobra al cliente), por la seriedad y el mantenimiento de la agenda.\n\n## 🎟️ Planes mensuales\n- Un plan es un pack de 4 reservas: opción de 8 horas (4 ensayos de 2 horas) u opción de 12 horas (4 ensayos de 3 horas).\n- Al validar tu pago se ingresan tus 4 reservas, idealmente dentro del mes en curso o del siguiente.\n- Cambios: igual que en ensayo y grabación, con al menos {horasAnulacion} horas de anticipación. Si no avisas a tiempo, nos quedamos con el abono de {abonoPorHora} por cada hora solicitada.\n\n## ⏰ Horarios y puntualidad\n- Llegada: recomendamos llegar 5 a 10 minutos antes para preparar aspectos técnicos antes de tocar.\n- Salida: solicitamos desocupar la sala 5 minutos antes de terminar el bloque, en respeto a la banda siguiente.\n\n## 🚫 Normas dentro de la sala\n- Prohibido fumar y consumir líquidos dentro de la sala (para proteger los equipos y la higiene). Disponemos de espacio en el patio para compartir.\n- Mantener la puerta cerrada mientras estén tocando, para cuidar el entorno y la acústica.\n\n## 🎒 Cuidado de pertenencias y espacios\n- Revisa todas tus pertenencias antes de retirarte. No nos hacemos responsables por pérdidas.\n- Mantenemos el orden y aseo constante en salas, estudio de grabación y áreas comunes.\n- Contamos con estacionamiento exterior (sujeto a disponibilidad).\n\nNuestra misión es entregarte la mejor experiencia para ti y tu banda. ¡Mantengamos siempre un ambiente de respeto y buena onda entre todos, así disfrutamos de la música! 🤘🔥",   // texto del reglamento; ## = título, - = viñeta; {horasAnulacion} etc. se reemplazan solos
     contabilidadFormal: false,    // SI = activa la contabilidad formal (IVA, PPM, impuesto simulado, compras)
     regimen: '14D3',              // 14D3 (Pro Pyme general) o 14D8 (Pro Pyme transparente)
     sitioUrl: '',                 // dirección pública del sitio (para armar los enlaces de socios)
@@ -91,6 +91,7 @@ var Reglas = (function () {
     minutosReserva: 20,           // minutos que el horario queda tomado esperando el abono; luego se libera solo (5 a 180)
     horasAnulacion: 24,
     retencionPorHora: 1000,
+    noAsisteCobroPorHora: 5000,   // «No asiste»: se cobra por CADA hora reservada, haya abono o no
 
     escalaGrabacion: '2:30,3:60,4:120,5:180',   // horas:minutos de grabación incluida en el ensayo
     pagoTransferencia: true,      // SI = se muestran los datos de transferencia al terminar la reserva
@@ -225,7 +226,7 @@ var Reglas = (function () {
     c.proaudixWhatsapp = String(aTexto(raw.proaudixWhatsapp, d.proaudixWhatsapp)).replace(/\D/g, '');
     ['precioEnsayoHora', 'precioGrabacionHora', 'precioExtraEquipo', 'precioVideo', 'precioRaw', 'abonoPorHora',
       'plan8', 'plan12', 'ensayoMinHoras', 'ensayoMaxHoras', 'grabacionMinHoras', 'grabacionMaxHoras', 'addonsMinHoras',
-      'anticipacionMinHoras', 'anticipacionMaxDias', 'planMaxDias', 'minutosReserva', 'horasAnulacion', 'retencionPorHora', 'precioEnsayoConveniente', 'precioGrabacionConveniente', 'convenienteDesde', 'convenienteHasta', 'reagendoSemanas', 'reagendoCambios', 'repartoSalaJC', 'repartoSalaJaime', 'repartoEstudioJC', 'repartoEstudioEstudio', 'aporteLuzProAudix', 'cajaChicaMensual'
+      'anticipacionMinHoras', 'anticipacionMaxDias', 'planMaxDias', 'minutosReserva', 'horasAnulacion', 'retencionPorHora', 'noAsisteCobroPorHora', 'precioEnsayoConveniente', 'precioGrabacionConveniente', 'convenienteDesde', 'convenienteHasta', 'reagendoSemanas', 'reagendoCambios', 'repartoSalaJC', 'repartoSalaJaime', 'repartoEstudioJC', 'repartoEstudioEstudio', 'aporteLuzProAudix', 'cajaChicaMensual'
     ].forEach(function (k) { c[k] = aNumero(raw[k], d[k]); });
     c.minutosReserva = Math.max(5, Math.min(180, Math.round(c.minutosReserva) || d.minutosReserva));
     c.extraModo = String(aTexto(raw.extraModo, d.extraModo)).toLowerCase() === 'sesion' ? 'sesion' : 'hora';
@@ -1049,7 +1050,7 @@ function sincronizarEstado_(sh, f) {
 /**
  * Registra el efecto en dinero de un cambio de estado (alimenta el Balance):
  *  - Reservado (con abono) / Finalizada: se da el abono por recibido.
- *  - No asiste: el abono recibido queda retenido.
+ *  - No asiste: se cobra noAsisteCobroPorHora ($5.000) por cada hora reservada, haya abono o no (el abono se descuenta; lo que falte se cobra al cliente).
  *  - Anulada: con abono recibido y a tiempo (>= horasAnulacion) se retiene retencionPorHora por hora y el resto se devuelve;
  *    tarde, se retiene todo (salvo que anulacionTardiaRetiene = NO).
  */
@@ -1060,7 +1061,8 @@ function liquidar_(sh, f, r, estado) {
   var abono = Number(r[RES.abono - 1]) || 0, horas = Number(r[RES.horas - 1]) || 0;
   var retenido = '', devolver = '';
   if (estado === EST.NO_ASISTE) {
-    retenido = recibido ? abono : 0; devolver = 0;
+    // «No asiste»: se cobran $X por cada hora reservada, haya abono o no. Lo abonado se descuenta; el resto queda por cobrar al cliente.
+    retenido = (Number(cfg.noAsisteCobroPorHora) || 0) * horas; devolver = recibido ? Math.max(0, abono - retenido) : 0;
   } else if (estado === EST.ANULADA) {
     if (r[RES.retenido - 1] !== '' && r[RES.retenido - 1] !== null) return; // ya liquidada: no recalcular con otra hora
     if (!recibido) { retenido = 0; devolver = 0; }
@@ -1097,7 +1099,7 @@ function fechaHora_(iso, hora) {
 }
 
 function aFechaIso_(v) {
-  if (v instanceof Date && !isNaN(v)) return Utilities.formatDate(v, Reglas.TZ, 'yyyy-MM-dd');
+  if (Object.prototype.toString.call(v) === '[object Date]' && !isNaN(v)) return Utilities.formatDate(v, Reglas.TZ, 'yyyy-MM-dd');
   var s = String(v || '').trim();
   return Reglas.fechaValida(s) ? s : '';
 }
@@ -1148,6 +1150,14 @@ function asegurarEsquema_(ss) {
     }
     // Una sola vez: el cuadro de honor queda visible en la portada (si estaba apagado por una versión anterior).
     var props = PropertiesService.getScriptProperties();
+    if (!props.getProperty('MIG_VISIBLES_2')) {
+      var hv = ss.getSheetByName(HOJAS.config), nv = hv ? hv.getLastRow() : 0;
+      if (nv > 1) {
+        var kv = hv.getRange(2, 1, nv - 1, 1).getValues();
+        for (var w = 0; w < kv.length; w++) if (['verHonor', 'verTienda'].indexOf(String(kv[w][0])) >= 0) hv.getRange(w + 2, 2).setValue('SI');
+      }
+      props.setProperty('MIG_VISIBLES_2', '1');
+    }
     if (!props.getProperty('MIG_HONOR_1')) {
       var hc = ss.getSheetByName(HOJAS.config), nh = hc ? hc.getLastRow() : 0;
       if (nh > 1) {
@@ -1289,6 +1299,7 @@ function prepararConfig_(ss) {
     ['minutosReserva', d.minutosReserva, 'Minutos que el horario queda tomado esperando el abono (entre 5 y 180). Pasado ese tiempo se libera solo y el cliente ve una cuenta regresiva.'],
     ['horasAnulacion', d.horasAnulacion, 'Horas de anticipación para anular o reagendar.'],
     ['retencionPorHora', d.retencionPorHora, 'Pesos que se retienen por hora al anular.'],
+    ['noAsisteCobroPorHora', d.noAsisteCobroPorHora, 'Pesos que se cobran por cada hora reservada cuando el cliente no asiste (haya abonado o no).'],
     ['escalaGrabacion', d.escalaGrabacion, 'Grabación incluida en el ensayo, como horas:minutos. Vacío = no se ofrece. CONFIRMAR que sigue vigente.'],
     ['pagoTransferencia', 'SI', 'SI o NO. Muestra los datos de transferencia al terminar la reserva (si escribiste datosTransferencia).'],
     ['datosTransferencia', '', 'Texto público con tus datos para transferir. Vacío = se los envías por WhatsApp. Ojo: lo que escribas aquí lo ve cualquiera.'],
@@ -1312,7 +1323,7 @@ function prepararConfig_(ss) {
     ['waVersion', d.waVersion, 'Versión de la API Graph de Meta (por ejemplo v23.0). Meta retira versiones antiguas: si falla, revisa la vigente.'],
     ['reagendoSemanas', d.reagendoSemanas, 'Plazo máximo (semanas) para reagendar una reserva. Se muestra en el reglamento; el reagendado hoy se coordina por WhatsApp.'],
     ['reagendoCambios', d.reagendoCambios, 'Máximo de cambios por reserva. Se muestra en el reglamento.'],
-    ['reglamento', d.reglamento, 'Reglamento interno que ve el cliente. ## = título de sección, - = viñeta. {horasAnulacion}, {retencionPorHora}, {reagendoSemanas}, {reagendoCambios} y {minutosReserva} se reemplazan solos. Se edita también desde el portal.'],
+    ['reglamento', d.reglamento, 'Reglamento interno que ve el cliente. ## = título de sección, - = viñeta. {horasAnulacion}, {retencionPorHora}, {reagendoSemanas}, {reagendoCambios}, {noAsisteCobroPorHora} y {minutosReserva} se reemplazan solos. Se edita también desde el portal.'],
     ['repartoSalaJC', d.repartoSalaJC, 'Sala de ensayo: % de Juan Carlos. Junto con repartoSalaJaime debe sumar 100.'],
     ['repartoSalaJaime', d.repartoSalaJaime, 'Sala de ensayo: % de Jaime.'],
     ['repartoEstudioJC', d.repartoEstudioJC, 'Estudio de grabación: % de Juan Carlos. Junto con repartoEstudioEstudio debe sumar 100.'],
@@ -3400,6 +3411,110 @@ function adminEliminarCompra(fila) {
   });
 }
 
+/* ====================================================================
+ *  RESUMEN CONTABLE POR PERÍODO (semana o mes) — para cerrar con los socios
+ * ==================================================================== */
+
+function rangoPeriodo_(periodo, ref) {
+  var hoy = ahoraChile_().fecha;
+  if (periodo === 'semana') {
+    var f = Reglas.fechaValida(ref) ? ref : hoy;
+    var dow = new Date(f + 'T12:00:00Z').getUTCDay(); // 0 = domingo
+    var lunes = Reglas.sumarDias(f, -((dow + 6) % 7));
+    return { periodo: 'semana', desde: lunes, hasta: Reglas.sumarDias(lunes, 6), ref: lunes };
+  }
+  var m = mesValido_(ref) ? ref : mesActual_();
+  var y = Number(m.slice(0, 4)), mm = Number(m.slice(5, 7)), ult = new Date(Date.UTC(y, mm, 0)).getUTCDate();
+  return { periodo: 'mes', desde: m + '-01', hasta: m + '-' + (ult < 10 ? '0' : '') + ult, ref: m };
+}
+
+/** periodo = 'semana' | 'mes'; ref = fecha (semana) o AAAA-MM (mes). Devuelve todos los números del período. */
+function adminResumenContable(periodo, ref) {
+  exigirAdmin_();
+  var cfg = getCfg_(), R = rangoPeriodo_(periodo, ref), ss = abrirBd_();
+  var fee = Number(cfg.noAsisteCobroPorHora) || 0;
+  var sala = { sesiones: 0, horas: 0, base: 0, extras: 0, video: 0, retenidos: 0, total: 0 };
+  var estudio = { sesiones: 0, horas: 0, base: 0, retenidos: 0, total: 0 };
+  var arr = { unidades: 0, monto: 0 }, bruto = { sesiones: 0, monto: 0 };
+  var noa = { n: 0, horas: 0, cobro: 0, abonoRetenido: 0, porCobrar: 0, lista: [] };
+  var anu = { n: 0, retenido: 0, devolver: 0 };
+  var proy = { sesiones: 0, monto: 0, horas: 0 };
+  var detalle = [], porDia = {};
+  var sr = ss.getSheetByName(HOJAS.reservas), n = sr.getLastRow();
+  if (n > 1) sr.getRange(2, 1, n - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r) {
+    var f = aFechaIso_(r[RES.fecha - 1]);
+    if (!f || f < R.desde || f > R.hasta) return;
+    var estado = estadoNorm_(r[RES.estado - 1]), ens = /ensayo/i.test(String(r[RES.servicio - 1]));
+    var h = Number(r[RES.horas - 1]) || 0, base = Number(r[RES.base - 1]) || 0, ex = Number(r[RES.extrasM - 1]) || 0, vi = Number(r[RES.videoM - 1]) || 0, rw = Number(r[RES.rawM - 1]) || 0;
+    var ret = Number(r[RES.retenido - 1]) || 0, dev = Number(r[RES.devolver - 1]) || 0, abono = Number(r[RES.abono - 1]) || 0;
+    var recibido = String(r[RES.abonoRecibido - 1]).toUpperCase() === 'SI';
+    var fila = { fecha: f, codigo: String(r[RES.codigo - 1]), banda: String(r[RES.banda - 1]), cliente: String(r[RES.contacto - 1]), servicio: ens ? 'Ensayo' : 'Grabación', horas: h, estado: estado, base: base, extras: ex, video: vi, raw: rw, total: 0, retenido: ret };
+    if (estado === EST.FINALIZADA) {
+      var o = ens ? sala : estudio;
+      o.sesiones++; o.horas += h; o.base += base;
+      if (ens) { sala.extras += ex; sala.video += vi; arr.unidades += Number(r[RES.extras - 1]) || 0; arr.monto += ex; }
+      else { arr.unidades += Number(r[RES.extras - 1]) || 0; arr.monto += ex; }
+      bruto.sesiones += rw > 0 ? 1 : 0; bruto.monto += rw;
+      fila.total = base + ex + vi + rw; detalle.push(fila);
+      porDia[f] = (porDia[f] || 0) + fila.total;
+    } else if (estado === EST.NO_ASISTE) {
+      var cobro = fee * h, porCobrar = Math.max(0, cobro - (recibido ? abono : 0));
+      noa.n++; noa.horas += h; noa.cobro += cobro; noa.abonoRetenido += recibido ? Math.min(abono, cobro) : 0; noa.porCobrar += porCobrar;
+      (ens ? sala : estudio).retenidos += cobro; (ens ? sala : estudio).total += cobro;
+      fila.total = cobro; fila.porCobrar = porCobrar; noa.lista.push(fila); detalle.push(fila);
+      porDia[f] = (porDia[f] || 0) + cobro;
+    } else if (estado === EST.ANULADA) {
+      anu.n++; anu.retenido += ret; anu.devolver += dev;
+      (ens ? sala : estudio).retenidos += ret; (ens ? sala : estudio).total += ret;
+      fila.total = ret; detalle.push(fila);
+    } else if (estado === EST.CON_ABONO || estado === EST.SIN_ABONO) {
+      proy.sesiones++; proy.horas += h; proy.monto += Number(r[RES.total - 1]) || 0;
+    }
+  });
+  sala.total += sala.base + sala.extras + sala.video; estudio.total += estudio.base;
+  // ventas de tienda y bebestibles (por fecha de cobro)
+  var ventas = leerVentas_(), tiendas = {};
+  ['musica', 'bebestible'].forEach(function (t) { tiendas[t] = { cobrado: 0, efectivo: 0, transferencia: 0, porCobrar: 0, unidades: 0, productos: {}, detalle: [] }; });
+  ventas.forEach(function (v) {
+    if (v.pago === PAGO.ANULADA || !tiendas[v.tipo]) return;
+    var o = tiendas[v.tipo], fc = v.cobro || v.fecha;
+    if (v.pago === PAGO.PENDIENTE) { if (v.fecha >= R.desde && v.fecha <= R.hasta) o.porCobrar += v.total; return; }
+    if (fc < R.desde || fc > R.hasta) return;
+    o.cobrado += v.total; o.unidades += v.cantidad;
+    if (v.pago === PAGO.EFECTIVO) o.efectivo += v.total; else o.transferencia += v.total;
+    var p = o.productos[v.producto] = o.productos[v.producto] || { nombre: v.producto, unidades: 0, total: 0 };
+    p.unidades += v.cantidad; p.total += v.total;
+    o.detalle.push({ fecha: fc, producto: v.producto, cantidad: v.cantidad, total: v.total, pago: v.pago, vendedor: v.vendedor });
+  });
+  var salidaTienda = function (o) { o.productos = Object.keys(o.productos).map(function (k) { return o.productos[k]; }).sort(function (a, b) { return b.total - a.total; }); o.detalle = o.detalle.slice(0, 200); return o; };
+  var out = {
+    ok: true, periodo: R.periodo, desde: R.desde, hasta: R.hasta, ref: R.ref,
+    semAnt: Reglas.sumarDias(R.desde, -7), semSig: Reglas.sumarDias(R.desde, 7),
+    sala: sala, estudio: estudio, arriendos: arr, bruto: bruto, noAsiste: noa, anuladas: anu, proyectado: proy, tarifaNoAsiste: fee,
+    musica: salidaTienda(tiendas.musica), bebestibles: salidaTienda(tiendas.bebestible),
+    detalle: detalle.sort(function (a, b) { return a.fecha < b.fecha ? -1 : 1; }),
+    porDia: Object.keys(porDia).sort().map(function (k) { return { fecha: k, total: porDia[k] }; })
+  };
+  out.ingresosBrutos = sala.total + estudio.total + bruto.monto;
+  if (R.periodo === 'mes') {
+    var c = null; leerCostos_().forEach(function (x) { if (x.mes === R.ref) c = x; });
+    var luz = c ? c.luz : 0, aporte = c && c.aporte !== '' ? c.aporte : Number(cfg.aporteLuzProAudix) || 0, caja = c && c.caja !== '' ? c.caja : Number(cfg.cajaChicaMensual) || 0, otros = c ? c.otros : 0;
+    var luzSala = Math.max(0, luz - aporte), utilSala = sala.total - luzSala - caja - otros, utilEst = estudio.total;
+    out.mes = {
+      boletaIngresada: !!(c && c.luz > 0), luz: luz, aporte: aporte, luzSala: luzSala, caja: caja, otros: otros, notas: c ? c.notas : '',
+      utilidadSala: utilSala, salaJC: utilSala * cfg.repartoSalaJC / 100, salaJaime: utilSala * cfg.repartoSalaJaime / 100,
+      utilidadEstudio: utilEst, estudioEstudio: utilEst * cfg.repartoEstudioEstudio / 100, estudioJC: utilEst * cfg.repartoEstudioJC / 100,
+      brutoJC: bruto.monto,
+      pct: { salaJC: cfg.repartoSalaJC, salaJaime: cfg.repartoSalaJaime, estudioEstudio: cfg.repartoEstudioEstudio, estudioJC: cfg.repartoEstudioJC }
+    };
+    out.mes.totalJC = out.mes.salaJC + out.mes.estudioJC + bruto.monto; out.mes.totalJaime = out.mes.salaJaime; out.mes.totalEstudio = out.mes.estudioEstudio;
+    out.meses = [];
+    var yy = Number(R.ref.slice(0, 4)), mx = Number(R.ref.slice(5, 7));
+    for (var k = 0; k < 12; k++) { var d = new Date(Date.UTC(yy, mx - 1 - k, 1)); out.meses.push(d.getUTCFullYear() + '-' + ('0' + (d.getUTCMonth() + 1)).slice(-2)); }
+  }
+  return out;
+}
+
 /* ===== Ajustes ===== */
 /**
  * AJUSTES: editor de parámetros del portal.
@@ -3442,6 +3557,7 @@ var ESQUEMA = [
   ['planMaxDias', 'Sesiones de plan hasta (días)', 'num', 'Reglas de reserva', 'Hasta cuántos días hacia adelante se pueden agendar las 4 sesiones de un plan.', 180],
   ['minutosReserva', 'Minutos que se guarda el horario', 'num', 'Reglas de reserva', 'Tiempo que el horario queda tomado esperando el abono (5 a 180). Luego se libera solo.', 180],
   ['horasAnulacion', 'Horas mínimas para anular', 'num', 'Reglas de reserva', 'Anular con al menos estas horas devuelve el abono (menos la retención).', 168],
+  ['noAsisteCobroPorHora', 'Cobro por «No asiste» (por hora reservada)', 'pesos', 'Reglas de reserva', 'Si el cliente no asiste se cobra este monto por cada hora reservada, haya abonado o no (por la seriedad de la agenda). Lo abonado se descuenta; el resto queda por cobrar.'],
   ['retencionPorHora', 'Retención por hora al anular', 'pesos', 'Reglas de reserva', 'Lo que se retiene por hora cuando se anula a tiempo.'],
   ['reagendoSemanas', 'Reagendar: plazo máximo (semanas)', 'num', 'Reglas de reserva', 'Se muestra en el reglamento.', 12],
   ['reagendoCambios', 'Reagendar: máximo de cambios por reserva', 'num', 'Reglas de reserva', 'Se muestra en el reglamento.', 10],

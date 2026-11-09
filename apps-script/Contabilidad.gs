@@ -122,3 +122,107 @@ function adminEliminarCompra(fila) {
     return adminResumen();
   });
 }
+
+/* ====================================================================
+ *  RESUMEN CONTABLE POR PERÍODO (semana o mes) — para cerrar con los socios
+ * ==================================================================== */
+
+function rangoPeriodo_(periodo, ref) {
+  var hoy = ahoraChile_().fecha;
+  if (periodo === 'semana') {
+    var f = Reglas.fechaValida(ref) ? ref : hoy;
+    var dow = new Date(f + 'T12:00:00Z').getUTCDay(); // 0 = domingo
+    var lunes = Reglas.sumarDias(f, -((dow + 6) % 7));
+    return { periodo: 'semana', desde: lunes, hasta: Reglas.sumarDias(lunes, 6), ref: lunes };
+  }
+  var m = mesValido_(ref) ? ref : mesActual_();
+  var y = Number(m.slice(0, 4)), mm = Number(m.slice(5, 7)), ult = new Date(Date.UTC(y, mm, 0)).getUTCDate();
+  return { periodo: 'mes', desde: m + '-01', hasta: m + '-' + (ult < 10 ? '0' : '') + ult, ref: m };
+}
+
+/** periodo = 'semana' | 'mes'; ref = fecha (semana) o AAAA-MM (mes). Devuelve todos los números del período. */
+function adminResumenContable(periodo, ref) {
+  exigirAdmin_();
+  var cfg = getCfg_(), R = rangoPeriodo_(periodo, ref), ss = abrirBd_();
+  var fee = Number(cfg.noAsisteCobroPorHora) || 0;
+  var sala = { sesiones: 0, horas: 0, base: 0, extras: 0, video: 0, retenidos: 0, total: 0 };
+  var estudio = { sesiones: 0, horas: 0, base: 0, retenidos: 0, total: 0 };
+  var arr = { unidades: 0, monto: 0 }, bruto = { sesiones: 0, monto: 0 };
+  var noa = { n: 0, horas: 0, cobro: 0, abonoRetenido: 0, porCobrar: 0, lista: [] };
+  var anu = { n: 0, retenido: 0, devolver: 0 };
+  var proy = { sesiones: 0, monto: 0, horas: 0 };
+  var detalle = [], porDia = {};
+  var sr = ss.getSheetByName(HOJAS.reservas), n = sr.getLastRow();
+  if (n > 1) sr.getRange(2, 1, n - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r) {
+    var f = aFechaIso_(r[RES.fecha - 1]);
+    if (!f || f < R.desde || f > R.hasta) return;
+    var estado = estadoNorm_(r[RES.estado - 1]), ens = /ensayo/i.test(String(r[RES.servicio - 1]));
+    var h = Number(r[RES.horas - 1]) || 0, base = Number(r[RES.base - 1]) || 0, ex = Number(r[RES.extrasM - 1]) || 0, vi = Number(r[RES.videoM - 1]) || 0, rw = Number(r[RES.rawM - 1]) || 0;
+    var ret = Number(r[RES.retenido - 1]) || 0, dev = Number(r[RES.devolver - 1]) || 0, abono = Number(r[RES.abono - 1]) || 0;
+    var recibido = String(r[RES.abonoRecibido - 1]).toUpperCase() === 'SI';
+    var fila = { fecha: f, codigo: String(r[RES.codigo - 1]), banda: String(r[RES.banda - 1]), cliente: String(r[RES.contacto - 1]), servicio: ens ? 'Ensayo' : 'Grabación', horas: h, estado: estado, base: base, extras: ex, video: vi, raw: rw, total: 0, retenido: ret };
+    if (estado === EST.FINALIZADA) {
+      var o = ens ? sala : estudio;
+      o.sesiones++; o.horas += h; o.base += base;
+      if (ens) { sala.extras += ex; sala.video += vi; arr.unidades += Number(r[RES.extras - 1]) || 0; arr.monto += ex; }
+      else { arr.unidades += Number(r[RES.extras - 1]) || 0; arr.monto += ex; }
+      bruto.sesiones += rw > 0 ? 1 : 0; bruto.monto += rw;
+      fila.total = base + ex + vi + rw; detalle.push(fila);
+      porDia[f] = (porDia[f] || 0) + fila.total;
+    } else if (estado === EST.NO_ASISTE) {
+      var cobro = fee * h, porCobrar = Math.max(0, cobro - (recibido ? abono : 0));
+      noa.n++; noa.horas += h; noa.cobro += cobro; noa.abonoRetenido += recibido ? Math.min(abono, cobro) : 0; noa.porCobrar += porCobrar;
+      (ens ? sala : estudio).retenidos += cobro; (ens ? sala : estudio).total += cobro;
+      fila.total = cobro; fila.porCobrar = porCobrar; noa.lista.push(fila); detalle.push(fila);
+      porDia[f] = (porDia[f] || 0) + cobro;
+    } else if (estado === EST.ANULADA) {
+      anu.n++; anu.retenido += ret; anu.devolver += dev;
+      (ens ? sala : estudio).retenidos += ret; (ens ? sala : estudio).total += ret;
+      fila.total = ret; detalle.push(fila);
+    } else if (estado === EST.CON_ABONO || estado === EST.SIN_ABONO) {
+      proy.sesiones++; proy.horas += h; proy.monto += Number(r[RES.total - 1]) || 0;
+    }
+  });
+  sala.total += sala.base + sala.extras + sala.video; estudio.total += estudio.base;
+  // ventas de tienda y bebestibles (por fecha de cobro)
+  var ventas = leerVentas_(), tiendas = {};
+  ['musica', 'bebestible'].forEach(function (t) { tiendas[t] = { cobrado: 0, efectivo: 0, transferencia: 0, porCobrar: 0, unidades: 0, productos: {}, detalle: [] }; });
+  ventas.forEach(function (v) {
+    if (v.pago === PAGO.ANULADA || !tiendas[v.tipo]) return;
+    var o = tiendas[v.tipo], fc = v.cobro || v.fecha;
+    if (v.pago === PAGO.PENDIENTE) { if (v.fecha >= R.desde && v.fecha <= R.hasta) o.porCobrar += v.total; return; }
+    if (fc < R.desde || fc > R.hasta) return;
+    o.cobrado += v.total; o.unidades += v.cantidad;
+    if (v.pago === PAGO.EFECTIVO) o.efectivo += v.total; else o.transferencia += v.total;
+    var p = o.productos[v.producto] = o.productos[v.producto] || { nombre: v.producto, unidades: 0, total: 0 };
+    p.unidades += v.cantidad; p.total += v.total;
+    o.detalle.push({ fecha: fc, producto: v.producto, cantidad: v.cantidad, total: v.total, pago: v.pago, vendedor: v.vendedor });
+  });
+  var salidaTienda = function (o) { o.productos = Object.keys(o.productos).map(function (k) { return o.productos[k]; }).sort(function (a, b) { return b.total - a.total; }); o.detalle = o.detalle.slice(0, 200); return o; };
+  var out = {
+    ok: true, periodo: R.periodo, desde: R.desde, hasta: R.hasta, ref: R.ref,
+    semAnt: Reglas.sumarDias(R.desde, -7), semSig: Reglas.sumarDias(R.desde, 7),
+    sala: sala, estudio: estudio, arriendos: arr, bruto: bruto, noAsiste: noa, anuladas: anu, proyectado: proy, tarifaNoAsiste: fee,
+    musica: salidaTienda(tiendas.musica), bebestibles: salidaTienda(tiendas.bebestible),
+    detalle: detalle.sort(function (a, b) { return a.fecha < b.fecha ? -1 : 1; }),
+    porDia: Object.keys(porDia).sort().map(function (k) { return { fecha: k, total: porDia[k] }; })
+  };
+  out.ingresosBrutos = sala.total + estudio.total + bruto.monto;
+  if (R.periodo === 'mes') {
+    var c = null; leerCostos_().forEach(function (x) { if (x.mes === R.ref) c = x; });
+    var luz = c ? c.luz : 0, aporte = c && c.aporte !== '' ? c.aporte : Number(cfg.aporteLuzProAudix) || 0, caja = c && c.caja !== '' ? c.caja : Number(cfg.cajaChicaMensual) || 0, otros = c ? c.otros : 0;
+    var luzSala = Math.max(0, luz - aporte), utilSala = sala.total - luzSala - caja - otros, utilEst = estudio.total;
+    out.mes = {
+      boletaIngresada: !!(c && c.luz > 0), luz: luz, aporte: aporte, luzSala: luzSala, caja: caja, otros: otros, notas: c ? c.notas : '',
+      utilidadSala: utilSala, salaJC: utilSala * cfg.repartoSalaJC / 100, salaJaime: utilSala * cfg.repartoSalaJaime / 100,
+      utilidadEstudio: utilEst, estudioEstudio: utilEst * cfg.repartoEstudioEstudio / 100, estudioJC: utilEst * cfg.repartoEstudioJC / 100,
+      brutoJC: bruto.monto,
+      pct: { salaJC: cfg.repartoSalaJC, salaJaime: cfg.repartoSalaJaime, estudioEstudio: cfg.repartoEstudioEstudio, estudioJC: cfg.repartoEstudioJC }
+    };
+    out.mes.totalJC = out.mes.salaJC + out.mes.estudioJC + bruto.monto; out.mes.totalJaime = out.mes.salaJaime; out.mes.totalEstudio = out.mes.estudioEstudio;
+    out.meses = [];
+    var yy = Number(R.ref.slice(0, 4)), mx = Number(R.ref.slice(5, 7));
+    for (var k = 0; k < 12; k++) { var d = new Date(Date.UTC(yy, mx - 1 - k, 1)); out.meses.push(d.getUTCFullYear() + '-' + ('0' + (d.getUTCMonth() + 1)).slice(-2)); }
+  }
+  return out;
+}

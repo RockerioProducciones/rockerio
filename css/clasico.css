@@ -258,3 +258,18 @@ input,select,textarea{background:color-mix(in srgb,var(--bg2) 90%,#000);border-c
 input:focus,select:focus,textarea:focus{outline:2px solid color-mix(in srgb,var(--oro) 60%,transparent);outline-offset:1px}
 ::selection{background:var(--oro);color:#000}
 ::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--oro) 35%,var(--borde));border-radius:8px}
+
+/* ===== Ancho fluido: el sitio aprovecha toda la ventana (móvil y escritorio) ===== */
+:root{--ancho:min(1760px,100%)}
+.hero,.franja-dir,.menu,.sec,footer,.vista-barra,.wiz-barra{max-width:var(--ancho)!important}
+.hero,.franja-dir,.menu,footer{margin-left:clamp(8px,2vw,32px)!important;margin-right:clamp(8px,2vw,32px)!important}
+@media(min-width:1100px){.hero,.franja-dir,.menu,footer{margin-left:auto!important;margin-right:auto!important;width:calc(100% - 64px)}}
+.sec{padding-left:clamp(12px,3vw,48px)!important;padding-right:clamp(12px,3vw,48px)!important}
+.vista-barra{padding-left:clamp(12px,3vw,48px)!important;padding-right:clamp(12px,3vw,48px)!important}
+.wizard fieldset.activo,.wiz-barra{max-width:min(1200px,100%)!important}
+.texto{max-width:none!important}
+@media(min-width:700px){.menu{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))!important}}
+.tienda-grid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))!important}
+.honor-banda{max-width:var(--ancho)!important;margin-left:clamp(8px,2vw,32px)!important;margin-right:clamp(8px,2vw,32px)!important}
+@media(min-width:1100px){.honor-banda{margin-left:auto!important;margin-right:auto!important;width:calc(100% - 64px)}.menu{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))!important}}
+.ro-conf{border-color:var(--oro)!important}.ro-conf b:first-child{color:var(--oro)}

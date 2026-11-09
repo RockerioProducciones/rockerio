@@ -39,6 +39,7 @@ var ESQUEMA = [
   ['planMaxDias', 'Sesiones de plan hasta (días)', 'num', 'Reglas de reserva', 'Hasta cuántos días hacia adelante se pueden agendar las 4 sesiones de un plan.', 180],
   ['minutosReserva', 'Minutos que se guarda el horario', 'num', 'Reglas de reserva', 'Tiempo que el horario queda tomado esperando el abono (5 a 180). Luego se libera solo.', 180],
   ['horasAnulacion', 'Horas mínimas para anular', 'num', 'Reglas de reserva', 'Anular con al menos estas horas devuelve el abono (menos la retención).', 168],
+  ['noAsisteCobroPorHora', 'Cobro por «No asiste» (por hora reservada)', 'pesos', 'Reglas de reserva', 'Si el cliente no asiste se cobra este monto por cada hora reservada, haya abonado o no (por la seriedad de la agenda). Lo abonado se descuenta; el resto queda por cobrar.'],
   ['retencionPorHora', 'Retención por hora al anular', 'pesos', 'Reglas de reserva', 'Lo que se retiene por hora cuando se anula a tiempo.'],
   ['reagendoSemanas', 'Reagendar: plazo máximo (semanas)', 'num', 'Reglas de reserva', 'Se muestra en el reglamento.', 12],
   ['reagendoCambios', 'Reagendar: máximo de cambios por reserva', 'num', 'Reglas de reserva', 'Se muestra en el reglamento.', 10],

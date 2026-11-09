@@ -18,8 +18,8 @@ function correr(cfgExtra, estado, fila) {
 }
 const RES = () => ctx.RES;
 
-t('No asiste con abono: se retiene todo el abono', () => assert.deepStrictEqual(correr({}, 'No asiste'), ['SI', 10000, 0]));
-t('No asiste sin abono recibido: no hay nada que retener', () => assert.deepStrictEqual(correr({}, 'No asiste', { [RES().abonoRecibido - 1]: 'NO' }), ['NO', 0, 0]));
+t('No asiste con abono de $10.000 (2 h): se cobran $10.000', () => assert.deepStrictEqual(correr({}, 'No asiste'), ['SI', 10000, 0]));
+t('No asiste sin abono: se cobran igual $5.000 por hora (2 h = 10.000) al cliente', () => assert.deepStrictEqual(correr({}, 'No asiste', { [RES().abonoRecibido - 1]: 'NO' }), ['NO', 10000, 0]));
 t('Anulada a tiempo: retiene $1.000 por hora y devuelve $4.000 por hora', () => assert.deepStrictEqual(correr({}, 'Anulada'), ['SI', 2000, 8000]));
 t('Anulada tarde (menos de 24 h): se retiene todo el abono', () => assert.deepStrictEqual(correr({}, 'Anulada', { [RES().fecha - 1]: '2000-01-10' }), ['SI', 10000, 0]));
 t('Anulada tarde pero con anulacionTardiaRetiene = NO: se trata como a tiempo', () => assert.deepStrictEqual(correr({ anulacionTardiaRetiene: 'NO' }, 'Anulada', { [RES().fecha - 1]: '2000-01-10' }), ['SI', 2000, 8000]));
