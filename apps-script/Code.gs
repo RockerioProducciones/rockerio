@@ -174,7 +174,7 @@ function leerConfigCruda_() {
 /** Lo que el sitio puede ver. Nunca incluye correos ni datos de personas. */
 function configPublica_() {
   var c = getCfg_();
-  delete c.correoAdmin; delete c.waAutoActivo; delete c.waPhoneId; delete c.waPlantillaRecordatorio; delete c.waIdioma; delete c.waVersion;
+  delete c.correoAdmin; delete c.waAutoActivo; delete c.waPhoneId; delete c.waPlantillaRecordatorio; delete c.waIdioma; delete c.waVersion; delete c.datosTransferencia; delete c.linkPago; delete c.instruccionesPago;
   return c;
 }
 
@@ -278,6 +278,7 @@ function reservar_(sol) {
   if (sol && sol.web) return { ok: false, codigo: 'DATOS', error: 'Solicitud no válida.' };
   var cfg = getCfg_();
   var tel = Reglas.normalizarTelefono(sol.telefono);
+  if (limiteGlobal_('reservar', 60)) return { ok: false, codigo: 'TASA', error: 'Hay muchas solicitudes ahora. Escríbenos por WhatsApp.' };
   if (excedeTasa_(tel)) {
     return { ok: false, codigo: 'TASA', error: 'Hiciste varias solicitudes seguidas. Escríbenos por WhatsApp.' };
   }
