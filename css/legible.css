@@ -1,0 +1,55 @@
+/* ===== Legibilidad en celular: textos, etiquetas, subtítulos y botones más grandes ===== */
+@media(max-width:699px){
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{font-size:16.5px;line-height:1.6}
+p,li,td,dd,.desc,.sub,.nota{font-size:max(1rem,15.5px);line-height:1.6}
+small,.small,.hint,.chip-ok,figcaption,.wiz-n,.plan-badge,.prod-cat,.prod-det,.prod-wsp,.eva-prom .sub{font-size:.9rem!important;line-height:1.45}
+label,.lbl,legend,.wiz-lbl{font-size:1rem!important;font-weight:600}
+input,select,textarea{font-size:16px!important;min-height:48px}
+textarea{min-height:96px}
+h3{font-size:max(1.25rem,20px)}
+.sec h2,html[data-tema="rockerio"][lang] .sec h2{font-size:2.35rem!important}
+.wiz-titulo{font-size:1.55rem!important}
+.wiz-n{font-size:.95rem!important;letter-spacing:.06em}
+/* botones: grandes y fáciles de tocar */
+button,.btn,.btn-g,.btn-o,.ro-b,a.btn,.prod-wsp,input[type=submit]{font-size:1.05rem!important;min-height:50px;padding-left:1.15rem;padding-right:1.15rem;letter-spacing:.02em}
+.btn.chico,.btn-chico,.chico{font-size:.95rem!important;min-height:44px}
+/* etiquetas y chips */
+.mic-chip,.chips-sw span,.ficha-tab,.eva-e{font-size:1rem!important}
+.ficha-tab .ft-tit{font-size:.92rem!important;letter-spacing:.04em}
+.ficha-tab{flex-basis:124px}
+.ficha-hero .ficha-cab .sub{font-size:1.05rem}
+.info-st span,.info-st small{font-size:.92rem!important}
+.tarjeta small,.card small{font-size:.9rem!important}
+.plan li,.plan-lista li,.reglas li{font-size:1rem!important}
+/* menú del inicio: 3 columnas con etiquetas grandes */
+body:not([data-vista]) .menu,body[data-vista="inicio"] .menu{grid-template-columns:repeat(3,1fr)!important;gap:.5rem!important}
+body:not([data-vista]) .menu>.tarjeta,body[data-vista="inicio"] .menu>.tarjeta{min-height:92px!important;padding:.65rem .15rem!important;gap:.35rem!important}
+body:not([data-vista]) .menu>.tarjeta b,body[data-vista="inicio"] .menu>.tarjeta b{font-size:clamp(.78rem,3.3vw,.95rem)!important;letter-spacing:.015em!important;line-height:1.15!important;overflow-wrap:normal!important;word-break:normal!important;hyphens:none}
+.menu .tarjeta[data-vista]::before{width:28px!important;height:28px!important}
+/* franja de secciones dentro de una vista: se desliza de lado, con letra legible */
+body.con-vistas[data-vista]:not([data-vista="inicio"]) .menu{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;gap:.45rem;padding:8px!important;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+body.con-vistas[data-vista]:not([data-vista="inicio"]) .menu .tarjeta{flex:0 0 auto!important;min-width:86px;min-height:66px;padding:.5rem .6rem!important;scroll-snap-align:start}
+body.con-vistas[data-vista]:not([data-vista="inicio"]) .menu .tarjeta b{font-size:.95rem!important;letter-spacing:.04em!important;white-space:nowrap!important}
+body.con-vistas[data-vista]:not([data-vista="inicio"]) .menu .tarjeta::before{width:24px!important;height:24px!important}
+/* dirección, hero y precios */
+.franja-dir,.franja-dir *{font-size:.95rem!important}
+#hero-p{font-size:1.1rem!important}
+.hero [class*=chip],.hero .precio,.hero span{font-size:.95rem}
+.desc{font-size:.95rem!important}
+.wiz-pasos u,.wiz-pasos li u,u{font-size:.95rem}
+#chip-ensayo,#chip-estudio,.hero .chip,.hero-chips span{font-size:.95rem!important}
+.wiz-prog em,.wiz-prog u,.wiz-prog i,.wiz-prog span,.wiz-prog b{font-size:.85rem!important}
+/* pasos del asistente de reserva */
+.wiz-pasos li span,.wiz-paso span,.wiz-pasos small,.wiz-etq{font-size:.85rem!important}
+/* barra superior y pie */
+.top a,.top button,.vista-barra a,.vista-barra button{font-size:1rem!important}
+footer,footer *{font-size:max(.92rem,14.5px)!important}
+footer small{font-size:.88rem!important}
+/* datos de contacto */
+.ct-b b{font-size:1.2rem!important}
+.ct-b span,.ct-b small{font-size:1rem!important}
+/* tienda */
+.prod-nom,.prod h4,.prod-card h4{font-size:1.1rem}
+.prod-precio,.prod .precio{font-size:1.15rem}
+}
