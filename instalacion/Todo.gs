@@ -628,7 +628,7 @@ var MAX_SOLICITUDES_POR_HORA = 6;
 
 function doGet(e) {
   var p = (e && e.parameter) || {};
-  if (p.admin === '1') return paginaAdmin_();
+  if (p.admin === '1') return paginaAdmin_(p.confirmar);
   try {
     switch (p.accion) {
       case 'config':
@@ -820,6 +820,12 @@ function ocupadasRango_(desde, dias) {
   return out;
 }
 
+/** Enlace para abrir una reserva en el portal y confirmarla (solo funciona con la cuenta de administración). */
+function enlaceGestion_(cfg, codigo, prefijo) {
+  var base = String(cfg.sitioUrl || 'https://rockerioproducciones.cl').replace(/\/+$/, '');
+  return (/^https:\/\//.test(base) && /^RP-\d{3,8}(-\d)?$/.test(String(codigo || ''))) ? prefijo + base + '/admin/?c=' + codigo : '';
+}
+
 function horasOcupadas_(fecha, cfg) {
   return ocupadasRango_(fecha, 1)[fecha] || [];
 }
@@ -904,7 +910,7 @@ function reservar_(sol) {
         servicio: d.servicio, fecha: d.fecha, inicio: d.inicio, fin: v.fin, horas: d.horas, banda: d.banda,
         total: v.calculo.total, abono: v.calculo.abono, saldo: v.calculo.saldo, grabacionMin: v.grabacionMin
       },
-      whatsapp: Reglas.resumenTexto(cfg, v, codigo),
+      whatsapp: Reglas.resumenTexto(cfg, v, codigo) + enlaceGestion_(cfg, codigo, '\n\n— Solo administración: '),
       pago: { mp: mpDisponible_(cfg), instrucciones: cfg.instruccionesPago, transferencia: (cfg.pagoTransferencia && cfg.datosTransferencia) ? cfg.datosTransferencia : '', link: (cfg.pagoOnline && cfg.linkPago) ? cfg.linkPago : '', minutosReserva: cfg.minutosReserva, segundos: cfg.minutosReserva * 60 }
     };
   } finally {
@@ -980,7 +986,7 @@ function registrarCliente_(d) {
 
 function notificar_(cfg, v, codigo) {
   var d = v.datos;
-  var cuerpo = Reglas.resumenTexto(cfg, v, codigo).replace('Hola, quiero confirmar mi reserva', 'Nueva reserva pendiente de abono');
+  var cuerpo = Reglas.resumenTexto(cfg, v, codigo).replace('Hola, quiero confirmar mi reserva', 'Nueva reserva pendiente de abono') + enlaceGestion_(cfg, codigo, '\n\nConfirmar el abono con un toque (te pide iniciar sesión): ');
   cuerpo += '\nTeléfono: +' + d.telefono + '\nCorreo: ' + d.correo;
   if (d.comentario) cuerpo += '\nComentarios: ' + d.comentario;
   cuerpo += '\n\nCuando llegue el abono, cambia el Estado a «' + EST.CON_ABONO + '» en la hoja Reservas o en el portal.';
@@ -1616,15 +1622,17 @@ function exigirAdmin_() {
   if (!admin || !activo || activo !== admin) throw new Error('Acceso denegado.');
 }
 
-function paginaAdmin_() {
+function paginaAdmin_(confirmar) {
   try {
     exigirAdmin_();
   } catch (e) {
     return HtmlService.createHtmlOutput('<p style="font:16px sans-serif;padding:2rem">Acceso denegado. Inicia sesión con la cuenta de administración.</p>')
       .setTitle('Acceso denegado');
   }
-  return HtmlService.createHtmlOutputFromFile('Admin').setTitle('Rockerío · Administración')
+  var salida = HtmlService.createHtmlOutputFromFile('Admin').setTitle('Rockerío · Administración')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  if (/^RP-\d{3,8}(-\d)?$/.test(String(confirmar || ''))) salida.append('<script>window.CONFIRMAR_COD=' + JSON.stringify(String(confirmar)) + ';if(window.cargarJor)cargarJor();</script>');
+  return salida;
 }
 
 /** Cuando es true, adminResumen() no arma el resumen completo (lo usan las acciones rápidas de «Reservas y jornadas»). */
@@ -4536,7 +4544,7 @@ function marcarComprobante_(sol) {
     avisarAdmin_('💬 Comprobante por validar · ' + rf.codigo + ' · ' + r[RES.banda - 1],
       r[RES.contacto - 1] + ' (+' + r[RES.telefono - 1] + ') avisó que envió el comprobante del abono de ' + Reglas.clp(Number(r[RES.abono - 1]) || 0) + '.\n' +
       'Reserva ' + rf.codigo + ': ' + r[RES.servicio - 1] + ' el ' + aFechaIso_(r[RES.fecha - 1]) + '.\n\n' +
-      'Revisa el comprobante en WhatsApp y confirma el abono en el portal (Reservas). El horario se guarda ' + HORAS_MAX_COMPROBANTE + ' horas.');
+      'Revisa el comprobante en WhatsApp y confirma el abono con un toque' + enlaceGestion_(getCfg_(), rf.codigo, ': ') + '\nEl horario se guarda ' + HORAS_MAX_COMPROBANTE + ' horas.');
   }
   return res;
 }

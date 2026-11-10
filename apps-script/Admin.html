@@ -1053,7 +1053,13 @@ function pintarMenu(d){
 /* ---------- Reservas y jornadas ---------- */
 var JOR=null,jv='cal',jmes=null,jsel=null,jfEstado='',jbusca='',jAnu=false;
 var CLASE_EST={'Reservado (sin abono)':'sin','Reservado (con abono)':'con','Finalizada':'fin','No asiste':'noa','Anulada':'anu'};
-function cargarJor(){google.script.run.withSuccessHandler(function(d){JOR=d;if(!jmes)jmes=d.hoy.slice(0,7);pintarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminJornadas()}
+function abrirConfirmacion(){var c=window.CONFIRMAR_COD;window.CONFIRMAR_COD=null;if(!c||!JOR)return;
+  var r=(JOR.reservas||[]).filter(function(x){return x.codigo===c})[0];
+  if(!r){aviso('No encontré la reserva '+c+' (¿ya pasó o no existe?).');return}
+  var det=r.banda+' · '+r.fechaTxt+' · '+r.inicio+'–'+r.fin+' · abono '+clp(r.abono);
+  if(r.estado==='Reservado (con abono)'||r.estado==='Finalizada'){aviso('La reserva '+c+' ya está confirmada ('+det+').');return}
+  confirmarSN('Reserva '+c+': '+det+'. Estado actual: '+r.estado+(r.pago==='COMPROBANTE'?' (el cliente dice que ya envió el comprobante)':'')+'. ¿Confirmas que el abono llegó?',function(){jrun('adminCambiarEstado',c,'Reservado (con abono)')},'Sí, confirmar abono')}
+function cargarJor(){google.script.run.withSuccessHandler(function(d){JOR=d;if(!jmes)jmes=d.hoy.slice(0,7);pintarJor();abrirConfirmacion()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminJornadas()}
 /* Cierra una ventana al tocar el fondo, pero solo si el toque empezó y terminó en el fondo (así no se cierra al arrastrar para seleccionar texto). */
 function cierraFuera(d){var md=false;d.onmousedown=function(e){md=e.target===d};d.ontouchstart=function(e){md=e.target===d};d.onclick=function(e){if(e.target===d&&md)d.hidden=true;md=false}}
 var RES_VIEJO=false,RES_T=null;

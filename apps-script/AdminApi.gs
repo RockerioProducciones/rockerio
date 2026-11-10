@@ -12,15 +12,17 @@ function exigirAdmin_() {
   if (!admin || !activo || activo !== admin) throw new Error('Acceso denegado.');
 }
 
-function paginaAdmin_() {
+function paginaAdmin_(confirmar) {
   try {
     exigirAdmin_();
   } catch (e) {
     return HtmlService.createHtmlOutput('<p style="font:16px sans-serif;padding:2rem">Acceso denegado. Inicia sesión con la cuenta de administración.</p>')
       .setTitle('Acceso denegado');
   }
-  return HtmlService.createHtmlOutputFromFile('Admin').setTitle('Rockerío · Administración')
+  var salida = HtmlService.createHtmlOutputFromFile('Admin').setTitle('Rockerío · Administración')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  if (/^RP-\d{3,8}(-\d)?$/.test(String(confirmar || ''))) salida.append('<script>window.CONFIRMAR_COD=' + JSON.stringify(String(confirmar)) + ';if(window.cargarJor)cargarJor();</script>');
+  return salida;
 }
 
 /** Cuando es true, adminResumen() no arma el resumen completo (lo usan las acciones rápidas de «Reservas y jornadas»). */

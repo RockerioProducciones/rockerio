@@ -749,4 +749,17 @@ t('reactivar una reserva cuyo horario ya tomó otra: se rechaza y no hay superpo
   assert.strictEqual(g.admin('adminJornadas').reservas.find((q) => q.codigo === a.codigo).estado, 'Anulada');
 });
 
+console.log('\n== Enlace para confirmar desde WhatsApp ==');
+t('el texto de WhatsApp y el correo traen el enlace de gestión; el portal lo recibe solo con código válido', () => {
+  let r = null; for (let d = 16; d < 45; d++) { r = g.post(sol({ fecha: sumar(f3, d), inicio: 21, horas: 1, telefono: '+56 9 7000 ' + (1000 + d), banda: 'Enlazados', nombre: 'Eli Enlace', correo: 'e@e.cl' })); if (r.ok) break; }
+  assert.ok(r.ok, JSON.stringify(r));
+  assert.ok(new RegExp('/admin/\\?c=' + r.codigo + '$').test(r.whatsapp), r.whatsapp);
+  assert.ok(g.estado.correos.some((c) => c.body.indexOf('/admin/?c=' + r.codigo) >= 0), 'correo con enlace');
+});
+t('enlaceGestion_ rechaza códigos o sitios no válidos', () => {
+  assert.strictEqual(C.enlaceGestion_({ sitioUrl: 'https://x.cl/' }, 'RP-123456', '> '), '> https://x.cl/admin/?c=RP-123456');
+  assert.strictEqual(C.enlaceGestion_({ sitioUrl: 'https://x.cl' }, '"><script>', '> '), '');
+  assert.strictEqual(C.enlaceGestion_({ sitioUrl: 'http://x.cl' }, 'RP-123456', '> '), '');
+});
+
 console.log('\n' + ok + ' pasos correctos, ' + fallas + ' con falla.');

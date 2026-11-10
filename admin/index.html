@@ -2,4 +2,4 @@
 <style>body{margin:0;background:#070708;color:#e8e6e1;font:16px system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;text-align:center;padding:16px}a{color:#E39A2D}</style></head>
 <body><div><p id="m">Abriendo el portal…</p><p><a id="a" href="#" hidden>Abrir portal de administración</a></p></div>
 <script src="../js/config.js"></script>
-<script>(function(){var u=(window.ROCKERIO||{}).ADMIN_URL||'';if(/^https:\/\/script\.google\.com\/[^\s"'<>]+$/.test(u)){location.replace(u);var a=document.getElementById('a');a.href=u;a.hidden=false;}else document.getElementById('m').textContent='El portal aún no está configurado: pega ADMIN_URL en js/config.js.';})();</script></body></html>
+<script>(function(){var u=(window.ROCKERIO||{}).ADMIN_URL||'';var c=(/[?&]c=(RP-\d{3,8}(?:-\d)?)\b/.exec(location.search)||[])[1];if(c)u+=(u.indexOf('?')<0?'?':'&')+'confirmar='+c;if(/^https:\/\/script\.google\.com\/[^\s"'<>]+$/.test(u)){location.replace(u);var a=document.getElementById('a');a.href=u;a.hidden=false;}else document.getElementById('m').textContent='El portal aún no está configurado: pega ADMIN_URL en js/config.js.';})();</script></body></html>
