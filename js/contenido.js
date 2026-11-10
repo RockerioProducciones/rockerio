@@ -79,8 +79,18 @@
     var lista = cat.map(function (m) { var g = porNombre[norm(m.nombre)]; if (g) usados[norm(m.nombre)] = 1; return { nombre: m.nombre, foto: m.foto, uso: m.uso, descripcion: m.descripcion || (g && g.descripcion) || '', items: g ? g.items : [] }; });
     grupos.forEach(function (g) { if (!usados[norm(g.grupo)]) lista.push({ nombre: g.grupo, foto: '', uso: '', descripcion: g.descripcion || '', items: g.items }); });
     var cont = $('mics'); cont.textContent = ''; $('mics-box').hidden = !lista.length;
+    var etiquetas = [], vistas = {};
+    lista.forEach(function (m) { m.tags = String(m.uso || '').split(/\s*[\/,]\s*/).filter(Boolean).map(function (t) { return t.charAt(0).toUpperCase() + t.slice(1); }); m.tags.forEach(function (t) { var k = t.toLowerCase(); if (!vistas[k]) { vistas[k] = 1; etiquetas.push(t); } }); });
+    var filtro = document.getElementById('mics-filtro'); if (filtro) filtro.remove();
+    var tarjetas = [];
+    if (etiquetas.length > 1) {
+      filtro = el('div', 'mic-filtro'); filtro.id = 'mics-filtro'; filtro.setAttribute('role', 'group'); filtro.setAttribute('aria-label', 'Filtrar micrófonos por uso');
+      var activo = '';
+      var botones = [''].concat(etiquetas).map(function (t) { var b = el('button', 'mic-chip', t || 'Todos'); b.type = 'button'; b.setAttribute('aria-pressed', t ? 'false' : 'true'); b.addEventListener('click', function () { activo = t.toLowerCase(); botones.forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); tarjetas.forEach(function (c) { c.el.hidden = !!activo && c.tags.indexOf(activo) < 0; }); }); filtro.appendChild(b); return b; });
+      cont.parentNode.insertBefore(filtro, cont);
+    }
     lista.forEach(function (m) {
-      var it = el('div', 'mic-it'), f = el('div', 'mic-foto');
+      var it = el('div', 'mic-it'), f = el('div', 'mic-foto'); tarjetas.push({ el: it, tags: m.tags.map(function (t) { return t.toLowerCase(); }) });
       if (/^(https:\/\/|assets\/)/.test(m.foto || '')) { var im = el('img'); im.src = m.foto; im.alt = m.nombre; im.loading = 'lazy'; f.appendChild(im); } else f.appendChild(el('span', '', '🎙️'));
       var tx = el('div', 'mic-tx'); tx.appendChild(el('b', '', m.nombre));
       if (m.uso) { var u = el('p', 'mic-uso'); u.appendChild(el('strong', '', 'Uso: ')); u.appendChild(document.createTextNode(m.uso)); tx.appendChild(u); }

@@ -87,13 +87,14 @@ const { sembrar } = require('./demo.js');
   await p.goto('http://localhost:8099/#ficha'); await p.waitForTimeout(600);
   ok(await p.locator('.ficha-tab').count() === 7, '7 pestañas en la ficha técnica');
   ok(await p.locator('.ficha-panel .fo-it').count() >= 2, 'fotos pequeñas con texto en la ficha');
-  await p.locator('.ficha-tab', { hasText: 'Estación de trabajo' }).click(); await p.waitForTimeout(300);
+  await p.locator('.ficha-tab', { hasText: 'Computador y DAW' }).click(); await p.waitForTimeout(300);
   ok(/Mac mini M4/.test(await p.textContent('.ficha-panel')) && /LUNA 3\.0/.test(await p.textContent('.ficha-panel')), 'estación de trabajo con Mac mini M4 y LUNA 3.0');
   await p.screenshot({ path: 'v-ficha-estacion.png', fullPage: true });
-  await p.locator('.ficha-tab', { hasText: 'Micrófonos' }).click(); await p.waitForTimeout(300);
+  await p.locator('.ficha-tab', { hasText: 'Microfonía' }).click(); await p.waitForTimeout(300);
   ok(/Telefunken/.test(await p.textContent('.ficha-panel')) && await p.locator('.ficha-panel .mic-it').count() >= 8 && /Uso:/.test(await p.textContent('.ficha-panel .mic-it')), 'micrófonos: foto, marca/modelo, uso y muestra en una sola tarjeta'); await p.locator('#mics').screenshot({ path: 'v-mics.png' });
+    { const n = await p.locator('.ficha-panel .mic-it:visible').count(); await p.locator('.mic-chip').nth(1).click(); const m = await p.locator('.ficha-panel .mic-it:visible').count(); ok(await p.locator('.mic-chip').count() > 2 && m > 0 && m < n, 'filtro de micrófonos por uso'); await p.locator('.mic-chip').first().click(); }
   await p.locator('.ficha-tab', { hasText: 'Muestras' }).click(); await p.waitForTimeout(300);
-  await p.locator('.ficha-tab', { hasText: 'Control room' }).click(); await p.waitForTimeout(300); await p.screenshot({ path: 'v-ficha-control.png' });
+  await p.locator('.ficha-tab', { hasText: 'Sala de control' }).click(); await p.waitForTimeout(300); await p.screenshot({ path: 'v-ficha-control.png' });
   await p.goto('http://localhost:8099/#galeria'); await p.waitForTimeout(700);
   ok(await p.locator('#galeria-car .fo-it').count() >= 8 && (await p.locator('#galeria-car .fo-it img').first().boundingBox()).width < 140, 'galería: fotos pequeñas con texto');
   await p.click('#galeria-car .fo-it img'); await p.waitForTimeout(300); ok(await p.locator('.visor img').count() === 1, 'al tocar una foto se abre en grande'); await p.keyboard.press('Escape'); await p.screenshot({ path: 'v-galeria.png' });
