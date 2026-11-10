@@ -61,6 +61,7 @@
   <a class="tarjeta" href="#reglamento" data-vista="reglamento" data-ico="📖"><b>Reglamento</b><span>Cómo funciona todo</span></a>
 </div>
 <a class="honor-banda" href="#bandas" data-vista="bandas" id="cta-honor"><span>🏅</span><div><b>¿Grabaste o ensayaste aquí?</b><small>Súmate al cuadro de honor: llena el formulario en 1 minuto</small></div><i>Súmate →</i></a>
+<a class="honor-banda resena-banda" href="#opiniones" data-vista="opiniones" id="cta-resena"><span>⭐</span><div><b>¿Ya ensayaste o grabaste con nosotros?</b><small>Cuéntanos cómo te fue: deja tu evaluación en menos de un minuto</small></div><i>Evaluar →</i></a>
 <div id="vista-barra" class="vista-barra" hidden><a class="volver" href="#inicio">‹ Inicio</a><span id="vista-titulo"></span></div>
 
 <section id="reservar" class="sec">
@@ -222,15 +223,24 @@
 </section>
 
 <section id="opiniones" class="sec">
-  <h2>Evaluaciones</h2><p class="sub" id="promedio"></p><div id="resenas" class="grid"></div>
-  <details class="forma" id="d-resena"><summary>Deja tu evaluación (solo con tu código de reserva)</summary>
+  <h2>Evaluaciones</h2>
+  <div class="eva-cab">
+    <div class="eva-prom"><b id="eva-n">★</b><span class="estrellas eva-st" id="eva-st">★★★★★</span><p class="sub" id="promedio"></p></div>
+    <div class="eva-inv"><h3>¿Cómo te fue en Rockerío?</h3><p>Tu opinión ayuda a otras bandas a decidirse y a nosotros a seguir mejorando. Te toma menos de un minuto: usa el código de tu reserva y listo.</p></div>
+  </div>
+  <div class="eva-form caja" id="d-resena">
+    <h3>⭐ Deja tu evaluación</h3>
+    <p class="sub">Solo con el código de tu reserva (lo recibes al reservar) y el WhatsApp con el que reservaste.</p>
     <form id="f-resena" class="form" novalidate>
       <div class="fila"><label>Código de tu reserva (ej. RP-1001)<input name="codigo" maxlength="20" required></label><label>WhatsApp de la reserva<input name="telefono" type="tel" required value="+569 "></label></div>
-      <div class="fila"><label>Tu nombre<input name="nombre" maxlength="40" required></label><label>Evaluación<select name="estrellas"><option value="5">★★★★★</option><option value="4">★★★★☆</option><option value="3">★★★☆☆</option><option value="2">★★☆☆☆</option><option value="1">★☆☆☆☆</option></select></label></div>
+      <div class="fila"><label>Tu nombre<input name="nombre" maxlength="40" required></label><label class="sel-est">Evaluación<select name="estrellas"><option value="5">★★★★★</option><option value="4">★★★★☆</option><option value="3">★★★☆☆</option><option value="2">★★☆☆☆</option><option value="1">★☆☆☆☆</option></select></label></div>
       <label>Comentario<textarea name="comentario" rows="3" maxlength="400"></textarea></label>
       <input type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true" class="trampa">
       <p class="error" hidden></p><p class="ok" hidden></p><button class="btn" type="submit">Enviar opinión</button>
-    </form></details>
+    </form>
+  </div>
+  <h3 class="eva-tit">Lo que dicen las bandas</h3>
+  <div id="resenas" class="grid eva-grid"></div>
 </section>
 
 <section id="cotizar" class="sec">

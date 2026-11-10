@@ -109,7 +109,7 @@
     RK.micsCatalogo().then(function (cat) { pintarMics(cat || [], mics); });
     otros.forEach(function (g) { $('escucha').appendChild(tarjeta(g)); });
 
-    var K = window.RK.cfg(); $('bandas').hidden = !K.verHonor; $('nav-bandas').hidden = !K.verHonor; var ch = $('cta-honor'); if (ch) ch.hidden = !K.verHonor;
+    var K = window.RK.cfg(); $('bandas').hidden = !K.verHonor; $('nav-bandas').hidden = !K.verHonor; var ch = $('cta-honor'); if (ch) ch.hidden = !K.verHonor; var cr = $('cta-resena'); if (cr) cr.hidden = !K.verEvaluaciones;
     var host = function (u) { var m = /^https:\/\/(?:www\.)?([^\/]+)/.exec(u || ''); return m ? m[1] : ''; };
     var etiq = function (u) { var h = host(u); return /spotify/.test(h) ? 'Spotify' : /bandcamp/.test(h) ? 'Bandcamp' : /youtu/.test(h) ? 'YouTube' : /instagram/.test(h) ? 'Instagram' : /soundcloud/.test(h) ? 'SoundCloud' : 'Enlace'; };
     var vac = document.querySelector('.honor-vacio'); if (vac && c.honor.length) vac.remove();
@@ -133,6 +133,7 @@
     
 
     $('opiniones').hidden = !K.verEvaluaciones;
+    if (c.totalResenas) { $('eva-n').textContent = String(c.promedio).replace('.', ','); $('eva-st').textContent = '★'.repeat(Math.round(c.promedio)) + '☆'.repeat(5 - Math.round(c.promedio)); }
     $('promedio').textContent = c.totalResenas ? 'Promedio ' + String(c.promedio).replace('.', ',') + ' de 5 · ' + c.totalResenas + (c.totalResenas === 1 ? ' opinión' : ' opiniones') : 'Sé el primero en opinar.';
     c.resenas.forEach(function (r) {
       var k = el('div', 'card'); k.appendChild(el('div', 'estrellas', '★'.repeat(r.estrellas) + '☆'.repeat(5 - r.estrellas)));
@@ -199,6 +200,17 @@
   /* ---------- arranque ---------- */
   document.addEventListener('DOMContentLoaded', function () {
     var cot = $('f-cot'); honorUI();
+    /* evaluación: estrellas tocables (el desplegable sigue siendo el valor real) y código de reserva que llega en el enlace de WhatsApp */
+    (function () {
+      var fr = $('f-resena'); if (!fr) return;
+      var sel = fr.querySelector('select[name=estrellas]'), lab = sel && sel.closest('label');
+      if (sel && lab) { lab.classList.add('sel-oculto'); var fila = el('div', 'eva-estrellas'); fila.setAttribute('role', 'radiogroup'); fila.setAttribute('aria-label', 'Tu evaluación');
+        var bs = [1, 2, 3, 4, 5].map(function (n) { var b = el('button', 'eva-e', '★'); b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('aria-label', n + (n === 1 ? ' estrella' : ' estrellas')); b.addEventListener('click', function () { sel.value = String(n); pintar(n); }); fila.appendChild(b); return b; });
+        var pintar = function (n) { bs.forEach(function (b, i) { b.classList.toggle('on', i < n); b.setAttribute('aria-checked', i + 1 === n ? 'true' : 'false'); }); };
+        var fl = lab.closest('.fila') || lab; fl.parentNode.insertBefore(fila, fl); pintar(Number(sel.value) || 5); }
+      var cod = new URLSearchParams(location.search).get('resena'), ci = fr.querySelector('input[name=codigo]');
+      if (cod && ci && /^[A-Za-z0-9-]{3,20}$/.test(cod)) ci.value = cod;
+    })();
     if (!API) { // sin servidor: la cotización va por WhatsApp y las secciones dinámicas no se muestran
       cot.addEventListener('submit', function (ev) {
         ev.preventDefault(); var d = new FormData(cot), t = cot.querySelector('select').selectedOptions[0].textContent;
