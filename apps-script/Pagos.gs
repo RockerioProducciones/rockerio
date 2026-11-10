@@ -50,7 +50,8 @@ function marcarComprobante_(sol) {
     avisarAdmin_('💬 Comprobante por validar · ' + rf.codigo + ' · ' + r[RES.banda - 1],
       r[RES.contacto - 1] + ' (+' + r[RES.telefono - 1] + ') avisó que envió el comprobante del abono de ' + Reglas.clp(Number(r[RES.abono - 1]) || 0) + '.\n' +
       'Reserva ' + rf.codigo + ': ' + r[RES.servicio - 1] + ' el ' + aFechaIso_(r[RES.fecha - 1]) + '.\n\n' +
-      'Revisa el comprobante en WhatsApp y confirma el abono con un toque' + enlaceGestion_(getCfg_(), rf.codigo, ': ') + '\nEl horario se guarda ' + HORAS_MAX_COMPROBANTE + ' horas.');
+      'Revisa el comprobante en WhatsApp y confirma el abono con un toque. El horario se guarda ' + HORAS_MAX_COMPROBANTE + ' horas.',
+      { texto: 'Confirmar abono', url: urlGestion_(getCfg_(), rf.codigo) });
   }
   return res;
 }

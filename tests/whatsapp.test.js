@@ -53,4 +53,12 @@ t('enviarRecordatorios: solo reservas confirmadas de mañana, sin repetir; marca
   ctx.enviarRecordatorios(); assert.ok(/^ERROR/.test(f2[0][30])); assert.strictEqual(avisos.length, 1);
 });
 t('apagado: no envía nada', () => { llamadas.length = 0; ctx.getCfg_ = () => R.normalizarConfig({}); ctx.enviarRecordatorios(); assert.strictEqual(llamadas.length, 0); });
+t('migrarMensajes_: pasa al estilo nuevo solo lo que seguía igual al original anterior', () => {
+  const props = {}; ctx.PropertiesService = { getScriptProperties: () => ({ getProperty: (k) => props[k] || null, setProperty: (k, v) => { props[k] = v; } }) };
+  const guardado = {}; ctx.leerConfigCruda_ = () => ({ msgRecordatorio: ctx.MENSAJES_ANTERIORES_.msgRecordatorio, msgGracias: 'Mi texto propio {nombre}', msgResena: ctx.MENSAJES_ANTERIORES_.msgResena + ' ' });
+  ctx.ponerConfig_ = (v) => Object.assign(guardado, v);
+  ctx.migrarMensajes_();
+  assert.deepStrictEqual(Object.keys(guardado).sort(), ['msgRecordatorio', 'msgResena']); assert.strictEqual(guardado.msgRecordatorio, R.CONFIG_POR_DEFECTO.msgRecordatorio);
+  Object.keys(guardado).forEach((k) => delete guardado[k]); ctx.migrarMensajes_(); assert.strictEqual(Object.keys(guardado).length, 0, 'solo una vez');
+});
 console.log(ok + ' pruebas de whatsapp ok');

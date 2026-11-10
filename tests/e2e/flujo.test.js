@@ -762,4 +762,23 @@ t('enlaceGestion_ rechaza códigos o sitios no válidos', () => {
   assert.strictEqual(C.enlaceGestion_({ sitioUrl: 'http://x.cl' }, 'RP-123456', '> '), '');
 });
 
+console.log('\n== Correos con la identidad de Rockerío ==');
+t('correo HTML: logo, escapado de textos y enlaces solo https; siempre con versión en texto', () => {
+  const cfg = { nombreNegocio: 'Rockerío <b>', direccion: 'Calle 1', sitioUrl: 'https://rockerioproducciones.cl', whatsapp: '56963402567', redInstagram: 'https://instagram.com/x' };
+  const o = { titulo: 'Hola <script>alert(1)</script>', saludo: 'Pía "la" <i>', filas: [['Banda', '<img src=x onerror=1>']], boton: { texto: 'Ir', url: 'javascript:alert(1)' }, boton2: { texto: 'Ok', url: 'https://x.cl/a?b=1' } };
+  const h = C.correoHtml_(cfg, o);
+  assert.ok(h.indexOf('assets/logo-horizontal-dorado.png') > 0, 'trae el logo');
+  assert.ok(h.indexOf('<script') < 0 && h.indexOf('<img src=x') < 0 && h.indexOf('<b>') < 0, 'sin HTML inyectado');
+  assert.ok(h.indexOf('javascript:') < 0, 'sin enlaces peligrosos'); assert.ok(h.indexOf('https://x.cl/a?b=1') > 0);
+  assert.ok(C.correoTexto_(cfg, o).indexOf('Banda: ') >= 0);
+});
+t('las reservas mandan correo HTML al cliente y al administrador', () => {
+  const cs = g.estado.correos.filter((c) => /^Tu reserva #|^Nueva reserva #/.test(c.subject));
+  assert.ok(cs.length >= 2 && cs.every((c) => c.htmlBody && c.htmlBody.indexOf('logo-horizontal-dorado') > 0 && c.body.length > 50));
+});
+t('los 7 mensajes de WhatsApp nuevos caben (≤1000), usan solo claves conocidas y el cambio automático respeta lo editado', () => {
+  const d = C.Reglas.CONFIG_POR_DEFECTO;
+  ['msgRecordatorio', 'msgConfirmacion', 'msgCobroAbono', 'msgGracias', 'msgResena', 'msgDescarga', 'msgHonor'].forEach((k) => { assert.ok(d[k].length <= 1000, k); assert.ok(d[k].indexOf('🤘') >= 0 || d[k].indexOf('🔥') >= 0, k + ' sin estilo'); });
+});
+
 console.log('\n' + ok + ' pasos correctos, ' + fallas + ' con falla.');

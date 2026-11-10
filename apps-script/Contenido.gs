@@ -152,10 +152,14 @@ function registrarCotizacion_(sol) {
   return { ok: true, mensaje: '¡Recibido! Te responderemos con tu cotización por WhatsApp o correo.' };
 }
 
-function avisarAdmin_(asunto, cuerpo) {
+function avisarAdmin_(asunto, cuerpo, boton) {
   try {
-    var a = getCfg_().correoAdmin;
-    if (a) MailApp.sendEmail({ to: a, subject: asunto, body: cuerpo, name: 'Rockerío' });
+    var cfg = getCfg_(), a = cfg.correoAdmin;
+    if (!a) return;
+    var partes = String(cuerpo || '').split(/\n{2,}/).map(function (x) { return x.trim(); }).filter(String);
+    var o = { preheader: asunto, titulo: String(asunto).replace(/^[^\wÁÉÍÓÚÜÑáéíóúüñ¿¡]+/, '').slice(0, 90), parrafos: partes };
+    if (boton && urlSegura_(boton.url)) o.boton = boton;
+    enviarCorreo_(cfg, a, asunto, o);
   } catch (err) { console.error('Aviso al administrador: ' + err); }
 }
 
@@ -247,6 +251,18 @@ function textoCotizacion_(cfg, o) {
   return l.join('\n');
 }
 
+function correoCotizacion_(cfg, o) {
+  var filas = [['Servicio', o.tipo]];
+  if (o.monto !== '') filas.push(['Valor', Reglas.clp(o.monto)]);
+  var wa = cfg.whatsapp ? 'https://wa.me/' + String(cfg.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent('Hola 🤘 vi mi cotización de ' + o.tipo.toLowerCase() + '.') : '';
+  var c = { preheader: 'Tu cotización de ' + o.tipo.toLowerCase(), titulo: 'Tu cotización', saludo: 'Hola ' + o.nombre + ' 🤘',
+    parrafos: ['Gracias por escribirnos. Aquí va la cotización de ' + o.tipo.toLowerCase() + ' que nos pediste.'], filas: filas,
+    notas: ['Si tienes dudas o quieres ajustar algo, respóndenos este correo o escríbenos por WhatsApp y lo vemos juntos. ¡Gracias por considerarnos!'] };
+  if (o.detalle) c.caja = o.detalle;
+  if (wa) c.boton = { texto: 'Hablemos por WhatsApp', url: wa };
+  return c;
+}
+
 function adminModerar(hoja, fila, estado) {
   exigirAdmin_();
   var nombre = hoja === 'honor' ? HOJAS.honor : hoja === 'resena' ? HOJAS.resenas : '';
@@ -278,7 +294,7 @@ function adminCotizacionCorreo(fila) {
   var r = sh.getRange(f, 1, 1, 9).getValues()[0];
   var o = { nombre: String(r[3]), tipo: String(r[2]), monto: r[7] === '' ? '' : Reglas.aNumero(r[7], ''), detalle: String(r[8] || '') };
   if (o.monto === '') throw new Error('Escribe el monto antes de enviar la cotización.');
-  MailApp.sendEmail({ to: String(r[5]), subject: 'Cotización · ' + o.tipo + ' · ' + cfg.nombreNegocio, body: textoCotizacion_(cfg, o) + '\n\n' + cfg.nombreNegocio + '\n' + cfg.direccion, name: cfg.nombreNegocio, replyTo: cfg.correoAdmin || '' });
+  if (!enviarCorreo_(cfg, String(r[5]), 'Cotización · ' + o.tipo + ' · ' + cfg.nombreNegocio, correoCotizacion_(cfg, o), { replyTo: cfg.correoAdmin || '' })) throw new Error('No se pudo enviar el correo. Revisa la dirección del cliente.');
   if (String(r[1]) === 'NUEVA') sh.getRange(f, 2).setValue('COTIZADA');
   return adminResumen();
 }

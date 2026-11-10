@@ -41,13 +41,13 @@ var Reglas = (function () {
     convenienteDesde: 9,          // hora de inicio de la franja
     convenienteHasta: 14,         // hora de término de la franja (no incluida)
     // Mensajes de WhatsApp (plantillas). {nombre} {banda} {servicio} {fecha} {hora} {fin} {codigo} {total} {abono} {saldo} {direccion} {negocio} {sitio} {horasAnulacion} {enlaceDescarga} {enlaceResena} {enlaceHonor}
-    msgRecordatorio: "Hola {nombre} 👋 Te escribimos para recordarte tu reserva en {negocio}: {servicio} el {fecha}, de {hora} a {fin}. Nos encuentras en {direccion}. Si puedes llegar 5 a 10 minutos antes, aprovechamos al máximo tu tiempo en sala 🎸 Y si algo cambia y necesitas mover la hora, avísanos con {horasAnulacion} horas de anticipación: así podemos ofrecer ese espacio a otra banda y mantener la agenda ordenada para todos. ¡Gracias por ayudarnos, nos vemos pronto! 🤘",
-    msgConfirmacion: "Hola {nombre} 🤘 ¡Gracias por tu abono! Tu reserva #{codigo} quedó confirmada: {servicio} el {fecha}, de {hora} a {fin}. El saldo ({saldo}) lo pagas en el estudio el día de tu sesión. Estamos en {direccion}. Si surge cualquier cambio, escríbenos por aquí con tiempo; así podemos reorganizar la agenda y darle espacio a otras bandas. ¡Nos vemos pronto! 🎶",
-    msgCobroAbono: "Hola {nombre} 😊 Te dejamos guardado el horario de tu reserva #{codigo} ({servicio} el {fecha}, de {hora} a {fin}). Para dejarla confirmada solo falta el abono de {abono}; cuando lo hagas, mándanos el comprobante por aquí y listo. Y si cambiaron tus planes, no te preocupes: avísanos y liberamos el horario para otra banda, así la agenda sigue fluyendo para todos. ¡Gracias! 🤘",
-    msgGracias: "Hola {nombre} 🎸 ¡Gracias por venir a {negocio}! Esperamos que la sesión haya estado genial. Cuando quieran volver, reservar con un poco de anticipación nos ayuda a mantener la agenda fluida y a tener espacio para todas las bandas. Y si te das un minuto para dejarnos una reseña, nos ayuda un mundo: {sitio} 🤘",
-    msgResena: "Hola {nombre} 🤘 ¡Qué bueno haber tenido a {banda} en {negocio}! Si tienes un minutito, cuéntanos cómo les fue: tu opinión ayuda a otras bandas a decidirse y a nosotros a mejorar. Puedes dejarla aquí: {enlaceResena} ¡Mil gracias! 🙌",
-    msgDescarga: "Hola {nombre} 🎧 ¡Ya está listo el material de {banda}! Lo puedes descargar aquí: {enlaceDescarga} Si algo no abre o necesitas otro formato, escríbenos y lo resolvemos. ¡Ojalá lo disfruten harto! 🤘",
-    msgHonor: "Hola {nombre} 🤘 ¡Nos encantó tener a {banda} en {negocio}! Nos gustaría que formaran parte de nuestro Cuadro de Honor, un espacio para mostrar a las bandas que pasan por aquí. Si se animan, es un formulario cortito: {enlaceHonor} ¡Gracias por la buena onda!",
+    msgRecordatorio: "🤘 *¡Se viene tu sesión, {nombre}!*\n\n🎸 {negocio}\n📅 {fecha}\n⏰ {hora} a {fin} · {servicio}\n📍 {direccion}\n\nLlega 5 a 10 minutos antes y aprovechamos cada minuto de sala 🔊\n\nSi algo cambia, avísanos con {horasAnulacion} horas de anticipación: así otra banda toma el horario y la agenda sigue girando para todos 🙌\n\n¡Nos vemos en el ruido! 🤘",
+    msgConfirmacion: "🤘 *¡Reserva confirmada, {nombre}!*\n\n🎟️ Código #{codigo}\n🎸 {servicio}\n📅 {fecha}\n⏰ {hora} a {fin}\n📍 {direccion}\n\n💵 El saldo ({saldo}) lo pagas en sala el día de tu sesión.\n\nSi surge un cambio, escríbenos con tiempo y reorganizamos la agenda, así también le damos espacio a otras bandas 🙌\n\n¡Prepárense para sonar fuerte! 🔥",
+    msgCobroAbono: "🎸 *Tu horario está guardado, {nombre}*\n\n🎟️ Reserva #{codigo}\n📅 {fecha} · {hora} a {fin}\n🎶 {servicio}\n\nPara dejarla confirmada solo falta el abono de *{abono}*. Cuando lo hagas, mándanos el comprobante por aquí y quedas listo 🤘\n\nY si cambiaron los planes, avísanos no más: liberamos el horario para otra banda y la agenda sigue fluyendo para todos 🙌",
+    msgGracias: "🎸 *¡Gracias por tocar en {negocio}, {nombre}!*\n\nEsperamos que la sesión haya quedado épica 🔥 Cuando quieran volver, reservar con un poco de anticipación nos ayuda a tener espacio para todas las bandas.\n\nY si te das un minuto para dejarnos una reseña, nos ayuda un mundo: {sitio} 🤘",
+    msgResena: "⭐ *¿Cómo les fue, {nombre}?*\n\n¡Qué bueno haber tenido a *{banda}* en {negocio}! 🤘 Tu opinión ayuda a otras bandas a decidirse y a nosotros a seguir mejorando.\n\nDéjala aquí, toma un minuto: {enlaceResena}\n\n¡Mil gracias! 🙌",
+    msgDescarga: "🎧 *¡Ya está listo el material de {banda}!*\n\nDescárgalo aquí: {enlaceDescarga}\n\nSi algo no abre o necesitas otro formato, escríbenos y lo resolvemos al tiro. ¡Ojalá lo disfruten harto! 🤘🔥",
+    msgHonor: "🏆 *{banda} merece estar en el muro*\n\nHola {nombre} 🤘 ¡Nos encantó tener a {banda} en {negocio}! Queremos mostrarlos en nuestro *Cuadro de Honor*, el espacio donde brillan las bandas que pasan por aquí.\n\nSi se animan, es un formulario cortito: {enlaceHonor}\n\n¡Gracias por la buena onda! 🎸",
     waAutoActivo: false,          // SI = el recordatorio del día anterior se envía solo por la API de WhatsApp Business (requiere cuenta Meta)
     waPhoneId: '',                // ID del número de WhatsApp Business (no es el teléfono)
     waPlantillaRecordatorio: '',  // nombre de la plantilla de recordatorio aprobada por Meta
@@ -821,9 +821,13 @@ function ocupadasRango_(desde, dias) {
 }
 
 /** Enlace para abrir una reserva en el portal y confirmarla (solo funciona con la cuenta de administración). */
-function enlaceGestion_(cfg, codigo, prefijo) {
+function urlGestion_(cfg, codigo) {
   var base = String(cfg.sitioUrl || 'https://rockerioproducciones.cl').replace(/\/+$/, '');
-  return (/^https:\/\//.test(base) && /^RP-\d{3,8}(-\d)?$/.test(String(codigo || ''))) ? prefijo + base + '/admin/?c=' + codigo : '';
+  return (/^https:\/\//.test(base) && /^RP-\d{3,8}(-\d)?$/.test(String(codigo || ''))) ? base + '/admin/?c=' + codigo : '';
+}
+function enlaceGestion_(cfg, codigo, prefijo) {
+  var u = urlGestion_(cfg, codigo);
+  return u ? prefijo + u : '';
 }
 
 function horasOcupadas_(fecha, cfg) {
@@ -985,24 +989,50 @@ function registrarCliente_(d) {
 }
 
 function notificar_(cfg, v, codigo) {
-  var d = v.datos;
-  var cuerpo = Reglas.resumenTexto(cfg, v, codigo).replace('Hola, quiero confirmar mi reserva', 'Nueva reserva pendiente de abono') + enlaceGestion_(cfg, codigo, '\n\nConfirmar el abono con un toque (te pide iniciar sesión): ');
-  cuerpo += '\nTeléfono: +' + d.telefono + '\nCorreo: ' + d.correo;
-  if (d.comentario) cuerpo += '\nComentarios: ' + d.comentario;
-  cuerpo += '\n\nCuando llegue el abono, cambia el Estado a «' + EST.CON_ABONO + '» en la hoja Reservas o en el portal.';
+  var d = v.datos, c = v.calculo;
+  var detalle = [
+    ['Servicio', Reglas.SERVICIOS[d.servicio]],
+    ['Fecha', Reglas.fechaLarga(d.fecha)],
+    ['Horario', Reglas.horaTxt(d.inicio) + ' a ' + Reglas.horaTxt(v.fin)],
+    ['Banda', d.banda]
+  ];
+  if (d.extras) detalle.push(['Equipo extra', d.extras]);
+  if (d.video) detalle.push(['Video GoPro', 'Sí']);
+  if (d.raw) detalle.push(['Material en bruto', 'Sí']);
+  detalle.push(['Total', Reglas.clp(c.total)], ['Abono para confirmar', Reglas.clp(c.abono)], ['Saldo en sala', Reglas.clp(c.saldo)]);
+  // Al administrador: con botones para confirmar el abono y escribirle al cliente.
   try {
     if (cfg.correoAdmin) {
-      MailApp.sendEmail({ to: cfg.correoAdmin, subject: 'Nueva reserva #' + codigo + ' · ' + d.banda, body: cuerpo, name: cfg.nombreNegocio });
+      var filasAdm = detalle.concat([['Contacto', d.nombre], ['WhatsApp', '+' + d.telefono], ['Correo', d.correo || '—']]);
+      if (d.comentario) filasAdm.push(['Comentarios', d.comentario]);
+      enviarCorreo_(cfg, cfg.correoAdmin, 'Nueva reserva #' + codigo + ' · ' + d.banda, {
+        preheader: d.banda + ' reservó ' + Reglas.fechaLarga(d.fecha) + ' · abono pendiente', titulo: 'Nueva reserva por abonar', codigo: codigo,
+        parrafos: ['Entró una reserva desde el sitio y está esperando el abono. Cuando llegue el comprobante, confírmala con un toque.'],
+        filas: filasAdm,
+        boton: { texto: 'Confirmar abono', url: urlGestion_(cfg, codigo) },
+        boton2: { texto: 'Escribirle por WhatsApp', url: enlaceWaCliente_(d.telefono, 'Hola ' + d.nombre + ' 🤘 Vimos tu reserva #' + codigo + ' en ' + cfg.nombreNegocio + '. ') },
+        notas: ['El botón de confirmar te pide iniciar sesión con la cuenta de administración. También puedes cambiar el estado desde el portal o la hoja Reservas.']
+      });
     }
   } catch (err) { console.error('Correo al administrador: ' + err); }
+  // Al cliente.
   try {
     if (cfg.correoCliente && d.correo) {
-      var texto = 'Hola ' + d.nombre + ',\n\nRecibimos tu solicitud en ' + cfg.nombreNegocio + '. Tu código es #' + codigo + '.\n\n' +
-        Reglas.resumenTexto(cfg, v, '').split('\n').slice(1).join('\n') + '\n\n' +
-        'Tu horario queda reservado ' + cfg.minutosReserva + ' minutos a la espera del abono de ' + Reglas.clp(v.calculo.abono) + '. Si por algún motivo no alcanzas a abonar en ese plazo, el horario vuelve a quedar disponible para otras bandas; y si necesitas más tiempo, escríbenos y vemos cómo ayudarte.\n' +
-        cfg.instruccionesPago + ((cfg.pagoTransferencia && cfg.datosTransferencia) ? '\nTransferencia: ' + cfg.datosTransferencia : '') + ((cfg.pagoOnline && cfg.linkPago) ? '\nPuedes pagar aquí: ' + cfg.linkPago : '') + '\n\n' +
-        'Si necesitas cambiar o anular, avísanos por WhatsApp con al menos ' + cfg.horasAnulacion + ' horas de anticipación: así podemos darle ese espacio a otra banda y mantener la agenda fluida para todos. ¡Gracias!\n' + cfg.direccion;
-      MailApp.sendEmail({ to: d.correo, subject: 'Tu reserva #' + codigo + ' en ' + cfg.nombreNegocio, body: texto, name: cfg.nombreNegocio, replyTo: cfg.correoAdmin || '' });
+      var pagos = [];
+      if (cfg.instruccionesPago) pagos.push(cfg.instruccionesPago);
+      if (cfg.pagoTransferencia && cfg.datosTransferencia) pagos.push('Transferencia:\n' + cfg.datosTransferencia);
+      var wa = cfg.whatsapp ? 'https://wa.me/' + String(cfg.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent('Hola 🤘 te mando el comprobante de mi reserva #' + codigo + ' (' + d.banda + ').') : '';
+      var o = {
+        preheader: 'Tu horario queda guardado ' + cfg.minutosReserva + ' minutos mientras abonas', titulo: '¡Recibimos tu reserva!', codigo: codigo,
+        saludo: 'Hola ' + d.nombre + ' 🤘',
+        parrafos: ['Te guardamos el horario ' + cfg.minutosReserva + ' minutos para que puedas abonar y dejar todo confirmado. Si no alcanzas, no pasa nada: el horario se libera para otra banda y puedes volver a reservar cuando quieras.'],
+        filas: detalle,
+        notas: ['Si necesitas cambiar o anular, avísanos por WhatsApp con al menos ' + cfg.horasAnulacion + ' horas de anticipación: así otra banda puede tomar ese espacio y la agenda sigue fluyendo para todos. ¡Gracias por la buena onda!']
+      };
+      if (pagos.length) o.caja = pagos.join('\n\n');
+      if (cfg.pagoOnline && urlSegura_(cfg.linkPago)) o.boton = { texto: 'Pagar el abono', url: cfg.linkPago };
+      if (wa) { if (o.boton) o.boton2 = { texto: 'Enviar comprobante', url: wa }; else o.boton = { texto: 'Enviar comprobante por WhatsApp', url: wa }; }
+      enviarCorreo_(cfg, d.correo, 'Tu reserva #' + codigo + ' en ' + cfg.nombreNegocio, o, { replyTo: cfg.correoAdmin || '' });
     }
   } catch (err) { console.error('Correo al cliente: ' + err); }
 }
@@ -1230,6 +1260,7 @@ function asegurarEsquema_(ss) {
       }
       props.setProperty('MIG_HONOR_1', '1');
     }
+    migrarMensajes_();
     cache.put('esq8', '1', 21600);
   } catch (e) { /* si falla, se reintenta en la próxima solicitud */ }
 }
@@ -2491,10 +2522,14 @@ function registrarCotizacion_(sol) {
   return { ok: true, mensaje: '¡Recibido! Te responderemos con tu cotización por WhatsApp o correo.' };
 }
 
-function avisarAdmin_(asunto, cuerpo) {
+function avisarAdmin_(asunto, cuerpo, boton) {
   try {
-    var a = getCfg_().correoAdmin;
-    if (a) MailApp.sendEmail({ to: a, subject: asunto, body: cuerpo, name: 'Rockerío' });
+    var cfg = getCfg_(), a = cfg.correoAdmin;
+    if (!a) return;
+    var partes = String(cuerpo || '').split(/\n{2,}/).map(function (x) { return x.trim(); }).filter(String);
+    var o = { preheader: asunto, titulo: String(asunto).replace(/^[^\wÁÉÍÓÚÜÑáéíóúüñ¿¡]+/, '').slice(0, 90), parrafos: partes };
+    if (boton && urlSegura_(boton.url)) o.boton = boton;
+    enviarCorreo_(cfg, a, asunto, o);
   } catch (err) { console.error('Aviso al administrador: ' + err); }
 }
 
@@ -2586,6 +2621,18 @@ function textoCotizacion_(cfg, o) {
   return l.join('\n');
 }
 
+function correoCotizacion_(cfg, o) {
+  var filas = [['Servicio', o.tipo]];
+  if (o.monto !== '') filas.push(['Valor', Reglas.clp(o.monto)]);
+  var wa = cfg.whatsapp ? 'https://wa.me/' + String(cfg.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent('Hola 🤘 vi mi cotización de ' + o.tipo.toLowerCase() + '.') : '';
+  var c = { preheader: 'Tu cotización de ' + o.tipo.toLowerCase(), titulo: 'Tu cotización', saludo: 'Hola ' + o.nombre + ' 🤘',
+    parrafos: ['Gracias por escribirnos. Aquí va la cotización de ' + o.tipo.toLowerCase() + ' que nos pediste.'], filas: filas,
+    notas: ['Si tienes dudas o quieres ajustar algo, respóndenos este correo o escríbenos por WhatsApp y lo vemos juntos. ¡Gracias por considerarnos!'] };
+  if (o.detalle) c.caja = o.detalle;
+  if (wa) c.boton = { texto: 'Hablemos por WhatsApp', url: wa };
+  return c;
+}
+
 function adminModerar(hoja, fila, estado) {
   exigirAdmin_();
   var nombre = hoja === 'honor' ? HOJAS.honor : hoja === 'resena' ? HOJAS.resenas : '';
@@ -2617,7 +2664,7 @@ function adminCotizacionCorreo(fila) {
   var r = sh.getRange(f, 1, 1, 9).getValues()[0];
   var o = { nombre: String(r[3]), tipo: String(r[2]), monto: r[7] === '' ? '' : Reglas.aNumero(r[7], ''), detalle: String(r[8] || '') };
   if (o.monto === '') throw new Error('Escribe el monto antes de enviar la cotización.');
-  MailApp.sendEmail({ to: String(r[5]), subject: 'Cotización · ' + o.tipo + ' · ' + cfg.nombreNegocio, body: textoCotizacion_(cfg, o) + '\n\n' + cfg.nombreNegocio + '\n' + cfg.direccion, name: cfg.nombreNegocio, replyTo: cfg.correoAdmin || '' });
+  if (!enviarCorreo_(cfg, String(r[5]), 'Cotización · ' + o.tipo + ' · ' + cfg.nombreNegocio, correoCotizacion_(cfg, o), { replyTo: cfg.correoAdmin || '' })) throw new Error('No se pudo enviar el correo. Revisa la dirección del cliente.');
   if (String(r[1]) === 'NUEVA') sh.getRange(f, 2).setValue('COTIZADA');
   return adminResumen();
 }
@@ -4209,6 +4256,17 @@ function adminGuardarIngresos(valores) {
  *      "Hola {{1}}, te recordamos tu reserva de {{2}} el {{3}} de {{4}} a {{5}}. ¡Te esperamos!"
  */
 
+/** Textos anteriores de fábrica: si los tenías sin editar, pasan solos al estilo nuevo. Los que editaste tú no se tocan. */
+var MENSAJES_ANTERIORES_ = {
+ "msgRecordatorio": "Hola {nombre} 👋 Te escribimos para recordarte tu reserva en {negocio}: {servicio} el {fecha}, de {hora} a {fin}. Nos encuentras en {direccion}. Si puedes llegar 5 a 10 minutos antes, aprovechamos al máximo tu tiempo en sala 🎸 Y si algo cambia y necesitas mover la hora, avísanos con {horasAnulacion} horas de anticipación: así podemos ofrecer ese espacio a otra banda y mantener la agenda ordenada para todos. ¡Gracias por ayudarnos, nos vemos pronto! 🤘",
+ "msgConfirmacion": "Hola {nombre} 🤘 ¡Gracias por tu abono! Tu reserva #{codigo} quedó confirmada: {servicio} el {fecha}, de {hora} a {fin}. El saldo ({saldo}) lo pagas en el estudio el día de tu sesión. Estamos en {direccion}. Si surge cualquier cambio, escríbenos por aquí con tiempo; así podemos reorganizar la agenda y darle espacio a otras bandas. ¡Nos vemos pronto! 🎶",
+ "msgCobroAbono": "Hola {nombre} 😊 Te dejamos guardado el horario de tu reserva #{codigo} ({servicio} el {fecha}, de {hora} a {fin}). Para dejarla confirmada solo falta el abono de {abono}; cuando lo hagas, mándanos el comprobante por aquí y listo. Y si cambiaron tus planes, no te preocupes: avísanos y liberamos el horario para otra banda, así la agenda sigue fluyendo para todos. ¡Gracias! 🤘",
+ "msgGracias": "Hola {nombre} 🎸 ¡Gracias por venir a {negocio}! Esperamos que la sesión haya estado genial. Cuando quieran volver, reservar con un poco de anticipación nos ayuda a mantener la agenda fluida y a tener espacio para todas las bandas. Y si te das un minuto para dejarnos una reseña, nos ayuda un mundo: {sitio} 🤘",
+ "msgResena": "Hola {nombre} 🤘 ¡Qué bueno haber tenido a {banda} en {negocio}! Si tienes un minutito, cuéntanos cómo les fue: tu opinión ayuda a otras bandas a decidirse y a nosotros a mejorar. Puedes dejarla aquí: {enlaceResena} ¡Mil gracias! 🙌",
+ "msgDescarga": "Hola {nombre} 🎧 ¡Ya está listo el material de {banda}! Lo puedes descargar aquí: {enlaceDescarga} Si algo no abre o necesitas otro formato, escríbenos y lo resolvemos. ¡Ojalá lo disfruten harto! 🤘",
+ "msgHonor": "Hola {nombre} 🤘 ¡Nos encantó tener a {banda} en {negocio}! Nos gustaría que formaran parte de nuestro Cuadro de Honor, un espacio para mostrar a las bandas que pasan por aquí. Si se animan, es un formulario cortito: {enlaceHonor} ¡Gracias por la buena onda!"
+};
+
 var CLAVES_MENSAJES = ['msgRecordatorio', 'msgConfirmacion', 'msgCobroAbono', 'msgGracias', 'msgResena', 'msgDescarga', 'msgHonor'];
 
 /** Guarda los textos de los mensajes. Vacío = vuelve al texto original. */
@@ -4303,9 +4361,20 @@ function enviarRecordatorios() {
 }
 
 /** Datos que el portal necesita para armar los mensajes de WhatsApp (nunca incluye el token). */
+/** Pasa al texto nuevo los mensajes que seguían idénticos al original anterior (una sola vez). */
+function migrarMensajes_() {
+  var p = PropertiesService.getScriptProperties();
+  if (p.getProperty('MSG_ESTILO') === 'rock1') return;
+  var raw = leerConfigCruda_(), nuevos = {}, d = Reglas.CONFIG_POR_DEFECTO;
+  CLAVES_MENSAJES.forEach(function (k) { if (raw[k] !== undefined && String(raw[k]).trim() === String(MENSAJES_ANTERIORES_[k]).trim()) nuevos[k] = d[k]; });
+  if (Object.keys(nuevos).length) ponerConfig_(nuevos);
+  p.setProperty('MSG_ESTILO', 'rock1');
+}
+
 function waDatos_() {
   var cfg = getCfg_();
-  return { plantillas: { msgRecordatorio: cfg.msgRecordatorio, msgConfirmacion: cfg.msgConfirmacion, msgCobroAbono: cfg.msgCobroAbono, msgGracias: cfg.msgGracias, msgResena: cfg.msgResena, msgDescarga: cfg.msgDescarga, msgHonor: cfg.msgHonor },
+  var def = Reglas.CONFIG_POR_DEFECTO, originales = {}; CLAVES_MENSAJES.forEach(function (k) { originales[k] = def[k]; });
+  return { originales: originales, plantillas: { msgRecordatorio: cfg.msgRecordatorio, msgConfirmacion: cfg.msgConfirmacion, msgCobroAbono: cfg.msgCobroAbono, msgGracias: cfg.msgGracias, msgResena: cfg.msgResena, msgDescarga: cfg.msgDescarga, msgHonor: cfg.msgHonor },
     negocio: cfg.nombreNegocio, direccion: cfg.direccion, horasAnulacion: cfg.horasAnulacion, sitio: cfg.sitioUrl, auto: cfg.waAutoActivo,
     tieneToken: !!PropertiesService.getScriptProperties().getProperty('WA_TOKEN') };
 }
@@ -4544,7 +4613,8 @@ function marcarComprobante_(sol) {
     avisarAdmin_('💬 Comprobante por validar · ' + rf.codigo + ' · ' + r[RES.banda - 1],
       r[RES.contacto - 1] + ' (+' + r[RES.telefono - 1] + ') avisó que envió el comprobante del abono de ' + Reglas.clp(Number(r[RES.abono - 1]) || 0) + '.\n' +
       'Reserva ' + rf.codigo + ': ' + r[RES.servicio - 1] + ' el ' + aFechaIso_(r[RES.fecha - 1]) + '.\n\n' +
-      'Revisa el comprobante en WhatsApp y confirma el abono con un toque' + enlaceGestion_(getCfg_(), rf.codigo, ': ') + '\nEl horario se guarda ' + HORAS_MAX_COMPROBANTE + ' horas.');
+      'Revisa el comprobante en WhatsApp y confirma el abono con un toque. El horario se guarda ' + HORAS_MAX_COMPROBANTE + ' horas.',
+      { texto: 'Confirmar abono', url: urlGestion_(getCfg_(), rf.codigo) });
   }
   return res;
 }
@@ -4684,4 +4754,96 @@ function adminVerificarPagoMP(codigo) {
 function autorizarMercadoPago() {
   var r = UrlFetchApp.fetch('https://api.mercadopago.com/users/me', { headers: { Authorization: 'Bearer ' + mpToken_() }, muteHttpExceptions: true });
   console.log('Mercado Pago respondió: ' + r.getResponseCode() + (r.getResponseCode() === 200 ? ' (token válido)' : ' (revisa el token)'));
+}
+
+/* ===== Correo ===== */
+/* ====================================================================
+ *  CORREOS CON LA IDENTIDAD DE ROCKERÍO
+ *  Un solo molde (logo, colores, botón) para todos los correos. Siempre se envía también la versión en texto
+ *  simple, por si el programa de correo no muestra HTML.
+ *  o = { preheader, titulo, saludo, parrafos: [], filas: [[etiqueta, valor]], caja: 'texto en recuadro',
+ *        boton: { texto, url }, boton2: { texto, url }, notas: [], codigo }
+ * ==================================================================== */
+var CORREO_COL = { fondo: '#09090a', tarjeta: '#141416', borde: '#2a2a2e', oro: '#E39A2D', texto: '#ece8e1', suave: '#a8a39a', rojo: '#d8434b' };
+
+function htmlSeg_(t) {
+  return String(t === undefined || t === null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function urlSegura_(u) { u = String(u || ''); return /^(https:\/\/|mailto:)[^\s"'<>]+$/.test(u) ? u : ''; }
+function baseSitio_(cfg) { return String(cfg.sitioUrl || 'https://rockerioproducciones.cl').replace(/\/+$/, ''); }
+
+function correoTexto_(cfg, o) {
+  var l = [];
+  if (o.titulo) l.push(String(o.titulo).toUpperCase(), '');
+  if (o.saludo) l.push(o.saludo, '');
+  (o.parrafos || []).forEach(function (p) { l.push(p, ''); });
+  (o.filas || []).forEach(function (f) { l.push(f[0] + ': ' + f[1]); });
+  if ((o.filas || []).length) l.push('');
+  if (o.caja) l.push(o.caja, '');
+  [o.boton, o.boton2].forEach(function (b) { if (b && urlSegura_(b.url)) l.push(b.texto + ': ' + b.url, ''); });
+  (o.notas || []).forEach(function (n) { l.push(n, ''); });
+  l.push('— ' + cfg.nombreNegocio, cfg.direccion || '');
+  return l.join('\n');
+}
+
+function correoHtml_(cfg, o) {
+  var C = CORREO_COL, base = baseSitio_(cfg), e = htmlSeg_;
+  var logo = base + '/assets/logo-horizontal-dorado.png';
+  var fuenteTit = "Impact,'Arial Narrow Bold','Arial Black',Arial,sans-serif", fuente = "'Segoe UI',Helvetica,Arial,sans-serif";
+  function boton(b, claro) {
+    if (!b || !urlSegura_(b.url)) return '';
+    return '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 8px 8px 0;display:inline-block"><tr><td bgcolor="' + (claro ? C.oro : C.tarjeta) + '" style="border-radius:6px;border:2px solid ' + C.oro + '">' +
+      '<a href="' + e(b.url) + '" style="display:inline-block;padding:13px 24px;font:800 15px ' + fuente + ';letter-spacing:.04em;text-transform:uppercase;color:' + (claro ? '#0a0a0b' : C.oro) + ';text-decoration:none">' + e(b.texto) + '</a></td></tr></table>';
+  }
+  var cuerpo = '';
+  if (o.titulo) cuerpo += '<h1 style="margin:0 0 6px;font:400 30px/1.05 ' + fuenteTit + ';letter-spacing:.03em;text-transform:uppercase;color:' + C.oro + '">' + e(o.titulo) + '</h1>';
+  if (o.codigo) cuerpo += '<div style="display:inline-block;margin:2px 0 14px;padding:4px 12px;border:1px solid ' + C.oro + ';border-radius:99px;font:700 13px ' + fuente + ';letter-spacing:.12em;color:' + C.oro + '">RESERVA #' + e(o.codigo) + '</div>';
+  if (o.saludo) cuerpo += '<p style="margin:12px 0;font:700 17px/1.5 ' + fuente + ';color:' + C.texto + '">' + e(o.saludo) + '</p>';
+  (o.parrafos || []).forEach(function (p) { cuerpo += '<p style="margin:12px 0;font:15px/1.65 ' + fuente + ';color:' + C.texto + '">' + e(p).replace(/\n/g, '<br>') + '</p>'; });
+  if ((o.filas || []).length) {
+    cuerpo += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0;border-top:1px solid ' + C.borde + '">';
+    o.filas.forEach(function (f) {
+      cuerpo += '<tr><td style="padding:10px 0;border-bottom:1px solid ' + C.borde + ';font:700 12px ' + fuente + ';letter-spacing:.1em;text-transform:uppercase;color:' + C.suave + ';width:38%;vertical-align:top">' + e(f[0]) + '</td>' +
+        '<td style="padding:10px 0;border-bottom:1px solid ' + C.borde + ';font:600 15px/1.4 ' + fuente + ';color:' + C.texto + ';vertical-align:top">' + e(f[1]).replace(/\n/g, '<br>') + '</td></tr>';
+    });
+    cuerpo += '</table>';
+  }
+  if (o.caja) cuerpo += '<div style="margin:16px 0;padding:14px 16px;background:#0d0d0f;border-left:4px solid ' + C.oro + ';border-radius:4px;font:14px/1.6 ' + fuente + ';color:' + C.texto + '">' + e(o.caja).replace(/\n/g, '<br>') + '</div>';
+  var b1 = boton(o.boton, true), b2 = boton(o.boton2, false);
+  if (b1 || b2) cuerpo += '<div style="margin:18px 0 8px">' + b1 + b2 + '</div>';
+  (o.notas || []).forEach(function (n) { cuerpo += '<p style="margin:12px 0;font:13px/1.6 ' + fuente + ';color:' + C.suave + '">' + e(n).replace(/\n/g, '<br>') + '</p>'; });
+
+  var ig = urlSegura_(cfg.redInstagram), wa = cfg.whatsapp ? 'https://wa.me/' + String(cfg.whatsapp).replace(/\D/g, '') : '';
+  var pie = '<a href="' + e(base) + '" style="color:' + C.oro + ';text-decoration:none;font-weight:700">' + e(base.replace(/^https:\/\//, '')) + '</a>' +
+    (ig ? ' &nbsp;·&nbsp; <a href="' + e(ig) + '" style="color:' + C.oro + ';text-decoration:none">Instagram</a>' : '') +
+    (wa ? ' &nbsp;·&nbsp; <a href="' + e(wa) + '" style="color:' + C.oro + ';text-decoration:none">WhatsApp</a>' : '');
+  return '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="supported-color-schemes" content="dark"></head>' +
+    '<body style="margin:0;padding:0;background:' + C.fondo + '" bgcolor="' + C.fondo + '">' +
+    '<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:' + C.fondo + '">' + e(o.preheader || o.titulo || '') + '</div>' +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="' + C.fondo + '" style="background:' + C.fondo + '"><tr><td align="center" style="padding:24px 12px">' +
+    '<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background:' + C.tarjeta + ';border:1px solid ' + C.borde + ';border-radius:10px;overflow:hidden">' +
+    '<tr><td height="5" bgcolor="' + C.oro + '" style="background:' + C.oro + ';font-size:0;line-height:0">&nbsp;</td></tr>' +
+    '<tr><td align="center" bgcolor="#000000" style="background:#000000;padding:26px 20px 20px"><a href="' + e(base) + '"><img src="' + e(logo) + '" width="230" alt="' + e(cfg.nombreNegocio) + '" style="display:block;border:0;max-width:230px;height:auto"></a>' +
+    '<div style="margin-top:12px;font:700 11px ' + fuente + ';letter-spacing:.28em;text-transform:uppercase;color:' + C.suave + '">Sala de ensayo · Estudio de grabación</div></td></tr>' +
+    '<tr><td style="padding:28px 28px 8px">' + cuerpo + '</td></tr>' +
+    '<tr><td style="padding:8px 28px 26px"><div style="border-top:1px solid ' + C.borde + ';padding-top:16px;font:13px/1.7 ' + fuente + ';color:' + C.suave + ';text-align:center">' +
+    '<div style="font:400 18px ' + fuenteTit + ';letter-spacing:.06em;text-transform:uppercase;color:' + C.texto + '">¡Que suene fuerte! 🤘</div>' +
+    '<div style="margin-top:6px">' + e(cfg.nombreNegocio) + (cfg.direccion ? ' · ' + e(cfg.direccion) : '') + '</div><div style="margin-top:4px">' + pie + '</div></div></td></tr>' +
+    '</table></td></tr></table></body></html>';
+}
+
+/** Envía un correo con el molde de Rockerío (HTML + texto). Devuelve true si salió. */
+function enviarCorreo_(cfg, para, asunto, o, extra) {
+  try {
+    var op = { to: para, subject: asunto, body: correoTexto_(cfg, o), htmlBody: correoHtml_(cfg, o), name: cfg.nombreNegocio };
+    if (extra && extra.replyTo) op.replyTo = extra.replyTo;
+    MailApp.sendEmail(op);
+    return true;
+  } catch (err) { console.error('Correo «' + asunto + '»: ' + err); return false; }
+}
+
+/** Enlace de WhatsApp al cliente, con un mensaje escrito. */
+function enlaceWaCliente_(tel, texto) {
+  var t = String(tel || '').replace(/\D/g, '');
+  return t.length >= 8 ? 'https://wa.me/' + t + '?text=' + encodeURIComponent(texto || '') : '';
 }

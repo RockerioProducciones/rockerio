@@ -498,7 +498,7 @@ $('ing').onclick=function(){ejecutar('adminGuardarIngresos',[].map.call(document
 
 $('rgg').onclick=function(){ejecutar('adminGuardarReglamento',$('rgt').value);aviso('Reglamento guardado')};
 function pintarWA(d){
-  var box=$('wam');if(!box.firstChild||document.activeElement.tagName!=='TEXTAREA'){box.textContent='';WATIPOS.forEach(function(x){var l=document.createElement('label');l.textContent=x[1];l.style.cssText='display:block;font-weight:600;margin-top:8px';var a=document.createElement('textarea');a.rows=3;a.maxLength=1000;a.style.width='100%';a.value=d.wa.plantillas[x[0]];a.setAttribute('data-msg',x[0]);box.appendChild(l);box.appendChild(a)})}
+  var box=$('wam');if(!box.firstChild||document.activeElement.tagName!=='TEXTAREA'){box.textContent='';WATIPOS.forEach(function(x){var l=document.createElement('label');l.textContent=x[1];l.style.cssText='display:block;font-weight:600;margin-top:8px';var a=document.createElement('textarea');a.rows=7;a.maxLength=1000;a.style.width='100%';a.value=d.wa.plantillas[x[0]];a.setAttribute('data-msg',x[0]);box.appendChild(l);box.appendChild(a);var rb=document.createElement('a');rb.textContent='↺ usar el texto original de Rockerío';rb.href='#';rb.style.cssText='font-size:.85em;color:#FCC631';rb.onclick=function(ev){ev.preventDefault();a.value=d.wa.originales[x[0]]||a.value};box.appendChild(rb)})}
   var m=new Date(d.hoy+'T12:00:00');m.setDate(m.getDate()+1);var man=m.getFullYear()+'-'+String(m.getMonth()+1).padStart(2,'0')+'-'+String(m.getDate()).padStart(2,'0');
   var c=$('wamanana');c.textContent='';var lista=(d.reservas||[]).filter(function(r){return r.fecha===man&&r.estado==='Reservado (con abono)'});
   $('sinwa').textContent=lista.length?'':'No hay reservas confirmadas para mañana.';

@@ -276,9 +276,13 @@ function ocupadasRango_(desde, dias) {
 }
 
 /** Enlace para abrir una reserva en el portal y confirmarla (solo funciona con la cuenta de administración). */
-function enlaceGestion_(cfg, codigo, prefijo) {
+function urlGestion_(cfg, codigo) {
   var base = String(cfg.sitioUrl || 'https://rockerioproducciones.cl').replace(/\/+$/, '');
-  return (/^https:\/\//.test(base) && /^RP-\d{3,8}(-\d)?$/.test(String(codigo || ''))) ? prefijo + base + '/admin/?c=' + codigo : '';
+  return (/^https:\/\//.test(base) && /^RP-\d{3,8}(-\d)?$/.test(String(codigo || ''))) ? base + '/admin/?c=' + codigo : '';
+}
+function enlaceGestion_(cfg, codigo, prefijo) {
+  var u = urlGestion_(cfg, codigo);
+  return u ? prefijo + u : '';
 }
 
 function horasOcupadas_(fecha, cfg) {
@@ -440,24 +444,50 @@ function registrarCliente_(d) {
 }
 
 function notificar_(cfg, v, codigo) {
-  var d = v.datos;
-  var cuerpo = Reglas.resumenTexto(cfg, v, codigo).replace('Hola, quiero confirmar mi reserva', 'Nueva reserva pendiente de abono') + enlaceGestion_(cfg, codigo, '\n\nConfirmar el abono con un toque (te pide iniciar sesión): ');
-  cuerpo += '\nTeléfono: +' + d.telefono + '\nCorreo: ' + d.correo;
-  if (d.comentario) cuerpo += '\nComentarios: ' + d.comentario;
-  cuerpo += '\n\nCuando llegue el abono, cambia el Estado a «' + EST.CON_ABONO + '» en la hoja Reservas o en el portal.';
+  var d = v.datos, c = v.calculo;
+  var detalle = [
+    ['Servicio', Reglas.SERVICIOS[d.servicio]],
+    ['Fecha', Reglas.fechaLarga(d.fecha)],
+    ['Horario', Reglas.horaTxt(d.inicio) + ' a ' + Reglas.horaTxt(v.fin)],
+    ['Banda', d.banda]
+  ];
+  if (d.extras) detalle.push(['Equipo extra', d.extras]);
+  if (d.video) detalle.push(['Video GoPro', 'Sí']);
+  if (d.raw) detalle.push(['Material en bruto', 'Sí']);
+  detalle.push(['Total', Reglas.clp(c.total)], ['Abono para confirmar', Reglas.clp(c.abono)], ['Saldo en sala', Reglas.clp(c.saldo)]);
+  // Al administrador: con botones para confirmar el abono y escribirle al cliente.
   try {
     if (cfg.correoAdmin) {
-      MailApp.sendEmail({ to: cfg.correoAdmin, subject: 'Nueva reserva #' + codigo + ' · ' + d.banda, body: cuerpo, name: cfg.nombreNegocio });
+      var filasAdm = detalle.concat([['Contacto', d.nombre], ['WhatsApp', '+' + d.telefono], ['Correo', d.correo || '—']]);
+      if (d.comentario) filasAdm.push(['Comentarios', d.comentario]);
+      enviarCorreo_(cfg, cfg.correoAdmin, 'Nueva reserva #' + codigo + ' · ' + d.banda, {
+        preheader: d.banda + ' reservó ' + Reglas.fechaLarga(d.fecha) + ' · abono pendiente', titulo: 'Nueva reserva por abonar', codigo: codigo,
+        parrafos: ['Entró una reserva desde el sitio y está esperando el abono. Cuando llegue el comprobante, confírmala con un toque.'],
+        filas: filasAdm,
+        boton: { texto: 'Confirmar abono', url: urlGestion_(cfg, codigo) },
+        boton2: { texto: 'Escribirle por WhatsApp', url: enlaceWaCliente_(d.telefono, 'Hola ' + d.nombre + ' 🤘 Vimos tu reserva #' + codigo + ' en ' + cfg.nombreNegocio + '. ') },
+        notas: ['El botón de confirmar te pide iniciar sesión con la cuenta de administración. También puedes cambiar el estado desde el portal o la hoja Reservas.']
+      });
     }
   } catch (err) { console.error('Correo al administrador: ' + err); }
+  // Al cliente.
   try {
     if (cfg.correoCliente && d.correo) {
-      var texto = 'Hola ' + d.nombre + ',\n\nRecibimos tu solicitud en ' + cfg.nombreNegocio + '. Tu código es #' + codigo + '.\n\n' +
-        Reglas.resumenTexto(cfg, v, '').split('\n').slice(1).join('\n') + '\n\n' +
-        'Tu horario queda reservado ' + cfg.minutosReserva + ' minutos a la espera del abono de ' + Reglas.clp(v.calculo.abono) + '. Si por algún motivo no alcanzas a abonar en ese plazo, el horario vuelve a quedar disponible para otras bandas; y si necesitas más tiempo, escríbenos y vemos cómo ayudarte.\n' +
-        cfg.instruccionesPago + ((cfg.pagoTransferencia && cfg.datosTransferencia) ? '\nTransferencia: ' + cfg.datosTransferencia : '') + ((cfg.pagoOnline && cfg.linkPago) ? '\nPuedes pagar aquí: ' + cfg.linkPago : '') + '\n\n' +
-        'Si necesitas cambiar o anular, avísanos por WhatsApp con al menos ' + cfg.horasAnulacion + ' horas de anticipación: así podemos darle ese espacio a otra banda y mantener la agenda fluida para todos. ¡Gracias!\n' + cfg.direccion;
-      MailApp.sendEmail({ to: d.correo, subject: 'Tu reserva #' + codigo + ' en ' + cfg.nombreNegocio, body: texto, name: cfg.nombreNegocio, replyTo: cfg.correoAdmin || '' });
+      var pagos = [];
+      if (cfg.instruccionesPago) pagos.push(cfg.instruccionesPago);
+      if (cfg.pagoTransferencia && cfg.datosTransferencia) pagos.push('Transferencia:\n' + cfg.datosTransferencia);
+      var wa = cfg.whatsapp ? 'https://wa.me/' + String(cfg.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent('Hola 🤘 te mando el comprobante de mi reserva #' + codigo + ' (' + d.banda + ').') : '';
+      var o = {
+        preheader: 'Tu horario queda guardado ' + cfg.minutosReserva + ' minutos mientras abonas', titulo: '¡Recibimos tu reserva!', codigo: codigo,
+        saludo: 'Hola ' + d.nombre + ' 🤘',
+        parrafos: ['Te guardamos el horario ' + cfg.minutosReserva + ' minutos para que puedas abonar y dejar todo confirmado. Si no alcanzas, no pasa nada: el horario se libera para otra banda y puedes volver a reservar cuando quieras.'],
+        filas: detalle,
+        notas: ['Si necesitas cambiar o anular, avísanos por WhatsApp con al menos ' + cfg.horasAnulacion + ' horas de anticipación: así otra banda puede tomar ese espacio y la agenda sigue fluyendo para todos. ¡Gracias por la buena onda!']
+      };
+      if (pagos.length) o.caja = pagos.join('\n\n');
+      if (cfg.pagoOnline && urlSegura_(cfg.linkPago)) o.boton = { texto: 'Pagar el abono', url: cfg.linkPago };
+      if (wa) { if (o.boton) o.boton2 = { texto: 'Enviar comprobante', url: wa }; else o.boton = { texto: 'Enviar comprobante por WhatsApp', url: wa }; }
+      enviarCorreo_(cfg, d.correo, 'Tu reserva #' + codigo + ' en ' + cfg.nombreNegocio, o, { replyTo: cfg.correoAdmin || '' });
     }
   } catch (err) { console.error('Correo al cliente: ' + err); }
 }
@@ -685,6 +715,7 @@ function asegurarEsquema_(ss) {
       }
       props.setProperty('MIG_HONOR_1', '1');
     }
+    migrarMensajes_();
     cache.put('esq8', '1', 21600);
   } catch (e) { /* si falla, se reintenta en la próxima solicitud */ }
 }
