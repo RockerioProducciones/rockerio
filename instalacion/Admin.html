@@ -379,7 +379,7 @@ section.tab-off{display:none!important}
 <table><tbody id="htab"></tbody></table></section>
 <section><h2>Enlaces para compartir</h2>
 <p style="color:#b5afa6;margin:0 0 .5em">Dos enlaces fijos. Cada persona entra escribiendo una clave que tú eliges aquí. Si cambias la clave, la anterior deja de funcionar al instante.</p>
-<div class="fila"><label for="surl2" style="min-width:150px">Dirección del sitio</label><input id="surl2" placeholder="https://rockerioproducciones.github.io/rockerio" style="flex:1;min-width:220px"><button id="surlg2" class="sec">Guardar</button></div>
+<div class="fila"><label for="surl2" style="min-width:150px">Dirección del sitio</label><input id="surl2" placeholder="https://rockerioproducciones.cl" style="flex:1;min-width:220px"><button id="surlg2" class="sec">Guardar</button></div>
 <div id="enl"></div>
 <details style="margin-top:.8em"><summary style="cursor:pointer;color:#b5afa6">Avanzado: enlaces secretos individuales</summary>
 <p style="color:#b5afa6;margin:.4em 0">Enlaces antiguos de un solo uso por persona. Siguen funcionando si ya los compartiste.</p>
@@ -516,7 +516,7 @@ var PAGOS=['Venta efectivo','Venta transferencia','Entregado en sesión (pago pe
 /* ---------- Tienda de música y Bebestibles: mismo punto de venta (tocar productos, carrito, cobro) ---------- */
 var FECHA_V={musica:'',bebestible:''},CART={musica:{},bebestible:{}},PAGO_SEL={musica:'',bebestible:''},VER_ADM={musica:false,bebestible:false};
 var TIPO_TXT={musica:'Música',bebestible:'Bebestibles'};
-function fotoOk(u){u=u||'';if(/^assets\/[\w\/.\-]+$/.test(u)&&u.indexOf('..')<0)return((ultimo&&ultimo.sitioUrl)||'https://rockerioproducciones.github.io/rockerio').replace(/\/+$/,'')+'/'+u;return /^https:\/\//.test(u)?u:''}
+function fotoOk(u){u=u||'';if(/^assets\/[\w\/.\-]+$/.test(u)&&u.indexOf('..')<0)return((ultimo&&ultimo.sitioUrl)||'https://rockerioproducciones.cl').replace(/\/+$/,'')+'/'+u;return /^https:\/\//.test(u)?u:''}
 function pintarCatalogos(d){pos('sec-musica','musica','Tienda de música','🎸',d.productos||[],d);pos('sec-beb','bebestible','Bebestibles','🥤',d.bebestibles||[],d)}
 var HIST_VER={musica:true,bebestible:true};
 function pos(id,tipo,titulo,ico,prods,d){
@@ -764,7 +764,7 @@ function enlaceCopiable(cont,url){
 }
 function pintarSocios(d){
   var base=(d.sitioUrl||'').replace(/\/+$/,''),box=$('socs');box.textContent='';var pa=$('pubag');pa.textContent='';
-  var u=$('surl2');if(document.activeElement!==u)u.value=d.sitioUrl||'https://rockerioproducciones.github.io/rockerio';
+  var u=$('surl2');if(document.activeElement!==u)u.value=d.sitioUrl||'https://rockerioproducciones.cl';
   var urlBase=(u.value||'').replace(/\/+$/,''),en=$('enl');en.textContent='';
   [['proaudix','Gaby y Jaime (ProAudix)','Agenda completa, ventas, resúmenes y cierre del mes.'],['agenda','Familia / agenda','Solo ver la agenda, sin ventas ni dinero.']].forEach(function(r){
     var tk=(d.socios||[]).filter(function(x){return x.rol===r[0]})[0],w=caja();

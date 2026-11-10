@@ -4428,5 +4428,5 @@ function adminSubirImagenSitio(p) {
 function adminSitioDatos() {
   exigirAdmin_();
   var cfg = getCfg_();
-  return { sitio: leerSitio_(), base: String(cfg.sitioUrl || '').replace(/\/+$/, '') || 'https://rockerioproducciones.github.io/rockerio', tema: cfg.tema, html: '', ficha: null, galeria: null, playlist: null, microfonos: null, aviso: '' };
+  return { sitio: leerSitio_(), base: String(cfg.sitioUrl || '').replace(/\/+$/, '') || 'https://rockerioproducciones.cl', tema: cfg.tema, html: '', ficha: null, galeria: null, playlist: null, microfonos: null, aviso: '' };
 }
