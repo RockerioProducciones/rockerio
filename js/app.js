@@ -566,7 +566,7 @@
   }
 
   window.RK = {
-    cfg: function () { return cfg; }, wsp: wspUrl, el: el, pedir: pedir, api: API, calendario: calendario, bloques: bloques,
+    cfg: function () { return cfg; }, micsCatalogo: function () { return dato('microfonos', 'data/microfonos.json').catch(function () { return []; }); }, wsp: wspUrl, el: el, pedir: pedir, api: API, calendario: calendario, bloques: bloques,
     estado: function () { return S; }, traerAgenda: traerAgenda, mostrarPago: mostrarPago, conectado: function () { return conexion; }, ahora: function () { return ahora; }
   };
   window.RK.listo = new Promise(function (ok) { window.RK._listo = ok; });

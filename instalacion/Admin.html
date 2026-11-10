@@ -894,11 +894,11 @@ function tareaParte(parte,get){tarea(function(sig,mal){var v=get();google.script
 function guardarSeccion(){var ts=ST.tareas.slice();if(!ts.length){aviso('No hay nada que guardar aquí.');return}aviso('Guardando…');
   (function sig(){var t=ts.shift();if(!t){aviso('Guardado ✔ El sitio se actualiza en unos minutos.');return}t(sig,function(e){aviso(e.message||'No se pudo guardar')})})()}
 /* El sitio publicado se lee desde el navegador (sin permisos extra de Google) */
-function leerSitioWeb(base,fin){var o={html:'',ficha:null,galeria:null,playlist:null,error:''};if(!base){o.error='Falta la dirección del sitio (Socios y respaldo → Enlaces para compartir).';fin(o);return}
+function leerSitioWeb(base,fin){var o={html:'',ficha:null,galeria:null,playlist:null,microfonos:null,error:''};if(!base){o.error='Falta la dirección del sitio (Socios y respaldo → Enlaces para compartir).';fin(o);return}
   function g(ruta,json){return fetch(base+'/'+ruta+'?v='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error(String(r.status));return json?r.json():r.text()})}
-  Promise.all([g('index.html',false).catch(function(e){o.error='No pude abrir '+base+' ('+(e.message||'sin conexión')+'). Revisa la dirección del sitio.';return ''}),g('data/ficha.json',true).catch(function(){return null}),g('data/galeria.json',true).catch(function(){return null}),g('data/playlist.json',true).catch(function(){return null})]).then(function(r){o.html=r[0];o.ficha=r[1];o.galeria=r[2];o.playlist=r[3];fin(o)})}
+  Promise.all([g('index.html',false).catch(function(e){o.error='No pude abrir '+base+' ('+(e.message||'sin conexión')+'). Revisa la dirección del sitio.';return ''}),g('data/ficha.json',true).catch(function(){return null}),g('data/galeria.json',true).catch(function(){return null}),g('data/playlist.json',true).catch(function(){return null}),g('data/microfonos.json',true).catch(function(){return null})]).then(function(r){o.html=r[0];o.ficha=r[1];o.galeria=r[2];o.playlist=r[3];o.microfonos=r[4];fin(o)})}
 function cargarSitio(){if(ST.cargando)return;ST.cargando=true;$('sitio-panel').textContent='Leyendo el sitio publicado…';
-  google.script.run.withSuccessHandler(function(d){leerSitioWeb(d.base,function(w){ST.cargando=false;d.html=w.html;d.ficha=w.ficha;d.galeria=w.galeria;d.playlist=w.playlist;d.aviso=w.error;ST.datos=d;ST.doc=w.html?new DOMParser().parseFromString(w.html,'text/html'):null;pintarSitio()})}).withFailureHandler(function(e){ST.cargando=false;$('sitio-panel').textContent=e.message||'Error'}).adminSitioDatos()}
+  google.script.run.withSuccessHandler(function(d){leerSitioWeb(d.base,function(w){ST.cargando=false;d.html=w.html;d.ficha=w.ficha;d.galeria=w.galeria;d.playlist=w.playlist;d.microfonos=w.microfonos;d.aviso=w.error;ST.datos=d;ST.doc=w.html?new DOMParser().parseFromString(w.html,'text/html'):null;pintarSitio()})}).withFailureHandler(function(e){ST.cargando=false;$('sitio-panel').textContent=e.message||'Error'}).adminSitioDatos()}
 function seccionesSitio(){var o=[],ya={};
   SEC_FIJAS.forEach(function(x){o.push({id:x[0],titulo:x[1]});ya[x[0]]=1});
   if(ST.doc)[].forEach.call(ST.doc.querySelectorAll('main > section[id]'),function(x){var id=x.id;if(!ya[id]&&x.querySelector('[data-ed],[data-ed-foto]')){var h=x.querySelector('h2');o.push({id:id,titulo:h?h.textContent.trim():id});ya[id]=1}});return o}
@@ -941,7 +941,7 @@ function pintarSitioPanel(){var p=$('sitio-panel'),top=$('sitio-top');if(!ST.dat
       var t=el_('textarea');t.rows=Math.max(1,Math.min(6,Math.ceil((tx[k]||def).length/70)));t.maxLength=1500;t.value=tx[k]||def;t.style.width='100%';wrap.appendChild(t);
       var rb=el_('a','sitio-orig','↺ texto original');rb.href='#';rb.onclick=function(ev){ev.preventDefault();t.value=def};wrap.appendChild(rb);tc.appendChild(wrap);campos.push([k,t,def])});p.appendChild(tc);
     tareaParte('textos',function(){var o=Object.assign({},ST.datos.sitio.textos||{});campos.forEach(function(c){var v=c[1].value.trim();if(!v||v===c[2])delete o[c[0]];else o[c[0]]=v});return o})}
-  if(sid==='ficha')p.appendChild(editorFicha());
+  if(sid==='ficha'){p.appendChild(editorFicha());p.appendChild(editorMics())}
   if(sid==='galeria'){p.appendChild(editorGaleria());p.appendChild(editorPlaylist())}
   var mover={nosotros:['Presentación personal','Comparador de sonido (Raw → Mix → Master)'],ficha:['Muestras de audio'],reglamento:['Reglamento interno']}[sid]||[];
   mover.forEach(function(t){var o=SUB[t];if(o)p.appendChild(o)});
@@ -972,6 +972,18 @@ function editorFicha(){var c=sCaja('Ficha técnica','Cada pestaña de la ficha: 
   function d2(i){var x=lista.querySelectorAll('details')[i];if(x)x.open=true}
   pint();var f=el_('div','fila');f.style.marginTop='8px';f.appendChild(btn('+ Pestaña nueva',function(){datos.push({id:'sec'+(datos.length+1),icono:'🎵',titulo:'Nueva pestaña',resumen:'',stats:[],fotos:[],bloques:[]});pint();d2(datos.length-1)},'sec'));
   f.appendChild(btnDel('Volver al original','¿Volver la ficha técnica a como estaba originalmente? Se pierden tus cambios.',function(){ST.tareas=[];tareaParte('ficha',function(){return[]});guardarSeccion();setTimeout(function(){pintarSitioPanel()},900)}));c.appendChild(f);tareaParte('ficha',function(){return datos});return c}
+
+/* --- catálogo de micrófonos: foto, marca/modelo, uso y descripción (el audio va en «Muestras de audio» con el mismo nombre) --- */
+function editorMics(){var c=sCaja('Catálogo de micrófonos','Cada micrófono con su foto, marca y modelo, para qué se usa y una descripción. Su muestra de audio se agrega más abajo en «Muestras de audio», escribiendo el mismo nombre en «Grupo».');
+  var sv=ST.datos.sitio.microfonos,datos=JSON.parse(JSON.stringify(sv&&sv.length?sv:(ST.datos.microfonos||[]))),lista=el_('div');c.appendChild(lista);
+  function pint(){lista.textContent='';datos.forEach(function(m,i){var r=el_('div','sitio-foto'),im=el_('img');im.alt='';if(m.foto)im.src=sUrl(m.foto);else im.style.visibility='hidden';r.appendChild(im);var col=el_('div','sitio-foto-c');
+    col.appendChild(inp(m.nombre,'Marca y modelo (ej. Shure SM57)','100%',function(v){m.nombre=v}));col.appendChild(inp(m.uso,'Uso (ej. Baterías / Guitarra amp)','100%',function(v){m.uso=v}));col.appendChild(inp(m.descripcion,'Descripción','100%',function(v){m.descripcion=v}));
+    var lab=el_('label','sitio-subir','📷 '+(m.foto?'Cambiar foto':'Subir foto'));var fl=el_('input');fl.type='file';fl.accept='image/png,image/jpeg,image/webp';fl.onchange=function(){if(fl.files[0])subirFoto(fl.files[0],'mic-'+i,function(u){m.foto=u;pint()})};lab.appendChild(fl);col.appendChild(lab);
+    var b=el_('div','fila');b.appendChild(btn('↑',function(){mover(datos,i,-1);pint()},'sec'));b.appendChild(btn('↓',function(){mover(datos,i,1);pint()},'sec'));b.appendChild(btn('Quitar',function(){datos.splice(i,1);pint()},'sec'));col.appendChild(b);r.appendChild(col);lista.appendChild(r)})}
+  pint();var f=el_('div','fila');f.style.marginTop='8px';f.appendChild(btn('+ Micrófono',function(){datos.push({nombre:'',foto:'',uso:'',descripcion:''});pint()},'sec'));
+  f.appendChild(btnDel('Volver al original','¿Volver el catálogo de micrófonos al original? Se pierden tus cambios.',function(){ST.tareas=[];tareaParte('microfonos',function(){return[]});guardarSeccion();setTimeout(function(){pintarSitioPanel()},900)}));c.appendChild(f);
+  var dl=document.getElementById('mic-nombres');if(!dl){dl=document.createElement('datalist');dl.id='mic-nombres';document.body.appendChild(dl)}dl.textContent='';datos.forEach(function(m){var o=document.createElement('option');o.value=m.nombre;dl.appendChild(o)});var mg=document.getElementById('mg');if(mg)mg.setAttribute('list','mic-nombres');
+  tareaParte('microfonos',function(){return datos.filter(function(m){return m.nombre&&m.nombre.trim()})});return c}
 
 /* --- galería (fotos y videos) --- */
 function editorGaleria(){var c=sCaja('Galería de fotos y videos','Las fotos se ven en el carrusel y la galería; los videos son enlaces de YouTube.');

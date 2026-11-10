@@ -7,7 +7,7 @@
  * borrar una parte devuelve el sitio a su contenido original.
  */
 
-var SITIO_PARTES = ['textos', 'fotos', 'ficha', 'galeria', 'playlist'];
+var SITIO_PARTES = ['textos', 'fotos', 'ficha', 'galeria', 'playlist', 'microfonos'];
 var SITIO_MAX_CELDA = 45000;
 var CARPETA_SITIO = 'Rockerío · Fotos del sitio';
 
@@ -93,6 +93,18 @@ function limpiarPlaylistSitio_(o) {
   return u ? { url: u, titulo: limpiar_(o.titulo, 80), texto: limpiar_(o.texto, 200) } : {};
 }
 
+/** Catálogo de micrófonos: nombre, foto, uso y descripción. El audio de cada uno va en «Muestras de audio» con el mismo nombre. */
+function limpiarMicsSitio_(arr) {
+  var out = [];
+  (Array.isArray(arr) ? arr : []).slice(0, 60).forEach(function (m) {
+    m = m || {};
+    var nombre = limpiar_(m.nombre, 80); if (!nombre) return;
+    var foto = String(m.foto || '').trim() ? urlImagenSitio_(m.foto) : '';
+    out.push({ nombre: nombre, foto: foto || '', uso: limpiar_(m.uso, 120), descripcion: limpiar_(m.descripcion, 240) });
+  });
+  return out;
+}
+
 function validarParteSitio_(parte, valor) {
   switch (parte) {
     case 'textos': return limpiarTextosSitio_(valor);
@@ -100,6 +112,7 @@ function validarParteSitio_(parte, valor) {
     case 'ficha': return limpiarFichaSitio_(valor);
     case 'galeria': return limpiarGaleriaSitio_(valor);
     case 'playlist': return limpiarPlaylistSitio_(valor);
+    case 'microfonos': return limpiarMicsSitio_(valor);
   }
   throw new Error('Parte del sitio no válida.');
 }
@@ -162,5 +175,5 @@ function adminSubirImagenSitio(p) {
 function adminSitioDatos() {
   exigirAdmin_();
   var cfg = getCfg_();
-  return { sitio: leerSitio_(), base: String(cfg.sitioUrl || '').replace(/\/+$/, '') || 'https://rockerioproducciones.github.io/rockerio', tema: cfg.tema, html: '', ficha: null, galeria: null, playlist: null, aviso: '' };
+  return { sitio: leerSitio_(), base: String(cfg.sitioUrl || '').replace(/\/+$/, '') || 'https://rockerioproducciones.github.io/rockerio', tema: cfg.tema, html: '', ficha: null, galeria: null, playlist: null, microfonos: null, aviso: '' };
 }

@@ -72,13 +72,31 @@
     if (grupos.length > 1) mostrar(grupos[0], sel.firstChild); else mostrar(grupos[0], null);
   }
 
+  /** Catálogo de micrófonos: foto, marca/modelo, uso, descripción y sus muestras de audio, todo en una tarjeta. */
+  function pintarMics(cat, grupos) {
+    var norm = function (t) { return String(t || '').toLowerCase().replace(/\s+/g, ' ').trim(); }, porNombre = {}, usados = {};
+    grupos.forEach(function (g) { porNombre[norm(g.grupo)] = g; });
+    var lista = cat.map(function (m) { var g = porNombre[norm(m.nombre)]; if (g) usados[norm(m.nombre)] = 1; return { nombre: m.nombre, foto: m.foto, uso: m.uso, descripcion: m.descripcion || (g && g.descripcion) || '', items: g ? g.items : [] }; });
+    grupos.forEach(function (g) { if (!usados[norm(g.grupo)]) lista.push({ nombre: g.grupo, foto: '', uso: '', descripcion: g.descripcion || '', items: g.items }); });
+    var cont = $('mics'); cont.textContent = ''; $('mics-box').hidden = !lista.length;
+    lista.forEach(function (m) {
+      var it = el('div', 'mic-it'), f = el('div', 'mic-foto');
+      if (/^(https:\/\/|assets\/)/.test(m.foto || '')) { var im = el('img'); im.src = m.foto; im.alt = m.nombre; im.loading = 'lazy'; f.appendChild(im); } else f.appendChild(el('span', '', '🎙️'));
+      var tx = el('div', 'mic-tx'); tx.appendChild(el('b', '', m.nombre));
+      if (m.uso) { var u = el('p', 'mic-uso'); u.appendChild(el('strong', '', 'Uso: ')); u.appendChild(document.createTextNode(m.uso)); tx.appendChild(u); }
+      if (m.descripcion) tx.appendChild(el('p', 'mic-desc', m.descripcion));
+      if (m.items.length) { var mu = el('div', 'mic-muestras'); m.items.forEach(function (i) { mu.appendChild(muestra(i)); }); tx.appendChild(mu); } else tx.appendChild(el('small', 'nota', 'Muestra de audio próximamente.'));
+      it.appendChild(f); it.appendChild(tx); cont.appendChild(it);
+    });
+  }
+
   /* ---------- pintado ---------- */
   function pintar(c) {
     var mics = c.muestras.filter(function (g) { return g.tipo === 'Micrófono'; });
     var otros = c.muestras.filter(function (g) { return g.tipo !== 'Micrófono' && g.tipo !== 'Comparador'; });
     comparador(c.muestras.filter(function (g) { return g.tipo === 'Comparador'; }));
-    $('mics-box').hidden = !mics.length; $('escucha-box').hidden = !otros.length;
-    mics.forEach(function (g) { $('mics').appendChild(tarjeta(g)); });
+    $('escucha-box').hidden = !otros.length;
+    RK.micsCatalogo().then(function (cat) { pintarMics(cat || [], mics); });
     otros.forEach(function (g) { $('escucha').appendChild(tarjeta(g)); });
 
     var K = window.RK.cfg(); $('bandas').hidden = !K.verHonor; $('nav-bandas').hidden = !K.verHonor; var ch = $('cta-honor'); if (ch) ch.hidden = !K.verHonor;

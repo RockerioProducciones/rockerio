@@ -1,0 +1,56 @@
+[
+ {
+  "nombre": "Telefunken TF39",
+  "foto": "",
+  "uso": "Voces / Instrumentos de estudio",
+  "descripcion": "Condensador valvular multipatrón."
+ },
+ {
+  "nombre": "Telefunken M82",
+  "foto": "",
+  "uso": "Bombo / Bajo / Graves",
+  "descripcion": "Dinámico cardioide, ideal para bombo y graves."
+ },
+ {
+  "nombre": "Telefunken M80 SH",
+  "foto": "",
+  "uso": "Voces / Cajas",
+  "descripcion": "Dinámico cardioide."
+ },
+ {
+  "nombre": "Telefunken M81 SH",
+  "foto": "",
+  "uso": "Toms / Cajas / Guitarras",
+  "descripcion": "Dinámico cardioide (tenemos 3)."
+ },
+ {
+  "nombre": "Telefunken M60",
+  "foto": "",
+  "uso": "Overheads / Instrumentos",
+  "descripcion": "Condensador cardioide (tenemos 2)."
+ },
+ {
+  "nombre": "Shure Beta 91A",
+  "foto": "",
+  "uso": "Bombo",
+  "descripcion": "Micrófono de superficie para bombo."
+ },
+ {
+  "nombre": "Shure SM57",
+  "foto": "",
+  "uso": "Baterías / Guitarra amp / Cajas",
+  "descripcion": "Dinámico cardioide clásico (tenemos 4)."
+ },
+ {
+  "nombre": "Shure SM58",
+  "foto": "",
+  "uso": "Voces / Coros",
+  "descripcion": "Dinámico cardioide de voz (tenemos 3)."
+ },
+ {
+  "nombre": "Rode NT1-A",
+  "foto": "",
+  "uso": "Voces / Guitarra acústica / Overheads",
+  "descripcion": "Condensador cardioide de bajo ruido."
+ }
+]

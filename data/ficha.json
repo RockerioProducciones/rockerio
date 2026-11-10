@@ -381,7 +381,7 @@
    "id": "microfonos",
    "icono": "🎙️",
    "titulo": "Micrófonos",
-   "resumen": "Microfonía de alta gama. Toca un micrófono para escucharlo en distintas fuentes.",
+   "resumen": "Cada micrófono con su foto, para qué lo usamos y su muestra de audio.",
    "stats": [
     [
      "🎙️",
@@ -411,21 +411,7 @@
      "descripcion": "Captura de amplificadores y batería con micrófonos de estudio."
     }
    ],
-   "bloques": [
-    {
-     "titulo": "Microfonía de alta gama",
-     "items": [
-      "Telefunken TF39: condensador valvular multipatrón",
-      "Telefunken M82: dinámico cardioide (ideal para bombo y graves)",
-      "Telefunken M80 SH: dinámico cardioide",
-      "3 × Telefunken M81 SH: dinámicos cardioides (toms, cajas, guitarras)",
-      "2 × Telefunken M60: condensadores cardioides (overheads e instrumentos)",
-      "Shure Beta 91A: micrófono de superficie para bombo",
-      "4 × Shure SM57 y 3 × Shure SM58",
-      "Rode NT1-A: condensador cardioide"
-     ]
-    }
-   ],
+   "bloques": [],
    "mics": true
   },
   {

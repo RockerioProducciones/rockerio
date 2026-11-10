@@ -91,7 +91,7 @@ const { sembrar } = require('./demo.js');
   ok(/Mac mini M4/.test(await p.textContent('.ficha-panel')) && /LUNA 3\.0/.test(await p.textContent('.ficha-panel')), 'estación de trabajo con Mac mini M4 y LUNA 3.0');
   await p.screenshot({ path: 'v-ficha-estacion.png', fullPage: true });
   await p.locator('.ficha-tab', { hasText: 'Micrófonos' }).click(); await p.waitForTimeout(300);
-  ok(/Telefunken/.test(await p.textContent('.ficha-panel')), 'pestaña de micrófonos');
+  ok(/Telefunken/.test(await p.textContent('.ficha-panel')) && await p.locator('.ficha-panel .mic-it').count() >= 8 && /Uso:/.test(await p.textContent('.ficha-panel .mic-it')), 'micrófonos: foto, marca/modelo, uso y muestra en una sola tarjeta'); await p.locator('#mics').screenshot({ path: 'v-mics.png' });
   await p.locator('.ficha-tab', { hasText: 'Muestras' }).click(); await p.waitForTimeout(300);
   await p.locator('.ficha-tab', { hasText: 'Control room' }).click(); await p.waitForTimeout(300); await p.screenshot({ path: 'v-ficha-control.png' });
   await p.goto('http://localhost:8099/#galeria'); await p.waitForTimeout(700);

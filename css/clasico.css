@@ -334,3 +334,20 @@ body.con-vistas[data-vista]:not([data-vista="inicio"]) .menu{justify-content:saf
 .fo-tx p{margin:.25rem 0 0;font-size:.84rem;color:var(--mut);line-height:1.4}
 .fo-tx .carr-datos{margin-top:.35rem}
 @media(max-width:480px){.fo-it img{width:88px;height:88px}.fo-lista{grid-template-columns:1fr}}
+
+/* Catálogo de micrófonos: foto + marca/modelo + uso + muestras */
+.mic-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:.8rem}
+.mic-it{display:flex;gap:1rem;padding:.8rem;border:1px solid var(--borde);border-radius:14px;background:var(--panel);align-items:flex-start}
+.mic-foto{flex:none;width:150px;height:150px;border-radius:12px;overflow:hidden;background:var(--bg2);display:grid;place-items:center;font-size:3rem;border:1px solid var(--borde)}
+.mic-foto img{width:100%;height:100%;object-fit:cover}
+.mic-tx{min-width:0;flex:1}.mic-tx>b{display:block;font-size:1.1rem;color:var(--oro)}
+.mic-uso{margin:.3rem 0 0;font-size:.9rem}.mic-uso strong{color:var(--oro)}
+.mic-desc{margin:.25rem 0 0;font-size:.84rem;color:var(--mut);line-height:1.4}
+.mic-muestras{display:flex;flex-direction:column;gap:.3rem;margin-top:.55rem}
+.mic-muestras .muestra{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin:0}.mic-muestras .muestra .et{font-size:.82rem;color:var(--txt);min-width:5.5rem}
+.mic-muestras iframe,.mic-muestras audio{width:100%;max-width:100%;height:54px}
+@media(max-width:520px){.mic-lista{grid-template-columns:1fr}.mic-foto{width:104px;height:104px;font-size:2.2rem}}
+/* galería y ficha: punto intermedio */
+.fo-lista{grid-template-columns:repeat(auto-fill,minmax(400px,1fr))}
+.fo-it img{width:170px;height:170px}
+@media(max-width:520px){.fo-lista{grid-template-columns:1fr}.fo-it img{width:116px;height:116px}}
