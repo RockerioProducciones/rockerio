@@ -6,9 +6,9 @@
   var INST = ['Batería', 'Bajo', 'Guitarras', 'Voces', 'Otros'];
   var ICO = { 'Batería': '🥁', 'Bajo': '🎸', 'Guitarras': '🎸', 'Voces': '🎤', 'Otros': '🎹' };
   var ETAPAS = [
-    ['En bruto', '01 · RAW', 'Sin procesar: tal como entra al micrófono.'],
-    ['Mezcla', '02 · MIX', 'Cada pista con su EQ, compresión, panning y efectos.'],
-    ['Master', '03 · MASTER', 'Con la cadena de master: pegada, brillo y volumen comercial.']
+    ['En bruto', 'RAW', 'Sin procesar: tal como entra al micrófono.'],
+    ['Mezcla', 'MIX', 'Cada pista con su EQ, compresión, panning y efectos.'],
+    ['Master', 'MASTER', 'Con la cadena de master: pegada, brillo y volumen comercial.']
   ];
   var activo = null; // mezclador que está sonando (solo uno a la vez)
 
@@ -31,6 +31,23 @@
     return new Promise(function (ok, mal) { var r = ctx.decodeAudioData(ab, ok, mal); if (r && r.then) r.then(ok, mal); });
   }
 
+  var COLOR = { 'Batería': '#ff8a3d', 'Bajo': '#a78bfa', 'Guitarras': '#4ea8ff', 'Voces': '#ff5fa2', 'Otros': '#3ddc84' };
+  function picos(buf, n) {
+    var out = new Float32Array(n), canales = [], c, k, i;
+    for (c = 0; c < buf.numberOfChannels; c++) canales.push(buf.getChannelData(c));
+    var paso = Math.max(1, Math.floor(buf.length / n));
+    for (i = 0; i < n; i++) { var m = 0, ini = i * paso, fin = Math.min(buf.length, ini + paso); for (c = 0; c < canales.length; c++) { var d = canales[c]; for (k = ini; k < fin; k += 8) { var v = d[k] < 0 ? -d[k] : d[k]; if (v > m) m = v; } } out[i] = m; }
+    return out;
+  }
+  function dibujar(cv, pk, color) {
+    var dpr = window.devicePixelRatio || 1, w = Math.max(10, Math.round(cv.clientWidth * dpr)), h = Math.max(10, Math.round(cv.clientHeight * dpr));
+    cv.width = w; cv.height = h; var g = cv.getContext('2d'); g.clearRect(0, 0, w, h); g.fillStyle = color;
+    var mid = h / 2, ancho = Math.max(1, Math.round(2 * dpr)), paso = ancho + Math.max(1, Math.round(dpr));
+    if (!pk) { g.globalAlpha = .25; g.fillRect(0, mid - 0.5 * dpr, w, Math.max(1, dpr)); g.globalAlpha = 1; return; }
+    var max = 0.001; for (var a = 0; a < pk.length; a++) if (pk[a] > max) max = pk[a];
+    for (var x = 0; x < w; x += paso) { var v = pk[Math.min(pk.length - 1, Math.floor(x / w * pk.length))] / max, alto = Math.max(dpr, v * (h - 6 * dpr)); g.fillRect(x, mid - alto / 2, ancho, alto); }
+  }
+
   function montar(cont, g) {
     var P = parsear(g); if (P.inst.length < 1 || !P.etapas.length) return;
     cont.textContent = '';
@@ -40,18 +57,28 @@
     var estado = el('p', 'nota mz-estado', 'Carga unos 20 segundos de audio en pistas. Con datos móviles, mejor con Wi‑Fi.');
     cont.appendChild(cargar); cont.appendChild(estado);
     if (!Ctx) { cargar.disabled = true; estado.textContent = 'Tu navegador no admite el mezclador. Prueba con Chrome, Safari o Firefox actualizados.'; return; }
-    var ctx, buffers = {}, bus = {}, analisis = {}, gains = {}, fuentes = [], etapa = P.etapas[P.etapas.length - 1][0] === 'Master' ? P.etapas[0][0] : P.etapas[0][0];
+    var ctx, buffers = {}, pk = {}, gains = {}, fuentes = [], etapa = P.etapas[0][0];
     var mute = {}, solo = {}, dur = 0, t0 = 0, desde = 0, sonando = false, raf = 0, ui = {};
-    etapa = P.etapas[0][0];
 
     function audible(i) { var haySolo = P.inst.some(function (x) { return solo[x]; }); return !mute[i] && (haySolo ? !!solo[i] : true); }
-    function aplicar() {
+    function pintarOndas() {
+      P.inst.forEach(function (i) { dibujar(ui.filas[i].cv, pk[i + '|' + etapa], COLOR[i]); });
+    }
+    function aplicar(redibujar) {
       P.inst.forEach(function (i) { P.etapas.forEach(function (e) {
         var gn = gains[i + '|' + e[0]]; if (!gn) return;
         gn.gain.setTargetAtTime(e[0] === etapa && audible(i) ? 1 : 0, ctx.currentTime, 0.012);
       }); });
-      P.inst.forEach(function (i) { var f = ui.filas[i]; f.m.setAttribute('aria-pressed', mute[i] ? 'true' : 'false'); f.s.setAttribute('aria-pressed', solo[i] ? 'true' : 'false'); f.row.classList.toggle('apagada', !audible(i)); });
-      [].forEach.call(ui.et.children, function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-e') === etapa ? 'true' : 'false'); });
+      var faltan = [];
+      P.inst.forEach(function (i) {
+        var f = ui.filas[i], hay = !!buffers[i + '|' + etapa];
+        f.m.setAttribute('aria-pressed', mute[i] ? 'true' : 'false'); f.s.setAttribute('aria-pressed', solo[i] ? 'true' : 'false');
+        f.row.classList.toggle('apagada', !hay || !audible(i)); f.row.classList.toggle('sin-pista', !hay); if (!hay) faltan.push(i);
+      });
+      [].forEach.call(ui.et.children, function (b) { var on = b.getAttribute('data-e') === etapa; b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+      var def = P.etapas.filter(function (e) { return e[0] === etapa; })[0];
+      ui.desc.textContent = def[2] + (faltan.length ? ' En esta etapa no hay pista separada para: ' + faltan.join(', ') + ' (el audio viene como un conjunto, por eso M y S no los afectan).' : '');
+      if (redibujar !== false) pintarOndas();
     }
     function pos() { return sonando ? ((ctx.currentTime - t0) % dur) : desde; }
     function detener() { fuentes.forEach(function (s) { try { s.stop(); } catch (x) { /* ya detenida */ } try { s.disconnect(); } catch (x) { /* sin conexión */ } }); fuentes = []; }
@@ -59,72 +86,75 @@
       detener(); desde = off; t0 = ctx.currentTime - off;
       Object.keys(buffers).forEach(function (k) { var s = ctx.createBufferSource(); s.buffer = buffers[k]; s.loop = true; s.loopStart = 0; s.loopEnd = dur; s.connect(gains[k]); s.start(0, off); fuentes.push(s); });
     }
-    function reproducir() { if (activo && activo !== api) activo.pausar(); ctx.resume(); iniciar(desde); sonando = true; activo = api; ui.play.textContent = '⏸ Pausa'; ui.play.setAttribute('aria-pressed', 'true'); bucle(); }
-    function pausar() { if (!sonando) return; desde = pos(); sonando = false; detener(); ui.play.textContent = '▶ Reproducir'; ui.play.setAttribute('aria-pressed', 'false'); cancelAnimationFrame(raf); medidores(true); }
-    function medidores(cero) {
-      P.inst.forEach(function (i) {
-        var a = analisis[i], v = 0; if (a && !cero) { var d = new Uint8Array(a.fftSize); a.getByteTimeDomainData(d); for (var n = 0; n < d.length; n++) { var x = Math.abs(d[n] - 128) / 128; if (x > v) v = x; } }
-        ui.filas[i].med.style.transform = 'scaleX(' + Math.min(1, v * 1.4).toFixed(3) + ')';
-      });
-    }
-    function bucle() {
-      var p = pos(); ui.seek.value = String(Math.round(p / dur * 1000)); ui.tiempo.textContent = p.toFixed(1) + ' / ' + dur.toFixed(1) + ' s';
-      medidores(false); if (sonando) raf = requestAnimationFrame(bucle);
-    }
+    function hora(t) { var m = Math.floor(t / 60), s = t - m * 60; return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s.toFixed(1); }
+    function mostrarPos() { var p = pos(), f = dur ? p / dur : 0; ui.tiempo.textContent = hora(p); ui.lanes.setAttribute('aria-valuenow', String(Math.round(f * 100))); P.inst.forEach(function (i) { ui.filas[i].prog.style.transform = 'scaleX(' + f.toFixed(4) + ')'; }); }
+    function bucle() { mostrarPos(); if (sonando) raf = requestAnimationFrame(bucle); }
+    function reproducir() { if (activo && activo !== api) activo.pausar(); ctx.resume(); iniciar(desde); sonando = true; activo = api; ui.play.textContent = '⏸'; ui.play.setAttribute('aria-label', 'Pausa'); ui.play.setAttribute('aria-pressed', 'true'); bucle(); }
+    function pausar() { if (!sonando) return; desde = pos(); sonando = false; detener(); ui.play.textContent = '▶'; ui.play.setAttribute('aria-label', 'Reproducir'); ui.play.setAttribute('aria-pressed', 'false'); cancelAnimationFrame(raf); mostrarPos(); }
+    function ir(frac) { frac = Math.max(0, Math.min(0.999, frac)); desde = frac * dur; if (sonando) iniciar(desde); mostrarPos(); }
     var api = { pausar: pausar };
 
     function construir() {
       cont.textContent = '';
       if (g.descripcion) cont.appendChild(el('p', 'nota', g.descripcion));
+      var daw = el('div', 'mz-daw');
+      // barra superior (transporte y etapa)
+      var top = el('div', 'mz-top');
+      ui.play = el('button', 'mz-play', '▶'); ui.play.type = 'button'; ui.play.setAttribute('aria-label', 'Reproducir'); ui.play.setAttribute('aria-pressed', 'false');
+      ui.play.addEventListener('click', function () { if (sonando) pausar(); else reproducir(); });
+      var rel = el('div', 'mz-reloj'); ui.tiempo = el('b', '', hora(0)); rel.appendChild(ui.tiempo); rel.appendChild(el('small', '', '/ ' + hora(dur)));
+      var tit = el('div', 'mz-sesion'); tit.appendChild(el('small', '', 'SESIÓN')); tit.appendChild(el('b', '', g.grupo));
       ui.et = el('div', 'mz-etapas'); ui.et.setAttribute('role', 'group'); ui.et.setAttribute('aria-label', 'Etapa del sonido');
       P.etapas.forEach(function (e) {
         var b = el('button', 'mz-et'); b.type = 'button'; b.setAttribute('data-e', e[0]); b.setAttribute('aria-pressed', 'false');
-        b.appendChild(el('b', '', e[1])); b.appendChild(el('small', '', e[2]));
-        b.addEventListener('click', function () { etapa = e[0]; aplicar(); }); ui.et.appendChild(b);
+        b.appendChild(el('i', 'mz-led')); b.appendChild(el('span', '', e[1])); b.addEventListener('click', function () { etapa = e[0]; aplicar(); }); ui.et.appendChild(b);
       });
-      cont.appendChild(ui.et);
-      var tr = el('div', 'mz-trans');
-      ui.play = el('button', 'btn', '▶ Reproducir'); ui.play.type = 'button'; ui.play.setAttribute('aria-pressed', 'false');
-      ui.play.addEventListener('click', function () { if (sonando) pausar(); else reproducir(); });
-      ui.seek = el('input', 'mz-seek'); ui.seek.type = 'range'; ui.seek.min = '0'; ui.seek.max = '1000'; ui.seek.value = '0'; ui.seek.setAttribute('aria-label', 'Posición');
-      ui.seek.addEventListener('input', function () { var off = Number(ui.seek.value) / 1000 * dur; desde = off; if (sonando) iniciar(off); ui.tiempo.textContent = off.toFixed(1) + ' / ' + dur.toFixed(1) + ' s'; });
-      ui.tiempo = el('span', 'mz-tiempo', '0.0 / ' + dur.toFixed(1) + ' s');
-      tr.appendChild(ui.play); tr.appendChild(ui.seek); tr.appendChild(ui.tiempo); cont.appendChild(tr);
-      var pistas = el('div', 'mz-pistas'); ui.filas = {};
+      top.appendChild(ui.play); top.appendChild(rel); top.appendChild(tit); top.appendChild(ui.et); daw.appendChild(top);
+      ui.desc = el('p', 'mz-desc'); daw.appendChild(ui.desc);
+      // pistas con forma de onda
+      ui.lanes = el('div', 'mz-pistas'); ui.lanes.tabIndex = 0; ui.lanes.setAttribute('role', 'slider'); ui.lanes.setAttribute('aria-label', 'Posición de la canción'); ui.lanes.setAttribute('aria-valuemin', '0'); ui.lanes.setAttribute('aria-valuemax', '100'); ui.lanes.setAttribute('aria-valuenow', '0');
+      ui.lanes.addEventListener('keydown', function (ev) {
+        if (ev.key === 'ArrowRight') { ir((pos() + 1) / dur); ev.preventDefault(); } else if (ev.key === 'ArrowLeft') { ir((pos() - 1) / dur); ev.preventDefault(); } else if (ev.key === ' ') { if (sonando) pausar(); else reproducir(); ev.preventDefault(); }
+      });
+      ui.filas = {};
       P.inst.forEach(function (i) {
-        var row = el('div', 'mz-pista'), nom = el('div', 'mz-nom'); nom.appendChild(el('span', 'mz-ico', ICO[i])); nom.appendChild(el('b', '', i));
-        var m = el('button', 'mz-b', 'M'), s = el('button', 'mz-b', 'S'); m.type = s.type = 'button';
-        m.title = 'Silenciar ' + i; s.title = 'Solo ' + i; m.setAttribute('aria-label', 'Silenciar ' + i); s.setAttribute('aria-label', 'Solo ' + i);
-        m.setAttribute('aria-pressed', 'false'); s.setAttribute('aria-pressed', 'false');
-        m.addEventListener('click', function () { mute[i] = !mute[i]; aplicar(); });
-        s.addEventListener('click', function () { solo[i] = !solo[i]; aplicar(); });
-        var medw = el('div', 'mz-medw'), med = el('div', 'mz-med'); medw.appendChild(med);
-        row.appendChild(nom); row.appendChild(m); row.appendChild(s); row.appendChild(medw); pistas.appendChild(row); ui.filas[i] = { row: row, m: m, s: s, med: med };
+        var row = el('div', 'mz-pista'); row.style.setProperty('--c', COLOR[i]);
+        var cab = el('div', 'mz-cab'); cab.appendChild(el('span', 'mz-ico', ICO[i])); cab.appendChild(el('b', 'mz-nom', i));
+        var bt = el('div', 'mz-bts'), m = el('button', 'mz-b', 'M'), s = el('button', 'mz-b', 'S'); m.type = s.type = 'button';
+        m.title = 'Silenciar ' + i; s.title = 'Solo ' + i; m.setAttribute('aria-label', 'Silenciar ' + i); s.setAttribute('aria-label', 'Solo ' + i); m.setAttribute('aria-pressed', 'false'); s.setAttribute('aria-pressed', 'false');
+        m.addEventListener('click', function () { mute[i] = !mute[i]; aplicar(false); }); s.addEventListener('click', function () { solo[i] = !solo[i]; aplicar(false); });
+        bt.appendChild(s); bt.appendChild(m); cab.appendChild(bt);
+        var onda = el('div', 'mz-onda'), cv = document.createElement('canvas'), prog = el('div', 'mz-prog'); cv.setAttribute('aria-hidden', 'true');
+        onda.appendChild(cv); onda.appendChild(prog); onda.appendChild(el('span', 'mz-nopista', 'sin pista en esta etapa'));
+        var arrastra = false;
+        function desdeEvento(ev) { var r = onda.getBoundingClientRect(); ir((ev.clientX - r.left) / r.width); }
+        onda.addEventListener('pointerdown', function (ev) { arrastra = true; try { onda.setPointerCapture(ev.pointerId); } catch (x) { /* sin captura */ } desdeEvento(ev); });
+        onda.addEventListener('pointermove', function (ev) { if (arrastra) desdeEvento(ev); });
+        onda.addEventListener('pointerup', function () { arrastra = false; }); onda.addEventListener('pointercancel', function () { arrastra = false; });
+        row.appendChild(cab); row.appendChild(onda); ui.lanes.appendChild(row); ui.filas[i] = { row: row, m: m, s: s, cv: cv, prog: prog };
       });
-      cont.appendChild(pistas);
+      daw.appendChild(ui.lanes);
       var pie = el('div', 'mz-pie'); var rs = el('button', 'btn chico sec-b', 'Reiniciar pistas'); rs.type = 'button';
-      rs.addEventListener('click', function () { mute = {}; solo = {}; aplicar(); }); pie.appendChild(rs);
-      pie.appendChild(el('small', 'nota', 'M = silenciar · S = solo. Cambia de etapa mientras suena para comparar. El volumen sube en el master, como en un disco real.'));
-      cont.appendChild(pie);
-      aplicar();
+      rs.addEventListener('click', function () { mute = {}; solo = {}; aplicar(false); }); pie.appendChild(rs);
+      pie.appendChild(el('small', 'nota', 'S = escuchar solo esa pista · M = silenciarla · toca la forma de onda para saltar a otro punto.'));
+      daw.appendChild(pie); cont.appendChild(daw);
+      aplicar(); mostrarPos();
+      var tmr = 0; window.addEventListener('resize', function () { clearTimeout(tmr); tmr = setTimeout(pintarOndas, 150); });
     }
 
     cargar.addEventListener('click', function () {
       cargar.disabled = true; ctx = new Ctx(); try { ctx.resume(); } catch (x) { /* se reanuda al reproducir */ }
       var lista = []; P.inst.forEach(function (i) { P.etapas.forEach(function (e) { var u = P.pistas[i][e[0]]; if (u) lista.push([i, e[0], u]); }); });
-      var hechos = 0, sig = 0, fallo = null;
+      var hechos = 0, sig = 0;
       estado.textContent = 'Cargando pistas 0/' + lista.length + '…';
       function uno() {
-        if (fallo || sig >= lista.length) return Promise.resolve();
+        if (sig >= lista.length) return Promise.resolve();
         var it = lista[sig++];
-        return bajar(it[2]).then(function (ab) { return decodificar(ctx, ab); }).then(function (b) { buffers[it[0] + '|' + it[1]] = b; estado.textContent = 'Cargando pistas ' + (++hechos) + '/' + lista.length + '…'; }).then(uno);
+        return bajar(it[2]).then(function (ab) { return decodificar(ctx, ab); }).then(function (b) { buffers[it[0] + '|' + it[1]] = b; pk[it[0] + '|' + it[1]] = picos(b, 480); estado.textContent = 'Cargando pistas ' + (++hechos) + '/' + lista.length + '…'; }).then(uno);
       }
       Promise.all([uno(), uno(), uno()]).then(function () {
         dur = Math.min.apply(null, Object.keys(buffers).map(function (k) { return buffers[k].duration; }));
-        P.inst.forEach(function (i) {
-          var b = ctx.createGain(), a = ctx.createAnalyser(); a.fftSize = 512; b.connect(a); a.connect(ctx.destination); bus[i] = b; analisis[i] = a;
-          P.etapas.forEach(function (e) { if (!buffers[i + '|' + e[0]]) return; var gn = ctx.createGain(); gn.gain.value = 0; gn.connect(b); gains[i + '|' + e[0]] = gn; });
-        });
+        Object.keys(buffers).forEach(function (k) { var gn = ctx.createGain(); gn.gain.value = 0; gn.connect(ctx.destination); gains[k] = gn; });
         construir();
       }).catch(function (er) {
         try { ctx.close(); } catch (x) { /* ya cerrado */ }
