@@ -313,3 +313,21 @@ body.con-vistas[data-vista]:not([data-vista="inicio"]) .menu .tarjeta{padding:.4
 #aislados .comp-canciones{margin:.4rem 0 .8rem}
 #aislados .muestra{margin:.4rem 0}
 @media(max-width:600px){.prod-tabs .ficha-tab{flex:1 0 82px}.prod-tabs .ficha-tab .ft-tit{font-size:.74rem}}
+
+/* Demostración técnica + mezclador */
+.menu .tarjeta[data-vista="demo"]{--i:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%221.7%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M3 12h2.5l2-6 3.5 12 3-9 2 3H21%22/%3E%3C/svg%3E")}
+.demo-intro{margin:.2rem 0 .8rem}
+.mz-etapas{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.5rem;margin:.6rem 0}
+.mz-et{text-align:left;background:#10100f;border:1px solid var(--borde);border-radius:12px;padding:.7rem .8rem;color:var(--txt);cursor:pointer;min-height:44px}
+.mz-et b{display:block;font-size:.78rem;letter-spacing:.08em;color:var(--mut)}.mz-et small{display:block;color:var(--mut);margin-top:.2rem;font-size:.76rem;line-height:1.3}
+.mz-et[aria-pressed=true]{border-color:var(--oro);background:color-mix(in srgb,var(--oro) 12%,#10100f)}.mz-et[aria-pressed=true] b{color:var(--oro)}
+.mz-trans{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;margin:.6rem 0}
+.mz-seek{flex:1 1 140px;min-width:120px;accent-color:var(--oro);height:32px}.mz-tiempo{font-size:.8rem;color:var(--mut);font-variant-numeric:tabular-nums}
+.mz-pistas{display:grid;gap:.45rem}
+.mz-pista{display:grid;grid-template-columns:minmax(96px,1.2fr) 44px 44px minmax(60px,2fr);gap:.5rem;align-items:center;background:#10100f;border:1px solid var(--borde);border-radius:12px;padding:.4rem .6rem;transition:opacity .15s}
+.mz-pista.apagada{opacity:.45}.mz-nom{display:flex;align-items:center;gap:.4rem;min-width:0}.mz-nom b{font-size:.92rem;overflow-wrap:anywhere}.mz-ico{font-size:1.2rem}
+.mz-b{min-width:44px;min-height:44px;border-radius:10px;border:1px solid var(--borde);background:var(--panel);color:var(--txt);font-weight:800;cursor:pointer}
+.mz-b[aria-pressed=true]{background:var(--oro);color:#1a1204;border-color:var(--oro)}
+.mz-medw{height:10px;border-radius:5px;background:#000;overflow:hidden}.mz-med{height:100%;width:100%;background:linear-gradient(90deg,#3ddc84,var(--oro),#ff5a4a);transform-origin:left;transform:scaleX(0)}
+.mz-pie{display:flex;gap:.7rem;align-items:center;flex-wrap:wrap;margin-top:.7rem}.mz-estado{margin:.5rem 0 0}
+@media(max-width:480px){.mz-pista{grid-template-columns:1fr 44px 44px;grid-template-areas:"n m s" "v v v"}.mz-pista .mz-nom{grid-area:n}.mz-pista .mz-medw{grid-area:v}}

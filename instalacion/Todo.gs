@@ -65,7 +65,7 @@ var Reglas = (function () {
     presentacion: '',             // vacío = la sección Producción muestra un texto base
     // Textos de la portada y secciones visibles del sitio
     heroTitulo: 'Tu banda suena aquí', heroTexto: 'Sala de ensayo y estudio de grabación en Quinta Normal, Santiago.',
-    verProduccion: true, verFicha: true, verPlanes: true, verGaleria: true, verEvaluaciones: true, verProaudix: true, verContacto: true, verTienda: true, verHonor: true, verCotizar: true, verReglamento: true,
+    verProduccion: true, verDemo: true, verFicha: true, verPlanes: true, verGaleria: true, verEvaluaciones: true, verProaudix: true, verContacto: true, verTienda: true, verHonor: true, verCotizar: true, verReglamento: true,
     // Contacto y redes (enlaces https://; vacío = no se muestra)
     sitioWeb: '', redInstagram: 'https://instagram.com/rockerio_producciones', redFacebook: '', redYoutube: '', redTiktok: '', redSpotify: '', redYoutubeMusic: 'https://music.youtube.com/playlist?list=PLVvxu7INRfmo', redTwitch: '', redLinktree: '', correoContacto: 'rockerioestudio@gmail.com', mapsUrl: '',
     enlacesExtra: '',             // una línea por enlace: «Texto | https://…»
@@ -227,7 +227,7 @@ var Reglas = (function () {
     c.presentacion = aTexto(raw.presentacion, d.presentacion);
     ['sitioWeb', 'redInstagram', 'redFacebook', 'redYoutube', 'redTiktok', 'redSpotify', 'redYoutubeMusic', 'redTwitch', 'redLinktree', 'correoContacto', 'mapsUrl', 'enlacesExtra', 'proaudixWeb', 'proaudixInstagram', 'proaudixFacebook', 'proaudixYoutube', 'proaudixEnlaces'].forEach(function (k) { c[k] = aTexto(raw[k], d[k]); });
     c.heroTitulo = aTexto(raw.heroTitulo, d.heroTitulo) || d.heroTitulo; c.heroTexto = aTexto(raw.heroTexto, d.heroTexto) || d.heroTexto;
-    ['verProduccion', 'verFicha', 'verPlanes', 'verGaleria', 'verEvaluaciones', 'verProaudix', 'verContacto', 'verTienda', 'verHonor', 'verCotizar', 'verReglamento'].forEach(function (k) { c[k] = aBool(raw[k], d[k]); });
+    ['verProduccion', 'verDemo', 'verFicha', 'verPlanes', 'verGaleria', 'verEvaluaciones', 'verProaudix', 'verContacto', 'verTienda', 'verHonor', 'verCotizar', 'verReglamento'].forEach(function (k) { c[k] = aBool(raw[k], d[k]); });
     c.proaudixTexto = aTexto(raw.proaudixTexto, d.proaudixTexto) || d.proaudixTexto;
     c.proaudixWhatsapp = String(aTexto(raw.proaudixWhatsapp, d.proaudixWhatsapp)).replace(/\D/g, '');
     ['precioEnsayoHora', 'precioGrabacionHora', 'precioExtraEquipo', 'precioVideo', 'precioRaw', 'abonoPorHora',
@@ -636,6 +636,8 @@ function doGet(e) {
         return json_({ ok: true, config: configPublica_(), tienda: tiendaPublica_(), sitio: sitioPublico_(), ahora: ahoraChile_() });
       case 'contenido':
         return json_({ ok: true, contenido: contenidoPublico_() });
+      case 'audiomix':
+        return json_(audioMezclador_(p.id));
       case 'agenda':
         return json_(agenda_(p.dias, p.plan === '1'));
       case 'disponibilidad':
@@ -2377,7 +2379,7 @@ function adminAjustarRetencion(codigo, monto, nota) {
 var ESTADOS_MOD = ['PENDIENTE', 'APROBADA', 'RECHAZADA'];
 var ESTADOS_SOL = ['NUEVA', 'COTIZADA', 'ACEPTADA', 'RECHAZADA', 'CERRADA'];
 var TIPOS_SOL = { plan8: 'Plan mensual de 8 horas', plan12: 'Plan mensual de 12 horas', produccion: 'Producción musical', otro: 'Otra consulta' };
-var TIPOS_MUESTRA = ['Micrófono', 'Canción', 'Ensayo', 'Comparador', 'Aislado', 'Otro'];
+var TIPOS_MUESTRA = ['Micrófono', 'Canción', 'Ensayo', 'Comparador', 'Aislado', 'Mezclador', 'Otro'];
 var REDES_HONOR = ['Instagram', 'YouTube', 'TikTok', 'Facebook', 'Spotify', 'Bandcamp', 'SoundCloud', 'X', 'Sitio web'];
 
 /* ---------- limpieza y validación (funciones puras, con pruebas en tests/contenido.test.js) ---------- */
@@ -2805,6 +2807,58 @@ function adminSubirArchivoAudio(p) {
   if (!t) throw new Error('El archivo debe ser un audio mp3, wav, m4a u ogg.');
   var id = guardarPublico_(carpetaDrive_(CARPETA_AUDIOS), limpiar_(p.grupo, 40).replace(/[^\w\- ]/g, '') + '-' + limpiar_(p.etiqueta, 20).replace(/[^\w\- ]/g, '') + '-' + Date.now() + '.' + t[1], t[0], bytes);
   return 'https://drive.google.com/file/d/' + id + '/view';
+}
+
+
+/* ---------- Mezclador (mini DAW del sitio): una canción de ~20 s en pistas, en tres etapas ---------- */
+var MEZ_INSTRUMENTOS = ['Batería', 'Bajo', 'Guitarras', 'Voces', 'Otros'];
+var MEZ_ETAPAS = ['En bruto', 'Mezcla', 'Master'];
+function enlaceAudioValido_(e) { return /^https:\/\/\S{4,400}$/.test(e) || /^audio\/[\w\-. \/]{1,150}$/.test(e); }
+
+/** d = {titulo, descripcion, pistas: {'Batería|En bruto': enlace, …}}. Reemplaza la canción si ya existía. */
+function adminGuardarMezclador(d) {
+  exigirAdmin_();
+  var titulo = limpiar_(d.titulo, 80);
+  if (!titulo) throw new Error('Escribe el nombre de la canción.');
+  var filas = [], pistas = d.pistas || {};
+  MEZ_INSTRUMENTOS.forEach(function (i) {
+    MEZ_ETAPAS.forEach(function (e) {
+      var v = String(pistas[i + '|' + e] || '').trim(); if (!v) return;
+      if (!enlaceAudioValido_(v)) throw new Error('El enlace de «' + i + ' · ' + e + '» debe empezar con https:// o ser una ruta audio/archivo.mp3.');
+      filas.push([textoSeguro_(titulo), 'Mezclador', i + ' · ' + e, v, textoSeguro_(limpiar_(d.descripcion, 300)), 'SI']);
+    });
+  });
+  if (filas.length < 2) throw new Error('Agrega al menos 2 pistas para armar el mezclador.');
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.muestras), n = sh.getLastRow();
+    for (var i = n; i >= 2; i--) { var r = sh.getRange(i, 1, 1, 2).getValues()[0]; if (String(r[1]) === 'Mezclador' && String(r[0]) === titulo) sh.deleteRow(i); }
+    filas.forEach(function (f) { sh.appendRow(f); });
+    limpiarCacheContenido_();
+    return adminResumen();
+  });
+}
+function adminEliminarMezclador(titulo) {
+  exigirAdmin_();
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.muestras), n = sh.getLastRow();
+    for (var i = n; i >= 2; i--) { var r = sh.getRange(i, 1, 1, 2).getValues()[0]; if (String(r[1]) === 'Mezclador' && String(r[0]) === String(titulo)) sh.deleteRow(i); }
+    limpiarCacheContenido_();
+    return adminResumen();
+  });
+}
+/** Entrega el audio de una pista (en base64) para que el navegador lo mezcle. Solo sirve archivos que estén en una fila visible de tipo Mezclador. */
+function audioMezclador_(id) {
+  id = String(id || '');
+  if (!/^[\w-]{4,80}$/.test(id)) return { ok: false, error: 'Audio no válido.' };
+  if (limiteGlobal_('audiomix', 1500)) return { ok: false, codigo: 'TASA', error: 'Hay muchas solicitudes ahora. Intenta más tarde.' };
+  var sh = abrirBd_().getSheetByName(HOJAS.muestras), permitido = false;
+  if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 6).getValues().forEach(function (r) {
+    if (String(r[1]) === 'Mezclador' && Reglas.aBool(r[5], false) && String(r[3]).indexOf('/d/' + id + '/') >= 0) permitido = true;
+  });
+  if (!permitido) return { ok: false, error: 'Audio no disponible.' };
+  var bytes = DriveApp.getFileById(id).getBlob().getBytes(), t = tipoAudio_(bytes);
+  if (!t || bytes.length > 12 * 1024 * 1024) return { ok: false, error: 'Audio no disponible.' };
+  return { ok: true, tipo: t[0], b64: Utilities.base64Encode(bytes) };
 }
 
 /** Edita los datos de una banda del cuadro de honor (y opcionalmente cambia el logo). */
@@ -4083,7 +4137,8 @@ var ESQUEMA = [
 
   ['heroTitulo', 'Portada: título', 'texto', 'Portada y secciones', 'Frase grande de la portada.', 60],
   ['heroTexto', 'Portada: texto', 'texto', 'Portada y secciones', 'Frase de apoyo bajo el título.', 160],
-  ['verProduccion', 'Mostrar «Producción»', 'sino', 'Portada y secciones', 'Tu presentación y enfoque.'],
+  ['verProduccion', 'Mostrar «Producción»', 'sino', 'Portada y secciones', 'Tu presentación, enfoque e infraestructura.'],
+  ['verDemo', 'Mostrar «Demostración técnica»', 'sino', 'Portada y secciones', 'Mezclador, antes y después e instrumentos aislados.'],
   ['verFicha', 'Mostrar «Ficha técnica»', 'sino', 'Portada y secciones', 'Equipos, micrófonos y backline.'],
   ['verPlanes', 'Mostrar «Planes mensuales»', 'sino', 'Portada y secciones', 'Permite a los clientes solicitar planes.'],
   ['verGaleria', 'Mostrar «Galería»', 'sino', 'Portada y secciones', 'Fotos y videos.'],

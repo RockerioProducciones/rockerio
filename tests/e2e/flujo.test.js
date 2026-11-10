@@ -493,6 +493,27 @@ t('muestras de instrumentos aislados (tipo Aislado) se publican agrupadas', () =
   const m = gx.get({ accion: 'contenido' }).contenido.muestras.filter((x) => x.tipo === 'Aislado');
   assert.strictEqual(m.length, 2); assert.strictEqual(m[0].items.length, 2); assert.strictEqual(m[0].grupo, 'Batería');
 });
+t('mezclador: guarda pistas, entrega solo audios autorizados y valida', () => {
+  const gx = require('./gas-sim').crear(); gx.instalar();
+  const b64 = Buffer.from([0x49, 0x44, 0x33, 3, 0, 0, 1, 2, 3, 4, 5, 6]).toString('base64');
+  const url = (et) => gx.admin('adminSubirArchivoAudio', { grupo: 'Cancion', etiqueta: et, b64 });
+  const u1 = url('Bateria raw'), u2 = url('Bajo raw');
+  const huerfano = url('Suelto'); // subido pero sin fila Mezclador
+  assert.throws(() => gx.admin('adminGuardarMezclador', { titulo: 'Tema', pistas: { 'Batería|En bruto': u1 } }), /al menos 2/);
+  assert.throws(() => gx.admin('adminGuardarMezclador', { titulo: 'Tema', pistas: { 'Batería|En bruto': 'http://malo', 'Bajo|En bruto': u2 } }), /https/);
+  gx.admin('adminGuardarMezclador', { titulo: 'Tema', descripcion: 'Demo', pistas: { 'Batería|En bruto': u1, 'Bajo|En bruto': u2, 'Batería|Mezcla': u1 } });
+  const g = gx.get({ accion: 'contenido' }).contenido.muestras.filter((x) => x.tipo === 'Mezclador');
+  assert.strictEqual(g.length, 1); assert.strictEqual(g[0].items.length, 3); assert.strictEqual(g[0].items[0].etiqueta, 'Batería · En bruto');
+  const id = /\/d\/([\w-]+)\//.exec(u1)[1], ok = gx.get({ accion: 'audiomix', id });
+  assert.strictEqual(ok.ok, true); assert.strictEqual(ok.tipo, 'audio/mpeg'); assert.strictEqual(ok.b64, b64);
+  assert.strictEqual(gx.get({ accion: 'audiomix', id: /\/d\/([\w-]+)\//.exec(huerfano)[1] }).ok, false);
+  assert.strictEqual(gx.get({ accion: 'audiomix', id: '../../x' }).ok, false);
+  gx.admin('adminGuardarMezclador', { titulo: 'Tema', pistas: { 'Batería|En bruto': u1, 'Bajo|En bruto': u2 } });
+  assert.strictEqual(gx.get({ accion: 'contenido' }).contenido.muestras.filter((x) => x.tipo === 'Mezclador')[0].items.length, 2);
+  gx.admin('adminEliminarMezclador', 'Tema');
+  assert.strictEqual(gx.get({ accion: 'contenido' }).contenido.muestras.filter((x) => x.tipo === 'Mezclador').length, 0);
+  assert.strictEqual(gx.get({ accion: 'audiomix', id }).ok, false);
+});
 t('postular al cuadro de honor con redes (máx. 3) y último trabajo', () => {
   const gx = require('./gas-sim').crear(); gx.instalar();
   const base = { accion: 'honor', banda: 'Los Redes', telefono: '+56 9 7777 6666', correo: 'lr@correo.cl', resena: 'Grabamos nuestro EP aquí', genero: 'Rock', ultimo: 'https://youtu.be/dQw4w9WgXcQ' };

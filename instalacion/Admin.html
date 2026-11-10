@@ -322,6 +322,12 @@ section.tab-off{display:none!important}
 <div class="fila" style="margin-top:6px"><label style="width:110px;color:#b5afa6">03 · Masterizada</label><input id="cm3" placeholder="https://drive.google.com/file/d/…" style="flex:1;min-width:200px"><input type="file" id="cf3" accept="audio/mpeg,audio/wav,audio/mp4,audio/ogg,.mp3,.wav,.m4a,.ogg"></div>
 <div style="margin-top:8px"><button id="cmg">Guardar canción en el comparador</button></div>
 <table><tbody id="cml"></tbody></table></section>
+<section id="sec-mez"><h2>Mezclador de pistas</h2>
+<p style="color:#b5afa6;margin:0 0 .5em">El «mini DAW» del sitio (Demostración técnica). Elige un tramo de unos 20 segundos de una canción y exporta cada instrumento por separado, todas las pistas con la misma duración y el mismo punto de inicio, en mp3 (máx. 12 MB c/u). <b>En bruto</b>: la pista sin procesar. <b>Mezcla</b>: la pista ya mezclada (EQ, compresión, panning, efectos), sin master. <b>Master</b>: la pista exportada pasando por la cadena de master. No necesitas llenar todo: con 2 pistas ya funciona, y las etapas vacías no se muestran. Pega un enlace de Drive o sube el archivo.</p>
+<div class="fila"><input id="mzt" placeholder="Nombre de la canción" maxlength="80" style="flex:1;min-width:200px"><input id="mzd" placeholder="Descripción (opcional)" maxlength="300" style="flex:2;min-width:220px"></div>
+<div id="mzg" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:8px;margin-top:8px"></div>
+<div style="margin-top:8px"><button id="mzb">Guardar en el mezclador</button> <button id="mzx" class="sec" type="button">Limpiar</button></div>
+<table><tbody id="mzl"></tbody></table></section>
 <section id="sec-wa"><h2>Mensajes de WhatsApp</h2>
 <p style="color:#b5afa6;margin:0 0 .5em">Textos de los mensajes. En la tarjeta de cada cliente y en el detalle de cada reserva hay un botón por mensaje: abre WhatsApp con el texto ya escrito (un toque, gratis). Variables: {nombre} {banda} {servicio} {fecha} {hora} {fin} {codigo} {total} {abono} {saldo} {direccion} {negocio} {sitio} {horasAnulacion} {enlaceDescarga} {enlaceResena} {enlaceHonor}. Vacío = vuelve al texto original.</p>
 <div id="wam"></div><div style="margin-top:6px"><button id="wag">Guardar mensajes</button></div>
@@ -826,7 +832,26 @@ function subirComp(f,g,et){return new Promise(function(ok,mal){if(f.size>12*1024
 $('cmg').onclick=function(){var g=$('cmt').value.trim();if(!g){aviso('Escribe el nombre de la canción.');return}
   var ets=['En bruto','Mezclada','Masterizada'],pasos=[1,2,3].map(function(i){var f=$('cf'+i).files[0];return f?(aviso('Subiendo '+ets[i-1]+'…'),subirComp(f,g,ets[i-1])):Promise.resolve($('cm'+i).value.trim())});
   Promise.all(pasos).then(function(v){google.script.run.withSuccessHandler(function(r){['cmt','cmd','cm1','cm2','cm3'].forEach(function(i){$(i).value=''});['cf1','cf2','cf3'].forEach(function(i){$(i).value=''});pintar(r);aviso('Canción guardada en el comparador ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminGuardarComparador({titulo:g,descripcion:$('cmd').value,bruto:v[0],mezclada:v[1],master:v[2]})}).catch(function(e){aviso(e.message||'No se pudo subir el audio')})};
-function pintarMuestras(ms){var t=$('mue');t.textContent='';pintarComp(ms);ms=ms.filter(function(m){return m.tipo!=='Comparador'});
+var MEZ_I=['Batería','Bajo','Guitarras','Voces','Otros'],MEZ_E=['En bruto','Mezcla','Master'];
+(function(){var g=$('mzg');MEZ_I.forEach(function(i){MEZ_E.forEach(function(e){var k=i+'|'+e,d=document.createElement('div');d.style.cssText='border:1px solid #333;border-radius:8px;padding:6px';
+  var l=document.createElement('label');l.textContent=i+' · '+e;l.style.cssText='display:block;color:#b5afa6;font-size:12px;margin-bottom:3px';
+  var u=document.createElement('input');u.className='mzu';u.setAttribute('data-k',k);u.placeholder='https://drive.google.com/file/d/…';u.style.width='100%';
+  var f=document.createElement('input');f.type='file';f.className='mzf';f.setAttribute('data-k',k);f.accept='audio/mpeg,audio/wav,audio/ogg,audio/mp4,.mp3,.wav,.m4a,.ogg';f.style.cssText='width:100%;margin-top:3px';
+  d.appendChild(l);d.appendChild(u);d.appendChild(f);g.appendChild(d)})})})();
+function mezLimpiar(){['mzt','mzd'].forEach(function(i){$(i).value=''});[].forEach.call(document.querySelectorAll('.mzu,.mzf'),function(i){i.value=''})}
+$('mzx').onclick=mezLimpiar;
+$('mzb').onclick=function(){var g=$('mzt').value.trim();if(!g){aviso('Escribe el nombre de la canción.');return}
+  var pistas={},cadena=Promise.resolve();
+  [].forEach.call(document.querySelectorAll('.mzu'),function(u){var k=u.getAttribute('data-k'),f=document.querySelector('.mzf[data-k="'+k+'"]').files[0];
+    cadena=cadena.then(function(){if(f){aviso('Subiendo '+k.replace('|',' · ')+'…');return subirComp(f,g,k.replace('|',' ')).then(function(url){pistas[k]=url})}if(u.value.trim())pistas[k]=u.value.trim()})});
+  cadena.then(function(){google.script.run.withSuccessHandler(function(r){mezLimpiar();pintar(r);aviso('Canción guardada en el mezclador ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminGuardarMezclador({titulo:g,descripcion:$('mzd').value.trim(),pistas:pistas})}).catch(function(e){aviso(e.message||'Error al subir')})};
+function pintarMez(ms){var t=$('mzl');t.textContent='';var gs={};
+  ms.forEach(function(m){if(m.tipo!=='Mezclador')return;(gs[m.grupo]=gs[m.grupo]||[]).push(m)});
+  Object.keys(gs).forEach(function(g){var tr=document.createElement('tr');tr.appendChild(td('🎛️ '+g));tr.appendChild(td(gs[g].length+' pistas'));var c=document.createElement('td');
+    c.appendChild(btn('Editar',function(){mezLimpiar();$('mzt').value=g;$('mzd').value=gs[g][0].descripcion||'';gs[g].forEach(function(m){var k=String(m.etiqueta).replace(/\s*·\s*/,'|'),u=document.querySelector('.mzu[data-k="'+k+'"]');if(u)u.value=m.enlace});$('sec-mez').scrollIntoView({block:'start'})},'sec'));
+    c.appendChild(btnDel('Eliminar','¿Eliminar esta canción del mezclador?',function(){ejecutar('adminEliminarMezclador',g)}));tr.appendChild(c);t.appendChild(tr)});
+  if(!Object.keys(gs).length){var tr=document.createElement('tr');tr.appendChild(td('Aún no hay canciones en el mezclador.'));t.appendChild(tr)}}
+function pintarMuestras(ms){var t=$('mue');t.textContent='';pintarComp(ms);pintarMez(ms);ms=ms.filter(function(m){return m.tipo!=='Comparador'&&m.tipo!=='Mezclador'});
   ms.forEach(function(m){var tr=document.createElement('tr');
     tr.appendChild(td(m.grupo));tr.appendChild(td(m.tipo+' · '+m.etiqueta));tr.appendChild(td(m.visible?'Visible':'Oculto'));
     var c=document.createElement('td');c.appendChild(link('Probar',m.enlace.indexOf('http')===0?m.enlace:'#'));
@@ -886,11 +911,11 @@ ejecutar('adminResumen');
 
 /* ---------- Editor del sitio web: tarjetas de secciones → editar → un solo botón «Guardar cambios» ---------- */
 var ST={datos:null,sec:'',doc:null,cargando:false,tareas:[],vista:'lista'};
-var SEC_VER={nosotros:'verProduccion',ficha:'verFicha',planes:'verPlanes',galeria:'verGaleria',opiniones:'verEvaluaciones',proaudix:'verProaudix',contacto:'verContacto',bandas:'verHonor',tienda:'verTienda',cotizar:'verCotizar',reglamento:'verReglamento'};
-var SEC_ICO={inicio:'🏠',nosotros:'🎚️',ficha:'🎛️',galeria:'🖼️',tienda:'🛍️',proaudix:'🛡️',contacto:'📞',reglamento:'📖',planes:'🏷️',opiniones:'⭐',bandas:'🏅',cotizar:'📝'};
-var SEC_DESC={inicio:'Título, frase y logo de la portada',nosotros:'Presentación, filosofía y fotos de Producción',ficha:'Equipos, micrófonos y audios de muestra',galeria:'Fotos, videos y playlist',tienda:'Texto de la tienda',proaudix:'Textos, logo y enlaces de ProAudix',contacto:'Dirección, redes sociales y enlaces',reglamento:'Reglas que aceptan los clientes'};
+var SEC_VER={nosotros:'verProduccion',demo:'verDemo',ficha:'verFicha',planes:'verPlanes',galeria:'verGaleria',opiniones:'verEvaluaciones',proaudix:'verProaudix',contacto:'verContacto',bandas:'verHonor',tienda:'verTienda',cotizar:'verCotizar',reglamento:'verReglamento'};
+var SEC_ICO={inicio:'🏠',nosotros:'🎚️',demo:'🎧',ficha:'🎛️',galeria:'🖼️',tienda:'🛍️',proaudix:'🛡️',contacto:'📞',reglamento:'📖',planes:'🏷️',opiniones:'⭐',bandas:'🏅',cotizar:'📝'};
+var SEC_DESC={inicio:'Título, frase y logo de la portada',nosotros:'Presentación, filosofía, método y fotos',demo:'Mezclador, antes y después e instrumentos aislados',ficha:'Equipos, micrófonos y audios de muestra',galeria:'Fotos, videos y playlist',tienda:'Texto de la tienda',proaudix:'Textos, logo y enlaces de ProAudix',contacto:'Dirección, redes sociales y enlaces',reglamento:'Reglas que aceptan los clientes'};
 var SEC_CFG={inicio:['heroTitulo','heroTexto','avisoBanner'],contacto:['direccion','correoContacto','whatsapp','mapsUrl','sitioWeb','redInstagram','redFacebook','redYoutube','redTiktok','redSpotify','redYoutubeMusic','redTwitch','redLinktree','enlacesExtra'],proaudix:['proaudixTexto','proaudixWhatsapp','proaudixWeb','proaudixInstagram','proaudixFacebook','proaudixYoutube','proaudixEnlaces']};
-var SEC_FIJAS=[['inicio','Portada'],['nosotros','Producción'],['ficha','Ficha técnica'],['galeria','Galería'],['proaudix','ProAudix'],['contacto','Contacto y redes'],['reglamento','Reglamento']];
+var SEC_FIJAS=[['inicio','Portada'],['nosotros','Producción'],['demo','Demostración técnica'],['ficha','Ficha técnica'],['galeria','Galería'],['proaudix','ProAudix'],['contacto','Contacto y redes'],['reglamento','Reglamento']];
 var SITIO_GRUPOS=['Portada y secciones','Contacto y redes','ProAudix'];
 function sBase(){return(ST.datos&&ST.datos.base)||''}
 function sUrl(u){return /^assets\//.test(u||'')?sBase()+'/'+u:u}
@@ -952,7 +977,7 @@ function pintarSitioPanel(){var p=$('sitio-panel'),top=$('sitio-top');if(!ST.dat
     tareaParte('textos',function(){var o=Object.assign({},ST.datos.sitio.textos||{});campos.forEach(function(c){var v=c[1].value.trim();if(!v||v===c[2])delete o[c[0]];else o[c[0]]=v});return o})}
   if(sid==='ficha'){p.appendChild(editorFicha());p.appendChild(editorMics())}
   if(sid==='galeria'){p.appendChild(editorGaleria());p.appendChild(editorPlaylist())}
-  var mover={nosotros:['Presentación personal','Comparador de sonido (Raw → Mix → Master)'],ficha:['Muestras de audio'],reglamento:['Reglamento interno']}[sid]||[];
+  var mover={nosotros:['Presentación personal'],demo:['Mezclador de pistas','Comparador de sonido (Raw → Mix → Master)'],ficha:['Muestras de audio'],reglamento:['Reglamento interno']}[sid]||[];
   mover.forEach(function(t){var o=SUB[t];if(o)p.appendChild(o)});
   if(ST.datos.aviso&&!ST.doc)top.appendChild(par('⚠ '+ST.datos.aviso,'color:#FCC631;font-size:13px;margin:.3rem 0'));
   var bar=el_('div','sitio-barra');bar.appendChild(btn('💾 Guardar cambios',guardarSeccion));bar.appendChild(el_('small','','Guarda todo lo de esta sección. Presentación, reglamento y audios tienen su propio botón.'));p.appendChild(bar)}
@@ -1012,7 +1037,7 @@ function editorPlaylist(){var c=sCaja('Playlist de YouTube Music','Se muestra en
 
 /* Las secciones de contenido que ya existían se reubican dentro del editor, en la pestaña que corresponde. */
 var SUB={};
-(function(){['Presentación personal','Reglamento interno','Muestras de audio','Comparador de sonido (Raw → Mix → Master)'].forEach(function(t){
+(function(){['Presentación personal','Reglamento interno','Muestras de audio','Mezclador de pistas','Comparador de sonido (Raw → Mix → Master)'].forEach(function(t){
   [].forEach.call(document.querySelectorAll('section'),function(s){var h=s.querySelector('h2');if(h&&h.textContent.trim()===t&&!SUB[t]){var d=document.createElement('div');d.className='sitio-caja';var h4=document.createElement('h4');h4.textContent=t==='Comparador de sonido (Raw → Mix → Master)'?'Comparador de sonido (Raw → Mix → Master)':t;d.appendChild(h4);h.remove();while(s.firstChild)d.appendChild(s.firstChild);s.remove();SUB[t]=d;$('sitio-guarda').appendChild(d)}})})})();
 (function(){var b=document.querySelector('#sitio-recargar');if(b)b.onclick=function(){ST.datos=null;cargarSitio()}})();
 

@@ -188,7 +188,7 @@
     if (cfg.proaudixWhatsapp) pl.unshift(['WhatsApp', 'https://wa.me/' + cfg.proaudixWhatsapp]);
     enlaces($('pa-links'), pl.concat(pares(cfg.proaudixEnlaces)));
     txt($('hero-t'), cfg.heroTitulo); txt($('hero-p'), cfg.heroTexto);
-    [['nosotros', 'verProduccion'], ['ficha', 'verFicha'], ['planes', 'verPlanes'], ['galeria', 'verGaleria'], ['opiniones', 'verEvaluaciones'], ['proaudix', 'verProaudix'], ['contacto', 'verContacto'], ['bandas', 'verHonor'], ['tienda', 'verTienda'], ['cotizar', 'verCotizar'], ['reglamento', 'verReglamento']].forEach(function (x) { if (!cfg[x[1]]) $(x[0]).hidden = true; else if (x[0] !== 'reglamento' && x[0] !== 'tienda' && x[0] !== 'galeria') $(x[0]).hidden = false; });
+    [['nosotros', 'verProduccion'], ['demo', 'verDemo'], ['ficha', 'verFicha'], ['planes', 'verPlanes'], ['galeria', 'verGaleria'], ['opiniones', 'verEvaluaciones'], ['proaudix', 'verProaudix'], ['contacto', 'verContacto'], ['bandas', 'verHonor'], ['tienda', 'verTienda'], ['cotizar', 'verCotizar'], ['reglamento', 'verReglamento']].forEach(function (x) { if (!cfg[x[1]]) $(x[0]).hidden = true; else if (x[0] !== 'reglamento' && x[0] !== 'tienda' && x[0] !== 'galeria') $(x[0]).hidden = false; });
     if (!cfg.verHonor) $('bandas').hidden = true;
     pintarHoras(); refrescarAgenda(); if (fichaDatos) pintarFicha();
   }
