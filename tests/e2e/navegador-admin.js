@@ -20,6 +20,8 @@ const { sembrar } = require('./demo.js');
       await p.click('.area[data-p=tienda]'); await p.waitForTimeout(300);
       ok(await p.locator('#sec-musica .vt-cols .vt-der input[type=date]').isVisible() && await p.locator('#sec-musica .vt-der .vt-nota').isVisible(), 'tienda: comentario y fecha de la venta junto al carro');
       await p.fill('#sec-musica .vt-der input[type=date]', '2026-11-01'); ok(/pasado/i.test(await p.locator('#sec-musica .vt-avif').innerText()), 'tienda: avisa que la venta queda en el pasado');
+      if (await p.locator('#sec-musica button', { hasText: 'Mostrar historial' }).count()) { await p.locator('#sec-musica button', { hasText: 'Mostrar historial' }).click(); await p.waitForTimeout(200); }
+      ok(await p.locator('#sec-musica .vt-tabla th', { hasText: 'Medio de pago' }).count() === 1 && await p.locator('#sec-musica .vt-tabla tbody tr').count() >= 1 && await p.locator('#sec-musica .vt-tabla button', { hasText: 'Editar' }).count() >= 1, 'tienda: historial en tabla con medio de pago, estado y editar');
       await p.screenshot({ path: 'a-tienda-pos.png' });
       await p.click('.area[data-p=conta]'); await p.waitForTimeout(600);
       ok(/Resumen por área/i.test(await p.locator('#rc-box').innerText()) && /No asiste/i.test(await p.locator('#rc-box').innerText()), 'contabilidad: resumen por área y No asiste');

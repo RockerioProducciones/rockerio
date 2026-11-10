@@ -1585,7 +1585,7 @@ function paginaAdmin_() {
 
 /** Cuando es true, adminResumen() no arma el resumen completo (lo usan las acciones rápidas de «Reservas y jornadas»). */
 var LIGERO_ = false;
-var RAPIDAS_ = ['adminCambiarEstado', 'adminReagendar', 'adminAjustarReserva', 'adminMarcarCobro', 'adminMarcarCortesia', 'adminAjustarRetencion', 'adminGuardarEnlace', 'adminEliminarReserva', 'adminCuadrarReservas', 'adminDesbloquear'];
+var RAPIDAS_ = ['adminAgregarAdicional','adminCambiarEstado', 'adminReagendar', 'adminAjustarReserva', 'adminMarcarCobro', 'adminMarcarCortesia', 'adminAjustarRetencion', 'adminGuardarEnlace', 'adminEliminarReserva', 'adminCuadrarReservas', 'adminDesbloquear'];
 /** Ejecuta una acción sobre reservas y devuelve solo «Reservas y jornadas» (una llamada en vez de dos: se nota mucho menos la espera). */
 function adminRapido(nombre, args) {
   exigirAdmin_();
@@ -1979,6 +1979,37 @@ function adminEliminarCliente(clave) {
 /** p: { servicio: ensayo|grabacion, fecha, inicio (0-23), horas (1-24), banda, nombre, telefono, correo (opcional), estado,
  *       total (opcional: reemplaza el cálculo), extras, video, raw, comentario, forzar }.
  *  Solo se avisa si el horario choca con otra reserva o bloqueo; con forzar=true se guarda igual. */
+/**
+ * Suma a una reserva ya creada el material en bruto o el video (con su precio de la configuración).
+ * Con «pagado» el monto entra como pagado: sube el total y el abono, y el saldo queda igual.
+ */
+function adminAgregarAdicional(codigo, d) {
+  exigirAdmin_();
+  d = d || {};
+  var tipo = d.tipo === 'video' ? 'video' : d.tipo === 'raw' ? 'raw' : '';
+  if (!tipo) throw new Error('Elige qué agregar: material en bruto o video.');
+  return conBloqueo_(function () {
+    var cfg = getCfg_(), monto = Math.round(Number(tipo === 'raw' ? cfg.precioRaw : cfg.precioVideo)) || 0;
+    var rf = ajustarFilaBase_(codigo), sh = rf.sh, f = rf.f, r = sh.getRange(f, 1, 1, ENCABEZADO_RESERVAS.length).getValues()[0];
+    var est = estadoNorm_(r[RES.estado - 1]);
+    if (est === EST.NO_ASISTE || est === EST.ANULADA) throw new Error('Esta reserva no admite adicionales.');
+    var colFlag = tipo === 'raw' ? RES.raw : RES.video, colM = tipo === 'raw' ? RES.rawM : RES.videoM;
+    if (String(r[colFlag - 1]) === 'SI') throw new Error(tipo === 'raw' ? 'Esta reserva ya incluye material en bruto.' : 'Esta reserva ya incluye video.');
+    var total = (Number(r[RES.total - 1]) || 0) + monto, abono = (Number(r[RES.abono - 1]) || 0) + (d.pagado ? monto : 0);
+    sh.getRange(f, colFlag).setValue('SI');
+    sh.getRange(f, colM).setValue((Number(r[colM - 1]) || 0) + monto);
+    sh.getRange(f, RES.total).setValue(total);
+    sh.getRange(f, RES.abono).setValue(abono);
+    sh.getRange(f, RES.saldo).setValue(Math.max(0, total - abono));
+    var orig = null;
+    try { orig = JSON.parse(String(r[RES.original - 1] || '')); } catch (e) { orig = null; }
+    if (orig && typeof orig.t === 'number') { orig.t += monto; orig[tipo === 'raw' ? 'r' : 'v'] = (Number(orig[tipo === 'raw' ? 'r' : 'v']) || 0) + monto; sh.getRange(f, RES.original).setValue(JSON.stringify(orig)); }
+    var nota = String(r[RES.comentarios - 1] || '');
+    sh.getRange(f, RES.comentarios).setValue(textoSeguro_((nota ? nota + ' · ' : '') + (tipo === 'raw' ? 'Material en bruto' : 'Video') + ' agregado' + (d.pagado ? ' (' + Reglas.clp(monto) + ' ya pagado)' : '')));
+    return { ok: true };
+  });
+}
+
 /** Desglose de una reserva manual (para mostrarlo mientras se arma): valores de la configuración, sin guardar nada. */
 function adminCalcularReserva(p) {
   exigirAdmin_();
@@ -2124,7 +2155,7 @@ function adminJornadas() {
     if (r.fecha && r.fecha >= hoy && (!c.proxima || r.fecha < c.proxima)) c.proxima = r.fecha;
   });
   var clientes = Object.keys(porTel).map(function (t) { return porTel[t]; }).sort(function (a, b) { return b.jornadas - a.jornadas || (a.banda < b.banda ? -1 : 1); });
-  return { hoy: hoy, reservas: reservas, bloqueos: bloqueos, inhabiles: inhabiles, clientes: clientes, estados: ESTADOS, wa: waDatos_(), maxReag: getCfg_().reagendoCambios };
+  return { hoy: hoy, reservas: reservas, bloqueos: bloqueos, inhabiles: inhabiles, clientes: clientes, estados: ESTADOS, wa: waDatos_(), maxReag: getCfg_().reagendoCambios, precios: { raw: getCfg_().precioRaw, video: getCfg_().precioVideo } };
 }
 
 
@@ -2166,6 +2197,13 @@ function adminAjustarReserva(codigo, d) {
 }
 
 /** Núcleo del ajuste (se llama dentro de un bloqueo). Devuelve {sh, f}. */
+function ajustarFilaBase_(codigo) {
+  var sh = abrirBd_().getSheetByName(HOJAS.reservas);
+  var celda = sh.getLastRow() > 1 ? sh.createTextFinder(String(codigo)).matchEntireCell(true).findNext() : null;
+  if (!celda || celda.getColumn() !== RES.codigo) throw new Error('No se encontró la reserva.');
+  return { sh: sh, f: celda.getRow() };
+}
+
 function ajustarFila_(codigo, d) {
     var sh = abrirBd_().getSheetByName(HOJAS.reservas);
     var celda = sh.getLastRow() > 1 ? sh.createTextFinder(String(codigo)).matchEntireCell(true).findNext() : null;

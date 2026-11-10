@@ -365,6 +365,15 @@ t('reserva manual: se ingresa pagada de inmediato con su medio de pago', () => {
   const y = g.admin('adminReservaManual', { servicio: 'ensayo', fecha: dia, inicio: 14, horas: 1, banda: 'Pago Band', nombre: 'Pía', telefono: '+56 9 5555 3434', pago: 'ninguno' });
   assert.strictEqual(g.admin('adminJornadas').reservas.find((z) => z.codigo === y.codigo).estado, 'Reservado (sin abono)');
 });
+t('agregar material en bruto ya pagado a una reserva existente', () => {
+  const dia = sumar(dom, 21);
+  const r = g.admin('adminReservaManual', { servicio: 'grabacion', fecha: dia, inicio: 12, horas: 2, banda: 'Raw Band', nombre: 'Rau', telefono: '+56 9 5555 7878', pago: 'completo', medio: 'Transferencia' });
+  const a = g.admin('adminJornadas').reservas.find((y) => y.codigo === r.codigo);
+  g.admin('adminAgregarAdicional', r.codigo, { tipo: 'raw', pagado: true });
+  const b = g.admin('adminJornadas').reservas.find((y) => y.codigo === r.codigo);
+  assert.strictEqual(b.raw, true); assert.strictEqual(b.total, a.total + 10000); assert.strictEqual(b.abono, a.abono + 10000); assert.strictEqual(b.total - b.abono, a.total - a.abono);
+  assert.throws(() => g.admin('adminAgregarAdicional', r.codigo, { tipo: 'raw', pagado: true }), /ya incluye/);
+});
 t('reserva manual: el mismo horario avisa choque y con forzar se guarda', () => {
   const p = { servicio: 'ensayo', fecha: dom, inicio: 3, horas: 1, banda: 'Otra', nombre: 'Ana', telefono: '+56 9 4444 1111' };
   assert.throws(() => g.admin('adminReservaManual', p), /CHOQUE/);
