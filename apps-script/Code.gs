@@ -43,13 +43,15 @@ var RES = {
   telefono: 11, correo: 12, extras: 13, video: 14, raw: 15, total: 16, abono: 17, saldo: 18,
   zurdo: 19, voces: 20, comentarios: 21, evento: 22,
   base: 23, extrasM: 24, videoM: 25, rawM: 26, abonoRecibido: 27, retenido: 28, devolver: 29, plan: 30, recordatorio: 31, reagendos: 32, ajuste: 33, notaAjuste: 34, original: 35,
-  cobro: 36, medioPago: 37, cortesia: 38, fechaPago: 39
+  cobro: 36, medioPago: 37, cortesia: 38, fechaPago: 39,
+  pago: 40, pagoFecha: 41, pagoId: 42, comision: 43
 };
 var ENCABEZADO_RESERVAS = ['Código', 'Creada', 'Estado', 'Servicio', 'Fecha', 'Inicio', 'Fin', 'Horas', 'Banda', 'Contacto',
   'Teléfono', 'Correo', 'Equipo extra', 'Video', 'Material en bruto', 'Total', 'Abono', 'Saldo',
   'Baterista zurdo', 'Micrófonos de voz', 'Comentarios', 'ID del evento',
   'Monto horas', 'Monto extras', 'Monto video', 'Monto material bruto', 'Abono recibido', 'Abono retenido', 'Abono a devolver', 'Plan', 'Recordatorio WhatsApp', 'Reagendos', 'Ajuste (descuento)', 'Nota del ajuste', 'Montos originales',
-  'Cobro (POR COBRAR si el saldo quedó pendiente)', 'Medio de pago del saldo', 'Cortesía o canje', 'Fecha de pago del saldo'];
+  'Cobro (POR COBRAR si el saldo quedó pendiente)', 'Medio de pago del saldo', 'Cortesía o canje', 'Fecha de pago del saldo',
+  'Verificación de pago (COMPROBANTE / PAGO EN LÍNEA)', 'Fecha del pago o comprobante', 'ID del pago en línea', 'Comisión de la pasarela'];
 
 /** Los cinco estados de una reserva (así aparecen en la hoja y en el portal). */
 var EST = {
@@ -69,6 +71,9 @@ function estadoNorm_(v) {
   return '';
 }
 var ETIQUETA_SERVICIO = { ensayo: 'Ensayo', grabacion: 'Grabación' };
+var PAGO_COMPROBANTE = 'COMPROBANTE';
+var PAGO_ONLINE = 'PAGO EN LÍNEA';
+var HORAS_MAX_COMPROBANTE = 12;
 var MAX_PENDIENTES_POR_TELEFONO = 3;
 var MAX_SOLICITUDES_POR_HORA = 6;
 
@@ -105,9 +110,13 @@ function doPost(e) {
     var cuerpo = (e && e.postData && e.postData.contents) || '';
     if (cuerpo.length > 600000) return json_({ ok: false, codigo: 'DATOS', error: 'Solicitud demasiado grande.' });
     var sol = JSON.parse(cuerpo);
+    if (e && e.parameter && e.parameter.mp) return json_(mpWebhook_(e.parameter, sol)); // aviso de Mercado Pago
     if (cuerpo.length > 8000 && sol.accion !== 'honor') return json_({ ok: false, codigo: 'DATOS', error: 'Solicitud demasiado grande.' });
     switch (sol.accion) {
       case 'reservar': return json_(reservar_(sol));
+      case 'pagado': return json_(marcarComprobante_(sol));
+      case 'mp_pagar': return json_(mpCrearPago_(sol));
+      case 'mp_verificar': return json_(mpVerificarCliente_(sol));
       case 'honor': return json_(registrarHonor_(sol));
       case 'resena': return json_(registrarResena_(sol));
       case 'cotizacion': return json_(registrarCotizacion_(sol));
@@ -351,7 +360,7 @@ function reservar_(sol) {
         total: v.calculo.total, abono: v.calculo.abono, saldo: v.calculo.saldo, grabacionMin: v.grabacionMin
       },
       whatsapp: Reglas.resumenTexto(cfg, v, codigo),
-      pago: { instrucciones: cfg.instruccionesPago, transferencia: (cfg.pagoTransferencia && cfg.datosTransferencia) ? cfg.datosTransferencia : '', link: (cfg.pagoOnline && cfg.linkPago) ? cfg.linkPago : '', minutosReserva: cfg.minutosReserva, segundos: cfg.minutosReserva * 60 }
+      pago: { mp: mpDisponible_(cfg), instrucciones: cfg.instruccionesPago, transferencia: (cfg.pagoTransferencia && cfg.datosTransferencia) ? cfg.datosTransferencia : '', link: (cfg.pagoOnline && cfg.linkPago) ? cfg.linkPago : '', minutosReserva: cfg.minutosReserva, segundos: cfg.minutosReserva * 60 }
     };
   } finally {
     lock.releaseLock();
@@ -469,6 +478,12 @@ function liberarVencidas_(cfg) {
     if (estadoNorm_(r[RES.estado - 1]) !== EST.SIN_ABONO) return;
     var creada = r[RES.creada - 1];
     if (!(creada instanceof Date) || creada.getTime() > limite) return;
+    if (String(r[RES.pago - 1]) === PAGO_COMPROBANTE) {
+      // El cliente dijo que ya pagó: el horario se guarda hasta que lo valides (con un tope, para que nadie lo retenga sin pagar).
+      var desde = r[RES.pagoFecha - 1];
+      if (desde instanceof Date && desde.getTime() > Date.now() - HORAS_MAX_COMPROBANTE * 3600000) return;
+      avisarAdmin_('Se liberó un horario con comprobante SIN validar · ' + r[RES.codigo - 1], 'La reserva ' + r[RES.codigo - 1] + ' (' + r[RES.banda - 1] + ', ' + r[RES.fecha - 1] + ') llevaba más de ' + HORAS_MAX_COMPROBANTE + ' horas con comprobante sin validar y el horario se liberó. Si el pago es real, reagéndala desde el portal.');
+    }
     sh.getRange(i + 2, RES.estado).setValue(EST.ANULADA);
     borrarEvento_(cal, r[RES.evento - 1]);
   });
@@ -614,12 +629,12 @@ function abrirBd_() {
 /** Agrega a la hoja de reservas la columna «Reagendos» si falta (hojas de versiones anteriores). Se revisa una vez cada 6 horas. */
 function asegurarEsquema_(ss) {
   var cache = CacheService.getScriptCache();
-  if (cache.get('esq7')) return;
+  if (cache.get('esq8')) return;
   try {
     var sh = ss.getSheetByName(HOJAS.reservas);
     if (sh) {
-      if (sh.getMaxColumns() < RES.fechaPago) sh.insertColumnsAfter(sh.getMaxColumns(), RES.fechaPago - sh.getMaxColumns());
-      [[RES.reagendos, 'Reagendos'], [RES.ajuste, 'Ajuste (descuento)'], [RES.notaAjuste, 'Nota del ajuste'], [RES.original, 'Montos originales'], [RES.cobro, ENCABEZADO_RESERVAS[RES.cobro - 1]], [RES.medioPago, ENCABEZADO_RESERVAS[RES.medioPago - 1]], [RES.cortesia, ENCABEZADO_RESERVAS[RES.cortesia - 1]], [RES.fechaPago, ENCABEZADO_RESERVAS[RES.fechaPago - 1]]].forEach(function (c) {
+      if (sh.getMaxColumns() < RES.comision) sh.insertColumnsAfter(sh.getMaxColumns(), RES.comision - sh.getMaxColumns());
+      [[RES.reagendos, 'Reagendos'], [RES.ajuste, 'Ajuste (descuento)'], [RES.notaAjuste, 'Nota del ajuste'], [RES.original, 'Montos originales'], [RES.cobro, ENCABEZADO_RESERVAS[RES.cobro - 1]], [RES.medioPago, ENCABEZADO_RESERVAS[RES.medioPago - 1]], [RES.cortesia, ENCABEZADO_RESERVAS[RES.cortesia - 1]], [RES.fechaPago, ENCABEZADO_RESERVAS[RES.fechaPago - 1]], [RES.pago, ENCABEZADO_RESERVAS[RES.pago - 1]], [RES.pagoFecha, ENCABEZADO_RESERVAS[RES.pagoFecha - 1]], [RES.pagoId, ENCABEZADO_RESERVAS[RES.pagoId - 1]], [RES.comision, ENCABEZADO_RESERVAS[RES.comision - 1]]].forEach(function (c) {
         if (!sh.getRange(1, c[0]).getValue()) sh.getRange(1, c[0]).setValue(c[1]).setFontWeight('bold');
       });
     }
@@ -643,7 +658,7 @@ function asegurarEsquema_(ss) {
       }
       props.setProperty('MIG_HONOR_1', '1');
     }
-    cache.put('esq7', '1', 21600);
+    cache.put('esq8', '1', 21600);
   } catch (e) { /* si falla, se reintenta en la próxima solicitud */ }
 }
 
@@ -784,6 +799,8 @@ function prepararConfig_(ss) {
     ['datosTransferencia', '', 'Texto público con tus datos para transferir. Vacío = se los envías por WhatsApp. Ojo: lo que escribas aquí lo ve cualquiera.'],
     ['anulacionTardiaRetiene', 'SI', 'SI = si anulan con menos de horasAnulacion de anticipación, se retiene todo el abono. NO = se trata como anulación a tiempo.'],
     ['pagoOnline', 'NO', 'SI o NO. SI muestra el botón de pago online además de WhatsApp. Requiere linkPago.'],
+    ['mpActivo', 'NO', 'SI = botón «Pagar con Mercado Pago» con confirmación automática. Requiere el token de Mercado Pago guardado en el script (ver GUIA).'],
+    ['mpComisionPct', d.mpComisionPct, 'Comisión estimada de Mercado Pago en % (solo si Mercado Pago no informa la real). La comisión de cada pago se anota sola como gasto.'],
     ['linkPago', '', 'Enlace de pago (por ejemplo Mercado Pago) para el abono. Solo se usa si pagoOnline = SI.'],
     ['instruccionesPago', d.instruccionesPago, 'Texto que ve el cliente para pagar el abono. No escribas aquí tu RUT ni tu cuenta si no quieres que sean públicos.'],
     ['tarifaConveniente', 'NO', 'SI o NO. SI aplica una tarifa por hora más baja de lunes a viernes en la franja convenienteDesde–convenienteHasta. Confirma el valor antes de activarla.'],

@@ -668,4 +668,73 @@ t('resumen contable mensual y semanal: sala, estudio, tienda, bebestibles y repa
   assert.ok(w.periodo === 'semana' && w.mes === undefined && w.desde <= hoy && w.hasta >= hoy);
 });
 
+console.log('\n== Pagos del abono: «Ya pagué» y Mercado Pago ==');
+const telP2 = '+56 9 5555 0001', telP3 = '+56 9 5555 0002';
+let codPY, codMP;
+t('«Ya pagué»: el horario no vence solo, avisa al admin y se valida con un toque', () => {
+  const r = g.post(sol({ inicio: 10, horas: 1, telefono: telP2, banda: 'Pagadores', nombre: 'Pía Pago', correo: 'p@p.cl' })); assert.ok(r.ok, JSON.stringify(r)); codPY = r.codigo;
+  assert.strictEqual(r.pago.mp, false, 'sin token no se ofrece Mercado Pago');
+  assert.strictEqual(g.post({ accion: 'pagado', codigo: codPY, telefono: '56900000000' }).codigo, 'NO_RESERVA', 'teléfono ajeno rechazado');
+  assert.strictEqual(g.post({ accion: 'pagado', codigo: 'RP-999999', telefono: telP2 }).ok, false);
+  const a = g.post({ accion: 'pagado', codigo: codPY, telefono: telP2 }); assert.ok(a.ok, JSON.stringify(a));
+  assert.ok(g.estado.correos.some((c) => /Comprobante por validar/.test(c.subject) && c.subject.indexOf(codPY) >= 0), 'aviso al admin');
+  g.avanzar(3 * 3600000); C.liberarPendientes();
+  assert.strictEqual(g.admin('adminJornadas').reservas.find((q) => q.codigo === codPY).estado, 'Reservado (sin abono)', 'sigue guardada tras 3 h');
+  assert.strictEqual(g.admin('adminJornadas').reservas.find((q) => q.codigo === codPY).pago, 'COMPROBANTE');
+  g.admin('adminCambiarEstado', codPY, 'Reservado (con abono)');
+  assert.strictEqual(g.post({ accion: 'pagado', codigo: codPY, telefono: telP2 }).ok, true, 'ya confirmada: respuesta amable');
+});
+t('«Ya pagué» no retiene el horario para siempre (tope de 12 h)', () => {
+  const r = g.post(sol({ inicio: 12, horas: 1, telefono: telP3, banda: 'Dormilones', nombre: 'Dani Duerme', correo: 'd@d.cl' })); assert.ok(r.ok, JSON.stringify(r));
+  assert.ok(g.post({ accion: 'pagado', codigo: r.codigo, telefono: telP3 }).ok);
+  g.avanzar(13 * 3600000); C.liberarPendientes();
+  assert.strictEqual(g.admin('adminJornadas').reservas.find((q) => q.codigo === r.codigo).estado, 'Anulada', 'el horario se liberó');
+  assert.ok(g.estado.correos.some((c) => /sin validar|SIN validar/.test(c.subject)), 'avisa que se liberó');
+  assert.strictEqual(g.post({ accion: 'pagado', codigo: r.codigo, telefono: telP3 }).codigo, 'VENCIDA');
+});
+t('config pública no filtra token ni datos de pago', () => {
+  const c = JSON.stringify(g.get({ accion: 'config' }));
+  ['MP_ACCESS_TOKEN', 'TEST-token', 'datosTransferencia', 'linkPago'].forEach((k) => assert.ok(c.indexOf(k) < 0, 'filtra ' + k));
+});
+t('Mercado Pago: sin token no hay pago en línea', () => {
+  const r = g.post({ accion: 'mp_pagar', codigo: 'RP-123456', telefono: telP2 }); assert.strictEqual(r.codigo, 'MP_OFF');
+});
+t('Mercado Pago: pago aprobado confirma la reserva y anota la comisión como gasto', () => {
+  C.PropertiesService.getScriptProperties().setProperty('MP_ACCESS_TOKEN', 'TEST-token'); C.PropertiesService.getScriptProperties().setProperty('MP_URL_AVISOS', 'https://script.google.com/macros/s/TEST/exec');
+    g.admin('adminGuardarAjustes', { mpActivo: 'SI' });
+  g.avanzar(1000);
+  let r = null; for (let d = 14; d < 60; d++) { r = g.post(sol({ fecha: sumar(f3, d), inicio: 18, horas: 2, telefono: telP2, banda: 'Pagadores', nombre: 'Pía Pago', correo: 'p@p.cl' })); if (r.ok || r.codigo !== 'OCUPADO') break; }
+  assert.ok(r.ok, JSON.stringify(r)); codMP = r.codigo;
+  assert.strictEqual(r.pago.mp, true);
+  let pref = null, pagos = [];
+  g.estado.mp = (url, o) => {
+    if (/checkout\/preferences/.test(url)) { pref = JSON.parse(o.payload); assert.ok(/TEST-token/.test(o.headers.Authorization)); return { c: 201, j: { init_point: 'https://www.mercadopago.cl/checkout/v1/redirect?pref_id=1' } }; }
+    if (/payments\/search/.test(url)) return { c: 200, j: { results: pagos } };
+    if (/payments\/777001/.test(url)) return { c: 200, j: pagos[0] };
+    return { c: 404, j: {} };
+  };
+  const p = g.post({ accion: 'mp_pagar', codigo: codMP, telefono: telP2 }); assert.ok(p.ok && /^https:\/\/www\.mercadopago/.test(p.url), JSON.stringify(p));
+  assert.strictEqual(pref.items[0].unit_price, 10000); assert.strictEqual(pref.external_reference, codMP); assert.ok(pref.notification_url && /k=/.test(pref.notification_url));
+  assert.strictEqual(g.post({ accion: 'mp_pagar', codigo: codMP, telefono: '56911112222' }).codigo, 'NO_RESERVA');
+  // aún sin pago: no confirma
+  assert.strictEqual(g.post({ accion: 'mp_verificar', codigo: codMP, telefono: telP2 }).confirmada, false);
+  // pago por menos del abono: no confirma
+  pagos = [{ id: 777001, status: 'approved', external_reference: codMP, transaction_amount: 500, fee_details: [{ amount: 20 }] }];
+  assert.strictEqual(g.post({ accion: 'mp_verificar', codigo: codMP, telefono: telP2 }).confirmada, false);
+  // aviso con clave incorrecta se ignora
+  C.doPost({ parameter: { mp: '1', k: 'mala', type: 'payment', 'data.id': '777001' }, postData: { contents: '{}' } });
+  assert.strictEqual(g.admin('adminJornadas').reservas.find((q) => q.codigo === codMP).estado, 'Reservado (sin abono)');
+  // pago correcto con comisión real
+  pagos = [{ id: 777001, status: 'approved', external_reference: codMP, transaction_amount: 10000, fee_details: [{ amount: 356 }] }];
+  const k = C.PropertiesService.getScriptProperties().getProperty('MP_SECRETO');
+  C.doPost({ parameter: { mp: '1', k, type: 'payment', 'data.id': '777001' }, postData: { contents: '{"type":"payment","data":{"id":"777001"}}' } });
+  const rr = g.admin('adminJornadas').reservas.find((q) => q.codigo === codMP); assert.strictEqual(rr.estado, 'Reservado (con abono)'); assert.strictEqual(rr.pago, 'PAGO EN LÍNEA');
+  const movs = g.hoja('Movimientos').filter((f) => /Comisión Mercado Pago/.test(String(f[5]))); assert.strictEqual(movs.length, 1); assert.strictEqual(movs[0][4], 356); assert.strictEqual(movs[0][2], 'Gasto');
+  // repetir el aviso no duplica nada
+  C.doPost({ parameter: { mp: '1', k, type: 'payment', 'data.id': '777001' }, postData: { contents: '{}' } });
+  g.post({ accion: 'mp_verificar', codigo: codMP, telefono: telP2 });
+  assert.strictEqual(g.hoja('Movimientos').filter((f) => /Comisión Mercado Pago/.test(String(f[5]))).length, 1);
+  assert.ok(g.estado.correos.some((c) => /pagada por Mercado Pago/.test(c.subject)));
+});
+
 console.log('\n' + ok + ' pasos correctos, ' + fallas + ' con falla.');

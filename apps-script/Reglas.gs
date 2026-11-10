@@ -56,6 +56,7 @@ var Reglas = (function () {
     contabilidadFormal: false,    // SI = activa la contabilidad formal (IVA, PPM, impuesto simulado, compras)
     regimen: '14D3',              // 14D3 (Pro Pyme general) o 14D8 (Pro Pyme transparente)
     sitioUrl: '',                 // dirección pública del sitio (para armar los enlaces de socios)
+    temaAdmin: 'rockerio',        // tema del portal de administración
     tema: 'carbon',               // tema visual por defecto (ver js/tema.js)
     presentacionTitulo: 'Mi enfoque',
     presentacion: '',             // vacío = la sección Producción muestra un texto base
@@ -99,6 +100,8 @@ var Reglas = (function () {
     anulacionTardiaRetiene: true, // anular con menos de horasAnulacion: se retiene todo el abono (como no asistir)
     pagoOnline: false,            // SI = se ofrece el botón de pago online (Mercado Pago) con linkPago
     linkPago: '',
+    mpActivo: false,              // SI = el cliente puede pagar el abono con Mercado Pago y la reserva se confirma sola (requiere el token en las propiedades del script)
+    mpComisionPct: 3.5,           // % estimado de comisión de Mercado Pago (solo se usa si Mercado Pago no informa la comisión real)
     instruccionesPago: 'Te enviaremos los datos de transferencia por WhatsApp para confirmar tu reserva.',
     correoCliente: true,
 
@@ -236,6 +239,8 @@ var Reglas = (function () {
     c.datosTransferencia = aTexto(raw.datosTransferencia, d.datosTransferencia);
     c.anulacionTardiaRetiene = aBool(raw.anulacionTardiaRetiene, d.anulacionTardiaRetiene);
     c.pagoOnline = aBool(raw.pagoOnline, d.pagoOnline);
+    c.mpActivo = aBool(raw.mpActivo, d.mpActivo);
+    c.mpComisionPct = Math.max(0, Math.min(15, aNumero(raw.mpComisionPct, d.mpComisionPct)));
     c.linkPago = aTexto(raw.linkPago, d.linkPago);
     c.instruccionesPago = aTexto(raw.instruccionesPago, d.instruccionesPago);
     c.correoCliente = aBool(raw.correoCliente, d.correoCliente);

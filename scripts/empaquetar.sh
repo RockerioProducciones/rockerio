@@ -5,7 +5,7 @@ cd "$(dirname "$0")/.." || exit 1
 mkdir -p instalacion
 {
   echo "/* ROCKERÍO · Servidor completo. Generado por scripts/empaquetar.sh. No lo edites aquí. */"
-  for f in Reglas Code AdminApi Contenido Planes Ventas Socios Contabilidad Ajustes WhatsApp Sitio; do echo; echo "/* ===== $f ===== */"; cat "apps-script/$f.gs"; done
+  for f in Reglas Code AdminApi Contenido Planes Ventas Socios Contabilidad Ajustes WhatsApp Sitio Pagos; do echo; echo "/* ===== $f ===== */"; cat "apps-script/$f.gs"; done
 } > instalacion/Todo.gs
 cp apps-script/Admin.html instalacion/Admin.html
 dup=$(grep -ho "^function [A-Za-z0-9_]*" instalacion/Todo.gs | sort | uniq -d)

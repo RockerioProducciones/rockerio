@@ -511,6 +511,16 @@
     var tm = el('div', 'ro-abono'); var ta = el('div'); ta.appendChild(el('b', '', 'Abona ' + R.clp(o.monto) + ' para confirmar tu horario')); ta.appendChild(el('small', '', 'Tu horario queda tomado por ' + o.pago.minutosReserva + ' minutos; si no llega el abono, se libera solo.')); tm.appendChild(ta); tm.appendChild(el('b', 'v', R.clp(o.monto))); box.appendChild(tm);
     var bts = el('div', 'ro-bts'); box.appendChild(bts);
     if (o.pago.link) { var p = el('a', 'ro-b ro-azul', '💳 Pagar abono en línea (instantáneo)'); p.href = o.pago.link; p.target = '_blank'; p.rel = 'noopener'; bts.appendChild(p); }
+    if (o.pago.mp && o.pagar) {
+      var pm = el('button', 'ro-b ro-azul', '💳 Pagar con Mercado Pago (se confirma sola)'); pm.type = 'button';
+      pm.addEventListener('click', function () {
+        pm.disabled = true; pm.textContent = 'Abriendo Mercado Pago…'; try { sessionStorage.setItem('rk_pago', JSON.stringify(o.pagar)); } catch (e) { /* sin almacenamiento */ }
+        pedir(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ accion: 'mp_pagar', codigo: o.pagar.codigo, telefono: o.pagar.telefono }) })
+          .then(function (d) { if (d.ok && /^https:\/\//.test(d.url || '')) { location.href = d.url; } else { pm.disabled = false; pm.textContent = '💳 Pagar con Mercado Pago'; avisoPago(o.box, d.error || 'No pudimos abrir el pago.'); } })
+          .catch(function () { pm.disabled = false; pm.textContent = '💳 Pagar con Mercado Pago'; avisoPago(o.box, 'No pudimos abrir el pago. Prueba con transferencia.'); });
+      });
+      bts.appendChild(pm);
+    }
     var tr = el('div', 'ro-trans');
     var bt = el('button', 'ro-b ro-osc', '🏦 Ver datos de transferencia bancaria'); bt.type = 'button';
     var dt = el('div', 'ro-datos'); dt.hidden = true;
@@ -519,8 +529,22 @@
     bt.addEventListener('click', function () { dt.hidden = !dt.hidden; }); tr.appendChild(bt); tr.appendChild(dt); bts.appendChild(tr);
     var w = el('a', 'ro-b ro-wsp', '📲 Enviar comprobante por WhatsApp'); w.href = wspUrl(o.whatsapp + '\nTe adjunto el comprobante del abono de ' + R.clp(o.monto) + '. ¡Gracias!'); w.target = '_blank'; w.rel = 'noopener'; bts.appendChild(w);
     box.appendChild(el('p', 'nota', 'Abre la conversación con el detalle de tu reserva ya escrito y adjunta el comprobante.'));
+    if (o.pagar) {
+      var yp = el('button', 'ro-b ro-osc', '✅ Ya envié mi comprobante'); yp.type = 'button'; yp.className += ' ro-yapague';
+      yp.addEventListener('click', function () {
+        yp.disabled = true; yp.textContent = 'Avisando…';
+        pedir(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ accion: 'pagado', codigo: o.pagar.codigo, telefono: o.pagar.telefono }) })
+          .then(function (d) { if (d.ok) { yp.hidden = true; relojes.forEach(clearInterval); relojes = []; cupo.textContent = 'Horario guardado'; avisoPago(box, d.mensaje, true); } else { yp.disabled = false; yp.textContent = '✅ Ya envié mi comprobante'; avisoPago(box, d.error || 'No pudimos registrar el aviso.'); } })
+          .catch(function () { yp.disabled = false; yp.textContent = '✅ Ya envié mi comprobante'; avisoPago(box, 'No pudimos avisar. Escríbenos por WhatsApp con tu comprobante.'); });
+      });
+      box.appendChild(yp);
+    }
     iniciarCuenta(cupo, o.pago.segundos, bts);
     box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  function avisoPago(box, texto, bueno) {
+    var a = box.querySelector('.ro-aviso'); if (!a) { a = el('p', 'ro-aviso nota'); a.setAttribute('role', 'status'); box.appendChild(a); }
+    a.textContent = texto; a.style.color = bueno ? 'var(--ok, #4ade80)' : 'var(--rojo, #ff5a5f)';
   }
   /** Cuenta regresiva del horario tomado. Al llegar a cero avisa que se liberó. */
   var relojes = [];
@@ -539,6 +563,27 @@
   }
 
   /* ---------- envío de la reserva ---------- */
+  /* Vuelta desde Mercado Pago: se confirma la reserva sin esperar el aviso automático. */
+  (function retornoPago() {
+    var q = /[?&]pago=(ok|pendiente|error)\b/.exec(location.search); if (!q || !API) return;
+    var datos = null; try { datos = JSON.parse(sessionStorage.getItem('rk_pago') || 'null'); } catch (e) { /* nada */ }
+    var b = el('div', 'caja pago-of'); b.setAttribute('role', 'status'); b.style.margin = '12px auto'; b.style.maxWidth = '880px';
+    var m = document.querySelector('main'); if (!m) return; m.insertBefore(b, m.firstChild);
+    if (q[1] === 'error') { b.textContent = 'El pago no se completó. Tu horario sigue guardado unos minutos: puedes reintentar o pagar por transferencia.'; return; }
+    b.textContent = 'Estamos confirmando tu pago…';
+    if (!datos) { b.textContent = 'Recibimos tu pago. En unos minutos te confirmamos la reserva por WhatsApp.'; return; }
+    var intentos = 0;
+    (function otra() {
+      pedir(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ accion: 'mp_verificar', codigo: datos.codigo, telefono: datos.telefono }) })
+        .then(function (d) {
+          if (d.ok && d.confirmada) { b.textContent = '✅ ¡Pago recibido! Tu reserva ' + datos.codigo + ' quedó confirmada. Te esperamos 🤘'; try { sessionStorage.removeItem('rk_pago'); } catch (e) { /* nada */ } }
+          else if (++intentos < 4) setTimeout(otra, 4000);
+          else b.textContent = 'Recibimos tu solicitud de pago. Apenas Mercado Pago lo confirme, tu reserva queda lista (te avisamos por WhatsApp).';
+        })
+        .catch(function () { b.textContent = 'Recibimos tu pago. Te confirmamos la reserva por WhatsApp.'; });
+    })();
+  })();
+  var ultimoTel = '';
   function enviar(ev) {
     ev.preventDefault(); if (enviando) return; mostrarError('');
     var s = solicitud();
@@ -547,7 +592,7 @@
     if (!v.ok) return mostrarError(v.error);
     if (!conexion) return respaldoWhatsApp(v);
     enviando = true; $('enviar').disabled = true; $('enviar').textContent = 'Enviando…';
-    s.accion = 'reservar';
+    s.accion = 'reservar'; ultimoTel = s.telefono;
     pedir(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(s) })
       .then(function (d) { d.ok ? exito(d) : (mostrarError(d.error || 'No se pudo reservar.'), refrescarAgenda()); })
       .catch(function () { mostrarError('No pudimos confirmar el envío. Antes de reintentar, escríbenos por WhatsApp para revisar si quedó registrada.'); respaldoWhatsApp(v, true); })
@@ -564,7 +609,8 @@
     mostrarPago({
       box: $('listo'), titulo: '¡Reserva registrada! Código #' + d.codigo.replace('RP-', ''),
       lineas: [R.fechaLarga(r.fecha) + ', ' + R.horaTxt(r.inicio) + ' a ' + R.horaTxt(r.fin) + '. Total ' + R.clp(r.total) + '.'],
-      monto: r.abono, pago: d.pago, whatsapp: d.whatsapp || ('Hola, quiero confirmar mi reserva ' + d.codigo)
+      monto: r.abono, pago: d.pago, whatsapp: d.whatsapp || ('Hola, quiero confirmar mi reserva ' + d.codigo),
+      pagar: ultimoTel ? { codigo: d.codigo, telefono: ultimoTel } : null
     });
     $('form').hidden = true; $('tu-reserva').hidden = true;
   }

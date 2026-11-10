@@ -48,6 +48,8 @@ var ESQUEMA = [
   ['pagoTransferencia', 'Pago por transferencia', 'sino', 'Pagos', 'Muestra los datos de transferencia al terminar la reserva.'],
   ['datosTransferencia', 'Datos de transferencia', 'texto', 'Pagos', 'Texto público. Lo ve cualquiera: no pongas más de lo necesario.', 300],
   ['pagoOnline', 'Pago online', 'sino', 'Pagos', 'Muestra el botón de pago online (requiere el enlace de pago).'],
+  ['mpActivo', 'Pago con Mercado Pago (confirma solo)', 'sino', 'Pagos', 'SI = botón «Pagar con Mercado Pago»: al pagar, la reserva se confirma sola. Requiere guardar el token de Mercado Pago (ver guía).'],
+  ['mpComisionPct', 'Comisión estimada de Mercado Pago (%)', 'num', 'Pagos', 'Solo se usa si Mercado Pago no informa la comisión real de un pago.'],
   ['linkPago', 'Enlace de pago online', 'url', 'Pagos', 'Enlace https (por ejemplo Mercado Pago).'],
   ['instruccionesPago', 'Instrucciones de pago', 'texto', 'Pagos', 'Texto que ve el cliente para pagar el abono.', 400],
 

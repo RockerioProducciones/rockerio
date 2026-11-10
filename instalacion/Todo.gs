@@ -59,6 +59,7 @@ var Reglas = (function () {
     contabilidadFormal: false,    // SI = activa la contabilidad formal (IVA, PPM, impuesto simulado, compras)
     regimen: '14D3',              // 14D3 (Pro Pyme general) o 14D8 (Pro Pyme transparente)
     sitioUrl: '',                 // dirección pública del sitio (para armar los enlaces de socios)
+    temaAdmin: 'rockerio',        // tema del portal de administración
     tema: 'carbon',               // tema visual por defecto (ver js/tema.js)
     presentacionTitulo: 'Mi enfoque',
     presentacion: '',             // vacío = la sección Producción muestra un texto base
@@ -102,6 +103,8 @@ var Reglas = (function () {
     anulacionTardiaRetiene: true, // anular con menos de horasAnulacion: se retiene todo el abono (como no asistir)
     pagoOnline: false,            // SI = se ofrece el botón de pago online (Mercado Pago) con linkPago
     linkPago: '',
+    mpActivo: false,              // SI = el cliente puede pagar el abono con Mercado Pago y la reserva se confirma sola (requiere el token en las propiedades del script)
+    mpComisionPct: 3.5,           // % estimado de comisión de Mercado Pago (solo se usa si Mercado Pago no informa la comisión real)
     instruccionesPago: 'Te enviaremos los datos de transferencia por WhatsApp para confirmar tu reserva.',
     correoCliente: true,
 
@@ -239,6 +242,8 @@ var Reglas = (function () {
     c.datosTransferencia = aTexto(raw.datosTransferencia, d.datosTransferencia);
     c.anulacionTardiaRetiene = aBool(raw.anulacionTardiaRetiene, d.anulacionTardiaRetiene);
     c.pagoOnline = aBool(raw.pagoOnline, d.pagoOnline);
+    c.mpActivo = aBool(raw.mpActivo, d.mpActivo);
+    c.mpComisionPct = Math.max(0, Math.min(15, aNumero(raw.mpComisionPct, d.mpComisionPct)));
     c.linkPago = aTexto(raw.linkPago, d.linkPago);
     c.instruccionesPago = aTexto(raw.instruccionesPago, d.instruccionesPago);
     c.correoCliente = aBool(raw.correoCliente, d.correoCliente);
@@ -583,13 +588,15 @@ var RES = {
   telefono: 11, correo: 12, extras: 13, video: 14, raw: 15, total: 16, abono: 17, saldo: 18,
   zurdo: 19, voces: 20, comentarios: 21, evento: 22,
   base: 23, extrasM: 24, videoM: 25, rawM: 26, abonoRecibido: 27, retenido: 28, devolver: 29, plan: 30, recordatorio: 31, reagendos: 32, ajuste: 33, notaAjuste: 34, original: 35,
-  cobro: 36, medioPago: 37, cortesia: 38, fechaPago: 39
+  cobro: 36, medioPago: 37, cortesia: 38, fechaPago: 39,
+  pago: 40, pagoFecha: 41, pagoId: 42, comision: 43
 };
 var ENCABEZADO_RESERVAS = ['Código', 'Creada', 'Estado', 'Servicio', 'Fecha', 'Inicio', 'Fin', 'Horas', 'Banda', 'Contacto',
   'Teléfono', 'Correo', 'Equipo extra', 'Video', 'Material en bruto', 'Total', 'Abono', 'Saldo',
   'Baterista zurdo', 'Micrófonos de voz', 'Comentarios', 'ID del evento',
   'Monto horas', 'Monto extras', 'Monto video', 'Monto material bruto', 'Abono recibido', 'Abono retenido', 'Abono a devolver', 'Plan', 'Recordatorio WhatsApp', 'Reagendos', 'Ajuste (descuento)', 'Nota del ajuste', 'Montos originales',
-  'Cobro (POR COBRAR si el saldo quedó pendiente)', 'Medio de pago del saldo', 'Cortesía o canje', 'Fecha de pago del saldo'];
+  'Cobro (POR COBRAR si el saldo quedó pendiente)', 'Medio de pago del saldo', 'Cortesía o canje', 'Fecha de pago del saldo',
+  'Verificación de pago (COMPROBANTE / PAGO EN LÍNEA)', 'Fecha del pago o comprobante', 'ID del pago en línea', 'Comisión de la pasarela'];
 
 /** Los cinco estados de una reserva (así aparecen en la hoja y en el portal). */
 var EST = {
@@ -609,6 +616,9 @@ function estadoNorm_(v) {
   return '';
 }
 var ETIQUETA_SERVICIO = { ensayo: 'Ensayo', grabacion: 'Grabación' };
+var PAGO_COMPROBANTE = 'COMPROBANTE';
+var PAGO_ONLINE = 'PAGO EN LÍNEA';
+var HORAS_MAX_COMPROBANTE = 12;
 var MAX_PENDIENTES_POR_TELEFONO = 3;
 var MAX_SOLICITUDES_POR_HORA = 6;
 
@@ -645,9 +655,13 @@ function doPost(e) {
     var cuerpo = (e && e.postData && e.postData.contents) || '';
     if (cuerpo.length > 600000) return json_({ ok: false, codigo: 'DATOS', error: 'Solicitud demasiado grande.' });
     var sol = JSON.parse(cuerpo);
+    if (e && e.parameter && e.parameter.mp) return json_(mpWebhook_(e.parameter, sol)); // aviso de Mercado Pago
     if (cuerpo.length > 8000 && sol.accion !== 'honor') return json_({ ok: false, codigo: 'DATOS', error: 'Solicitud demasiado grande.' });
     switch (sol.accion) {
       case 'reservar': return json_(reservar_(sol));
+      case 'pagado': return json_(marcarComprobante_(sol));
+      case 'mp_pagar': return json_(mpCrearPago_(sol));
+      case 'mp_verificar': return json_(mpVerificarCliente_(sol));
       case 'honor': return json_(registrarHonor_(sol));
       case 'resena': return json_(registrarResena_(sol));
       case 'cotizacion': return json_(registrarCotizacion_(sol));
@@ -891,7 +905,7 @@ function reservar_(sol) {
         total: v.calculo.total, abono: v.calculo.abono, saldo: v.calculo.saldo, grabacionMin: v.grabacionMin
       },
       whatsapp: Reglas.resumenTexto(cfg, v, codigo),
-      pago: { instrucciones: cfg.instruccionesPago, transferencia: (cfg.pagoTransferencia && cfg.datosTransferencia) ? cfg.datosTransferencia : '', link: (cfg.pagoOnline && cfg.linkPago) ? cfg.linkPago : '', minutosReserva: cfg.minutosReserva, segundos: cfg.minutosReserva * 60 }
+      pago: { mp: mpDisponible_(cfg), instrucciones: cfg.instruccionesPago, transferencia: (cfg.pagoTransferencia && cfg.datosTransferencia) ? cfg.datosTransferencia : '', link: (cfg.pagoOnline && cfg.linkPago) ? cfg.linkPago : '', minutosReserva: cfg.minutosReserva, segundos: cfg.minutosReserva * 60 }
     };
   } finally {
     lock.releaseLock();
@@ -1009,6 +1023,12 @@ function liberarVencidas_(cfg) {
     if (estadoNorm_(r[RES.estado - 1]) !== EST.SIN_ABONO) return;
     var creada = r[RES.creada - 1];
     if (!(creada instanceof Date) || creada.getTime() > limite) return;
+    if (String(r[RES.pago - 1]) === PAGO_COMPROBANTE) {
+      // El cliente dijo que ya pagó: el horario se guarda hasta que lo valides (con un tope, para que nadie lo retenga sin pagar).
+      var desde = r[RES.pagoFecha - 1];
+      if (desde instanceof Date && desde.getTime() > Date.now() - HORAS_MAX_COMPROBANTE * 3600000) return;
+      avisarAdmin_('Se liberó un horario con comprobante SIN validar · ' + r[RES.codigo - 1], 'La reserva ' + r[RES.codigo - 1] + ' (' + r[RES.banda - 1] + ', ' + r[RES.fecha - 1] + ') llevaba más de ' + HORAS_MAX_COMPROBANTE + ' horas con comprobante sin validar y el horario se liberó. Si el pago es real, reagéndala desde el portal.');
+    }
     sh.getRange(i + 2, RES.estado).setValue(EST.ANULADA);
     borrarEvento_(cal, r[RES.evento - 1]);
   });
@@ -1154,12 +1174,12 @@ function abrirBd_() {
 /** Agrega a la hoja de reservas la columna «Reagendos» si falta (hojas de versiones anteriores). Se revisa una vez cada 6 horas. */
 function asegurarEsquema_(ss) {
   var cache = CacheService.getScriptCache();
-  if (cache.get('esq7')) return;
+  if (cache.get('esq8')) return;
   try {
     var sh = ss.getSheetByName(HOJAS.reservas);
     if (sh) {
-      if (sh.getMaxColumns() < RES.fechaPago) sh.insertColumnsAfter(sh.getMaxColumns(), RES.fechaPago - sh.getMaxColumns());
-      [[RES.reagendos, 'Reagendos'], [RES.ajuste, 'Ajuste (descuento)'], [RES.notaAjuste, 'Nota del ajuste'], [RES.original, 'Montos originales'], [RES.cobro, ENCABEZADO_RESERVAS[RES.cobro - 1]], [RES.medioPago, ENCABEZADO_RESERVAS[RES.medioPago - 1]], [RES.cortesia, ENCABEZADO_RESERVAS[RES.cortesia - 1]], [RES.fechaPago, ENCABEZADO_RESERVAS[RES.fechaPago - 1]]].forEach(function (c) {
+      if (sh.getMaxColumns() < RES.comision) sh.insertColumnsAfter(sh.getMaxColumns(), RES.comision - sh.getMaxColumns());
+      [[RES.reagendos, 'Reagendos'], [RES.ajuste, 'Ajuste (descuento)'], [RES.notaAjuste, 'Nota del ajuste'], [RES.original, 'Montos originales'], [RES.cobro, ENCABEZADO_RESERVAS[RES.cobro - 1]], [RES.medioPago, ENCABEZADO_RESERVAS[RES.medioPago - 1]], [RES.cortesia, ENCABEZADO_RESERVAS[RES.cortesia - 1]], [RES.fechaPago, ENCABEZADO_RESERVAS[RES.fechaPago - 1]], [RES.pago, ENCABEZADO_RESERVAS[RES.pago - 1]], [RES.pagoFecha, ENCABEZADO_RESERVAS[RES.pagoFecha - 1]], [RES.pagoId, ENCABEZADO_RESERVAS[RES.pagoId - 1]], [RES.comision, ENCABEZADO_RESERVAS[RES.comision - 1]]].forEach(function (c) {
         if (!sh.getRange(1, c[0]).getValue()) sh.getRange(1, c[0]).setValue(c[1]).setFontWeight('bold');
       });
     }
@@ -1183,7 +1203,7 @@ function asegurarEsquema_(ss) {
       }
       props.setProperty('MIG_HONOR_1', '1');
     }
-    cache.put('esq7', '1', 21600);
+    cache.put('esq8', '1', 21600);
   } catch (e) { /* si falla, se reintenta en la próxima solicitud */ }
 }
 
@@ -1324,6 +1344,8 @@ function prepararConfig_(ss) {
     ['datosTransferencia', '', 'Texto público con tus datos para transferir. Vacío = se los envías por WhatsApp. Ojo: lo que escribas aquí lo ve cualquiera.'],
     ['anulacionTardiaRetiene', 'SI', 'SI = si anulan con menos de horasAnulacion de anticipación, se retiene todo el abono. NO = se trata como anulación a tiempo.'],
     ['pagoOnline', 'NO', 'SI o NO. SI muestra el botón de pago online además de WhatsApp. Requiere linkPago.'],
+    ['mpActivo', 'NO', 'SI = botón «Pagar con Mercado Pago» con confirmación automática. Requiere el token de Mercado Pago guardado en el script (ver GUIA).'],
+    ['mpComisionPct', d.mpComisionPct, 'Comisión estimada de Mercado Pago en % (solo si Mercado Pago no informa la real). La comisión de cada pago se anota sola como gasto.'],
     ['linkPago', '', 'Enlace de pago (por ejemplo Mercado Pago) para el abono. Solo se usa si pagoOnline = SI.'],
     ['instruccionesPago', d.instruccionesPago, 'Texto que ve el cliente para pagar el abono. No escribas aquí tu RUT ni tu cuenta si no quieres que sean públicos.'],
     ['tarifaConveniente', 'NO', 'SI o NO. SI aplica una tarifa por hora más baja de lunes a viernes en la franja convenienteDesde–convenienteHasta. Confirma el valor antes de activarla.'],
@@ -1614,7 +1636,7 @@ function adminResumen(mesVentas) {
         inicio: horaCelda_(r[RES.inicio - 1]), fin: horaCelda_(r[RES.fin - 1]), banda: String(r[RES.banda - 1]),
         contacto: String(r[RES.contacto - 1]), telefono: String(r[RES.telefono - 1]),
         total: Number(r[RES.total - 1]) || 0, abono: Number(r[RES.abono - 1]) || 0,
-        plan: String(r[RES.plan - 1] || ''), fechaTxt: Reglas.fechaLarga(fecha), saldo: estado === EST.NO_ASISTE ? 0 : (Number(r[RES.total - 1]) || 0) - (Number(r[RES.abono - 1]) || 0), ajuste: ajusteDe_(r), notaAjuste: String(r[RES.notaAjuste - 1] || ''), totalOriginal: totalOriginal_(r), retenido: Number(r[RES.retenido - 1]) || 0, devolver: Number(r[RES.devolver - 1]) || 0
+        pago: String(r[RES.pago - 1] || ''), plan: String(r[RES.plan - 1] || ''), fechaTxt: Reglas.fechaLarga(fecha), saldo: estado === EST.NO_ASISTE ? 0 : (Number(r[RES.total - 1]) || 0) - (Number(r[RES.abono - 1]) || 0), ajuste: ajusteDe_(r), notaAjuste: String(r[RES.notaAjuste - 1] || ''), totalOriginal: totalOriginal_(r), retenido: Number(r[RES.retenido - 1]) || 0, devolver: Number(r[RES.devolver - 1]) || 0
       });
     });
     reservas.sort(function (a, b) { return (a.fecha + a.inicio) < (b.fecha + b.inicio) ? -1 : 1; });
@@ -2128,7 +2150,7 @@ function adminJornadas() {
         fecha: fecha, fechaTxt: fecha ? Reglas.fechaLarga(fecha) : '', inicio: horaCelda_(r[RES.inicio - 1]), fin: horaCelda_(r[RES.fin - 1]), horas: Number(r[RES.horas - 1]) || 0,
         banda: String(r[RES.banda - 1]), contacto: String(r[RES.contacto - 1]), telefono: String(r[RES.telefono - 1]), correo: String(r[RES.correo - 1] || ''),
         extras: Number(r[RES.extras - 1]) || 0, video: String(r[RES.video - 1]) === 'SI', raw: String(r[RES.raw - 1]) === 'SI', zurdo: String(r[RES.zurdo - 1]) === 'SI',
-        voces: Number(r[RES.voces - 1]) || 0, comentarios: String(r[RES.comentarios - 1] || ''),
+        voces: Number(r[RES.voces - 1]) || 0, comentarios: String(r[RES.comentarios - 1] || ''), pago: String(r[RES.pago - 1] || ''),
         total: total, abono: abono, saldo: estadoNorm_(r[RES.estado - 1]) === EST.NO_ASISTE ? 0 : total - abono, ajuste: ajusteDe_(r), notaAjuste: String(r[RES.notaAjuste - 1] || ''), totalOriginal: totalOriginal_(r), retenido: Number(r[RES.retenido - 1]) || 0, devolver: Number(r[RES.devolver - 1]) || 0,
         cobro: String(r[RES.cobro - 1]) === 'POR COBRAR', medio: String(r[RES.medioPago - 1] || ''), cortesia: String(r[RES.cortesia - 1]) === 'SI', fechaPago: aFechaIso_(r[RES.fechaPago - 1]),
         plan: String(r[RES.plan - 1] || ''), creada: aFechaIso_(r[RES.creada - 1]), reag: Number(r[RES.reagendos - 1]) || 0
@@ -3960,6 +3982,8 @@ var ESQUEMA = [
   ['pagoTransferencia', 'Pago por transferencia', 'sino', 'Pagos', 'Muestra los datos de transferencia al terminar la reserva.'],
   ['datosTransferencia', 'Datos de transferencia', 'texto', 'Pagos', 'Texto público. Lo ve cualquiera: no pongas más de lo necesario.', 300],
   ['pagoOnline', 'Pago online', 'sino', 'Pagos', 'Muestra el botón de pago online (requiere el enlace de pago).'],
+  ['mpActivo', 'Pago con Mercado Pago (confirma solo)', 'sino', 'Pagos', 'SI = botón «Pagar con Mercado Pago»: al pagar, la reserva se confirma sola. Requiere guardar el token de Mercado Pago (ver guía).'],
+  ['mpComisionPct', 'Comisión estimada de Mercado Pago (%)', 'num', 'Pagos', 'Solo se usa si Mercado Pago no informa la comisión real de un pago.'],
   ['linkPago', 'Enlace de pago online', 'url', 'Pagos', 'Enlace https (por ejemplo Mercado Pago).'],
   ['instruccionesPago', 'Instrucciones de pago', 'texto', 'Pagos', 'Texto que ve el cliente para pagar el abono.', 400],
 
@@ -4431,4 +4455,199 @@ function adminSitioDatos() {
   exigirAdmin_();
   var cfg = getCfg_();
   return { sitio: leerSitio_(), base: String(cfg.sitioUrl || '').replace(/\/+$/, '') || 'https://rockerioproducciones.cl', tema: cfg.tema, html: '', ficha: null, galeria: null, playlist: null, microfonos: null, aviso: '' };
+}
+
+/* ===== Pagos ===== */
+/* ====================================================================
+ *  PAGOS DEL ABONO
+ *   1) «Ya pagué»: el cliente avisa que envió el comprobante. El horario queda guardado
+ *      (hasta HORAS_MAX_COMPROBANTE) y te llega un aviso para validarlo.
+ *   2) Mercado Pago: el cliente paga en línea y la reserva se confirma sola.
+ *      La comisión de cada pago se anota como gasto, así el balance muestra lo que realmente entra.
+ *  El token de Mercado Pago NO va en la hoja ni en el sitio: solo en las propiedades del script (MP_ACCESS_TOKEN).
+ * ==================================================================== */
+/* (PAGO_COMPROBANTE, PAGO_ONLINE y HORAS_MAX_COMPROBANTE están definidas en Code.gs) */
+
+function mpToken_() { return String(PropertiesService.getScriptProperties().getProperty('MP_ACCESS_TOKEN') || '').trim(); }
+function mpDisponible_(cfg) { return !!(cfg.mpActivo && mpToken_()); }
+
+/** Código y teléfono del cliente → fila de la reserva (o null). */
+function reservaDeCliente_(sol) {
+  var codigo = String(sol && sol.codigo || '').toUpperCase().trim(), tel = Reglas.normalizarTelefono(sol && sol.telefono);
+  if (!/^RP-\d{3,8}(-\d)?$/.test(codigo) || !Reglas.telefonoValido(tel)) return null;
+  var sh = abrirBd_().getSheetByName(HOJAS.reservas);
+  var celda = sh.getLastRow() > 1 ? sh.createTextFinder(codigo).matchEntireCell(true).findNext() : null;
+  if (!celda || celda.getColumn() !== RES.codigo) return null;
+  var f = celda.getRow(), r = sh.getRange(f, 1, 1, ENCABEZADO_RESERVAS.length).getValues()[0];
+  if (Reglas.normalizarTelefono(r[RES.telefono - 1]) !== tel) return null;
+  return { sh: sh, f: f, r: r, codigo: codigo, estado: estadoNorm_(r[RES.estado - 1]) };
+}
+
+/** El cliente avisa «ya envié el comprobante». */
+function marcarComprobante_(sol) {
+  if (sol && sol.web) return { ok: false, codigo: 'DATOS', error: 'Solicitud no válida.' };
+  if (limiteGlobal_('pagado', 80)) return { ok: false, codigo: 'TASA', error: 'Hay muchas solicitudes ahora. Escríbenos por WhatsApp.' };
+  var res = null, rf = null;
+  conBloqueo_(function () {
+    rf = reservaDeCliente_(sol);
+    if (!rf) { res = { ok: false, codigo: 'NO_RESERVA', error: 'No encontramos esa reserva. Escríbenos por WhatsApp con tu comprobante.' }; return; }
+    var cfg = getCfg_();
+    if (rf.estado === EST.CON_ABONO || rf.estado === EST.FINALIZADA) { res = { ok: true, mensaje: 'Tu reserva ya está confirmada. ¡Nos vemos!' }; return; }
+    if (rf.estado === EST.ANULADA) {
+      res = { ok: false, codigo: 'VENCIDA', error: 'El horario se liberó por tiempo. Escríbenos por WhatsApp con tu comprobante y lo vemos de inmediato.' };
+      avisarAdmin_('Pago de una reserva ya liberada · ' + rf.codigo, rf.r[RES.banda - 1] + ' dice que pagó la reserva ' + rf.codigo + ' (' + rf.r[RES.fecha - 1] + '), pero el horario ya se había liberado. Revisa si el horario sigue libre y reagéndala desde el portal.');
+      return;
+    }
+    if (rf.estado !== EST.SIN_ABONO) { res = { ok: false, codigo: 'ESTADO', error: 'Esa reserva no admite este aviso.' }; return; }
+    if (String(rf.r[RES.pago - 1]) !== PAGO_COMPROBANTE) {
+      rf.sh.getRange(rf.f, RES.pago, 1, 2).setValues([[PAGO_COMPROBANTE, new Date()]]);
+      rf.nuevo = true;
+    }
+    res = { ok: true, mensaje: '¡Recibido! Tu horario queda guardado mientras validamos tu pago. Te confirmamos por WhatsApp.' };
+  });
+  if (rf && rf.nuevo) {
+    var r = rf.r;
+    avisarAdmin_('💬 Comprobante por validar · ' + rf.codigo + ' · ' + r[RES.banda - 1],
+      r[RES.contacto - 1] + ' (+' + r[RES.telefono - 1] + ') avisó que envió el comprobante del abono de ' + Reglas.clp(Number(r[RES.abono - 1]) || 0) + '.\n' +
+      'Reserva ' + rf.codigo + ': ' + r[RES.servicio - 1] + ' el ' + aFechaIso_(r[RES.fecha - 1]) + '.\n\n' +
+      'Revisa el comprobante en WhatsApp y confirma el abono en el portal (Reservas). El horario se guarda ' + HORAS_MAX_COMPROBANTE + ' horas.');
+  }
+  return res;
+}
+
+/* ---------------- Mercado Pago ---------------- */
+
+function mpLlamar_(metodo, url, cuerpo) {
+  var o = { method: metodo, muteHttpExceptions: true, headers: { Authorization: 'Bearer ' + mpToken_() }, contentType: 'application/json' };
+  if (cuerpo) o.payload = JSON.stringify(cuerpo);
+  var resp = UrlFetchApp.fetch(url, o), cod = resp.getResponseCode(), txt = resp.getContentText();
+  var j; try { j = JSON.parse(txt); } catch (e) { j = {}; }
+  if (cod < 200 || cod >= 300) { console.error('Mercado Pago ' + metodo + ' ' + url.replace(/\?.*/, '') + ' → ' + cod); throw new Error('mp'); }
+  return j;
+}
+
+function mpSecreto_() {
+  var p = PropertiesService.getScriptProperties(), s = p.getProperty('MP_SECRETO');
+  if (!s) { s = Utilities.getUuid().replace(/-/g, ''); p.setProperty('MP_SECRETO', s); }
+  return s;
+}
+function mpUrlAvisos_() {
+  var p = PropertiesService.getScriptProperties(), base = p.getProperty('MP_URL_AVISOS') || '';
+  if (!base) { try { base = ScriptApp.getService().getUrl(); } catch (e) { base = ''; } }
+  return base ? base + (base.indexOf('?') < 0 ? '?' : '&') + 'mp=1&k=' + mpSecreto_() : '';
+}
+
+/** Crea el pago del abono y devuelve el enlace de Mercado Pago. */
+function mpCrearPago_(sol) {
+  var cfg = getCfg_();
+  if (!mpDisponible_(cfg)) return { ok: false, codigo: 'MP_OFF', error: 'El pago en línea no está disponible. Usa la transferencia.' };
+  if (limiteGlobal_('mp_crear', 80)) return { ok: false, codigo: 'TASA', error: 'Hay muchas solicitudes ahora. Escríbenos por WhatsApp.' };
+  var rf = reservaDeCliente_(sol);
+  if (!rf) return { ok: false, codigo: 'NO_RESERVA', error: 'No encontramos esa reserva.' };
+  if (rf.estado === EST.CON_ABONO) return { ok: false, codigo: 'YA_PAGADA', error: 'Tu reserva ya está confirmada.' };
+  if (rf.estado !== EST.SIN_ABONO) return { ok: false, codigo: 'VENCIDA', error: 'El horario se liberó por tiempo. Vuelve a reservar o escríbenos por WhatsApp.' };
+  var abono = Math.round(Number(rf.r[RES.abono - 1]) || 0);
+  if (!(abono > 0)) return { ok: false, codigo: 'DATOS', error: 'La reserva no tiene abono.' };
+  var creada = rf.r[RES.creada - 1], vence = new Date(Math.max(Date.now() + 5 * 60000, (creada instanceof Date ? creada.getTime() : Date.now()) + cfg.minutosReserva * 60000));
+  var sitio = cfg.sitioUrl || '', volver = function (q) { return sitio ? sitio + '/?pago=' + q + '&codigo=' + encodeURIComponent(rf.codigo) : undefined; };
+  var cuerpo = {
+    items: [{ id: rf.codigo, title: ('Abono reserva ' + rf.codigo + ' · ' + cfg.nombreNegocio).slice(0, 120), quantity: 1, unit_price: abono, currency_id: 'CLP' }],
+    external_reference: rf.codigo,
+    expires: true, expiration_date_to: Utilities.formatDate(vence, 'GMT', "yyyy-MM-dd'T'HH:mm:ss.000'Z'")
+  };
+  var na = mpUrlAvisos_(); if (na) cuerpo.notification_url = na;
+  if (sitio) { cuerpo.back_urls = { success: volver('ok'), pending: volver('pendiente'), failure: volver('error') }; cuerpo.auto_return = 'approved'; }
+  try {
+    var p = mpLlamar_('post', 'https://api.mercadopago.com/checkout/preferences', cuerpo);
+    if (!/^https:\/\/[a-z0-9.\-]*mercadopago\.[a-z.]+\//i.test(String(p.init_point || ''))) throw new Error('mp');
+    return { ok: true, url: p.init_point };
+  } catch (e) {
+    return { ok: false, codigo: 'MP_ERROR', error: 'No pudimos abrir el pago en línea. Usa la transferencia o escríbenos por WhatsApp.' };
+  }
+}
+
+/** Busca pagos aprobados de una reserva en Mercado Pago y, si corresponde, la confirma. Devuelve true si quedó confirmada. */
+function mpConfirmarReserva_(codigo) {
+  var lista = mpLlamar_('get', 'https://api.mercadopago.com/v1/payments/search?sort=date_created&criteria=desc&external_reference=' + encodeURIComponent(codigo));
+  var pagos = (lista && lista.results) || [], ok = false;
+  pagos.forEach(function (p) { if (mpAplicarPago_(p)) ok = true; });
+  return ok;
+}
+
+/** Aplica un pago aprobado a su reserva (idempotente). Devuelve true si la reserva quedó confirmada por este pago. */
+function mpAplicarPago_(p) {
+  if (!p || p.status !== 'approved') return false;
+  var codigo = String(p.external_reference || '');
+  var hecho = false, aviso = null;
+  conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.reservas);
+    var celda = sh.getLastRow() > 1 ? sh.createTextFinder(codigo).matchEntireCell(true).findNext() : null;
+    if (!celda || celda.getColumn() !== RES.codigo) return;
+    var f = celda.getRow(), r = sh.getRange(f, 1, 1, ENCABEZADO_RESERVAS.length).getValues()[0], estado = estadoNorm_(r[RES.estado - 1]);
+    var id = String(p.id || '');
+    if (!id || String(r[RES.pagoId - 1]) === id) { hecho = estado === EST.CON_ABONO; return; } // ya aplicado
+    var abono = Number(r[RES.abono - 1]) || 0;
+    if (!(Number(p.transaction_amount) >= abono)) { aviso = ['Pago de Mercado Pago menor al abono · ' + codigo, 'La reserva ' + codigo + ' recibió un pago de ' + Reglas.clp(Number(p.transaction_amount) || 0) + ' y el abono es ' + Reglas.clp(abono) + '. No se confirmó sola: revísala en el portal.']; return; }
+    var cfg = getCfg_();
+    var comision = 0;
+    (p.fee_details || []).forEach(function (x) { comision += Number(x.amount) || 0; });
+    var estimada = !(comision > 0);
+    if (estimada) comision = Math.round(abono * (Number(cfg.mpComisionPct) || 0) / 100);
+    comision = Math.round(comision);
+    if (estado === EST.ANULADA) {
+      sh.getRange(f, RES.pagoFecha, 1, 3).setValues([[new Date(), id, comision]]);
+      aviso = ['💳 Pago recibido de una reserva ya liberada · ' + codigo, r[RES.banda - 1] + ' pagó ' + Reglas.clp(abono) + ' por Mercado Pago, pero el horario ya se había liberado. Reagéndala o devuelve el pago desde Mercado Pago.'];
+      return;
+    }
+    if (estado !== EST.SIN_ABONO) return;
+    sh.getRange(f, RES.estado).setValue(EST.CON_ABONO);
+    sh.getRange(f, RES.pago, 1, 4).setValues([[PAGO_ONLINE, new Date(), id, comision]]);
+    sincronizarEstado_(sh, f);
+    if (comision > 0) {
+      var mov = abrirBd_().getSheetByName(HOJAS.movimientos), movId = 'MOV-MP-' + id;
+      if (!filaPorTexto_(mov, movId, 1)) mov.appendRow([movId, fechaHora_(ahoraChile_().fecha, 0), 'Gasto', String(r[RES.servicio - 1]) === ETIQUETA_SERVICIO.grabacion ? 'Estudio' : 'Sala', comision, 'Comisión Mercado Pago · ' + codigo + (estimada ? ' (estimada)' : '')]);
+    }
+    hecho = true;
+    aviso = ['✅ Reserva ' + codigo + ' pagada por Mercado Pago · ' + r[RES.banda - 1], 'Abono de ' + Reglas.clp(abono) + ' recibido y reserva confirmada sola. Comisión de Mercado Pago: ' + Reglas.clp(comision) + (estimada ? ' (estimada)' : '') + ', anotada como gasto.'];
+  });
+  if (aviso) avisarAdmin_(aviso[0], aviso[1]);
+  return hecho;
+}
+
+/** Aviso (webhook) de Mercado Pago: no se confía en lo que llega; se consulta el pago directamente a Mercado Pago. */
+function mpWebhook_(par, sol) {
+  try {
+    if (!mpToken_() || String(par.k || '') !== String(PropertiesService.getScriptProperties().getProperty('MP_SECRETO') || '-')) return { ok: false };
+    if (limiteGlobal_('mp_aviso', 400)) return { ok: false };
+    var tipo = String(par.type || par.topic || (sol && sol.type) || ''), id = String(par['data.id'] || par.id || (sol && sol.data && sol.data.id) || '');
+    if (tipo !== 'payment' || !/^\d{3,20}$/.test(id)) return { ok: true };
+    mpAplicarPago_(mpLlamar_('get', 'https://api.mercadopago.com/v1/payments/' + id));
+  } catch (e) { console.error('Aviso de Mercado Pago: ' + (e && e.message)); }
+  return { ok: true };
+}
+
+/** El cliente vuelve del pago: confirmamos sin esperar el aviso. */
+function mpVerificarCliente_(sol) {
+  var cfg = getCfg_();
+  if (!mpDisponible_(cfg)) return { ok: false, codigo: 'MP_OFF' };
+  if (limiteGlobal_('mp_verif', 200)) return { ok: false, codigo: 'TASA' };
+  var rf = reservaDeCliente_(sol);
+  if (!rf) return { ok: false, codigo: 'NO_RESERVA' };
+  if (rf.estado === EST.CON_ABONO) return { ok: true, confirmada: true };
+  try { return { ok: true, confirmada: mpConfirmarReserva_(rf.codigo) }; } catch (e) { return { ok: false, codigo: 'MP_ERROR' }; }
+}
+
+/** Portal: revisa en Mercado Pago si una reserva ya fue pagada. */
+function adminVerificarPagoMP(codigo) {
+  exigirAdmin_();
+  if (!mpToken_()) throw new Error('Mercado Pago no está configurado todavía.');
+  var ok = mpConfirmarReserva_(String(codigo));
+  if (!ok) throw new Error('Mercado Pago no tiene un pago aprobado para esa reserva.');
+  return adminResumen();
+}
+
+/** Ejecútala UNA vez desde el editor (botón ▶) para autorizar la conexión con Mercado Pago. */
+function autorizarMercadoPago() {
+  var r = UrlFetchApp.fetch('https://api.mercadopago.com/users/me', { headers: { Authorization: 'Bearer ' + mpToken_() }, muteHttpExceptions: true });
+  console.log('Mercado Pago respondió: ' + r.getResponseCode() + (r.getResponseCode() === 200 ? ' (token válido)' : ' (revisa el token)'));
 }

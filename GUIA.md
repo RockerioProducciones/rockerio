@@ -98,3 +98,15 @@ Prioridad: que los clientes ya puedan reservar. Lo demás (dominio, fotos, extra
 **Seguridad:** cambia cualquier clave de acceso que haya aparecido en capturas del sitio antiguo; no la reutilices aquí.
 
 **Cuadro de honor:** las bandas envían el formulario; aparece en el portal (Contenido > Cuadro de honor) para aceptar, editar o eliminar. **Muestras de audio:** en el portal, Contenido > Muestras, sube un archivo por micrófono.
+
+## Pagar el abono: «Ya envié mi comprobante» y Mercado Pago
+
+**«Ya envié mi comprobante» (ya activo).** Al terminar su reserva el cliente ve ese botón. Al apretarlo, el horario queda guardado hasta 12 horas (no vence a los 20 minutos), te llega un correo «Comprobante por validar» y en la Jornada aparece la reserva con «Confirmar abono». Pasadas 12 horas sin validar, el horario se libera y te llega otro aviso.
+
+**Mercado Pago (opcional, confirma solo).** Está construido y apagado. Para activarlo:
+1. En Mercado Pago → Tus integraciones → crea una aplicación (Checkout Pro) y copia el **Access Token de producción**.
+2. En Apps Script → Configuración del proyecto → Propiedades del script → agrega `MP_ACCESS_TOKEN` con ese token. (Nunca en la hoja ni en el sitio.)
+3. Avisar para agregar el permiso de conexión externa (`script.external_request`) y volver a autorizar: en el editor ejecuta `autorizarMercadoPago` una vez y acepta los permisos.
+4. En el portal → Configuración → Pagos: «Pago con Mercado Pago» = SI. Opcional: comisión estimada (%).
+
+Cuando el cliente paga, la reserva pasa sola a «con abono» y la comisión que cobra Mercado Pago se anota como **gasto** (Sala o Estudio) en Movimientos, así el balance mensual refleja lo que realmente entra. Si Mercado Pago informa la comisión real se usa esa; si no, la estimada. Si un pago llega con el horario ya liberado, te llega un aviso para reagendar o devolver.
