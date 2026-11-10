@@ -37,17 +37,20 @@
     ['02. MIX', 'Mezcla y panning pro', 'Apertura estéreo, EQ correctiva, gating de batería y saturación cálida.', 'Mezclada'],
     ['03. MASTER (-14 LUFS)', 'Master comercial para streaming', 'Compresión de bus analógica SSL, pegada, brillo analógico y volumen estándar comercial.', 'Masterizada']
   ];
-  function comparador(grupos) {
-    var cont = $('comparador'); if (!cont) return;
+  function comparador(grupos, contId, tx) {
+    var cont = $(contId || 'comparador'); if (!cont) return;
+    var vac = $((contId || 'abc') === 'aislados' ? 'aislados-vacio' : 'abc-vacio'); if (vac) vac.hidden = !!grupos.length;
     cont.textContent = ''; cont.hidden = !grupos.length; if (!grupos.length) return;
-    cont.appendChild(el('div', 'comp-kick', 'Experiencia interactiva en tiempo real'));
-    cont.appendChild(el('h3', 'comp-tit', 'Comparador A/B/C: Raw → Mix → Master'));
-    cont.appendChild(el('p', 'comp-sub', 'Toca cualquiera de las 3 etapas para escuchar la evolución sonora de una misma canción en Rockerío Producciones: desde la captura en bruto de sala, la apertura estéreo y el balance de mezcla, hasta el punch comercial con compresión de bus analógica SSL.'));
+    tx = tx || {};
+    cont.appendChild(el('div', 'comp-kick', tx.kick || 'Experiencia interactiva en tiempo real'));
+    cont.appendChild(el('h3', 'comp-tit', tx.tit || 'Comparador A/B/C: Raw → Mix → Master'));
+    cont.appendChild(el('p', 'comp-sub', tx.sub || 'Toca cualquiera de las 3 etapas para escuchar la evolución sonora de una misma canción en Rockerío Producciones: desde la captura en bruto de sala, la apertura estéreo y el balance de mezcla, hasta el punch comercial con compresión de bus analógica SSL.'));
     var sel = el('div', 'comp-canciones'), cuerpo = el('div'); cont.appendChild(sel); cont.appendChild(cuerpo);
     function mostrar(g, btnSel) {
       [].forEach.call(sel.children, function (b) { b.setAttribute('aria-pressed', b === btnSel ? 'true' : 'false'); });
       cuerpo.textContent = '';
       if (g.descripcion) cuerpo.appendChild(el('p', 'nota', g.descripcion));
+      if (!ETAPAS.some(function (e) { return g.items.some(function (x) { return x.etiqueta === e[3]; }); })) { g.items.forEach(function (i) { cuerpo.appendChild(muestra(i)); }); return; }
       var fila = el('div', 'comp-etapas'), play = el('div', 'comp-play'), actual = null, tiempo = 0;
       ETAPAS.forEach(function (e, i) {
         var it = g.items.filter(function (x) { return x.etiqueta === e[3]; })[0]; if (!it) return;
@@ -117,11 +120,24 @@
     });
   }
 
+  /* ---------- pestañas de Producción (mismo esquema que la ficha técnica) ---------- */
+  function pestanasProd() {
+    var tabs = $('prod-tabs'); if (!tabs) return;
+    var paneles = [].slice.call(document.querySelectorAll('#nosotros .prod-panel'));
+    function ir(id) {
+      [].forEach.call(tabs.querySelectorAll('.ficha-tab'), function (b) { b.setAttribute('aria-selected', b.getAttribute('data-p') === id ? 'true' : 'false'); });
+      paneles.forEach(function (p) { p.hidden = p.getAttribute('data-p') !== id; });
+    }
+    [].forEach.call(tabs.querySelectorAll('.ficha-tab'), function (b) { b.addEventListener('click', function () { ir(b.getAttribute('data-p')); }); });
+  }
+  pestanasProd();
+
   /* ---------- pintado ---------- */
   function pintar(c) {
     var mics = c.muestras.filter(function (g) { return g.tipo === 'Micrófono'; });
-    var otros = c.muestras.filter(function (g) { return g.tipo !== 'Micrófono' && g.tipo !== 'Comparador'; });
+    var otros = c.muestras.filter(function (g) { return g.tipo !== 'Micrófono' && g.tipo !== 'Comparador' && g.tipo !== 'Aislado'; });
     comparador(c.muestras.filter(function (g) { return g.tipo === 'Comparador'; }));
+    comparador(c.muestras.filter(function (g) { return g.tipo === 'Aislado'; }), 'aislados', { kick: 'Pista por pista', tit: 'Instrumentos aislados', sub: 'Elige un instrumento (batería, guitarras, bajo, voces) y escúchalo solo, tal como queda grabado en la sala. Si tiene versión en bruto, mezclada y masterizada, puedes alternar entre ellas.' });
     $('escucha-box').hidden = !otros.length;
     RK.micsCatalogo().then(function (cat) { pintarMics(cat || [], mics); });
     otros.forEach(function (g) { $('escucha').appendChild(tarjeta(g)); });

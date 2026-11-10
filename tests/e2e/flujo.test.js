@@ -485,6 +485,14 @@ t('comparador de sonido: guardar canción con 3 versiones, publicarla, reemplaza
   gx.admin('adminEliminarComparador', 'Mi canción');
   assert.strictEqual(gx.get({ accion: 'contenido' }).contenido.muestras.filter((x) => x.tipo === 'Comparador').length, 0);
 });
+t('muestras de instrumentos aislados (tipo Aislado) se publican agrupadas', () => {
+  const gx = require('./gas-sim').crear(); gx.instalar();
+  gx.admin('adminGuardarMuestra', { grupo: 'Batería', tipo: 'Aislado', etiqueta: 'En bruto', enlace: 'https://drive.google.com/file/d/AAA/view', descripcion: 'Batería de la sala', visible: true });
+  gx.admin('adminGuardarMuestra', { grupo: 'Batería', tipo: 'Aislado', etiqueta: 'Mezclada', enlace: 'https://drive.google.com/file/d/BBB/view', visible: true });
+  gx.admin('adminGuardarMuestra', { grupo: 'Voces', tipo: 'Aislado', etiqueta: 'Voz principal', enlace: 'https://drive.google.com/file/d/CCC/view', visible: true });
+  const m = gx.get({ accion: 'contenido' }).contenido.muestras.filter((x) => x.tipo === 'Aislado');
+  assert.strictEqual(m.length, 2); assert.strictEqual(m[0].items.length, 2); assert.strictEqual(m[0].grupo, 'Batería');
+});
 t('postular al cuadro de honor con redes (máx. 3) y último trabajo', () => {
   const gx = require('./gas-sim').crear(); gx.instalar();
   const base = { accion: 'honor', banda: 'Los Redes', telefono: '+56 9 7777 6666', correo: 'lr@correo.cl', resena: 'Grabamos nuestro EP aquí', genero: 'Rock', ultimo: 'https://youtu.be/dQw4w9WgXcQ' };

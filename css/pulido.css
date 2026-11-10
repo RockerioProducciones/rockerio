@@ -304,3 +304,12 @@ body.con-vistas[data-vista]:not([data-vista="inicio"]) .menu .tarjeta{padding:.4
 @media(max-width:699px){.ficha-hero.ficha-mics .info-st,.ficha-hero.ficha-mics .infografia,.ficha-hero.ficha-mics [class*=info-grid]{display:none!important}.ficha-hero.ficha-mics .ficha-cab .sub{font-size:.95rem}}
 .ficha-hero.ficha-mics .info-stats{display:none!important}
 @media(max-width:699px){.mic-filtro{flex-wrap:nowrap;overflow-x:auto;padding-bottom:.3rem;scrollbar-width:none;-webkit-overflow-scrolling:touch}.mic-filtro::-webkit-scrollbar{display:none}.mic-chip{flex:none;white-space:nowrap;font-size:.92rem;padding:.5rem 1rem}}
+
+/* Producción en pestañas (mismo esquema que la ficha técnica) */
+.prod-tabs{margin-bottom:.4rem}.prod-tabs .ficha-tab{flex:1 0 96px}
+.prod-panel{display:block}.prod-panel[hidden]{display:none}
+.prod-panel>.caja,.prod-panel>.prod-bloque{margin-top:.2rem}
+.prod-vacio{text-align:center;padding:1.2rem .5rem}
+#aislados .comp-canciones{margin:.4rem 0 .8rem}
+#aislados .muestra{margin:.4rem 0}
+@media(max-width:600px){.prod-tabs .ficha-tab{flex:1 0 82px}.prod-tabs .ficha-tab .ft-tit{font-size:.74rem}}

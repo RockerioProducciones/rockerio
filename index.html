@@ -171,23 +171,40 @@
 
 <section id="nosotros" class="sec">
   <h2>Producción</h2>
-  <div class="caja intro-prod"><h3 id="nosotros-t"></h3><div id="nosotros-in" class="texto"></div></div>
-  <div class="caja comp-ab" id="comparador" hidden></div>
+  <div class="ficha-tabs prod-tabs" role="tablist" id="prod-tabs">
+    <button type="button" class="ficha-tab" role="tab" data-p="sobre" aria-selected="true"><span class="ft-ico">🎚️</span><span class="ft-tit">Sobre mí</span></button>
+    <button type="button" class="ficha-tab" role="tab" data-p="abc" aria-selected="false"><span class="ft-ico">🔀</span><span class="ft-tit">Antes y después</span></button>
+    <button type="button" class="ficha-tab" role="tab" data-p="aislados" aria-selected="false"><span class="ft-ico">🥁</span><span class="ft-tit">Instrumentos</span></button>
+    <button type="button" class="ficha-tab" role="tab" data-p="metodo" aria-selected="false"><span class="ft-ico">🛠️</span><span class="ft-tit">Método</span></button>
+  </div>
+  <div class="prod-panel" data-p="sobre">
+      <div class="caja intro-prod"><h3 id="nosotros-t"></h3><div id="nosotros-in" class="texto"></div></div>
   <div class="prod-bloque"><h3 data-ed="nos.enf.t" data-ed-l="Enfoque: título">Enfoque y pasión</h3>
     <p data-ed="nos.enf.p" data-ed-l="Enfoque: párrafo">Mi pasión y especialidad es el rock y sus géneros derivados, con una dedicación especial hacia las bandas instrumentales. Me apasiona acompañar la música en sus distintas etapas:</p>
     <ul class="reg-lista"><li data-ed="nos.enf.l1" data-ed-l="Enfoque: punto 1">Bandas de jóvenes que están partiendo y dando forma a sus primeros proyectos.</li><li data-ed="nos.enf.l2" data-ed-l="Enfoque: punto 2">Proyectos emergentes que ya están en ruta buscando consolidar su sonido.</li><li data-ed="nos.enf.l3" data-ed-l="Enfoque: punto 3">Músicos que vuelven a juntarse tras años de pausas para revivir sus canciones con la experiencia de hoy.</li></ul></div>
-  <div class="playlist caja" data-playlist hidden></div>
+    <p class="firma"><b>Juan Carlos Retamal González</b><br><span>Técnico Superior en Informática e Ingeniero en Sonido</span></p>
+  </div>
+  <div class="prod-panel" data-p="abc" hidden>
+      <div class="caja comp-ab" id="comparador" hidden></div>
+    <p class="nota prod-vacio" id="abc-vacio" hidden>Muy pronto: la misma canción en bruto, mezclada y masterizada.</p>
+  </div>
+  <div class="prod-panel" data-p="aislados" hidden>
+    <div class="caja comp-ab" id="aislados" hidden></div>
+    <p class="nota prod-vacio" id="aislados-vacio" hidden>Muy pronto: baterías, guitarras, bajos y voces aisladas como muestra.</p>
+  </div>
+  <div class="prod-panel" data-p="metodo" hidden>
   <div class="prod-bloque"><h3 data-ed="nos.fil.t" data-ed-l="Filosofía: título">Nuestra filosofía (sin rodeos ni humo)</h3>
     <p data-ed="nos.fil.p1" data-ed-l="Filosofía: punto 1"><strong>Honestidad técnica:</strong> no vendemos promesas mágicas. Trabajamos al máximo sobre la mejor interpretación que logremos registrar juntos. Buscamos el mejor sonido posible con las herramientas que tenemos.</p>
     <p data-ed="nos.fil.p2" data-ed-l="Filosofía: punto 2"><strong>Acompañamiento cercano:</strong> resolvemos dudas técnicas a lo largo de todo el camino. Aporto ideas musicales y soluciones técnico-artísticas para potenciar la visión de la banda.</p>
     <p data-ed="nos.fil.p3" data-ed-l="Filosofía: punto 3"><strong>Aprender escuchando:</strong> creemos que la mejor materia prima son los ensayos grabados. Que la banda salga del estudio escuchando lo que acaba de interpretar es la herramienta más directa para crecer.</p>
     <p data-ed="nos.fil.p4" data-ed-l="Filosofía: punto 4"><strong>Tu ritmo, tu sonido:</strong> adaptamos el proceso a la dinámica de tu banda. Con nuestra plantilla digital tomamos decisiones sonoras en tiempo real, optimizando el tiempo y facilitando ajustes sin perder agilidad.</p></div>
-  <div class="prod-split"><figure class="prod-foto"><img data-ed-foto="prodFoto" data-ed-l="Foto de Producción (control room)" src="assets/fotos/control-panoramica.jpg" alt="Control room con consola Midas M32 y monitores" loading="lazy"></figure>
+    <div class="prod-split"><figure class="prod-foto"><img data-ed-foto="prodFoto" data-ed-l="Foto de Producción (control room)" src="assets/fotos/control-panoramica.jpg" alt="Control room con consola Midas M32 y monitores" loading="lazy"></figure>
   <div class="prod-bloque"><h3 data-ed="nos.inf.t" data-ed-l="Infraestructura: título">Infraestructura y método técnico</h3>
     <p data-ed="nos.inf.p1" data-ed-l="Infraestructura: punto 1"><strong>Espacios e interconexión:</strong> integramos la sala de control, la sala de ensayo y la sala de grabación mediante la consola digital Midas M32 y la caja Midas DL32 sobre red de alta velocidad.</p>
     <p data-ed="nos.inf.p2" data-ed-l="Infraestructura: punto 2"><strong>Flujo híbrido in the box / analógico:</strong> consola de suma SSL SiX y estación de trabajo Apple Mac Mini M4 corriendo Universal Audio LUNA, con plugins UAD Native, Solid State Logic, Soundtoys y Slate Digital.</p>
-    <p data-ed="nos.inf.p3" data-ed-l="Infraestructura: punto 3"><strong>Respaldo automatizado:</strong> copias de seguridad nocturnas con FreeFileSync y RealTimeSync, resguardando cada proyecto en discos SSD.</p>
-    <p class="firma"><b>Juan Carlos Retamal González</b><br><span>Técnico Superior en Informática e Ingeniero en Sonido</span></p></div></div>
+    <p data-ed="nos.inf.p3" data-ed-l="Infraestructura: punto 3"><strong>Respaldo automatizado:</strong> copias de seguridad nocturnas con FreeFileSync y RealTimeSync, resguardando cada proyecto en discos SSD.</p></div></div>
+      <div class="playlist caja" data-playlist hidden></div>
+  </div>
   <p><a class="btn" href="#ficha">Ver ficha técnica</a></p>
 </section>
 
