@@ -160,3 +160,9 @@ footer img{height:44px;vertical-align:middle;opacity:.9}
 
 .chips .chip-conv{background:var(--oro);color:#1c1b1a;border-color:var(--oro);font-weight:700}
 .nota.ahorro{color:var(--ok);font-weight:600}
+
+/* Teclado abierto en móvil: las barras fijas dejan de tapar lo que se escribe */
+html.teclado .top,html.teclado .vista-barra,html.teclado .wiz-barra,html.teclado .tu-reserva,html.teclado .wiz-acc,html.teclado .ficha-tabs,html.teclado .aviso-msg{position:static!important}
+html.teclado .selector-tema{display:none}
+html.teclado{scroll-padding-top:16px;scroll-padding-bottom:24px}
+html.teclado body{padding-bottom:40vh}

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="es"><head><base target="_top"><meta charset="utf-8">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;800&family=Nunito:wght@400;700&family=Space+Mono:wght@400;700&family=Archivo+Black&family=Bebas+Neue&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
 <style>
 /* Portal de administración: tarjetas por área, un panel a la vez. Colores por área en --acc. */
 :root{--bg:#1f1e1d;--panel:#2b2928;--panel2:#242221;--borde:#403d3b;--oro:#FCC631;--rojo:#D81D23;--txt:#f3efe8;--mut:#b5afa6;--acc:#FCC631}
@@ -1387,4 +1387,29 @@ $('cli-import').onclick=function(){if(JOR)importarCli()};
 $('rm-nueva').onclick=function(){if(JOR)abrirRM()};$('cli-nuevo').onclick=function(){if(JOR)formCli()};
 [].forEach.call(document.querySelectorAll('#jtabs button'),function(b){b.onclick=function(){jv=b.getAttribute('data-v');jbusca='';pintarJor()}});
 document.addEventListener('keydown',function(e){if(e.key==='Escape')$('jdet').hidden=true});
-</script></body></html>
+</script><style>html.teclado *{scroll-margin:16px}html.teclado .barra,html.teclado .menu-a,html.teclado .pos-der,html.teclado .aviso-msg{position:static!important}html.teclado body{padding-bottom:40vh}</style><script>/* Móvil: al escribir, el teclado no debe tapar el campo ni dejar barras fijas robando espacio. */
+(function () {
+  var de = document.documentElement, activo = null, t = 0;
+  var esCampo = function (e) { return e && /^(INPUT|TEXTAREA|SELECT)$/.test(e.tagName) && !/^(checkbox|radio|button|submit|range|file)$/.test(e.type || ''); };
+  var tactil = function () { try { return matchMedia('(pointer:coarse)').matches || innerWidth < 800; } catch (x) { return innerWidth < 800; } };
+  function mostrar(el) {
+    if (!el || !el.scrollIntoView) return;
+    var vv = window.visualViewport, alto = vv ? vv.height : innerHeight, r = el.getBoundingClientRect();
+    var top = vv ? vv.offsetTop : 0;
+    if (r.top < top + 70 || r.bottom > top + alto - 20) { try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (x) { el.scrollIntoView(); } }
+  }
+  function tarde(el) { clearTimeout(t); t = setTimeout(function () { if (activo === el) mostrar(el); }, 320); }
+  document.addEventListener('focusin', function (e) {
+    if (!esCampo(e.target) || !tactil()) return;
+    activo = e.target; de.classList.add('teclado'); tarde(activo);
+  });
+  document.addEventListener('focusout', function () {
+    clearTimeout(t);
+    setTimeout(function () { if (!esCampo(document.activeElement)) { activo = null; de.classList.remove('teclado'); } }, 150);
+  });
+  if (window.visualViewport) {
+    visualViewport.addEventListener('resize', function () { if (activo) tarde(activo); });
+  }
+})();
+</script>
+</body></html>
