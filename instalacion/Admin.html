@@ -397,7 +397,7 @@ function ejecutar(fn){var a=[].slice.call(arguments,1);google.script.run.withSuc
 function td(t,c){var e=document.createElement('td');e.textContent=t;if(c)e.className=c;return e}
 function clp(n){n=Number(n)||0;return (n<0?'-':'')+'$'+Math.abs(n).toLocaleString('es-CL')}
 function wsp(r){
-  var msg='Hola '+r.contacto+', aquí está el material de '+r.banda+': '+r.enlace;
+  var msg='Hola '+r.contacto+' 🎧 ¡aquí está el material de '+r.banda+'! '+r.enlace+' Si algo no abre, avísanos y lo resolvemos.';
   return 'https://wa.me/'+r.telefono+'?text='+encodeURIComponent(msg);
 }
 var ultimo=null;
@@ -710,7 +710,7 @@ function rcExcepciones(d,b){
   de.forEach(function(x){var f=el_('div','fila');f.style.margin='4px 0';f.appendChild(par(fechaCorta(x.fecha)+' · '+x.banda+' / '+x.cliente+' · '+x.codigo+' · '+clp(x.saldo),'flex:1;min-width:200px'));
     var sel=el_('select');MEDIOS.forEach(function(m){var o=el_('option','',m);o.value=m;sel.appendChild(o)});f.appendChild(sel);
     f.appendChild(btn('Marcar pagado',function(){google.script.run.withSuccessHandler(function(r){pintar(r);cargarRC();aviso('Pago registrado ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminMarcarCobro(x.codigo,{cobro:'PAGADO',medio:sel.value})}));
-    if(x.telefono&&!/^MAN-/.test(x.telefono)){var w=el_('a','','Cobrar por WhatsApp');w.href='https://wa.me/'+x.telefono.replace(/\D/g,'')+'?text='+encodeURIComponent('Hola '+x.cliente+', te escribimos de '+((WA&&WA.negocio)||'Rockerío')+': queda un saldo pendiente de '+clp(x.saldo)+' de tu reserva '+x.codigo+' del '+fechaCorta(x.fecha)+'. ¿Cuándo podrías pagarlo? ¡Gracias!');w.target='_blank';w.rel='noopener';w.style.color='#FCC631';f.appendChild(w)}
+    if(x.telefono&&!/^MAN-/.test(x.telefono)){var w=el_('a','','Cobrar por WhatsApp');w.href='https://wa.me/'+x.telefono.replace(/\D/g,'')+'?text='+encodeURIComponent('Hola '+x.cliente+' 😊 te escribimos de '+((WA&&WA.negocio)||'Rockerío')+': queda un saldo pendiente de '+clp(x.saldo)+' de tu reserva '+x.codigo+' del '+fechaCorta(x.fecha)+'. ¿Cuándo te acomoda dejarlo al día? Así mantenemos todo en orden. ¡Gracias!');w.target='_blank';w.rel='noopener';w.style.color='#FCC631';f.appendChild(w)}
     b.appendChild(f)});
   var co=d.cortesias||{n:0,lista:[]};
   b.appendChild(el_('h3','rc-h','Cortesías y canjes · '+co.n+' · valor no cobrado '+clp(co.valor||0)));

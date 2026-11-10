@@ -438,9 +438,9 @@ function notificar_(cfg, v, codigo) {
     if (cfg.correoCliente && d.correo) {
       var texto = 'Hola ' + d.nombre + ',\n\nRecibimos tu solicitud en ' + cfg.nombreNegocio + '. Tu código es #' + codigo + '.\n\n' +
         Reglas.resumenTexto(cfg, v, '').split('\n').slice(1).join('\n') + '\n\n' +
-        'Tu horario queda reservado ' + cfg.minutosReserva + ' minutos a la espera del abono de ' + Reglas.clp(v.calculo.abono) + '. Si no llega, el horario se libera solo.\n' +
+        'Tu horario queda reservado ' + cfg.minutosReserva + ' minutos a la espera del abono de ' + Reglas.clp(v.calculo.abono) + '. Si por algún motivo no alcanzas a abonar en ese plazo, el horario vuelve a quedar disponible para otras bandas; y si necesitas más tiempo, escríbenos y vemos cómo ayudarte.\n' +
         cfg.instruccionesPago + ((cfg.pagoTransferencia && cfg.datosTransferencia) ? '\nTransferencia: ' + cfg.datosTransferencia : '') + ((cfg.pagoOnline && cfg.linkPago) ? '\nPuedes pagar aquí: ' + cfg.linkPago : '') + '\n\n' +
-        'Cambios o anulaciones: con al menos ' + cfg.horasAnulacion + ' horas de anticipación, por WhatsApp.\n' + cfg.direccion;
+        'Si necesitas cambiar o anular, avísanos por WhatsApp con al menos ' + cfg.horasAnulacion + ' horas de anticipación: así podemos darle ese espacio a otra banda y mantener la agenda fluida para todos. ¡Gracias!\n' + cfg.direccion;
       MailApp.sendEmail({ to: d.correo, subject: 'Tu reserva #' + codigo + ' en ' + cfg.nombreNegocio, body: texto, name: cfg.nombreNegocio, replyTo: cfg.correoAdmin || '' });
     }
   } catch (err) { console.error('Correo al cliente: ' + err); }

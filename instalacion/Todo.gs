@@ -41,13 +41,13 @@ var Reglas = (function () {
     convenienteDesde: 9,          // hora de inicio de la franja
     convenienteHasta: 14,         // hora de término de la franja (no incluida)
     // Mensajes de WhatsApp (plantillas). {nombre} {banda} {servicio} {fecha} {hora} {fin} {codigo} {total} {abono} {saldo} {direccion} {negocio} {sitio} {horasAnulacion} {enlaceDescarga} {enlaceResena} {enlaceHonor}
-    msgRecordatorio: "Hola {nombre} 👋 Te recordamos tu reserva en {negocio}: {servicio} el {fecha}, de {hora} a {fin}. Dirección: {direccion}. Recomendamos llegar 5 a 10 minutos antes. Si necesitas cambiarla, avísanos con al menos {horasAnulacion} horas de anticipación. ¡Nos vemos! 🤘",
-    msgConfirmacion: "Hola {nombre} 🤘 ¡Recibimos tu abono! Tu reserva #{codigo} quedó confirmada: {servicio} el {fecha}, de {hora} a {fin}. Saldo a pagar en el estudio: {saldo}. Dirección: {direccion}.",
-    msgCobroAbono: "Hola {nombre}, tu reserva #{codigo} ({servicio} el {fecha}, de {hora} a {fin}) está pendiente de abono de {abono}. Cuando lo hagas, envíanos el comprobante por aquí para confirmarla. Si no recibimos el abono a tiempo, el horario se libera.",
-    msgGracias: "Hola {nombre}, ¡gracias por venir a {negocio}! 🎸 Esperamos que la sesión haya sido genial. Si puedes, déjanos una reseña en nuestro sitio: {sitio}",
-    msgResena: "Hola {nombre} 🤘 ¿Cómo te fue en {negocio}? Tu opinión ayuda a otras bandas a decidirse: déjanos una reseña aquí {enlaceResena} ¡Mil gracias!",
-    msgDescarga: "Hola {nombre}, aquí está el material de {banda}: {enlaceDescarga} Descárgalo desde ese enlace y, si algo no abre, avísanos. 🎧",
-    msgHonor: "Hola {nombre} 🤘 ¡Nos encantó tener a {banda} en {negocio}! Te invitamos a sumarte a nuestro Cuadro de Honor de bandas: {enlaceHonor}",
+    msgRecordatorio: "Hola {nombre} 👋 Te escribimos para recordarte tu reserva en {negocio}: {servicio} el {fecha}, de {hora} a {fin}. Nos encuentras en {direccion}. Si puedes llegar 5 a 10 minutos antes, aprovechamos al máximo tu tiempo en sala 🎸 Y si algo cambia y necesitas mover la hora, avísanos con {horasAnulacion} horas de anticipación: así podemos ofrecer ese espacio a otra banda y mantener la agenda ordenada para todos. ¡Gracias por ayudarnos, nos vemos pronto! 🤘",
+    msgConfirmacion: "Hola {nombre} 🤘 ¡Gracias por tu abono! Tu reserva #{codigo} quedó confirmada: {servicio} el {fecha}, de {hora} a {fin}. El saldo ({saldo}) lo pagas en el estudio el día de tu sesión. Estamos en {direccion}. Si surge cualquier cambio, escríbenos por aquí con tiempo; así podemos reorganizar la agenda y darle espacio a otras bandas. ¡Nos vemos pronto! 🎶",
+    msgCobroAbono: "Hola {nombre} 😊 Te dejamos guardado el horario de tu reserva #{codigo} ({servicio} el {fecha}, de {hora} a {fin}). Para dejarla confirmada solo falta el abono de {abono}; cuando lo hagas, mándanos el comprobante por aquí y listo. Y si cambiaron tus planes, no te preocupes: avísanos y liberamos el horario para otra banda, así la agenda sigue fluyendo para todos. ¡Gracias! 🤘",
+    msgGracias: "Hola {nombre} 🎸 ¡Gracias por venir a {negocio}! Esperamos que la sesión haya estado genial. Cuando quieran volver, reservar con un poco de anticipación nos ayuda a mantener la agenda fluida y a tener espacio para todas las bandas. Y si te das un minuto para dejarnos una reseña, nos ayuda un mundo: {sitio} 🤘",
+    msgResena: "Hola {nombre} 🤘 ¡Qué bueno haber tenido a {banda} en {negocio}! Si tienes un minutito, cuéntanos cómo les fue: tu opinión ayuda a otras bandas a decidirse y a nosotros a mejorar. Puedes dejarla aquí: {enlaceResena} ¡Mil gracias! 🙌",
+    msgDescarga: "Hola {nombre} 🎧 ¡Ya está listo el material de {banda}! Lo puedes descargar aquí: {enlaceDescarga} Si algo no abre o necesitas otro formato, escríbenos y lo resolvemos. ¡Ojalá lo disfruten harto! 🤘",
+    msgHonor: "Hola {nombre} 🤘 ¡Nos encantó tener a {banda} en {negocio}! Nos gustaría que formaran parte de nuestro Cuadro de Honor, un espacio para mostrar a las bandas que pasan por aquí. Si se animan, es un formulario cortito: {enlaceHonor} ¡Gracias por la buena onda!",
     waAutoActivo: false,          // SI = el recordatorio del día anterior se envía solo por la API de WhatsApp Business (requiere cuenta Meta)
     waPhoneId: '',                // ID del número de WhatsApp Business (no es el teléfono)
     waPlantillaRecordatorio: '',  // nombre de la plantilla de recordatorio aprobada por Meta
@@ -978,9 +978,9 @@ function notificar_(cfg, v, codigo) {
     if (cfg.correoCliente && d.correo) {
       var texto = 'Hola ' + d.nombre + ',\n\nRecibimos tu solicitud en ' + cfg.nombreNegocio + '. Tu código es #' + codigo + '.\n\n' +
         Reglas.resumenTexto(cfg, v, '').split('\n').slice(1).join('\n') + '\n\n' +
-        'Tu horario queda reservado ' + cfg.minutosReserva + ' minutos a la espera del abono de ' + Reglas.clp(v.calculo.abono) + '. Si no llega, el horario se libera solo.\n' +
+        'Tu horario queda reservado ' + cfg.minutosReserva + ' minutos a la espera del abono de ' + Reglas.clp(v.calculo.abono) + '. Si por algún motivo no alcanzas a abonar en ese plazo, el horario vuelve a quedar disponible para otras bandas; y si necesitas más tiempo, escríbenos y vemos cómo ayudarte.\n' +
         cfg.instruccionesPago + ((cfg.pagoTransferencia && cfg.datosTransferencia) ? '\nTransferencia: ' + cfg.datosTransferencia : '') + ((cfg.pagoOnline && cfg.linkPago) ? '\nPuedes pagar aquí: ' + cfg.linkPago : '') + '\n\n' +
-        'Cambios o anulaciones: con al menos ' + cfg.horasAnulacion + ' horas de anticipación, por WhatsApp.\n' + cfg.direccion;
+        'Si necesitas cambiar o anular, avísanos por WhatsApp con al menos ' + cfg.horasAnulacion + ' horas de anticipación: así podemos darle ese espacio a otra banda y mantener la agenda fluida para todos. ¡Gracias!\n' + cfg.direccion;
       MailApp.sendEmail({ to: d.correo, subject: 'Tu reserva #' + codigo + ' en ' + cfg.nombreNegocio, body: texto, name: cfg.nombreNegocio, replyTo: cfg.correoAdmin || '' });
     }
   } catch (err) { console.error('Correo al cliente: ' + err); }
@@ -2525,7 +2525,7 @@ function textoCotizacion_(cfg, o) {
   var l = ['Hola ' + o.nombre + ', te enviamos tu cotización de ' + o.tipo.toLowerCase() + ' en ' + cfg.nombreNegocio + '.'];
   if (o.monto !== '') l.push('Valor: ' + Reglas.clp(o.monto));
   if (o.detalle) l.push(o.detalle);
-  l.push('Cualquier duda, escríbenos por aquí.');
+  l.push('Si tienes dudas o quieres ajustar algo, escríbenos por aquí y lo vemos juntos. ¡Gracias por considerarnos! 🤘');
   return l.join('\n');
 }
 

@@ -134,7 +134,7 @@
     txt($('p-raw'), '+' + R.clp(cfg.precioRaw));
     txt($('dir'), cfg.direccion); txt($('dir2'), String(cfg.direccion || '').replace(/[\s·]+$/, '').toUpperCase()); $('franja-dir').hidden = !cfg.direccion;
     txt($('max-dias'), String(cfg.anticipacionMaxDias));
-    $('wsp').href = wspUrl('Hola, quiero consultar por ' + cfg.nombreNegocio);
+    $('wsp').href = wspUrl('Hola 👋 Me gustaría consultar por ' + cfg.nombreNegocio);
     txt($('tyc-txt'), 'Leí el reglamento interno y acepto que el horario queda reservado ' + cfg.minutosReserva + ' minutos a la espera del abono (' + R.clp(cfg.abonoPorHora) + ' por hora) y que puedo anular o reagendar con al menos ' + cfg.horasAnulacion + ' horas de anticipación.');
     var rl = el('a', 'ver-reg', ' Ver reglamento'); rl.href = '#reglamento'; rl.setAttribute('role', 'button');
     rl.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); abrirReglamento(); }); $('tyc-txt').appendChild(rl);
@@ -152,7 +152,7 @@
     var pausa = $('pausa'); pausa.hidden = cfg.reservasActivas;
     if (!cfg.reservasActivas) {
       pausa.textContent = 'Las reservas en línea están pausadas por ahora. ';
-      var a = el('a', '', 'Escríbenos por WhatsApp'); a.href = wspUrl('Hola, quiero reservar'); pausa.appendChild(a);
+      var a = el('a', '', 'Escríbenos por WhatsApp'); a.href = wspUrl('Hola 👋 Me gustaría reservar, ¿me ayudan a ver los horarios disponibles?'); pausa.appendChild(a);
     }
     /* reglamento: «## » = título, «- » = viñeta, otra línea = párrafo; los {valores} salen de la configuración */
     var valores = { abonoPorHora: R.clp(cfg.abonoPorHora), devolucionPorHora: R.clp(cfg.abonoPorHora - cfg.retencionPorHora), horasAnulacion: cfg.horasAnulacion, retencionPorHora: R.clp(cfg.retencionPorHora), noAsisteCobroPorHora: R.clp(cfg.noAsisteCobroPorHora || 5000), reagendoSemanas: cfg.reagendoSemanas, reagendoCambios: cfg.reagendoCambios, minutosReserva: cfg.minutosReserva };
@@ -366,7 +366,7 @@
       var pie = el('div', 'prod-pie'); pie.appendChild(el('span', 'pr', p.precio ? R.clp(p.precio) : 'Consultar'));
       if (!agotado) {
         var b = el('a', 'prod-wsp', 'Comprar por WhatsApp'); b.target = '_blank'; b.rel = 'noopener';
-        b.href = wspUrl('Hola, quiero comprar: ' + p.nombre + (p.detalle ? ' (' + p.detalle + ')' : '') + (p.precio ? ' — ' + R.clp(p.precio) : '') + '. ¿Lo tienen disponible?');
+        b.href = wspUrl('Hola 👋 Me gustaría comprar: ' + p.nombre + (p.detalle ? ' (' + p.detalle + ')' : '') + (p.precio ? ' — ' + R.clp(p.precio) : '') + '. ¿Lo tienen disponible?');
         pie.appendChild(b);
       } else pie.appendChild(el('span', 'prod-ago', 'Agotado'));
       f.appendChild(pie); rejilla.appendChild(f);
@@ -513,7 +513,7 @@
     if (o.pago.transferencia) { dt.appendChild(el('pre', '', o.pago.transferencia)); var cb = el('button', 'btn chico', 'Copiar datos'); cb.type = 'button'; cb.addEventListener('click', function () { copiar(o.pago.transferencia, cb); }); dt.appendChild(cb); }
     else dt.appendChild(el('p', 'nota', 'Te enviaremos los datos de transferencia por WhatsApp.'));
     bt.addEventListener('click', function () { dt.hidden = !dt.hidden; }); tr.appendChild(bt); tr.appendChild(dt); bts.appendChild(tr);
-    var w = el('a', 'ro-b ro-wsp', '📲 Enviar comprobante por WhatsApp'); w.href = wspUrl(o.whatsapp + '\nAdjunto el comprobante del abono de ' + R.clp(o.monto) + '.'); w.target = '_blank'; w.rel = 'noopener'; bts.appendChild(w);
+    var w = el('a', 'ro-b ro-wsp', '📲 Enviar comprobante por WhatsApp'); w.href = wspUrl(o.whatsapp + '\nTe adjunto el comprobante del abono de ' + R.clp(o.monto) + '. ¡Gracias!'); w.target = '_blank'; w.rel = 'noopener'; bts.appendChild(w);
     box.appendChild(el('p', 'nota', 'Abre la conversación con el detalle de tu reserva ya escrito y adjunta el comprobante.'));
     iniciarCuenta(cupo, o.pago.segundos, bts);
     box.scrollIntoView({ behavior: 'smooth', block: 'center' });

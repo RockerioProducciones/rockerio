@@ -243,7 +243,7 @@ function textoCotizacion_(cfg, o) {
   var l = ['Hola ' + o.nombre + ', te enviamos tu cotización de ' + o.tipo.toLowerCase() + ' en ' + cfg.nombreNegocio + '.'];
   if (o.monto !== '') l.push('Valor: ' + Reglas.clp(o.monto));
   if (o.detalle) l.push(o.detalle);
-  l.push('Cualquier duda, escríbenos por aquí.');
+  l.push('Si tienes dudas o quieres ajustar algo, escríbenos por aquí y lo vemos juntos. ¡Gracias por considerarnos! 🤘');
   return l.join('\n');
 }
 
