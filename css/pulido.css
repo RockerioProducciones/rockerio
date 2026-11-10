@@ -266,3 +266,41 @@ body.con-vistas[data-vista]:not([data-vista="inicio"]) .menu .tarjeta{padding:.4
 .eva-e:focus{outline:0}.eva-e:focus-visible{outline:2px solid var(--oro);border-radius:8px}
 .fila:has(.sel-oculto)>label:not(.sel-oculto){grid-column:1/-1}
 .eva-estrellas{margin:.2rem 0 .9rem}
+
+/* ===== Micrófonos unificados: foto + ficha técnica + muestras en una sola tarjeta ===== */
+#mics-box{margin-top:1rem}
+.mic-hint{display:none;margin:.2rem 0 .6rem;font-size:.82rem;color:var(--mut)}
+#mics.mic-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem;align-items:stretch}
+#mics .mic-it{display:flex;flex-direction:column;gap:0;padding:0;overflow:hidden;border:1px solid var(--borde);background:var(--panel);align-items:stretch}
+#mics .mic-foto{position:relative;width:100%;height:190px;border:0;border-bottom:1px solid var(--borde);border-radius:0;background:radial-gradient(ellipse at 50% 40%,color-mix(in srgb,var(--oro) 14%,#1b1b1e),#0c0c0e 75%);display:grid;place-items:center;overflow:hidden}
+#mics .mic-foto img{width:100%;height:100%;object-fit:contain;padding:.6rem}
+#mics .mic-foto.sin-foto .mic-ico{font-size:4rem;opacity:.9;filter:drop-shadow(0 6px 14px rgba(0,0,0,.6))}
+#mics .mic-tipo{position:absolute;top:.6rem;left:.6rem;padding:.2rem .6rem;border-radius:999px;background:rgba(0,0,0,.65);border:1px solid color-mix(in srgb,var(--oro) 60%,transparent);color:var(--oro);font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+#mics .mic-tx{display:flex;flex-direction:column;gap:.4rem;padding:.9rem 1rem 1rem;flex:1}
+#mics .mic-marca{font-size:.78rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--mut)}
+#mics .mic-nom{margin:0;font-size:1.55rem;line-height:1.05;color:var(--oro);font-family:'Bebas Neue',Impact,'Arial Narrow',sans-serif;font-weight:400;letter-spacing:.05em}
+#mics .mic-meta{display:flex;flex-wrap:wrap;gap:.35rem}
+#mics .mic-spec,#mics .mic-tag{padding:.18rem .6rem;border-radius:999px;font-size:.78rem;border:1px solid var(--borde);color:var(--txt)}
+#mics .mic-spec{border-color:color-mix(in srgb,var(--oro) 50%,var(--borde));color:var(--oro);font-weight:700}
+#mics .mic-desc{margin:.15rem 0 .2rem;font-size:.9rem;line-height:1.5;color:var(--mut)}
+#mics .mic-muestras{margin-top:auto;padding-top:.7rem;border-top:1px dashed var(--borde);display:flex;flex-direction:column;gap:.4rem}
+#mics .mic-m-tit{font-size:.78rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--oro)}
+#mics .mic-muestras .muestra{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin:0;padding:.35rem .45rem .35rem .7rem;border-radius:10px;background:color-mix(in srgb,var(--oro) 7%,transparent);border:1px solid var(--borde)}
+#mics .mic-muestras .muestra .et{margin:0;min-width:0;flex:1;font-size:.9rem;color:var(--txt);overflow-wrap:anywhere}
+#mics .mic-muestras .muestra .btn{flex:none;padding:.4rem .8rem;min-height:38px}
+#mics .mic-muestras .muestra iframe,#mics .mic-muestras .muestra audio{flex:1 1 100%;width:100%;height:54px;border:0}
+#mics .mic-muestras .muestra:has(iframe),#mics .mic-muestras .muestra:has(audio){flex-wrap:wrap}
+@media(max-width:699px){
+.mic-hint{display:block}
+#mics.mic-lista{display:flex;overflow-x:auto;gap:.8rem;padding:2px 2px 1rem;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+#mics .mic-it{flex:0 0 86%;scroll-snap-align:center}
+#mics .mic-foto{height:170px}
+#mics .mic-nom{font-size:1.7rem}
+#mics .mic-desc{font-size:.95rem}
+#mics .mic-muestras .muestra .et{font-size:.95rem}
+}
+/* en Microfonía el encabezado es compacto: las tarjetas son lo importante */
+.ficha-hero.ficha-mics{min-height:0!important;padding-bottom:1rem!important}
+@media(max-width:699px){.ficha-hero.ficha-mics .info-st,.ficha-hero.ficha-mics .infografia,.ficha-hero.ficha-mics [class*=info-grid]{display:none!important}.ficha-hero.ficha-mics .ficha-cab .sub{font-size:.95rem}}
+.ficha-hero.ficha-mics .info-stats{display:none!important}
+@media(max-width:699px){.mic-filtro{flex-wrap:nowrap;overflow-x:auto;padding-bottom:.3rem;scrollbar-width:none;-webkit-overflow-scrolling:touch}.mic-filtro::-webkit-scrollbar{display:none}.mic-chip{flex:none;white-space:nowrap;font-size:.92rem;padding:.5rem 1rem}}

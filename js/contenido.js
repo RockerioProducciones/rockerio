@@ -21,7 +21,7 @@
   }
   function muestra(item) {
     var d = el('div', 'muestra'); if (item.etiqueta) d.appendChild(el('div', 'et', item.etiqueta));
-    var b = el('button', 'btn chico', '▶ Escuchar'); b.type = 'button';
+    var b = el('button', 'btn chico', '▶ Escuchar'); b.type = 'button'; b.setAttribute('aria-label', 'Escuchar ' + (item.etiqueta || 'muestra'));
     b.addEventListener('click', function () { d.replaceChild(reproductor(item.enlace), b); });
     d.appendChild(b); return d;
   }
@@ -72,30 +72,47 @@
     if (grupos.length > 1) mostrar(grupos[0], sel.firstChild); else mostrar(grupos[0], null);
   }
 
-  /** Catálogo de micrófonos: foto, marca/modelo, uso, descripción y sus muestras de audio, todo en una tarjeta. */
+  /** Micrófonos: cada tarjeta trae foto, marca/modelo, tipo y patrón, uso, reseña técnica y sus propias muestras de audio. */
+  var MARCAS = ['telefunken', 'shure', 'rode', 'røde', 'neumann', 'akg', 'sennheiser', 'audix', 'beyerdynamic', 'audio-technica', 'electro-voice', 'warm audio', 'universal audio', 'sm'];
+  function partirNombre(m) {
+    if (m.marca || m.modelo) return { marca: m.marca || '', modelo: m.modelo || m.nombre };
+    var w = String(m.nombre || '').split(' '), p = w[0] ? w[0].toLowerCase() : '';
+    return (w.length > 1 && MARCAS.indexOf(p) >= 0 && p !== 'sm') ? { marca: w[0], modelo: w.slice(1).join(' ') } : { marca: '', modelo: m.nombre };
+  }
   function pintarMics(cat, grupos) {
     var norm = function (t) { return String(t || '').toLowerCase().replace(/\s+/g, ' ').trim(); }, porNombre = {}, usados = {};
     grupos.forEach(function (g) { porNombre[norm(g.grupo)] = g; });
-    var lista = cat.map(function (m) { var g = porNombre[norm(m.nombre)]; if (g) usados[norm(m.nombre)] = 1; return { nombre: m.nombre, foto: m.foto, uso: m.uso, descripcion: m.descripcion || (g && g.descripcion) || '', items: g ? g.items : [] }; });
-    grupos.forEach(function (g) { if (!usados[norm(g.grupo)]) lista.push({ nombre: g.grupo, foto: '', uso: '', descripcion: g.descripcion || '', items: g.items }); });
+    var lista = cat.map(function (m) {
+      var g = porNombre[norm(m.nombre)]; if (g) usados[norm(m.nombre)] = 1;
+      var propias = (m.muestras || []).filter(function (x) { return x && /^https:\/\//.test(x.enlace || ''); });
+      var np = partirNombre(m);
+      return { nombre: m.nombre, marca: np.marca, modelo: np.modelo, tipo: m.tipo || '', patron: m.patron || '', foto: m.foto, uso: m.uso, descripcion: m.descripcion || (g && g.descripcion) || '', items: propias.concat(g ? g.items : []).slice(0, 4) };
+    });
+    grupos.forEach(function (g) { if (!usados[norm(g.grupo)]) { var np = partirNombre({ nombre: g.grupo }); lista.push({ nombre: g.grupo, marca: np.marca, modelo: np.modelo, tipo: '', patron: '', foto: '', uso: '', descripcion: g.descripcion || '', items: g.items.slice(0, 4) }); } });
     var cont = $('mics'); cont.textContent = ''; $('mics-box').hidden = !lista.length;
     var etiquetas = [], vistas = {};
     lista.forEach(function (m) { m.tags = String(m.uso || '').split(/\s*[\/,]\s*/).filter(Boolean).map(function (t) { return t.charAt(0).toUpperCase() + t.slice(1); }); m.tags.forEach(function (t) { var k = t.toLowerCase(); if (!vistas[k]) { vistas[k] = 1; etiquetas.push(t); } }); });
     var filtro = document.getElementById('mics-filtro'); if (filtro) filtro.remove();
-    var tarjetas = [];
+    var tarjetas = [], nota = document.getElementById('mics-hint'); if (nota) nota.remove();
     if (etiquetas.length > 1) {
       filtro = el('div', 'mic-filtro'); filtro.id = 'mics-filtro'; filtro.setAttribute('role', 'group'); filtro.setAttribute('aria-label', 'Filtrar micrófonos por uso');
       var activo = '';
-      var botones = [''].concat(etiquetas).map(function (t) { var b = el('button', 'mic-chip', t || 'Todos'); b.type = 'button'; b.setAttribute('aria-pressed', t ? 'false' : 'true'); b.addEventListener('click', function () { activo = t.toLowerCase(); botones.forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); tarjetas.forEach(function (c) { c.el.hidden = !!activo && c.tags.indexOf(activo) < 0; }); }); filtro.appendChild(b); return b; });
+      var botones = [''].concat(etiquetas).map(function (t) { var b = el('button', 'mic-chip', t || 'Todos'); b.type = 'button'; b.setAttribute('aria-pressed', t ? 'false' : 'true'); b.addEventListener('click', function () { activo = t.toLowerCase(); botones.forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); tarjetas.forEach(function (c) { c.el.hidden = !!activo && c.tags.indexOf(activo) < 0; }); cont.scrollLeft = 0; }); filtro.appendChild(b); return b; });
       cont.parentNode.insertBefore(filtro, cont);
     }
+    nota = el('p', 'mic-hint', 'Desliza para ver todos los micrófonos · toca ▶ en una muestra para escucharla'); nota.id = 'mics-hint'; cont.parentNode.insertBefore(nota, cont);
     lista.forEach(function (m) {
-      var it = el('div', 'mic-it'), f = el('div', 'mic-foto'); tarjetas.push({ el: it, tags: m.tags.map(function (t) { return t.toLowerCase(); }) });
-      if (/^(https:\/\/|assets\/)/.test(m.foto || '')) { var im = el('img'); im.src = m.foto; im.alt = m.nombre; im.loading = 'lazy'; f.appendChild(im); } else f.appendChild(el('span', '', '🎙️'));
-      var tx = el('div', 'mic-tx'); tx.appendChild(el('b', '', m.nombre));
-      if (m.uso) { var u = el('p', 'mic-uso'); u.appendChild(el('strong', '', 'Uso: ')); u.appendChild(document.createTextNode(m.uso)); tx.appendChild(u); }
+      var it = el('article', 'mic-it'), f = el('div', 'mic-foto'); tarjetas.push({ el: it, tags: m.tags.map(function (t) { return t.toLowerCase(); }) });
+      if (/^(https:\/\/|assets\/)/.test(m.foto || '')) { var im = el('img'); im.src = m.foto; im.alt = m.nombre; im.loading = 'lazy'; f.appendChild(im); } else { f.classList.add('sin-foto'); f.appendChild(el('span', 'mic-ico', '🎙️')); }
+      if (m.tipo) f.appendChild(el('span', 'mic-tipo', m.tipo));
+      var tx = el('div', 'mic-tx');
+      if (m.marca) tx.appendChild(el('small', 'mic-marca', m.marca));
+      tx.appendChild(el('h4', 'mic-nom', m.modelo));
+      var meta = el('div', 'mic-meta'); if (m.patron) meta.appendChild(el('span', 'mic-spec', '◎ ' + m.patron)); m.tags.forEach(function (t) { meta.appendChild(el('span', 'mic-tag', t)); }); if (meta.firstChild) tx.appendChild(meta);
       if (m.descripcion) tx.appendChild(el('p', 'mic-desc', m.descripcion));
-      if (m.items.length) { var mu = el('div', 'mic-muestras'); m.items.forEach(function (i) { mu.appendChild(muestra(i)); }); tx.appendChild(mu); } else tx.appendChild(el('small', 'nota', 'Muestra de audio próximamente.'));
+      var mu = el('div', 'mic-muestras'); mu.appendChild(el('div', 'mic-m-tit', '🎧 Muestras de audio' + (m.items.length ? ' · ' + m.items.length : '')));
+      if (m.items.length) m.items.forEach(function (i) { mu.appendChild(muestra(i)); }); else mu.appendChild(el('small', 'nota', 'Muestras próximamente.'));
+      tx.appendChild(mu);
       it.appendChild(f); it.appendChild(tx); cont.appendChild(it);
     });
   }
