@@ -86,6 +86,11 @@ function adminCambiarEstado(codigo, estado) {
   var sh = abrirBd_().getSheetByName(HOJAS.reservas);
   var celda = sh.getLastRow() > 1 ? sh.createTextFinder(String(codigo)).matchEntireCell(true).findNext() : null;
   if (!celda || celda.getColumn() !== RES.codigo) throw new Error('No se encontró la reserva.');
+  var rAct = sh.getRange(celda.getRow(), 1, 1, ENCABEZADO_RESERVAS.length).getValues()[0];
+  if (ESTADOS_QUE_OCUPAN.indexOf(estadoNorm_(rAct[RES.estado - 1])) < 0 && ESTADOS_QUE_OCUPAN.indexOf(estado) >= 0) {
+    var choque = choqueAlReactivar_(rAct);
+    if (choque) throw new Error('CHOQUE: ese horario ya lo tiene ' + choque + '. Usa «Reagendar» para moverla a otro horario libre.');
+  }
   sh.getRange(celda.getRow(), RES.estado).setValue(estado);
   sincronizarEstado_(sh, celda.getRow()); // el disparador de edición no se activa con cambios hechos por script
   return adminResumen();

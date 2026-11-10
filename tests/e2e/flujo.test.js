@@ -737,4 +737,16 @@ t('Mercado Pago: pago aprobado confirma la reserva y anota la comisión como gas
   assert.ok(g.estado.correos.some((c) => /pagada por Mercado Pago/.test(c.subject)));
 });
 
+console.log('\n== Una reserva anulada no puede reactivarse sobre otra ==');
+t('reactivar una reserva cuyo horario ya tomó otra: se rechaza y no hay superposición', () => {
+  const tA = '+56 9 5555 0003', tB = '+56 9 5555 0004'; let a = null, fch = null;
+  for (let d = 15; d < 45; d++) { fch = sumar(f3, d); a = g.post(sol({ fecha: fch, inicio: 18, horas: 2, telefono: '+56 9 6000 ' + (1000 + d), banda: 'Primeros', nombre: 'Ana A', correo: 'a@a.cl' })); if (a.ok) break; }
+  assert.ok(a.ok, JSON.stringify(a));
+  g.admin('adminCambiarEstado', a.codigo, 'Anulada');
+  const b = g.post(sol({ fecha: fch, inicio: 19, horas: 1, telefono: tB, banda: 'Segundos', nombre: 'Beto B', correo: 'b@b.cl' })); assert.ok(b.ok, JSON.stringify(b));
+  let msg = ''; try { g.admin('adminCambiarEstado', a.codigo, 'Reservado (con abono)'); } catch (e) { msg = e.message; }
+  assert.ok(/CHOQUE/.test(msg), 'debe rechazar: ' + msg);
+  assert.strictEqual(g.admin('adminJornadas').reservas.find((q) => q.codigo === a.codigo).estado, 'Anulada');
+});
+
 console.log('\n' + ok + ' pasos correctos, ' + fallas + ' con falla.');

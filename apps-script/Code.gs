@@ -504,6 +504,18 @@ function alEditar(e) {
   } catch (err) { console.error(err && err.stack || err); }
 }
 
+/** Si el horario de una reserva sin evento ya lo ocupa otra reserva o bloqueo, devuelve el detalle ('' si está libre). */
+function choqueAlReactivar_(r) {
+  var fecha = aFechaIso_(r[RES.fecha - 1]), ini = aHora_(r[RES.inicio - 1]), n = Number(r[RES.horas - 1]) || 0;
+  if (!fecha || ini === null || !n) return '';
+  var cod = String(r[RES.codigo - 1] || '');
+  var otras = reservasVigentesEn_(fecha, cod).filter(function (x) { return x.ini < ini + n && x.fin > ini; });
+  if (otras.length) return otras[0].banda + ' (' + Reglas.horaTxt(otras[0].ini) + ' a ' + Reglas.horaTxt(otras[0].fin) + ')';
+  var oc = ocupadasRango_(fecha, 1)[fecha] || [];
+  for (var h = ini; h < ini + n; h++) if (oc.indexOf(h) >= 0) return 'horario ocupado o bloqueado a las ' + h + ':00';
+  return '';
+}
+
 function sincronizarEstado_(sh, f) {
   var r = sh.getRange(f, 1, 1, ENCABEZADO_RESERVAS.length).getValues()[0];
   var estado = estadoNorm_(r[RES.estado - 1]);
@@ -511,6 +523,15 @@ function sincronizarEstado_(sh, f) {
   var cal = getCalendar_();
   var servicio = String(r[RES.servicio - 1]) === ETIQUETA_SERVICIO.grabacion ? 'grabacion' : 'ensayo';
   var evento = r[RES.evento - 1] ? obtenerEvento_(cal, r[RES.evento - 1]) : null;
+
+  // Una reserva liberada (anulada) NO puede reactivarse si otra tomó su horario: se evita el choque.
+  if (!evento && ESTADOS_QUE_OCUPAN.indexOf(estado) >= 0) {
+    var choque = choqueAlReactivar_(r);
+    if (choque) {
+      sh.getRange(f, RES.estado).setValue(EST.ANULADA); estado = EST.ANULADA; r[RES.estado - 1] = EST.ANULADA;
+      avisarAdmin_('No se pudo reactivar la reserva ' + r[RES.codigo - 1] + ' (' + r[RES.banda - 1] + ')', 'Su horario ya lo tiene otra reserva: ' + choque + '. Se dejó Anulada para no duplicar el horario. Reagéndala a otro horario desde el portal.');
+    }
+  }
 
   liquidar_(sh, f, r, estado);
   if (estado === EST.ANULADA) {
