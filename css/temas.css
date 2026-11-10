@@ -9,3 +9,31 @@
 [data-tema="cobre"]{--bg:#140e0b;--bg2:#0d0907;--panel:#201611;--borde:#3f2e22;--oro:#e8905a;--rojo:#d62839;--txt:#f6ece4;--mut:#bfa797;--velo:rgba(20,14,11,.95);--panel-a:rgba(32,22,17,.92);--top-a:rgba(13,9,7,.95)}
 [data-tema="ciruela"]{--bg:#110c15;--bg2:#0a070e;--panel:#1b1321;--borde:#352845;--oro:#d9a6ff;--rojo:#ff4f8b;--txt:#f3eaf9;--mut:#b7a3c9;--velo:rgba(17,12,21,.95);--panel-a:rgba(27,19,33,.92);--top-a:rgba(10,7,14,.95)}
 [data-tema="carbon"]{--bg:#040404;--bg2:#060606;--panel:#09090b;--borde:#1b1b1e;--oro:#E39A2D;--rojo:#ff3b30;--txt:#f2f2f2;--mut:#9a9a9f;--velo:rgba(4,4,4,.97);--panel-a:rgba(9,9,11,.96);--top-a:rgba(6,6,6,.97)}
+
+/* ---------- Estética completa por tema (tipografía, formas, sombras, texturas). El tema «rockerio» es la base y no cambia. ---------- */
+html[data-tema]{--f-t:Oswald,Impact,sans-serif;--f-b:Inter,system-ui,sans-serif;--tt:uppercase;--ls:.04em;--r:14px;--r-s:10px;--sh:none;--bw:1px;--grano:none;--fondo-tarjeta:var(--panel)}
+html[data-tema="medianoche"]{--f-t:Inter,system-ui,sans-serif;--tt:none;--ls:-.01em;--r:6px;--r-s:4px;--sh:0 0 0 1px rgba(124,196,255,.08);}
+html[data-tema="vino"]{--f-t:'Playfair Display',Georgia,serif;--f-b:Georgia,'Times New Roman',serif;--tt:none;--ls:.01em;--r:3px;--r-s:2px;--sh:0 8px 24px rgba(0,0,0,.35)}
+html[data-tema="bosque"]{--f-t:Nunito,system-ui,sans-serif;--f-b:Nunito,system-ui,sans-serif;--tt:none;--ls:0;--r:26px;--r-s:999px;--sh:0 10px 28px rgba(0,0,0,.28)}
+html[data-tema="grafito"]{--f-t:'Space Mono',ui-monospace,monospace;--f-b:'Space Mono',ui-monospace,monospace;--tt:uppercase;--ls:.02em;--r:0;--r-s:0;--sh:none}
+html[data-tema="azufre"]{--f-t:'Archivo Black',Impact,sans-serif;--tt:uppercase;--ls:.02em;--r:0;--r-s:0;--bw:3px;--sh:6px 6px 0 rgba(245,230,66,.9)}
+html[data-tema="abismo"]{--f-t:Poppins,system-ui,sans-serif;--f-b:Poppins,system-ui,sans-serif;--tt:none;--ls:0;--r:20px;--r-s:14px;--sh:0 0 28px rgba(79,224,208,.14)}
+html[data-tema="cobre"]{--f-t:'Bebas Neue',Oswald,Impact,sans-serif;--tt:uppercase;--ls:.08em;--r:8px;--r-s:4px;--bw:2px;--sh:inset 0 0 0 1px rgba(232,144,90,.25)}
+html[data-tema="ciruela"]{--f-t:Poppins,system-ui,sans-serif;--f-b:Poppins,system-ui,sans-serif;--tt:none;--ls:0;--r:18px;--r-s:999px;--sh:0 0 24px rgba(217,166,255,.16)}
+html[data-tema="carbon"]{--f-t:Inter,system-ui,sans-serif;--tt:none;--ls:-.02em;--r:10px;--r-s:8px;--sh:none}
+html:not([data-tema="rockerio"])[data-tema] body{font-family:var(--f-b)}
+html:not([data-tema="rockerio"])[data-tema] h1,html:not([data-tema="rockerio"])[data-tema] h2,html:not([data-tema="rockerio"])[data-tema] h3,html:not([data-tema="rockerio"])[data-tema] legend,html:not([data-tema="rockerio"])[data-tema] .btn,html:not([data-tema="rockerio"])[data-tema] nav a{font-family:var(--f-t);text-transform:var(--tt);letter-spacing:var(--ls)}
+html:not([data-tema="rockerio"])[data-tema] .card,html:not([data-tema="rockerio"])[data-tema] .caja,html:not([data-tema="rockerio"])[data-tema] fieldset,html:not([data-tema="rockerio"])[data-tema] .panel,html:not([data-tema="rockerio"])[data-tema] .forma,html:not([data-tema="rockerio"])[data-tema] .prod-bloque,html:not([data-tema="rockerio"])[data-tema] .honor-card,html:not([data-tema="rockerio"])[data-tema] .tu-reserva,html:not([data-tema="rockerio"])[data-tema] .resumen,html:not([data-tema="rockerio"])[data-tema] .prods .prod,html:not([data-tema="rockerio"])[data-tema] .tienda-grid .prod,html:not([data-tema="rockerio"])[data-tema] .ex-card,html:not([data-tema="rockerio"])[data-tema] .reglamento{border-radius:var(--r);box-shadow:var(--sh);border-width:var(--bw)}
+html:not([data-tema="rockerio"])[data-tema] .btn,html:not([data-tema="rockerio"])[data-tema] button,html:not([data-tema="rockerio"])[data-tema] .hbtn,html:not([data-tema="rockerio"])[data-tema] .hora,html:not([data-tema="rockerio"])[data-tema] .opcion,html:not([data-tema="rockerio"])[data-tema] input,html:not([data-tema="rockerio"])[data-tema] select,html:not([data-tema="rockerio"])[data-tema] textarea,html:not([data-tema="rockerio"])[data-tema] .chips span,html:not([data-tema="rockerio"])[data-tema] .cal-dia{border-radius:var(--r-s)}
+html:not([data-tema="rockerio"])[data-tema] .galeria img,html:not([data-tema="rockerio"])[data-tema] .hero-logo,html:not([data-tema="rockerio"])[data-tema] .prod-foto,html:not([data-tema="rockerio"])[data-tema] .carr{border-radius:var(--r)}
+/* detalles propios de cada tema */
+html[data-tema="vino"] h2::after,html[data-tema="vino"] .sec h2::after{height:1px;background:linear-gradient(90deg,var(--oro),transparent)}
+html[data-tema="grafito"] body::before,html[data-tema="carbon"] body::before{background:var(--bg)!important}
+html[data-tema="grafito"] .btn,html[data-tema="azufre"] .btn{box-shadow:none;border:var(--bw) solid var(--oro)}
+html[data-tema="azufre"] .btn{color:#111}html[data-tema="azufre"] .card,html[data-tema="azufre"] fieldset,html[data-tema="azufre"] .caja{border-color:var(--oro)}
+html[data-tema="abismo"] .card,html[data-tema="abismo"] .caja,html[data-tema="abismo"] fieldset,html[data-tema="ciruela"] .card,html[data-tema="ciruela"] .caja,html[data-tema="ciruela"] fieldset{background:var(--panel-a);backdrop-filter:blur(10px)}
+html[data-tema="cobre"] .top,html[data-tema="cobre"] h2{border-bottom-width:2px}
+html[data-tema="cobre"] body::before{background:repeating-linear-gradient(45deg,var(--velo),var(--velo) 6px,rgba(232,144,90,.04) 6px,rgba(232,144,90,.04) 7px)!important}
+html[data-tema="bosque"] .btn,html[data-tema="ciruela"] .btn{padding-left:1.4rem;padding-right:1.4rem}
+html[data-tema="medianoche"] body::before{background:radial-gradient(1000px 500px at 80% -10%,rgba(124,196,255,.12),transparent 60%),var(--velo)!important}
+html:not([data-tema="rockerio"])[data-tema] .selector-tema{border-radius:var(--r-s)}

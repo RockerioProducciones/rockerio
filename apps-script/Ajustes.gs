@@ -59,7 +59,8 @@ var ESQUEMA = [
   ['reservasActivas', 'Reservas en línea activas', 'sino', 'Funciones', 'NO = el sitio deja de recibir reservas (por vacaciones, por ejemplo).'],
   ['correoCliente', 'Enviar correo de confirmación al cliente', 'sino', 'Funciones', 'Gmail permite 100 correos al día.'],
   ['avisoBanner', 'Aviso en el sitio', 'texto', 'Funciones', 'Franja roja arriba del sitio (vacío = sin aviso).', 200],
-  ['tema', 'Tema visual por defecto', 'lista', 'Funciones', 'Colores del sitio.', ['rockerio', 'medianoche', 'vino', 'bosque', 'grafito', 'azufre', 'abismo', 'cobre', 'ciruela', 'carbon']],
+  ['tema', 'Tema visual por defecto', 'lista', 'Funciones', 'Estética completa del sitio (colores, letras y formas).', ['rockerio', 'medianoche', 'vino', 'bosque', 'grafito', 'azufre', 'abismo', 'cobre', 'ciruela', 'carbon']],
+  ['temaAdmin', 'Tema del portal de administración', 'lista', 'Funciones', 'Estética completa de este portal, independiente del sitio.', ['rockerio', 'medianoche', 'vino', 'bosque', 'grafito', 'azufre', 'abismo', 'cobre', 'ciruela', 'carbon']],
   ['sitioUrl', 'Dirección del sitio', 'url', 'Funciones', 'Sirve para armar los enlaces de socios y agenda.'],
 
   ['heroTitulo', 'Portada: título', 'texto', 'Portada y secciones', 'Frase grande de la portada.', 60],

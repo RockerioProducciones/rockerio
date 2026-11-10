@@ -113,7 +113,7 @@ const { sembrar } = require('./demo.js');
       ok(await p.locator('.rm-horas button').count() >= 20, 'hay bloques para casi todas las horas del día (sin restricción)');
       await p.locator('.rm-horas button', { hasText: '02:00 – 03:00' }).first().click(); await p.waitForSelector('.rm-form');
       const ins = p.locator('.rm-form input'); await ins.nth(1).fill('Las Nuevas ' + sx); await ins.nth(2).fill('Camila Rojas'); await ins.nth(3).fill(nombre === 'pc' ? '+56 9 6000 1111' : '+56 9 6000 2222');
-      await p.locator('.rm-extras label', { hasText: 'Takamine' }).locator('input').check(); await p.waitForFunction(() => /Takamine/.test(document.querySelector('.rm-det').innerText) && /Total calculado/.test(document.querySelector('.rm-det').innerText), null, { timeout: 5000 }); ok(true, 'reserva manual: extras con casilla y desglose detallado');
+      await p.locator('.rm-extras label', { hasText: 'Takamine' }).locator('input').check(); await p.waitForFunction(() => /Takamine/.test(document.querySelector('.rm-det').innerText) && /Total calculado/.test(document.querySelector('.rm-det').innerText), null, { timeout: 5000 }); ok(true, 'reserva manual: extras con casilla y desglose detallado'); if (nombre === 'pc') await p.locator('.rm-form').screenshot({ path: '/tmp/claude-0/-home-claude/02161b5f-0981-5383-8274-0c202f5bfc24/scratchpad/rm.png' });
       await p.getByRole('button', { name: 'Continuar ›' }).click(); await p.waitForSelector('.rm-res'); await p.screenshot({ path: 'j-reserva-manual.png' });
       await p.click('#rm-guardar'); await p.waitForTimeout(500);
       ok(g.admin('adminJornadas').reservas.some((r) => r.banda === 'Las Nuevas ' + sx && r.inicio === '02:00'), 'reserva manual a las 02:00 guardada desde el portal');

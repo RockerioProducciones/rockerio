@@ -53,7 +53,7 @@ const { sembrar } = require('./demo.js');
   // volver al inicio
   await p.click('.volver'); await p.waitForTimeout(300); ok(await p.locator('.menu').isVisible(), 'botón Inicio vuelve al menú');
   // otras vistas
-  for (const [id, sel] of [['ficha', '#ficha-in .card'], ['galeria', '#galeria-in img'], ['tienda', '#tienda-in'], ['reglamento', '#reglamento-in'], ['planes', '#plan-cards'], ['cotizar', '#f-cot'], ['contacto', '#wsp']]) {
+  for (const [id, sel] of [['ficha', '#ficha-in .card'], ['galeria', '#galeria-car .fo-it img'], ['tienda', '#tienda-in'], ['reglamento', '#reglamento-in'], ['planes', '#plan-cards'], ['cotizar', '#f-cot'], ['contacto', '#wsp']]) {
     await p.goto('http://localhost:8099/#' + id); await p.waitForTimeout(500);
     ok(await p.locator(sel).first().isVisible(), 'vista ' + id); await p.screenshot({ path: 'v-' + id + '.png' });
   }
@@ -71,7 +71,7 @@ const { sembrar } = require('./demo.js');
   const ft = await p.evaluate(() => document.querySelector('[data-ed="nos.fil.p1"]').innerHTML);
   console.log(/<strong>Texto nuevo:<\/strong> editado desde el portal/.test(ft) ? '  ok  el texto editado y su negrita se ven en el sitio' : 'FALLA texto editado: ' + ft);
   await p.goto('http://localhost:8099/#galeria'); await p.reload(); await p.waitForFunction(() => window.RK && window.RK.conectado()); await p.waitForTimeout(700);
-  const nfotos = await p.locator('#galeria-in .galeria img').count(); console.log(nfotos === 1 ? '  ok  la galería editada reemplaza a la original' : 'FALLA galería: ' + nfotos);
+  const nfotos = await p.locator('#galeria-car .fo-it img').count(); console.log(nfotos === 1 ? '  ok  la galería editada reemplaza a la original' : 'FALLA galería: ' + nfotos);
   ['textos', 'galeria'].forEach((x) => g.admin('adminGuardarSitio', x, x === 'galeria' ? [] : {}));
   await p.goto('http://localhost:8099/#bandas'); await p.waitForTimeout(700);
   await p.goto('http://localhost:8099/#reservar'); await p.reload(); await p.waitForFunction(() => window.RK && window.RK.conectado()); await p.waitForTimeout(600);
@@ -86,7 +86,7 @@ const { sembrar } = require('./demo.js');
   ok(await p.locator('#galeria [data-playlist] iframe').count() === 1, 'reproductor de playlist en Galería');
   await p.goto('http://localhost:8099/#ficha'); await p.waitForTimeout(600);
   ok(await p.locator('.ficha-tab').count() === 7, '7 pestañas en la ficha técnica');
-  ok(await p.locator('.ficha-panel .carr-sl').count() >= 2, 'carrusel en la ficha');
+  ok(await p.locator('.ficha-panel .fo-it').count() >= 2, 'fotos pequeñas con texto en la ficha');
   await p.locator('.ficha-tab', { hasText: 'Estación de trabajo' }).click(); await p.waitForTimeout(300);
   ok(/Mac mini M4/.test(await p.textContent('.ficha-panel')) && /LUNA 3\.0/.test(await p.textContent('.ficha-panel')), 'estación de trabajo con Mac mini M4 y LUNA 3.0');
   await p.screenshot({ path: 'v-ficha-estacion.png', fullPage: true });
@@ -95,9 +95,8 @@ const { sembrar } = require('./demo.js');
   await p.locator('.ficha-tab', { hasText: 'Muestras' }).click(); await p.waitForTimeout(300);
   await p.locator('.ficha-tab', { hasText: 'Control room' }).click(); await p.waitForTimeout(300); await p.screenshot({ path: 'v-ficha-control.png' });
   await p.goto('http://localhost:8099/#galeria'); await p.waitForTimeout(700);
-  ok(await p.locator('#galeria-car .carr-sl').count() >= 8, 'carrusel de galería');
-  const t0 = await p.textContent('#galeria-car .carr-n'); await p.click('#galeria-car .carr-b.sig'); await p.waitForTimeout(700);
-  ok((await p.textContent('#galeria-car .carr-n')) !== t0, 'el carrusel avanza'); await p.screenshot({ path: 'v-galeria.png' });
+  ok(await p.locator('#galeria-car .fo-it').count() >= 8 && (await p.locator('#galeria-car .fo-it img').first().boundingBox()).width < 140, 'galería: fotos pequeñas con texto');
+  await p.click('#galeria-car .fo-it img'); await p.waitForTimeout(300); ok(await p.locator('.visor img').count() === 1, 'al tocar una foto se abre en grande'); await p.keyboard.press('Escape'); await p.screenshot({ path: 'v-galeria.png' });
   await p.goto('http://localhost:8099/#nosotros'); await p.waitForTimeout(500); await p.screenshot({ path: 'v-prod.png', fullPage: true });
   ok(await p.locator('#nosotros .prod-foto').count() === 1, 'una sola foto en Producción, junto al texto');
   await p.goto('http://localhost:8099/#bandas'); await p.waitForTimeout(500);

@@ -446,7 +446,9 @@ function adminReservaManual(p) {
   if (!nombre) throw new Error('Escribe el nombre del contacto.');
   if (!Reglas.telefonoValido(tel)) throw new Error('Revisa el teléfono. Ejemplo: +56 9 1234 5678.');
   if (correo && !Reglas.correoValido(correo)) throw new Error('Revisa el correo.');
-  var estado = estadoNorm_(p.estado) || EST.CON_ABONO;
+  var estado = estadoNorm_(p.estado) || EST.CON_ABONO, pago = String(p.pago || ''), medioPago = String(p.medio || '');
+  if (pago === 'completo' || pago === 'abono') estado = EST.CON_ABONO; else if (pago === 'ninguno') estado = EST.SIN_ABONO;
+  if (pago === 'completo' && MEDIOS_PAGO.indexOf(medioPago) < 0) throw new Error('Elige el medio de pago.');
   var equipos = (Array.isArray(p.equipos) ? p.equipos : []).map(function (x) { return limpiar_(x, 120); }).filter(Boolean).slice(0, 6);
   var extras = servicio === 'ensayo' ? Math.max(0, Math.min(6, equipos.length || Number(p.extras) || 0)) : 0;
   var d = { servicio: servicio, fecha: fecha, inicio: inicio, horas: horas, extras: extras, video: !!p.video, raw: !!p.raw };
@@ -496,6 +498,7 @@ function adminReservaManual(p) {
     var f = sh.getLastRow();
     sh.getRange(f, RES.telefono).setNumberFormat('@').setValue(tel);
     if (estado !== EST.SIN_ABONO) sincronizarEstado_(sh, f);
+    if (pago === 'completo' && !p.codigoEditar) { sh.getRange(f, RES.cobro, 1, 2).setValues([['', medioPago]]); sh.getRange(f, RES.fechaPago).setValue(fechaHora_(ahoraChile_().fecha, 0)); }
     registrarCliente_({ telefono: tel, correo: correo, banda: banda, nombre: nombre });
     return { ok: true, codigo: codigo };
   });

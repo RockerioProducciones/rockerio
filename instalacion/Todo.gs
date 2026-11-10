@@ -1153,7 +1153,7 @@ function abrirBd_() {
 /** Agrega a la hoja de reservas la columna «Reagendos» si falta (hojas de versiones anteriores). Se revisa una vez cada 6 horas. */
 function asegurarEsquema_(ss) {
   var cache = CacheService.getScriptCache();
-  if (cache.get('esq6')) return;
+  if (cache.get('esq7')) return;
   try {
     var sh = ss.getSheetByName(HOJAS.reservas);
     if (sh) {
@@ -1182,7 +1182,7 @@ function asegurarEsquema_(ss) {
       }
       props.setProperty('MIG_HONOR_1', '1');
     }
-    cache.put('esq6', '1', 21600);
+    cache.put('esq7', '1', 21600);
   } catch (e) { /* si falla, se reintenta en la próxima solicitud */ }
 }
 
@@ -1355,6 +1355,7 @@ function prepararConfig_(ss) {
     ['regimen', '14D3', '14D3 = Pro Pyme general (la empresa paga Primera Categoría) o 14D8 = Pro Pyme transparente (tributan los dueños). Confírmalo con tu contador.'],
     ['sitioUrl', '', 'Dirección pública del sitio, sin barra final. Ejemplo: https://rockerioproducciones.cl (sirve para armar los enlaces que compartes).'],
     ['tema', 'rockerio', 'Tema visual por defecto: rockerio, medianoche, vino, bosque, grafito, azufre, abismo, cobre, ciruela o carbon.'],
+    ['temaAdmin', 'rockerio', 'Tema visual del portal de administración (mismas opciones que «tema»).'],
     ['presentacionTitulo', 'Mi enfoque', 'Título de la sección de presentación personal.'],
     ['presentacion', '', 'Tu presentación: visión y enfoque técnico y artístico. Separa párrafos con una línea en blanco. Vacío = la sección no se muestra. Se edita también desde el portal.'],
     ['correoCliente', 'SI', 'SI o NO. Envía un correo de confirmación al cliente (cuenta Gmail: máximo 100 correos al día).']
@@ -2005,7 +2006,9 @@ function adminReservaManual(p) {
   if (!nombre) throw new Error('Escribe el nombre del contacto.');
   if (!Reglas.telefonoValido(tel)) throw new Error('Revisa el teléfono. Ejemplo: +56 9 1234 5678.');
   if (correo && !Reglas.correoValido(correo)) throw new Error('Revisa el correo.');
-  var estado = estadoNorm_(p.estado) || EST.CON_ABONO;
+  var estado = estadoNorm_(p.estado) || EST.CON_ABONO, pago = String(p.pago || ''), medioPago = String(p.medio || '');
+  if (pago === 'completo' || pago === 'abono') estado = EST.CON_ABONO; else if (pago === 'ninguno') estado = EST.SIN_ABONO;
+  if (pago === 'completo' && MEDIOS_PAGO.indexOf(medioPago) < 0) throw new Error('Elige el medio de pago.');
   var equipos = (Array.isArray(p.equipos) ? p.equipos : []).map(function (x) { return limpiar_(x, 120); }).filter(Boolean).slice(0, 6);
   var extras = servicio === 'ensayo' ? Math.max(0, Math.min(6, equipos.length || Number(p.extras) || 0)) : 0;
   var d = { servicio: servicio, fecha: fecha, inicio: inicio, horas: horas, extras: extras, video: !!p.video, raw: !!p.raw };
@@ -2055,6 +2058,7 @@ function adminReservaManual(p) {
     var f = sh.getLastRow();
     sh.getRange(f, RES.telefono).setNumberFormat('@').setValue(tel);
     if (estado !== EST.SIN_ABONO) sincronizarEstado_(sh, f);
+    if (pago === 'completo' && !p.codigoEditar) { sh.getRange(f, RES.cobro, 1, 2).setValues([['', medioPago]]); sh.getRange(f, RES.fechaPago).setValue(fechaHora_(ahoraChile_().fecha, 0)); }
     registrarCliente_({ telefono: tel, correo: correo, banda: banda, nombre: nombre });
     return { ok: true, codigo: codigo };
   });
@@ -3927,7 +3931,8 @@ var ESQUEMA = [
   ['reservasActivas', 'Reservas en línea activas', 'sino', 'Funciones', 'NO = el sitio deja de recibir reservas (por vacaciones, por ejemplo).'],
   ['correoCliente', 'Enviar correo de confirmación al cliente', 'sino', 'Funciones', 'Gmail permite 100 correos al día.'],
   ['avisoBanner', 'Aviso en el sitio', 'texto', 'Funciones', 'Franja roja arriba del sitio (vacío = sin aviso).', 200],
-  ['tema', 'Tema visual por defecto', 'lista', 'Funciones', 'Colores del sitio.', ['rockerio', 'medianoche', 'vino', 'bosque', 'grafito', 'azufre', 'abismo', 'cobre', 'ciruela', 'carbon']],
+  ['tema', 'Tema visual por defecto', 'lista', 'Funciones', 'Estética completa del sitio (colores, letras y formas).', ['rockerio', 'medianoche', 'vino', 'bosque', 'grafito', 'azufre', 'abismo', 'cobre', 'ciruela', 'carbon']],
+  ['temaAdmin', 'Tema del portal de administración', 'lista', 'Funciones', 'Estética completa de este portal, independiente del sitio.', ['rockerio', 'medianoche', 'vino', 'bosque', 'grafito', 'azufre', 'abismo', 'cobre', 'ciruela', 'carbon']],
   ['sitioUrl', 'Dirección del sitio', 'url', 'Funciones', 'Sirve para armar los enlaces de socios y agenda.'],
 
   ['heroTitulo', 'Portada: título', 'texto', 'Portada y secciones', 'Frase grande de la portada.', 60],

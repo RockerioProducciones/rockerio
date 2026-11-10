@@ -212,6 +212,18 @@
   var fichaDatos = null;
   /** Ficha técnica. Los {valores} (precios, abono, escala de grabación incluida) salen de la configuración, así nunca quedan desactualizados. */
   /** Carrusel elegante con infografía: items = [{src, titulo, descripcion, datos:[…]}]. Flechas, puntos, deslizar, ampliar al tocar. */
+  /** Fotos pequeñas acompañadas de su texto (galería y ficha técnica); al tocar una se abre en grande. */
+  function listaFotos(cont, items) {
+    var fotos = items.filter(function (f) { return f.src; }); cont.textContent = ''; var g = el('div', 'fo-lista');
+    fotos.forEach(function (f, k) {
+      var it = el('div', 'fo-it'), im = el('img'); im.src = f.src; im.alt = f.alt || f.titulo || ''; im.loading = 'lazy'; im.tabIndex = 0;
+      im.addEventListener('click', function () { visor(fotos, k); }); im.addEventListener('keydown', function (e) { if (e.key === 'Enter') visor(fotos, k); });
+      var tx = el('div', 'fo-tx'); tx.appendChild(el('b', '', f.titulo || f.alt || '')); if (f.descripcion) tx.appendChild(el('p', '', f.descripcion));
+      if (f.datos && f.datos.length) { var ch = el('div', 'carr-datos'); f.datos.forEach(function (x) { ch.appendChild(el('i', '', x)); }); tx.appendChild(ch); }
+      it.appendChild(im); it.appendChild(tx); g.appendChild(it);
+    });
+    cont.appendChild(g);
+  }
   function carrusel(cont, items, opciones) {
     cont.textContent = ''; if (!items.length) { cont.hidden = true; return; } cont.hidden = false;
     var pos = 0, auto = null, c = el('div', 'carr'), vp = el('div', 'carr-vp'), pista = el('div', 'carr-pista'), pts = el('div', 'carr-pts'), cnt = el('span', 'carr-n');
@@ -264,7 +276,7 @@
       var s = secs.filter(function (x) { return x.id === id; })[0]; if (!s) return;
       var cab = el('div', 'ficha-cab'); cab.appendChild(el('span', 'ficha-ico', s.icono || '')); var tx = el('div'); tx.appendChild(el('h3', '', s.titulo)); if (s.resumen) tx.appendChild(el('p', 'sub', s.resumen)); cab.appendChild(tx); panel.appendChild(cab);
       if (s.stats && s.stats.length) panel.appendChild(infografia(s.stats));
-      if (s.fotos && s.fotos.length) { var cc = el('div', 'carr-caja'); panel.appendChild(cc); carrusel(cc, s.fotos); }
+      if (s.fotos && s.fotos.length) { var cc = el('div', 'carr-caja'); panel.appendChild(cc); listaFotos(cc, s.fotos); }
       var g = el('div', 'grid'); panel.appendChild(g);
       (s.bloques || []).forEach(function (b) {
         var c = el('div', 'card'); c.appendChild(el('h3', '', b.titulo)); var ul = el('ul');
@@ -317,9 +329,7 @@
       var cont = $('galeria-in'); cont.textContent = '';
       var fotos = g.filter(function (f) { return f.src; }), videos = g.filter(function (f) { return f.video; });
       var info = $('galeria-info'); if (info) { info.textContent = ''; info.appendChild(infografia([['📸', String(fotos.length), 'fotos del estudio'], ['🎛️', '2', 'salas: ensayo y grabación'], ['🎙️', '17', 'micrófonos de estudio'], ['🎚️', '32', 'canales Midas M32']])); }
-      var cc = $('galeria-car'); if (cc) carrusel(cc, fotos);
-      var tira = el('div', 'galeria'); fotos.forEach(function (f, k) { var i = el('img'); i.src = f.src; i.alt = f.alt || f.titulo || ''; i.loading = 'lazy'; i.tabIndex = 0; i.addEventListener('click', function () { visor(fotos, k); }); i.addEventListener('keydown', function (e) { if (e.key === 'Enter') visor(fotos, k); }); tira.appendChild(i); });
-      cont.appendChild(tira);
+      var cc = $('galeria-car'); if (cc) listaFotos(cc, fotos);
       videos.forEach(function (f) { cont.appendChild(tarjetaVideo(f)); });
     }).catch(function () { $('galeria').hidden = true; });
   }

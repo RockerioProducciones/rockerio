@@ -613,7 +613,7 @@ function abrirBd_() {
 /** Agrega a la hoja de reservas la columna «Reagendos» si falta (hojas de versiones anteriores). Se revisa una vez cada 6 horas. */
 function asegurarEsquema_(ss) {
   var cache = CacheService.getScriptCache();
-  if (cache.get('esq6')) return;
+  if (cache.get('esq7')) return;
   try {
     var sh = ss.getSheetByName(HOJAS.reservas);
     if (sh) {
@@ -642,7 +642,7 @@ function asegurarEsquema_(ss) {
       }
       props.setProperty('MIG_HONOR_1', '1');
     }
-    cache.put('esq6', '1', 21600);
+    cache.put('esq7', '1', 21600);
   } catch (e) { /* si falla, se reintenta en la próxima solicitud */ }
 }
 
@@ -815,6 +815,7 @@ function prepararConfig_(ss) {
     ['regimen', '14D3', '14D3 = Pro Pyme general (la empresa paga Primera Categoría) o 14D8 = Pro Pyme transparente (tributan los dueños). Confírmalo con tu contador.'],
     ['sitioUrl', '', 'Dirección pública del sitio, sin barra final. Ejemplo: https://rockerioproducciones.cl (sirve para armar los enlaces que compartes).'],
     ['tema', 'rockerio', 'Tema visual por defecto: rockerio, medianoche, vino, bosque, grafito, azufre, abismo, cobre, ciruela o carbon.'],
+    ['temaAdmin', 'rockerio', 'Tema visual del portal de administración (mismas opciones que «tema»).'],
     ['presentacionTitulo', 'Mi enfoque', 'Título de la sección de presentación personal.'],
     ['presentacion', '', 'Tu presentación: visión y enfoque técnico y artístico. Separa párrafos con una línea en blanco. Vacío = la sección no se muestra. Se edita también desde el portal.'],
     ['correoCliente', 'SI', 'SI o NO. Envía un correo de confirmación al cliente (cuenta Gmail: máximo 100 correos al día).']

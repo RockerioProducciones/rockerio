@@ -356,6 +356,15 @@ t('reserva manual: equipos extra con ticket y desglose detallado', () => {
   const x = g.admin('adminJornadas').reservas.find((y) => y.codigo === r.codigo);
   assert.strictEqual(x.extras, 2); assert.ok(/Equipos: Bajo eléctrico Epiphone Thunderbird Pro IV, Guitarra electroacústica Takamine/.test(x.comentarios)); assert.strictEqual(x.total, c.total);
 });
+t('reserva manual: se ingresa pagada de inmediato con su medio de pago', () => {
+  const dia = sumar(dom, 14);
+  assert.throws(() => g.admin('adminReservaManual', { servicio: 'ensayo', fecha: dia, inicio: 12, horas: 1, banda: 'Pago Band', nombre: 'Pía', telefono: '+56 9 5555 3434', pago: 'completo' }), /medio de pago/i);
+  const r = g.admin('adminReservaManual', { servicio: 'ensayo', fecha: dia, inicio: 12, horas: 1, banda: 'Pago Band', nombre: 'Pía', telefono: '+56 9 5555 3434', pago: 'completo', medio: 'Efectivo' });
+  const x = g.admin('adminJornadas').reservas.find((y) => y.codigo === r.codigo);
+  assert.strictEqual(x.medio, 'Efectivo'); assert.ok(x.fechaPago); assert.strictEqual(x.estado, 'Reservado (con abono)');
+  const y = g.admin('adminReservaManual', { servicio: 'ensayo', fecha: dia, inicio: 14, horas: 1, banda: 'Pago Band', nombre: 'Pía', telefono: '+56 9 5555 3434', pago: 'ninguno' });
+  assert.strictEqual(g.admin('adminJornadas').reservas.find((z) => z.codigo === y.codigo).estado, 'Reservado (sin abono)');
+});
 t('reserva manual: el mismo horario avisa choque y con forzar se guarda', () => {
   const p = { servicio: 'ensayo', fecha: dom, inicio: 3, horas: 1, banda: 'Otra', nombre: 'Ana', telefono: '+56 9 4444 1111' };
   assert.throws(() => g.admin('adminReservaManual', p), /CHOQUE/);

@@ -317,3 +317,20 @@ input:focus,select:focus,textarea:focus{outline:2px solid color-mix(in srgb,var(
 .reg-modal .reglamento{overflow:auto;padding:1rem;flex:1}
 .reg-pie{padding:.7rem 1rem;border-top:1px solid var(--borde,#3a3733);text-align:center}
 body.reg-abierto{overflow:hidden}
+
+/* Barra principal de secciones: centrada (la última fila también) */
+body:not([data-vista]) .menu,body[data-vista="inicio"] .menu{display:flex!important;flex-wrap:wrap;justify-content:center;gap:.6rem}
+body:not([data-vista]) .menu>.tarjeta,body[data-vista="inicio"] .menu>.tarjeta{flex:0 0 148px;margin:0;width:auto}
+@media(max-width:699px){body:not([data-vista]) .menu>.tarjeta,body[data-vista="inicio"] .menu>.tarjeta{flex:0 0 calc((100% - 1rem)/3)}}
+body.con-vistas[data-vista]:not([data-vista="inicio"]) .menu{justify-content:safe center}
+.top nav{justify-content:center}
+@media(min-width:760px){.top{flex-wrap:wrap;justify-content:center}}
+
+/* Fotos pequeñas con su texto (galería y ficha técnica) */
+.fo-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:.7rem}
+.fo-it{display:flex;gap:.8rem;align-items:center;padding:.6rem;border:1px solid var(--borde);border-radius:14px;background:var(--panel)}
+.fo-it img{flex:none;width:112px;height:112px;object-fit:cover;border-radius:10px;cursor:zoom-in;background:var(--bg2)}
+.fo-tx{min-width:0}.fo-tx b{display:block;color:var(--oro);font-size:.98rem;line-height:1.25}
+.fo-tx p{margin:.25rem 0 0;font-size:.84rem;color:var(--mut);line-height:1.4}
+.fo-tx .carr-datos{margin-top:.35rem}
+@media(max-width:480px){.fo-it img{width:88px;height:88px}.fo-lista{grid-template-columns:1fr}}
