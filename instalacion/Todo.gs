@@ -1978,6 +1978,18 @@ function adminEliminarCliente(clave) {
 /** p: { servicio: ensayo|grabacion, fecha, inicio (0-23), horas (1-24), banda, nombre, telefono, correo (opcional), estado,
  *       total (opcional: reemplaza el cálculo), extras, video, raw, comentario, forzar }.
  *  Solo se avisa si el horario choca con otra reserva o bloqueo; con forzar=true se guarda igual. */
+/** Desglose de una reserva manual (para mostrarlo mientras se arma): valores de la configuración, sin guardar nada. */
+function adminCalcularReserva(p) {
+  exigirAdmin_();
+  p = p || {};
+  var cfg = getCfg_(), servicio = p.servicio === 'grabacion' ? 'grabacion' : 'ensayo', horas = Math.max(1, Math.min(24, Number(p.horas) || 1));
+  var n = servicio === 'ensayo' ? Math.max(0, Math.min(6, Number(p.extras) || 0)) : 0;
+  var c = Reglas.calcularPrecio(cfg, { servicio: servicio, fecha: String(p.fecha || ''), inicio: Number(p.inicio) || 0, horas: horas, extras: n, video: !!p.video, raw: !!p.raw });
+  c.unidadExtra = cfg.precioExtraEquipo * (cfg.extraModo === 'hora' ? horas : 1); c.precioVideo = cfg.precioVideo; c.precioRaw = cfg.precioRaw; c.addons = !!Reglas.addonsPermitidos(cfg, servicio, horas);
+  c.extraTxt = cfg.extraModo === 'hora' ? 'por hora c/u' : 'por sesión c/u'; c.abonoHora = cfg.abonoPorHora;
+  return c;
+}
+
 function adminReservaManual(p) {
   exigirAdmin_();
   p = p || {};
@@ -1994,7 +2006,8 @@ function adminReservaManual(p) {
   if (!Reglas.telefonoValido(tel)) throw new Error('Revisa el teléfono. Ejemplo: +56 9 1234 5678.');
   if (correo && !Reglas.correoValido(correo)) throw new Error('Revisa el correo.');
   var estado = estadoNorm_(p.estado) || EST.CON_ABONO;
-  var extras = Math.max(0, Math.min(6, Number(p.extras) || 0));
+  var equipos = (Array.isArray(p.equipos) ? p.equipos : []).map(function (x) { return limpiar_(x, 120); }).filter(Boolean).slice(0, 6);
+  var extras = servicio === 'ensayo' ? Math.max(0, Math.min(6, equipos.length || Number(p.extras) || 0)) : 0;
   var d = { servicio: servicio, fecha: fecha, inicio: inicio, horas: horas, extras: extras, video: !!p.video, raw: !!p.raw };
   var c = Reglas.calcularPrecio(cfg, d);
   var total = c.total, abono = c.abono;
@@ -2033,7 +2046,7 @@ function adminReservaManual(p) {
     fila[RES.banda - 1] = textoSeguro_(banda); fila[RES.contacto - 1] = textoSeguro_(nombre); fila[RES.telefono - 1] = tel; fila[RES.correo - 1] = textoSeguro_(correo);
     fila[RES.extras - 1] = extras; fila[RES.video - 1] = d.video ? 'SI' : 'NO'; fila[RES.raw - 1] = d.raw ? 'SI' : 'NO';
     fila[RES.total - 1] = total; fila[RES.abono - 1] = abono; fila[RES.saldo - 1] = total - abono;
-    fila[RES.zurdo - 1] = 'NO'; fila[RES.voces - 1] = 0; fila[RES.comentarios - 1] = textoSeguro_('Reserva manual' + (p.comentario ? ' · ' + limpiar_(p.comentario, 300) : ''));
+    fila[RES.zurdo - 1] = 'NO'; fila[RES.voces - 1] = 0; fila[RES.comentarios - 1] = textoSeguro_('Reserva manual' + (equipos.length && servicio === 'ensayo' ? ' · Equipos: ' + equipos.map(function (x) { return x.split(':')[0]; }).join(', ') : '') + (p.comentario ? ' · ' + limpiar_(p.comentario, 300) : ''));
     fila[RES.evento - 1] = evento.getId();
     var mm = { b: c.base, e: c.extras, v: c.video, r: c.raw }, dManual = c.total - total;
     if (dManual !== 0) { mm = repartirDescuento_({ b: c.base, e: c.extras, v: c.video, r: c.raw }, dManual); fila[RES.ajuste - 1] = dManual; fila[RES.notaAjuste - 1] = 'Total ingresado a mano'; fila[RES.original - 1] = JSON.stringify({ b: c.base, e: c.extras, v: c.video, r: c.raw, t: c.total }); }

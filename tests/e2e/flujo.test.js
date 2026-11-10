@@ -348,6 +348,14 @@ t('reserva manual: domingo a las 02:00 (fuera de horario) y 3 horas', () => {
   assert.strictEqual(x.inicio, '02:00'); assert.strictEqual(x.horas, 3); assert.strictEqual(x.estado, 'Reservado (con abono)'); assert.ok(x.total > 0);
   const lib = g.get({ accion: 'disponibilidad', fecha: dom }); assert.ok(JSON.stringify(lib).indexOf('"2"') < 0 || true);
 });
+t('reserva manual: equipos extra con ticket y desglose detallado', () => {
+  const dia = sumar(dom, 7), eq = ['Bajo eléctrico Epiphone Thunderbird Pro IV', 'Guitarra electroacústica Takamine'];
+  const c = g.admin('adminCalcularReserva', { servicio: 'ensayo', fecha: dia, inicio: 12, horas: 2, extras: 2, video: false, raw: false });
+  assert.ok(c.total === c.base + c.extras && c.extras === 2 * c.unidadExtra && c.saldo === c.total - c.abono);
+  const r = g.admin('adminReservaManual', { servicio: 'ensayo', fecha: dia, inicio: 12, horas: 2, banda: 'Ticket Band', nombre: 'Tito', telefono: '+56 9 5555 1212', equipos: eq });
+  const x = g.admin('adminJornadas').reservas.find((y) => y.codigo === r.codigo);
+  assert.strictEqual(x.extras, 2); assert.ok(/Equipos: Bajo eléctrico Epiphone Thunderbird Pro IV, Guitarra electroacústica Takamine/.test(x.comentarios)); assert.strictEqual(x.total, c.total);
+});
 t('reserva manual: el mismo horario avisa choque y con forzar se guarda', () => {
   const p = { servicio: 'ensayo', fecha: dom, inicio: 3, horas: 1, banda: 'Otra', nombre: 'Ana', telefono: '+56 9 4444 1111' };
   assert.throws(() => g.admin('adminReservaManual', p), /CHOQUE/);

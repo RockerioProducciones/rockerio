@@ -9,11 +9,11 @@ const { sembrar } = require('./demo.js');
     const ctx = await b.newContext({ viewport: vw, deviceScaleFactor: esc, isMobile: nombre === 'movil' }); const p = await ctx.newPage();
     p.on('pageerror', (e) => errs.push(e.message)); await p.route('https://sitio.test/**', (r) => { const fs = require('fs'), path = require('path'); const u = new URL(r.request().url()); let f = path.join(__dirname, '..', '..', decodeURIComponent(u.pathname.replace(/^\//, '') || 'index.html')); if (!fs.existsSync(f) || fs.statSync(f).isDirectory()) return r.fulfill({ status: 404, body: '' }); r.fulfill({ status: 200, body: fs.readFileSync(f), headers: { 'access-control-allow-origin': '*', 'content-type': f.endsWith('.json') ? 'application/json' : f.endsWith('.html') ? 'text/html' : 'text/plain' } }); }); p.on('dialog', (d) => d.accept());
     await p.goto('http://localhost:8098/admin'); await p.waitForSelector('.area'); await p.waitForTimeout(400);
-    ok(await p.locator('.area').count() === 10, nombre + ': 10 tarjetas de áreas');
+    ok(await p.locator('.area').count() === 8, nombre + ': 8 tarjetas de áreas');
     ok(!(await p.locator('#sec-wa').isVisible()) && await p.locator('#sec-jor').isVisible(), nombre + ': arranca en Reservas y jornadas con la barra de pestañas');
     await p.screenshot({ path: 'a-' + nombre + '-inicio.png' });
     if (nombre === 'pc') {
-      for (const [k, sel] of [['reservas', '#res'], ['solicitudes', '#sol'], ['tienda', '#sec-musica'], ['contenido', '#sitio-panel'], ['mensajes', '#wam'], ['config', '#ajustes'], ['conta', '#sec-rc'], ['socios', '#resp']]) {
+      for (const [k, sel] of [['tienda', '#sec-musica'], ['contenido', '#sitio-panel'], ['mensajes', '#wam'], ['config', '#ajustes'], ['conta', '#sec-rc'], ['socios', '#resp']]) {
         await p.click('.area[data-p=' + k + ']'); await p.waitForTimeout(250);
         ok(await p.locator(sel).first().isVisible(), 'área ' + k + ' abre su contenido'); await p.screenshot({ path: 'a-' + k + '.png' });
       }
@@ -58,10 +58,10 @@ const { sembrar } = require('./demo.js');
       await p.click('.area[data-p=config]'); await p.waitForTimeout(200);
       await p.screenshot({ path: 'a-config-abierta.png' });
       // WhatsApp botón por reserva
-      await p.click('.area[data-p=reservas]'); await p.waitForTimeout(200);
+      await p.click('.area[data-p=jornadas]'); await p.locator('#jtabs button[data-v=cob]').click(); await p.waitForTimeout(300); ok(await p.locator('section[data-jt=cob]').first().isVisible() && await p.locator('section[data-jt=cob]').count() >= 3 && !(await p.locator('section[data-jt=sol]').first().isVisible()), 'pestaña Cobros y planes dentro de Reservas y jornadas'); await p.locator('#jtabs button[data-v=sol]').click(); await p.waitForTimeout(200); ok(await p.locator('section[data-jt=sol]').first().isVisible() && await p.locator('section[data-jt=sol]').count() >= 3 && !(await p.locator('section[data-jt=cob]').first().isVisible()), 'pestaña Solicitudes dentro de Reservas y jornadas'); await p.locator('#jtabs button[data-v=cob]').click(); await p.waitForTimeout(200);
       ok(await p.locator('#res select', { hasText: 'WhatsApp' }).count() > 0, 'selector WhatsApp por reserva');
       // ---- Reservas y jornadas ----
-      await p.click('.area[data-p=jornadas]'); await p.waitForSelector('.cuad .dia'); await p.waitForTimeout(300);
+      await p.click('.area[data-p=jornadas]'); await p.locator('#jtabs button[data-v=cal]').click(); await p.waitForSelector('.cuad .dia:not(.vacio)'); await p.waitForTimeout(300);
       ok(await p.locator('.area').first().getAttribute('data-p') === 'jornadas', 'Reservas y jornadas es la primera tarjeta');
       ok(await p.locator('.cuad .ev:not(.bloq)').count() >= 2, 'el calendario muestra jornadas con banda y horario');
       await p.screenshot({ path: 'j-calendario.png', fullPage: true });
@@ -113,6 +113,7 @@ const { sembrar } = require('./demo.js');
       ok(await p.locator('.rm-horas button').count() >= 20, 'hay bloques para casi todas las horas del día (sin restricción)');
       await p.locator('.rm-horas button', { hasText: '02:00 – 03:00' }).first().click(); await p.waitForSelector('.rm-form');
       const ins = p.locator('.rm-form input'); await ins.nth(1).fill('Las Nuevas ' + sx); await ins.nth(2).fill('Camila Rojas'); await ins.nth(3).fill(nombre === 'pc' ? '+56 9 6000 1111' : '+56 9 6000 2222');
+      await p.locator('.rm-extras label', { hasText: 'Takamine' }).locator('input').check(); await p.waitForFunction(() => /Takamine/.test(document.querySelector('.rm-det').innerText) && /Total calculado/.test(document.querySelector('.rm-det').innerText), null, { timeout: 5000 }); ok(true, 'reserva manual: extras con casilla y desglose detallado');
       await p.getByRole('button', { name: 'Continuar ›' }).click(); await p.waitForSelector('.rm-res'); await p.screenshot({ path: 'j-reserva-manual.png' });
       await p.click('#rm-guardar'); await p.waitForTimeout(500);
       ok(g.admin('adminJornadas').reservas.some((r) => r.banda === 'Las Nuevas ' + sx && r.inicio === '02:00'), 'reserva manual a las 02:00 guardada desde el portal');
