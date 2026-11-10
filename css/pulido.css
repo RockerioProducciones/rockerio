@@ -1,0 +1,81 @@
+/* Pulido visual: solo estética, usa variables del tema */
+::selection{background:var(--oro);color:#111}
+html{scrollbar-color:var(--borde) transparent;scrollbar-width:thin}
+body{letter-spacing:.005em;text-rendering:optimizeLegibility}
+@keyframes rk-sube{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes rk-brillo{0%{background-position:-150% 0}100%{background-position:250% 0}}
+@keyframes rk-flota{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@media(prefers-reduced-motion:no-preference){
+.hero-in>*{animation:rk-sube .7s cubic-bezier(.2,.7,.2,1) both}
+.hero-in>*:nth-child(2){animation-delay:.08s}.hero-in>*:nth-child(3){animation-delay:.16s}.hero-in>*:nth-child(4){animation-delay:.24s}.hero-in>*:nth-child(5){animation-delay:.32s}
+.hero-logo{animation:rk-flota 6s ease-in-out infinite}
+.menu .tarjeta{animation:rk-sube .5s cubic-bezier(.2,.7,.2,1) both}
+.menu .tarjeta:nth-child(2){animation-delay:.04s}.menu .tarjeta:nth-child(3){animation-delay:.08s}.menu .tarjeta:nth-child(4){animation-delay:.12s}.menu .tarjeta:nth-child(5){animation-delay:.16s}.menu .tarjeta:nth-child(6){animation-delay:.2s}.menu .tarjeta:nth-child(7){animation-delay:.24s}.menu .tarjeta:nth-child(n+8){animation-delay:.28s}
+body.con-vistas .sec.activa,.sec.activa{animation:rk-sube .45s cubic-bezier(.2,.7,.2,1) both}
+.tarjeta.principal{background-size:250% 100%}
+}
+/* portada */
+.hero{border-radius:20px;box-shadow:0 18px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.06)}
+.hero h1{letter-spacing:.05em;text-shadow:0 2px 0 rgba(0,0,0,.5),0 6px 30px rgba(0,0,0,.75)}
+.hero p{letter-spacing:.08em;text-shadow:0 2px 12px rgba(0,0,0,.8)}
+.hero .chips span{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);background:rgba(0,0,0,.35);transition:transform .2s,background .2s,box-shadow .2s}
+.hero .chips span:hover{transform:translateY(-2px);background:rgba(0,0,0,.55);box-shadow:0 6px 18px rgba(0,0,0,.4)}
+.hero-logo{border-radius:16px;box-shadow:0 10px 36px rgba(0,0,0,.55)}
+.franja-dir{border-radius:14px;letter-spacing:.05em}
+/* menú */
+.menu{border-radius:20px;box-shadow:0 10px 34px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.05)}
+.tarjeta{border-radius:14px;transition:transform .22s cubic-bezier(.2,.7,.2,1),border-color .2s,background .2s,box-shadow .22s}
+.tarjeta:hover{transform:translateY(-4px);border-color:var(--oro);box-shadow:0 10px 24px rgba(0,0,0,.4)}
+.tarjeta:active{transform:translateY(-1px) scale(.98)}
+.tarjeta b{letter-spacing:.09em}
+.tarjeta::before{transition:transform .25s;display:inline-block}
+.tarjeta:hover::before{transform:scale(1.18) rotate(-4deg)}
+/* paneles y tarjetas */
+.caja,.panel,.tu-reserva,.card,.prod-bloque,.pa-bloque,.honor-card,.fo-it,.mic-it,.gal-fig{border-radius:16px;transition:transform .22s,box-shadow .22s,border-color .22s}
+.caja,.panel,.prod-bloque,.pa-bloque{box-shadow:0 8px 26px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.04)}
+.honor-card:hover,.fo-it:hover,.mic-it:hover,.gal-fig:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(0,0,0,.42);border-color:color-mix(in srgb,var(--oro) 55%,var(--borde))}
+.gal-fig img,.prod-foto,.fo-it img,.mic-foto{transition:transform .5s cubic-bezier(.2,.7,.2,1),filter .3s}
+.gal-fig:hover img,.fo-it:hover img{transform:scale(1.04)}
+.gal-fig,.fo-it{overflow:hidden}
+/* títulos */
+.sec h2{letter-spacing:.07em}
+.sec h2::after{width:84px;box-shadow:0 0 14px color-mix(in srgb,var(--oro) 60%,transparent)}
+h3{letter-spacing:.03em}
+/* planes */
+.plan-grid .card,#plan-cards>*{padding:1.4rem 1.5rem;position:relative;overflow:hidden}
+#plan-cards>*::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.07) 50%,transparent 65%);background-size:250% 100%;background-position:-150% 0;pointer-events:none}
+#plan-cards>*:hover::after{animation:rk-brillo 1.1s ease}
+#plan-cards ul{list-style:none;padding:0;margin:.8rem 0}
+#plan-cards li{padding:.22rem 0;border-bottom:1px dashed rgba(255,255,255,.07)}
+#plan-cards li:last-child{border-bottom:0}
+.plan-cond ul{line-height:1.7;padding-left:1.2rem}
+.plan-cond li::marker{color:var(--oro)}
+/* reservar: pasos y opciones */
+.wiz-n{box-shadow:0 0 0 4px rgba(255,255,255,.04);transition:transform .2s,box-shadow .2s}
+.wiz-barra{border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.28)}
+.wizard .opcion{border-radius:14px;transition:transform .18s,border-color .18s,box-shadow .18s,background .18s}
+.wizard .opcion:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.35)}
+.wizard .opcion:has(input:checked){box-shadow:0 0 0 1px var(--oro),0 10px 26px rgba(0,0,0,.4)}
+.hbtn,.hora,.cal-dia{border-radius:12px;transition:transform .15s,border-color .15s,background .15s,box-shadow .15s}
+.hbtn:hover,.cal-dia:hover{transform:translateY(-2px)}
+/* botones y campos */
+.btn,.wiz-acc .btn,.wizard #enviar{border-radius:12px;letter-spacing:.08em}
+.btn:active{transform:translateY(0) scale(.98)}
+input,select,textarea{border-radius:10px;transition:border-color .2s,box-shadow .2s,background .2s}
+input:focus,select:focus,textarea:focus{outline:0;border-color:var(--oro);box-shadow:0 0 0 3px color-mix(in srgb,var(--oro) 28%,transparent)}
+/* pie */
+footer{border-radius:18px;box-shadow:0 8px 26px rgba(0,0,0,.25);color:var(--mut)}
+@media(min-width:700px){footer{padding-bottom:28px!important}}
+footer img{opacity:.85}
+.chip-ok{box-shadow:0 0 14px rgba(34,197,94,.18)}
+/* barra superior */
+.top{box-shadow:0 6px 24px rgba(0,0,0,.35)}
+.top nav a{letter-spacing:.12em}
+/* móvil */
+@media(max-width:699px){
+.hero{border-radius:18px}
+.menu{border-radius:18px}
+.tarjeta{border-radius:13px}
+.sec h2::after{width:64px}
+.caja,.panel{border-radius:14px}
+}
