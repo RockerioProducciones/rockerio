@@ -2379,7 +2379,7 @@ function adminAjustarRetencion(codigo, monto, nota) {
 var ESTADOS_MOD = ['PENDIENTE', 'APROBADA', 'RECHAZADA'];
 var ESTADOS_SOL = ['NUEVA', 'COTIZADA', 'ACEPTADA', 'RECHAZADA', 'CERRADA'];
 var TIPOS_SOL = { plan8: 'Plan mensual de 8 horas', plan12: 'Plan mensual de 12 horas', produccion: 'Producción musical', otro: 'Otra consulta' };
-var TIPOS_MUESTRA = ['Micrófono', 'Canción', 'Ensayo', 'Comparador', 'Aislado', 'Mezclador', 'Otro'];
+var TIPOS_MUESTRA = ['Micrófono', 'Canción', 'Ensayo', 'Mezclador', 'Otro'];
 var REDES_HONOR = ['Instagram', 'YouTube', 'TikTok', 'Facebook', 'Spotify', 'Bandcamp', 'SoundCloud', 'X', 'Sitio web'];
 
 /* ---------- limpieza y validación (funciones puras, con pruebas en tests/contenido.test.js) ---------- */
@@ -2688,35 +2688,6 @@ function adminGuardarMuestra(p) {
   });
 }
 
-/** Comparador A/B/C: una canción en tres versiones. d = {titulo, descripcion, bruto, mezclada, master}. Reemplaza la canción si ya existía. */
-function adminGuardarComparador(d) {
-  exigirAdmin_();
-  var titulo = limpiar_(d.titulo, 80);
-  if (!titulo) throw new Error('Escribe el nombre de la canción.');
-  var vers = [['En bruto', d.bruto], ['Mezclada', d.mezclada], ['Masterizada', d.master]];
-  vers.forEach(function (v) {
-    var e = String(v[1] || '').trim();
-    if (!/^https:\/\/\S{4,400}$/.test(e) && !/^audio\/[\w\-. \/]{1,150}$/.test(e)) throw new Error('Falta el enlace de la versión «' + v[0] + '» (debe empezar con https://).');
-  });
-  return conBloqueo_(function () {
-    var sh = abrirBd_().getSheetByName(HOJAS.muestras), n = sh.getLastRow();
-    for (var i = n; i >= 2; i--) { var r = sh.getRange(i, 1, 1, 2).getValues()[0]; if (String(r[1]) === 'Comparador' && String(r[0]) === titulo) sh.deleteRow(i); }
-    vers.forEach(function (v) { sh.appendRow([textoSeguro_(titulo), 'Comparador', v[0], String(v[1]).trim(), textoSeguro_(limpiar_(d.descripcion, 300)), 'SI']); });
-    limpiarCacheContenido_();
-    return adminResumen();
-  });
-}
-
-function adminEliminarComparador(titulo) {
-  exigirAdmin_();
-  return conBloqueo_(function () {
-    var sh = abrirBd_().getSheetByName(HOJAS.muestras), n = sh.getLastRow();
-    for (var i = n; i >= 2; i--) { var r = sh.getRange(i, 1, 1, 2).getValues()[0]; if (String(r[1]) === 'Comparador' && String(r[0]) === String(titulo)) sh.deleteRow(i); }
-    limpiarCacheContenido_();
-    return adminResumen();
-  });
-}
-
 function adminEliminarMuestra(fila) {
   exigirAdmin_();
   return conBloqueo_(function () {
@@ -2800,7 +2771,7 @@ function adminSubirAudio(p) {
   return adminGuardarMuestra({ fila: null, grupo: p.grupo, tipo: p.tipo, etiqueta: p.etiqueta, descripcion: p.descripcion, enlace: 'https://drive.google.com/file/d/' + id + '/view', visible: true });
 }
 
-/** Sube un audio a Drive y devuelve solo su enlace (para armar el comparador). */
+/** Sube un audio a Drive y devuelve solo su enlace (para armar el mezclador). */
 function adminSubirArchivoAudio(p) {
   exigirAdmin_();
   var bytes = decodificar_(p.b64, 12 * 1024 * 1024), t = tipoAudio_(bytes);

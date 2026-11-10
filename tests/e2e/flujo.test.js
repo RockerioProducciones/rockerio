@@ -472,27 +472,6 @@ t('importar clientes en bloque: agrega, omite repetidos y teléfonos inválidos'
   const cl = gx.admin('adminJornadas').clientes; assert.ok(cl.some((c) => c.telefono === '56990830392' && c.banda === 'Banda'), 'cliente guardado con teléfono normalizado');
 });
 
-t('comparador de sonido: guardar canción con 3 versiones, publicarla, reemplazarla y eliminarla', () => {
-  const gx = require('./gas-sim').crear(); gx.instalar();
-  const d = { titulo: 'Mi canción', descripcion: 'Demo', bruto: 'https://drive.google.com/file/d/AAA/view', mezclada: 'https://drive.google.com/file/d/BBB/view', master: 'https://drive.google.com/file/d/CCC/view' };
-  gx.admin('adminGuardarComparador', d);
-  let g = gx.get({ accion: 'contenido' }).contenido.muestras.filter((x) => x.tipo === 'Comparador');
-  assert.strictEqual(g.length, 1); assert.deepStrictEqual(g[0].items.map((i) => i.etiqueta), ['En bruto', 'Mezclada', 'Masterizada']);
-  gx.admin('adminGuardarComparador', Object.assign({}, d, { master: 'https://drive.google.com/file/d/ZZZ/view' }));
-  g = gx.get({ accion: 'contenido' }).contenido.muestras.filter((x) => x.tipo === 'Comparador');
-  assert.strictEqual(g.length, 1); assert.ok(/ZZZ/.test(JSON.stringify(g)), 'reemplaza la versión');
-  assert.throws(() => gx.admin('adminGuardarComparador', Object.assign({}, d, { bruto: '' })), /En bruto/);
-  gx.admin('adminEliminarComparador', 'Mi canción');
-  assert.strictEqual(gx.get({ accion: 'contenido' }).contenido.muestras.filter((x) => x.tipo === 'Comparador').length, 0);
-});
-t('muestras de instrumentos aislados (tipo Aislado) se publican agrupadas', () => {
-  const gx = require('./gas-sim').crear(); gx.instalar();
-  gx.admin('adminGuardarMuestra', { grupo: 'Batería', tipo: 'Aislado', etiqueta: 'En bruto', enlace: 'https://drive.google.com/file/d/AAA/view', descripcion: 'Batería de la sala', visible: true });
-  gx.admin('adminGuardarMuestra', { grupo: 'Batería', tipo: 'Aislado', etiqueta: 'Mezclada', enlace: 'https://drive.google.com/file/d/BBB/view', visible: true });
-  gx.admin('adminGuardarMuestra', { grupo: 'Voces', tipo: 'Aislado', etiqueta: 'Voz principal', enlace: 'https://drive.google.com/file/d/CCC/view', visible: true });
-  const m = gx.get({ accion: 'contenido' }).contenido.muestras.filter((x) => x.tipo === 'Aislado');
-  assert.strictEqual(m.length, 2); assert.strictEqual(m[0].items.length, 2); assert.strictEqual(m[0].grupo, 'Batería');
-});
 t('mezclador: guarda pistas, entrega solo audios autorizados y valida', () => {
   const gx = require('./gas-sim').crear(); gx.instalar();
   const b64 = Buffer.from([0x49, 0x44, 0x33, 3, 0, 0, 1, 2, 3, 4, 5, 6]).toString('base64');

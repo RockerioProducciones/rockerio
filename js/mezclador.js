@@ -31,6 +31,19 @@
     return new Promise(function (ok, mal) { var r = ctx.decodeAudioData(ab, ok, mal); if (r && r.then) r.then(ok, mal); });
   }
 
+  var TXT_ETAPA = {
+    'En bruto': 'RAW · Así entra al micrófono: sin EQ, sin compresión, sin efectos. Es la materia prima.',
+    'Mezcla': 'MIX · La mezcla da forma: el EQ limpia, la compresión controla la dinámica, el panning ubica cada pista y los efectos dan espacio.',
+    'Master': 'MASTER · El pulido final: cohesión, brillo y volumen comercial para que suene bien en cualquier parlante o plataforma.'
+  };
+  var TXT_INST = {
+    'Batería': 'revisa la pegada del bombo y la caja, y cómo respiran los platillos.',
+    'Bajo': 'es la base: mira cómo se acopla al bombo y sostiene la armonía.',
+    'Guitarras': 'llenan el espectro; el panning las abre a los lados para dejar espacio.',
+    'Voces': 'van al frente: compresión para que se entienda cada palabra y espacio para que respire.',
+    'Otros': 'escúchala aislada para notar qué aporta al conjunto.'
+  };
+  var TXT_ETAPA_CORTA = { 'En bruto': 'Sin procesar', 'Mezcla': 'Con mezcla', 'Master': 'Con master' };
   var COLOR = { 'Batería': '#ff8a3d', 'Bajo': '#a78bfa', 'Guitarras': '#4ea8ff', 'Voces': '#ff5fa2', 'Otros': '#3ddc84' };
   function picos(buf, n) {
     var out = new Float32Array(n), canales = [], c, k, i;
@@ -76,10 +89,11 @@
         f.row.classList.toggle('apagada', !hay || !audible(i)); f.row.classList.toggle('sin-pista', !hay); if (!hay) faltan.push(i);
       });
       [].forEach.call(ui.et.children, function (b) { var on = b.getAttribute('data-e') === etapa; b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
-      var def = P.etapas.filter(function (e) { return e[0] === etapa; })[0];
-      ui.desc.textContent = def[2] + (faltan.length ? ' En esta etapa no hay pista separada para: ' + faltan.join(', ') + ' (el audio viene como un conjunto, por eso M y S no los afectan).' : '');
+      aplicar.faltan = faltan;
       if (redibujar !== false) pintarOndas();
     }
+    var tglobo = 0;
+    function globo(t) { if (!ui.globo) return; ui.globo.textContent = t; ui.globo.classList.add('ver'); clearTimeout(tglobo); tglobo = setTimeout(function () { ui.globo.classList.remove('ver'); }, 7000); }
     function pos() { return sonando ? ((ctx.currentTime - t0) % dur) : desde; }
     function detener() { fuentes.forEach(function (s) { try { s.stop(); } catch (x) { /* ya detenida */ } try { s.disconnect(); } catch (x) { /* sin conexión */ } }); fuentes = []; }
     function iniciar(off) {
@@ -107,10 +121,9 @@
       ui.et = el('div', 'mz-etapas'); ui.et.setAttribute('role', 'group'); ui.et.setAttribute('aria-label', 'Etapa del sonido');
       P.etapas.forEach(function (e) {
         var b = el('button', 'mz-et'); b.type = 'button'; b.setAttribute('data-e', e[0]); b.setAttribute('aria-pressed', 'false');
-        b.appendChild(el('i', 'mz-led')); b.appendChild(el('span', '', e[1])); b.addEventListener('click', function () { etapa = e[0]; aplicar(); }); ui.et.appendChild(b);
+        b.appendChild(el('i', 'mz-led')); b.appendChild(el('span', '', e[1])); b.title = TXT_ETAPA_CORTA[e[0]]; b.addEventListener('click', function () { etapa = e[0]; aplicar(); var f = aplicar.faltan || []; globo(TXT_ETAPA[e[0]] + (f.length ? ' (Sin pista separada de: ' + f.join(', ') + '; viene como conjunto.)' : '')); }); ui.et.appendChild(b);
       });
       top.appendChild(ui.play); top.appendChild(rel); top.appendChild(tit); top.appendChild(ui.et); daw.appendChild(top);
-      ui.desc = el('p', 'mz-desc'); daw.appendChild(ui.desc);
       // pistas con forma de onda
       ui.lanes = el('div', 'mz-pistas'); ui.lanes.tabIndex = 0; ui.lanes.setAttribute('role', 'slider'); ui.lanes.setAttribute('aria-label', 'Posición de la canción'); ui.lanes.setAttribute('aria-valuemin', '0'); ui.lanes.setAttribute('aria-valuemax', '100'); ui.lanes.setAttribute('aria-valuenow', '0');
       ui.lanes.addEventListener('keydown', function (ev) {
@@ -122,7 +135,7 @@
         var cab = el('div', 'mz-cab'); cab.appendChild(el('span', 'mz-ico', ICO[i])); cab.appendChild(el('b', 'mz-nom', i));
         var bt = el('div', 'mz-bts'), m = el('button', 'mz-b', 'M'), s = el('button', 'mz-b', 'S'); m.type = s.type = 'button';
         m.title = 'Silenciar ' + i; s.title = 'Solo ' + i; m.setAttribute('aria-label', 'Silenciar ' + i); s.setAttribute('aria-label', 'Solo ' + i); m.setAttribute('aria-pressed', 'false'); s.setAttribute('aria-pressed', 'false');
-        m.addEventListener('click', function () { mute[i] = !mute[i]; aplicar(false); }); s.addEventListener('click', function () { solo[i] = !solo[i]; aplicar(false); });
+        m.addEventListener('click', function () { mute[i] = !mute[i]; aplicar(false); globo(mute[i] ? 'Silenciaste ' + i + ': escucha cómo suena el resto sin ella; así se nota lo que aporta.' : i + ' vuelve a sonar.'); }); s.addEventListener('click', function () { solo[i] = !solo[i]; aplicar(false); globo(solo[i] ? 'SOLO · ' + i + ': ' + TXT_INST[i] : 'Salió del solo.'); });
         bt.appendChild(s); bt.appendChild(m); cab.appendChild(bt);
         var onda = el('div', 'mz-onda'), cv = document.createElement('canvas'), prog = el('div', 'mz-prog'); cv.setAttribute('aria-hidden', 'true');
         onda.appendChild(cv); onda.appendChild(prog); onda.appendChild(el('span', 'mz-nopista', 'sin pista en esta etapa'));
@@ -133,12 +146,13 @@
         onda.addEventListener('pointerup', function () { arrastra = false; }); onda.addEventListener('pointercancel', function () { arrastra = false; });
         row.appendChild(cab); row.appendChild(onda); ui.lanes.appendChild(row); ui.filas[i] = { row: row, m: m, s: s, cv: cv, prog: prog };
       });
-      daw.appendChild(ui.lanes);
+      ui.globo = el('div', 'mz-globo'); ui.globo.setAttribute('role', 'status'); ui.globo.setAttribute('aria-live', 'polite');
+      var cuerpoPistas = el('div', 'mz-cuerpo-p'); cuerpoPistas.appendChild(ui.lanes); cuerpoPistas.appendChild(ui.globo); daw.appendChild(cuerpoPistas);
       var pie = el('div', 'mz-pie'); var rs = el('button', 'btn chico sec-b', 'Reiniciar pistas'); rs.type = 'button';
-      rs.addEventListener('click', function () { mute = {}; solo = {}; aplicar(false); }); pie.appendChild(rs);
-      pie.appendChild(el('small', 'nota', 'S = escuchar solo esa pista · M = silenciarla · toca la forma de onda para saltar a otro punto.'));
+      rs.addEventListener('click', function () { mute = {}; solo = {}; aplicar(false); globo('Todas las pistas activas: así suena el conjunto.'); }); pie.appendChild(rs);
+      pie.appendChild(el('small', 'nota', 'S = solo · M = silenciar · toca la onda para saltar.'));
       daw.appendChild(pie); cont.appendChild(daw);
-      aplicar(); mostrarPos();
+      aplicar(); mostrarPos(); globo('Toca ▶ y cambia entre RAW, MIX y MASTER mientras suena. Con S escuchas una pista sola.');
       var tmr = 0; window.addEventListener('resize', function () { clearTimeout(tmr); tmr = setTimeout(pintarOndas, 150); });
     }
 
@@ -169,7 +183,7 @@
     cont.textContent = ''; cont.hidden = !validos.length; if (vac) vac.hidden = !!validos.length; if (!validos.length) return;
     cont.appendChild(el('div', 'comp-kick', 'Mini DAW · Prueba tú mismo'));
     cont.appendChild(el('h3', 'comp-tit', 'Mezclador de pistas'));
-    cont.appendChild(el('p', 'comp-sub', 'Un tramo de una canción grabada aquí, pista por pista. Silencia o solea batería, bajo, guitarras y voces, y alterna entre en bruto, mezcla y master para escuchar qué aporta cada etapa.'));
+    cont.appendChild(el('p', 'comp-sub', 'Un tramo de una canción grabada aquí, pista por pista. Escucha cada instrumento solo o sin él, y alterna entre el sonido en bruto, la mezcla y el master para notar qué aporta cada etapa.'));
     var sel = el('div', 'comp-canciones'), cuerpo = el('div', 'mz-cuerpo'); cont.appendChild(sel); cont.appendChild(cuerpo);
     function ver(g, b) {
       if (activo) activo.pausar();
