@@ -1,6 +1,6 @@
 /* Temas: se elige uno en el selector (se recuerda en este navegador). Si la persona no ha elegido, manda el tema que dejaste en el portal. */
 (function () {
-  var TEMAS = [['rockerio','Rockerío'],['medianoche','Medianoche'],['vino','Vino'],['bosque','Bosque'],['grafito','Grafito'],['azufre','Azufre'],['abismo','Abismo'],['cobre','Cobre'],['ciruela','Ciruela'],['carbon','Carbón']], CLAVE = 'rk_tema';
+  var TEMAS = [['rockerio','Rockerío'],['medianoche','Neón'],['vino','Burdeos'],['bosque','Esmeralda'],['grafito','Industrial'],['azufre','Ácido'],['abismo','Cristal'],['cobre','Ámbar'],['ciruela','Synthwave'],['carbon','Blackout']], CLAVE = 'rk_tema';
   function valido(t) { return TEMAS.some(function (x) { return x[0] === t; }); }
   var BASE = '';
   function crudo() { try { return localStorage.getItem(CLAVE) || ''; } catch (e) { return ''; } }
