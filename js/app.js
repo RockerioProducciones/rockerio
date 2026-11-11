@@ -135,7 +135,7 @@
     txt($('dir'), cfg.direccion); txt($('dir2'), String(cfg.direccion || '').replace(/[\s·]+$/, '').toUpperCase()); $('franja-dir').hidden = !cfg.direccion;
     txt($('max-dias'), String(cfg.anticipacionMaxDias));
     $('wsp').href = wspUrl('Hola 👋 Me gustaría consultar por ' + cfg.nombreNegocio);
-    txt($('tyc-txt'), 'Leí el reglamento interno y acepto que el horario queda reservado ' + cfg.minutosReserva + ' minutos a la espera del abono (' + R.clp(cfg.abonoPorHora) + ' por hora) y que puedo anular o reagendar con al menos ' + cfg.horasAnulacion + ' horas de anticipación.');
+    txt($('tyc-txt'), 'Leí el reglamento interno y acepto que el horario queda reservado ' + cfg.minutosReserva + ' minutos a la espera del abono (' + R.clp(cfg.abonoPorHora) + ' por hora) y que puedo anular o reagendar con al menos ' + cfg.horasAnulacion + ' horas de anticipación. También acepto que usen mis datos personales para gestionar mi reserva, según la sección «Protección de datos personales».');
     var rl = el('a', 'ver-reg', ' Ver reglamento'); rl.href = '#reglamento'; rl.setAttribute('role', 'button');
     rl.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); abrirReglamento(); }); $('tyc-txt').appendChild(rl);
     txt($('pie'), '© ' + new Date().getFullYear() + ' ' + cfg.nombreNegocio);
@@ -155,9 +155,9 @@
       var a = el('a', '', 'Escríbenos por WhatsApp'); a.href = wspUrl('Hola 👋 Me gustaría reservar, ¿me ayudan a ver los horarios disponibles?'); pausa.appendChild(a);
     }
     /* reglamento: «## » = título, «- » = viñeta, otra línea = párrafo; los {valores} salen de la configuración */
-    var valores = { abonoPorHora: R.clp(cfg.abonoPorHora), devolucionPorHora: R.clp(cfg.abonoPorHora - cfg.retencionPorHora), horasAnulacion: cfg.horasAnulacion, retencionPorHora: R.clp(cfg.retencionPorHora), noAsisteCobroPorHora: R.clp(cfg.noAsisteCobroPorHora || 5000), reagendoSemanas: cfg.reagendoSemanas, reagendoCambios: cfg.reagendoCambios, minutosReserva: cfg.minutosReserva };
+    var valores = { negocio: cfg.nombreNegocio, abonoPorHora: R.clp(cfg.abonoPorHora), devolucionPorHora: R.clp(cfg.abonoPorHora - cfg.retencionPorHora), horasAnulacion: cfg.horasAnulacion, retencionPorHora: R.clp(cfg.retencionPorHora), noAsisteCobroPorHora: R.clp(cfg.noAsisteCobroPorHora || 5000), reagendoSemanas: cfg.reagendoSemanas, reagendoCambios: cfg.reagendoCambios, minutosReserva: cfg.minutosReserva };
     var rg = $('reglamento-in'); rg.textContent = ''; var lista = null;
-    String(cfg.reglamento || '').split(/\r?\n/).forEach(function (l) {
+    (String(cfg.reglamento || '') + (/datos personales/i.test(String(cfg.reglamento || '')) || !cfg.reglamento ? '' : '\n\n' + R.CLAUSULA_DATOS)).split(/\r?\n/).forEach(function (l) {
       l = l.trim().replace(/\{(\w+)\}/g, function (m, k) { return valores[k] !== undefined ? valores[k] : m; });
       if (!l) { lista = null; return; }
       if (l.indexOf('## ') === 0) { rg.appendChild(el('h3', '', l.slice(3))); lista = null; }
