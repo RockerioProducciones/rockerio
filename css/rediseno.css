@@ -95,3 +95,63 @@ html.rd .selector-tema{border-radius:999px;background:rgba(255,255,255,.08);bord
 
 @media(max-width:700px){html.rd .hero{border-radius:0 0 22px 22px}}
 @media(prefers-reduced-motion:reduce){html.rd *{animation:none!important;transition:none!important}}
+
+/* ===== RESERVA: se ve distinta, los pasos y las reglas son los mismos ===== */
+/* barra de pasos: cristal, título grande y puntos de avance */
+html.rd .wiz-barra{background:rgba(8,8,9,.82);border:1px solid rgba(255,255,255,.1);border-radius:22px;box-shadow:0 14px 40px rgba(0,0,0,.55);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);padding:.8rem 1rem}
+html.rd .wiz-titulo{font-family:var(--f-t);text-transform:none;letter-spacing:-.02em;font-size:1.2rem;font-weight:700;color:var(--txt)}
+html.rd .wiz-titulo::before{color:var(--oro);font-family:var(--f-b);font-size:.7rem;font-weight:700;letter-spacing:.12em;display:block;margin-bottom:.1rem}
+html.rd .wiz-n{background:rgba(255,255,255,.08);color:var(--txt);border-radius:999px;padding:.15rem .6rem;box-shadow:none}
+html.rd .wiz-atras{border-radius:999px;background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.14);color:var(--txt);font-family:var(--f-b);text-transform:none}
+html.rd .wiz-prog i::before{height:3px;border-radius:2px;background:rgba(255,255,255,.12)}
+html.rd .wiz-prog u{background:#0a0a0b;border:2px solid rgba(255,255,255,.18);color:var(--mut)}
+html.rd .wiz-prog i.actual u{background:var(--oro);border-color:var(--oro);color:#0a0a0a;box-shadow:0 0 0 5px color-mix(in srgb,var(--oro) 22%,transparent)}
+html.rd .wiz-prog i.hecho u{background:color-mix(in srgb,var(--oro) 22%,#000);border-color:var(--oro);color:var(--oro)}
+html.rd .wiz-prog i.hecho::before,html.rd .wiz-prog i.actual::before{background:var(--oro)}
+html.rd .wiz-prog i.actual em{color:var(--oro)}
+html.rd .wiz-chip{background:rgba(255,255,255,.05);border-radius:999px;padding:.3rem .8rem}
+html.rd .wiz-chip b{color:var(--oro)}
+html.rd .wiz-aviso{border-radius:var(--rd-rs)}
+
+/* cada paso: tarjeta grande; el título del paso ya está arriba, se afina el de adentro */
+html.rd .wizard fieldset.activo{padding:1.2rem;border-radius:26px}
+html.rd .wizard fieldset legend{font-family:var(--f-t);font-weight:700;font-size:1.05rem;color:var(--txt);padding:0 .4rem}
+
+/* paso 1: servicios como tarjetas grandes, horas como botones redondos */
+html.rd .opciones{gap:.9rem}
+html.rd .opcion{padding:1rem 1.1rem;border-radius:18px;transition:transform .15s,box-shadow .2s,background .2s}
+html.rd .opcion:hover{transform:translateY(-2px)}
+html.rd .opcion b{font-family:var(--f-t);font-size:1.15rem;letter-spacing:-.01em}
+html.rd .opcion small{color:var(--oro);font-weight:700;font-size:.95rem;margin:.1rem 0}
+html.rd .opcion input[type=radio]{accent-color:var(--oro);width:1.2rem;height:1.2rem}
+html.rd .hbtn{width:58px;height:58px;border-radius:50%;font-family:var(--f-t);font-size:1.3rem}
+html.rd .aviso-incl{border-radius:18px;background:color-mix(in srgb,var(--oro) 9%,#000);border:1px solid var(--rd-linea)}
+
+/* pasos 2 y 3: calendario y horarios */
+html.rd .cal{gap:6px}
+html.rd .cal-dia{border-radius:14px;font-family:var(--f-t);font-weight:700}
+html.rd .cal-dia:disabled{opacity:.25;text-decoration:none;background:transparent}
+html.rd .cal-dia small,html.rd .cal-dia span{letter-spacing:0;font-size:.56rem;max-width:100%;overflow:hidden;text-overflow:clip}
+html.rd .leyenda .ley{border-radius:999px}
+html.rd .horarios{gap:.55rem}
+html.rd .hora{border-radius:999px;padding:.65rem 1.1rem;font-family:var(--f-t);font-weight:600;min-height:44px}
+html.rd .hora.ocupado,html.rd .hora:disabled{opacity:.3;background:transparent;text-decoration:line-through}
+
+/* paso 4: extras como tarjetas limpias */
+html.rd .ex-card{border-radius:18px;padding:.9rem 1rem}
+html.rd .ex-tit{font-family:var(--f-t);font-weight:700}
+html.rd .segm button,html.rd .ex-segm button{border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--txt)}
+html.rd .segm button.on,html.rd .ex-segm button.on{background:var(--oro);color:#0a0a0a;border-color:var(--oro)}
+
+/* paso 6: el resumen es un «ticket» con corte punteado */
+html.rd .resumen-of{border-radius:22px;background:linear-gradient(160deg,color-mix(in srgb,var(--oro) 13%,#000),#060606 60%);border:1px solid var(--rd-linea);position:relative;box-shadow:0 18px 50px rgba(0,0,0,.6)}
+html.rd .ro-titulo{font-family:var(--f-t);font-size:1.35rem;font-weight:700;letter-spacing:-.02em}
+html.rd .ro-badge{border-radius:999px}
+html.rd .ro-items{border-top:2px dashed rgba(255,255,255,.18);margin-top:.8rem;padding-top:.8rem}
+html.rd .ro-pol{border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1)}
+html.rd #tr-total{font-family:var(--f-t);letter-spacing:-.02em}
+
+/* botón de acción fijo abajo: píldora flotante */
+html.rd .wiz-acc{background:linear-gradient(transparent,#000 45%)}
+html.rd .wiz-acc .btn,html.rd .wizard #enviar{min-height:56px;font-size:1.05rem;border-radius:999px}
+html.rd .btn.sec-b{background:rgba(255,255,255,.07);color:var(--txt);box-shadow:none;border:1px solid rgba(255,255,255,.14)}
