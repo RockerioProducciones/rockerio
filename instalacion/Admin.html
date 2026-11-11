@@ -882,7 +882,9 @@ var fl=document.createElement('input');fl.type='file';fl.accept='image/png,image
 c.appendChild(btn('Agregar al cuadro de honor',function(){var o={};Object.keys(F).forEach(function(k){o[k]=F[k].value});
   function enviar(){google.script.run.withSuccessHandler(function(r){Object.keys(F).forEach(function(k){F[k].value=''});fl.value='';pintar(r);aviso('Banda agregada ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminAgregarHonor(o)}
   if(fl.files[0]){redimLogo(fl.files[0]).then(function(b){o.logoB64=b.b64||b;enviar()}).catch(function(er){aviso(er.message)})}else enviar()}))})();
-ejecutar('adminResumen');
+(function(){var intentos=0;function ir(){intentos++;google.script.run.withSuccessHandler(function(d){var e=document.getElementById('falla-carga');if(e)e.remove();try{pintar(d)}catch(x){mostrarFalla('Error al dibujar el portal: '+(x&&x.message||x)+(x&&x.stack?' · '+String(x.stack).split('\n')[1]:''))}}).withFailureHandler(function(e){if(intentos<2){setTimeout(ir,1500);return}mostrarFalla('El servidor respondió: '+(e&&e.message||e))}).adminResumen()}
+function mostrarFalla(t){var b=document.getElementById('falla-carga');if(!b){b=document.createElement('div');b.id='falla-carga';b.style.cssText='margin:16px;padding:14px;border:2px solid #ff5a5f;border-radius:10px;background:#2a1012;color:#fff;font:15px system-ui,sans-serif;display:block';document.body.insertBefore(b,document.body.firstChild)}b.textContent='';var h=document.createElement('b');h.textContent='No se pudo cargar el portal. ';b.appendChild(h);b.appendChild(document.createTextNode(t+' '));var r=document.createElement('button');r.textContent='Reintentar';r.onclick=function(){intentos=0;ir()};b.appendChild(r)}
+window.addEventListener('error',function(ev){if(!document.querySelector('.menu-a .area'))mostrarFalla('Error de la página: '+ev.message)});ir()})();
 
 /* ---------- Editor del sitio web: tarjetas de secciones → editar → un solo botón «Guardar cambios» ---------- */
 var ST={datos:null,sec:'',doc:null,cargando:false,tareas:[],vista:'lista'};
