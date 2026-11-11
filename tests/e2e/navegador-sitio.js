@@ -91,12 +91,10 @@ const { sembrar } = require('./demo.js');
   ok(/Mac mini M4/.test(await p.textContent('.ficha-panel')) && /LUNA 3\.0/.test(await p.textContent('.ficha-panel')), 'estación de trabajo con Mac mini M4 y LUNA 3.0');
   await p.screenshot({ path: 'v-ficha-estacion.png', fullPage: true });
   await p.locator('.ficha-tab', { hasText: 'Microfonía' }).click(); await p.waitForTimeout(300);
-  ok(/Telefunken/.test(await p.textContent('.ficha-panel')) && await p.locator('.ficha-panel .mic-it').count() >= 8 && await p.locator('.ficha-panel .mic-it .mic-spec').count() >= 8 && await p.locator('.ficha-panel .mic-it .mic-m-tit').count() >= 8 && await p.locator('.ficha-panel .ficha-hero img, .ficha-panel .ficha-hero[style*=url]').count() === 0, 'micrófonos: marca/modelo, tipo, patrón, reseña y muestras en una sola tarjeta (sin foto repetida arriba)'); await p.locator('#mics').screenshot({ path: 'v-mics.png' });
+  ok(/Telefunken/.test(await p.textContent('.ficha-panel')) && await p.locator('.ficha-panel .mic-it').count() >= 8 && /Uso:/.test(await p.textContent('.ficha-panel .mic-it')), 'micrófonos: foto, marca/modelo, uso y muestra en una sola tarjeta'); await p.locator('#mics').screenshot({ path: 'v-mics.png' });
     { const n = await p.locator('.ficha-panel .mic-it:visible').count(); await p.locator('.mic-chip').nth(1).click(); const m = await p.locator('.ficha-panel .mic-it:visible').count(); ok(await p.locator('.mic-chip').count() > 2 && m > 0 && m < n, 'filtro de micrófonos por uso'); await p.locator('.mic-chip').first().click(); }
   await p.locator('.ficha-tab', { hasText: 'Muestras' }).click(); await p.waitForTimeout(300);
   await p.locator('.ficha-tab', { hasText: 'Sala de control' }).click(); await p.waitForTimeout(300); await p.screenshot({ path: 'v-ficha-control.png' });
-  await p.goto('http://localhost:8099/#reglamento'); await p.waitForTimeout(500);
-  ok(/Protección de datos personales/.test(await p.textContent('#reglamento-in')) && /no vendemos/i.test(await p.textContent('#reglamento-in')), 'el reglamento incluye la protección de datos personales');
   await p.goto('http://localhost:8099/#galeria'); await p.waitForTimeout(700);
   ok(await p.locator('#galeria-car .fo-it').count() >= 8 && (await p.locator('#galeria-car .fo-it img').first().boundingBox()).width < 140, 'galería: fotos pequeñas con texto');
   await p.click('#galeria-car .fo-it img'); await p.waitForTimeout(300); ok(await p.locator('.visor img').count() === 1, 'al tocar una foto se abre en grande'); await p.keyboard.press('Escape'); await p.screenshot({ path: 'v-galeria.png' });

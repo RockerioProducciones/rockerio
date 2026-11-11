@@ -1,101 +1,56 @@
 [
  {
   "nombre": "Telefunken TF39",
-  "marca": "Telefunken",
-  "modelo": "TF39",
-  "tipo": "Condensador valvular",
-  "patron": "Multipatrón",
   "foto": "",
   "uso": "Voces / Instrumentos de estudio",
-  "descripcion": "Condensador de válvula de diafragma grande con patrones polares seleccionables. Sonido cálido y detallado para voces principales y fuentes acústicas.",
-  "muestras": []
+  "descripcion": "Condensador valvular multipatrón."
  },
  {
   "nombre": "Telefunken M82",
-  "marca": "Telefunken",
-  "modelo": "M82",
-  "tipo": "Dinámico",
-  "patron": "Cardioide",
   "foto": "",
   "uso": "Bombo / Bajo / Graves",
-  "descripcion": "Dinámico pensado para frecuencias graves: pega y define el bombo y llena el amplificador de bajo sin perder cuerpo.",
-  "muestras": []
+  "descripcion": "Dinámico cardioide, ideal para bombo y graves."
  },
  {
   "nombre": "Telefunken M80 SH",
-  "marca": "Telefunken",
-  "modelo": "M80 SH",
-  "tipo": "Dinámico",
-  "patron": "Cardioide",
   "foto": "",
   "uso": "Voces / Cajas",
-  "descripcion": "Dinámico de respuesta enérgica, con presencia en medios altos. Buen golpe en la caja y voces con carácter.",
-  "muestras": []
+  "descripcion": "Dinámico cardioide."
  },
  {
   "nombre": "Telefunken M81 SH",
-  "marca": "Telefunken",
-  "modelo": "M81 SH",
-  "tipo": "Dinámico",
-  "patron": "Cardioide",
   "foto": "",
   "uso": "Toms / Cajas / Guitarras",
-  "descripcion": "Dinámico versátil y de respuesta pareja, ideal para toms, cajas y amplificadores de guitarra (tenemos 3).",
-  "muestras": []
+  "descripcion": "Dinámico cardioide (tenemos 3)."
  },
  {
   "nombre": "Telefunken M60",
-  "marca": "Telefunken",
-  "modelo": "M60",
-  "tipo": "Condensador",
-  "patron": "Cardioide",
   "foto": "",
   "uso": "Overheads / Instrumentos",
-  "descripcion": "Condensador de diafragma pequeño, rápido y detallado. Capta platillos y fuentes acústicas con claridad (tenemos 2).",
-  "muestras": []
+  "descripcion": "Condensador cardioide (tenemos 2)."
  },
  {
   "nombre": "Shure Beta 91A",
-  "marca": "Shure",
-  "modelo": "Beta 91A",
-  "tipo": "Condensador de superficie",
-  "patron": "Semicardioide",
   "foto": "",
   "uso": "Bombo",
-  "descripcion": "Micrófono de superficie que va dentro del bombo: ataque nítido y graves profundos con mucho control.",
-  "muestras": []
+  "descripcion": "Micrófono de superficie para bombo."
  },
  {
   "nombre": "Shure SM57",
-  "marca": "Shure",
-  "modelo": "SM57",
-  "tipo": "Dinámico",
-  "patron": "Cardioide",
   "foto": "",
   "uso": "Baterías / Guitarra amp / Cajas",
-  "descripcion": "El clásico de cada estudio: robusto, con presencia en medios y muy buen rechazo lateral (tenemos 4).",
-  "muestras": []
+  "descripcion": "Dinámico cardioide clásico (tenemos 4)."
  },
  {
   "nombre": "Shure SM58",
-  "marca": "Shure",
-  "modelo": "SM58",
-  "tipo": "Dinámico",
-  "patron": "Cardioide",
   "foto": "",
   "uso": "Voces / Coros",
-  "descripcion": "Dinámico de voz con filtro de viento integrado, resistente y consistente para voces y coros (tenemos 3).",
-  "muestras": []
+  "descripcion": "Dinámico cardioide de voz (tenemos 3)."
  },
  {
   "nombre": "Rode NT1-A",
-  "marca": "Rode",
-  "modelo": "NT1-A",
-  "tipo": "Condensador",
-  "patron": "Cardioide",
   "foto": "",
   "uso": "Voces / Guitarra acústica / Overheads",
-  "descripcion": "Condensador de diafragma grande y ruido propio muy bajo. Voces claras y guitarras acústicas con aire.",
-  "muestras": []
+  "descripcion": "Condensador cardioide de bajo ruido."
  }
 ]

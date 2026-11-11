@@ -100,13 +100,7 @@ function limpiarMicsSitio_(arr) {
     m = m || {};
     var nombre = limpiar_(m.nombre, 80); if (!nombre) return;
     var foto = String(m.foto || '').trim() ? urlImagenSitio_(m.foto) : '';
-    var muestras = [];
-    (Array.isArray(m.muestras) ? m.muestras : []).slice(0, 4).forEach(function (x) {
-      var enlace = String((x && x.enlace) || '').trim();
-      if (/^https:\/\/[^\s"'<>]{4,400}$/.test(enlace)) muestras.push({ etiqueta: limpiar_(x.etiqueta, 60), enlace: enlace });
-    });
-    out.push({ nombre: nombre, marca: limpiar_(m.marca, 40), modelo: limpiar_(m.modelo, 60), tipo: limpiar_(m.tipo, 40), patron: limpiar_(m.patron, 40), foto: foto || '',
-      uso: limpiar_(m.uso, 120), descripcion: limpiar_(m.descripcion, 360), muestras: muestras });
+    out.push({ nombre: nombre, foto: foto || '', uso: limpiar_(m.uso, 120), descripcion: limpiar_(m.descripcion, 240) });
   });
   return out;
 }

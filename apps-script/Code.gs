@@ -83,7 +83,7 @@ var MAX_SOLICITUDES_POR_HORA = 6;
 
 function doGet(e) {
   var p = (e && e.parameter) || {};
-  if (p.admin === '1') return paginaAdmin_(p.confirmar);
+  if (p.admin === '1') return paginaAdmin_();
   try {
     switch (p.accion) {
       case 'config':
@@ -275,16 +275,6 @@ function ocupadasRango_(desde, dias) {
   return out;
 }
 
-/** Enlace para abrir una reserva en el portal y confirmarla (solo funciona con la cuenta de administración). */
-function urlGestion_(cfg, codigo) {
-  var base = String(cfg.sitioUrl || 'https://rockerioproducciones.cl').replace(/\/+$/, '');
-  return (/^https:\/\//.test(base) && /^RP-\d{3,8}(-\d)?$/.test(String(codigo || ''))) ? base + '/admin/?c=' + codigo : '';
-}
-function enlaceGestion_(cfg, codigo, prefijo) {
-  var u = urlGestion_(cfg, codigo);
-  return u ? prefijo + u : '';
-}
-
 function horasOcupadas_(fecha, cfg) {
   return ocupadasRango_(fecha, 1)[fecha] || [];
 }
@@ -369,7 +359,7 @@ function reservar_(sol) {
         servicio: d.servicio, fecha: d.fecha, inicio: d.inicio, fin: v.fin, horas: d.horas, banda: d.banda,
         total: v.calculo.total, abono: v.calculo.abono, saldo: v.calculo.saldo, grabacionMin: v.grabacionMin
       },
-      whatsapp: Reglas.resumenTexto(cfg, v, codigo) + enlaceGestion_(cfg, codigo, '\n\n— Solo administración: '),
+      whatsapp: Reglas.resumenTexto(cfg, v, codigo),
       pago: { mp: mpDisponible_(cfg), instrucciones: cfg.instruccionesPago, transferencia: (cfg.pagoTransferencia && cfg.datosTransferencia) ? cfg.datosTransferencia : '', link: (cfg.pagoOnline && cfg.linkPago) ? cfg.linkPago : '', minutosReserva: cfg.minutosReserva, segundos: cfg.minutosReserva * 60 }
     };
   } finally {
@@ -444,50 +434,24 @@ function registrarCliente_(d) {
 }
 
 function notificar_(cfg, v, codigo) {
-  var d = v.datos, c = v.calculo;
-  var detalle = [
-    ['Servicio', Reglas.SERVICIOS[d.servicio]],
-    ['Fecha', Reglas.fechaLarga(d.fecha)],
-    ['Horario', Reglas.horaTxt(d.inicio) + ' a ' + Reglas.horaTxt(v.fin)],
-    ['Banda', d.banda]
-  ];
-  if (d.extras) detalle.push(['Equipo extra', d.extras]);
-  if (d.video) detalle.push(['Video GoPro', 'Sí']);
-  if (d.raw) detalle.push(['Material en bruto', 'Sí']);
-  detalle.push(['Total', Reglas.clp(c.total)], ['Abono para confirmar', Reglas.clp(c.abono)], ['Saldo en sala', Reglas.clp(c.saldo)]);
-  // Al administrador: con botones para confirmar el abono y escribirle al cliente.
+  var d = v.datos;
+  var cuerpo = Reglas.resumenTexto(cfg, v, codigo).replace('Hola, quiero confirmar mi reserva', 'Nueva reserva pendiente de abono');
+  cuerpo += '\nTeléfono: +' + d.telefono + '\nCorreo: ' + d.correo;
+  if (d.comentario) cuerpo += '\nComentarios: ' + d.comentario;
+  cuerpo += '\n\nCuando llegue el abono, cambia el Estado a «' + EST.CON_ABONO + '» en la hoja Reservas o en el portal.';
   try {
     if (cfg.correoAdmin) {
-      var filasAdm = detalle.concat([['Contacto', d.nombre], ['WhatsApp', '+' + d.telefono], ['Correo', d.correo || '—']]);
-      if (d.comentario) filasAdm.push(['Comentarios', d.comentario]);
-      enviarCorreo_(cfg, cfg.correoAdmin, 'Nueva reserva #' + codigo + ' · ' + d.banda, {
-        preheader: d.banda + ' reservó ' + Reglas.fechaLarga(d.fecha) + ' · abono pendiente', titulo: 'Nueva reserva por abonar', codigo: codigo,
-        parrafos: ['Entró una reserva desde el sitio y está esperando el abono. Cuando llegue el comprobante, confírmala con un toque.'],
-        filas: filasAdm,
-        boton: { texto: 'Confirmar abono', url: urlGestion_(cfg, codigo) },
-        boton2: { texto: 'Escribirle por WhatsApp', url: enlaceWaCliente_(d.telefono, 'Hola ' + d.nombre + ' 🤘 Vimos tu reserva #' + codigo + ' en ' + cfg.nombreNegocio + '. ') },
-        notas: ['El botón de confirmar te pide iniciar sesión con la cuenta de administración. También puedes cambiar el estado desde el portal o la hoja Reservas.']
-      });
+      MailApp.sendEmail({ to: cfg.correoAdmin, subject: 'Nueva reserva #' + codigo + ' · ' + d.banda, body: cuerpo, name: cfg.nombreNegocio });
     }
   } catch (err) { console.error('Correo al administrador: ' + err); }
-  // Al cliente.
   try {
     if (cfg.correoCliente && d.correo) {
-      var pagos = [];
-      if (cfg.instruccionesPago) pagos.push(cfg.instruccionesPago);
-      if (cfg.pagoTransferencia && cfg.datosTransferencia) pagos.push('Transferencia:\n' + cfg.datosTransferencia);
-      var wa = cfg.whatsapp ? 'https://wa.me/' + String(cfg.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent('Hola 🤘 te mando el comprobante de mi reserva #' + codigo + ' (' + d.banda + ').') : '';
-      var o = {
-        preheader: 'Tu horario queda guardado ' + cfg.minutosReserva + ' minutos mientras abonas', titulo: '¡Recibimos tu reserva!', codigo: codigo,
-        saludo: 'Hola ' + d.nombre + ' 🤘',
-        parrafos: ['Te guardamos el horario ' + cfg.minutosReserva + ' minutos para que puedas abonar y dejar todo confirmado. Si no alcanzas, no pasa nada: el horario se libera para otra banda y puedes volver a reservar cuando quieras.'],
-        filas: detalle,
-        notas: ['Si necesitas cambiar o anular, avísanos por WhatsApp con al menos ' + cfg.horasAnulacion + ' horas de anticipación: así otra banda puede tomar ese espacio y la agenda sigue fluyendo para todos. ¡Gracias por la buena onda!']
-      };
-      if (pagos.length) o.caja = pagos.join('\n\n');
-      if (cfg.pagoOnline && urlSegura_(cfg.linkPago)) o.boton = { texto: 'Pagar el abono', url: cfg.linkPago };
-      if (wa) { if (o.boton) o.boton2 = { texto: 'Enviar comprobante', url: wa }; else o.boton = { texto: 'Enviar comprobante por WhatsApp', url: wa }; }
-      enviarCorreo_(cfg, d.correo, 'Tu reserva #' + codigo + ' en ' + cfg.nombreNegocio, o, { replyTo: cfg.correoAdmin || '' });
+      var texto = 'Hola ' + d.nombre + ',\n\nRecibimos tu solicitud en ' + cfg.nombreNegocio + '. Tu código es #' + codigo + '.\n\n' +
+        Reglas.resumenTexto(cfg, v, '').split('\n').slice(1).join('\n') + '\n\n' +
+        'Tu horario queda reservado ' + cfg.minutosReserva + ' minutos a la espera del abono de ' + Reglas.clp(v.calculo.abono) + '. Si por algún motivo no alcanzas a abonar en ese plazo, el horario vuelve a quedar disponible para otras bandas; y si necesitas más tiempo, escríbenos y vemos cómo ayudarte.\n' +
+        cfg.instruccionesPago + ((cfg.pagoTransferencia && cfg.datosTransferencia) ? '\nTransferencia: ' + cfg.datosTransferencia : '') + ((cfg.pagoOnline && cfg.linkPago) ? '\nPuedes pagar aquí: ' + cfg.linkPago : '') + '\n\n' +
+        'Si necesitas cambiar o anular, avísanos por WhatsApp con al menos ' + cfg.horasAnulacion + ' horas de anticipación: así podemos darle ese espacio a otra banda y mantener la agenda fluida para todos. ¡Gracias!\n' + cfg.direccion;
+      MailApp.sendEmail({ to: d.correo, subject: 'Tu reserva #' + codigo + ' en ' + cfg.nombreNegocio, body: texto, name: cfg.nombreNegocio, replyTo: cfg.correoAdmin || '' });
     }
   } catch (err) { console.error('Correo al cliente: ' + err); }
 }
@@ -540,18 +504,6 @@ function alEditar(e) {
   } catch (err) { console.error(err && err.stack || err); }
 }
 
-/** Si el horario de una reserva sin evento ya lo ocupa otra reserva o bloqueo, devuelve el detalle ('' si está libre). */
-function choqueAlReactivar_(r) {
-  var fecha = aFechaIso_(r[RES.fecha - 1]), ini = aHora_(r[RES.inicio - 1]), n = Number(r[RES.horas - 1]) || 0;
-  if (!fecha || ini === null || !n) return '';
-  var cod = String(r[RES.codigo - 1] || '');
-  var otras = reservasVigentesEn_(fecha, cod).filter(function (x) { return x.ini < ini + n && x.fin > ini; });
-  if (otras.length) return otras[0].banda + ' (' + Reglas.horaTxt(otras[0].ini) + ' a ' + Reglas.horaTxt(otras[0].fin) + ')';
-  var oc = ocupadasRango_(fecha, 1)[fecha] || [];
-  for (var h = ini; h < ini + n; h++) if (oc.indexOf(h) >= 0) return 'horario ocupado o bloqueado a las ' + h + ':00';
-  return '';
-}
-
 function sincronizarEstado_(sh, f) {
   var r = sh.getRange(f, 1, 1, ENCABEZADO_RESERVAS.length).getValues()[0];
   var estado = estadoNorm_(r[RES.estado - 1]);
@@ -559,15 +511,6 @@ function sincronizarEstado_(sh, f) {
   var cal = getCalendar_();
   var servicio = String(r[RES.servicio - 1]) === ETIQUETA_SERVICIO.grabacion ? 'grabacion' : 'ensayo';
   var evento = r[RES.evento - 1] ? obtenerEvento_(cal, r[RES.evento - 1]) : null;
-
-  // Una reserva liberada (anulada) NO puede reactivarse si otra tomó su horario: se evita el choque.
-  if (!evento && ESTADOS_QUE_OCUPAN.indexOf(estado) >= 0) {
-    var choque = choqueAlReactivar_(r);
-    if (choque) {
-      sh.getRange(f, RES.estado).setValue(EST.ANULADA); estado = EST.ANULADA; r[RES.estado - 1] = EST.ANULADA;
-      avisarAdmin_('No se pudo reactivar la reserva ' + r[RES.codigo - 1] + ' (' + r[RES.banda - 1] + ')', 'Su horario ya lo tiene otra reserva: ' + choque + '. Se dejó Anulada para no duplicar el horario. Reagéndala a otro horario desde el portal.');
-    }
-  }
 
   liquidar_(sh, f, r, estado);
   if (estado === EST.ANULADA) {
@@ -715,7 +658,6 @@ function asegurarEsquema_(ss) {
       }
       props.setProperty('MIG_HONOR_1', '1');
     }
-    migrarMensajes_();
     cache.put('esq8', '1', 21600);
   } catch (e) { /* si falla, se reintenta en la próxima solicitud */ }
 }

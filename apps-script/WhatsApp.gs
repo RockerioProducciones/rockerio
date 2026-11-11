@@ -16,17 +16,6 @@
  *      "Hola {{1}}, te recordamos tu reserva de {{2}} el {{3}} de {{4}} a {{5}}. ¡Te esperamos!"
  */
 
-/** Textos anteriores de fábrica: si los tenías sin editar, pasan solos al estilo nuevo. Los que editaste tú no se tocan. */
-var MENSAJES_ANTERIORES_ = {
- "msgRecordatorio": "Hola {nombre} 👋 Te escribimos para recordarte tu reserva en {negocio}: {servicio} el {fecha}, de {hora} a {fin}. Nos encuentras en {direccion}. Si puedes llegar 5 a 10 minutos antes, aprovechamos al máximo tu tiempo en sala 🎸 Y si algo cambia y necesitas mover la hora, avísanos con {horasAnulacion} horas de anticipación: así podemos ofrecer ese espacio a otra banda y mantener la agenda ordenada para todos. ¡Gracias por ayudarnos, nos vemos pronto! 🤘",
- "msgConfirmacion": "Hola {nombre} 🤘 ¡Gracias por tu abono! Tu reserva #{codigo} quedó confirmada: {servicio} el {fecha}, de {hora} a {fin}. El saldo ({saldo}) lo pagas en el estudio el día de tu sesión. Estamos en {direccion}. Si surge cualquier cambio, escríbenos por aquí con tiempo; así podemos reorganizar la agenda y darle espacio a otras bandas. ¡Nos vemos pronto! 🎶",
- "msgCobroAbono": "Hola {nombre} 😊 Te dejamos guardado el horario de tu reserva #{codigo} ({servicio} el {fecha}, de {hora} a {fin}). Para dejarla confirmada solo falta el abono de {abono}; cuando lo hagas, mándanos el comprobante por aquí y listo. Y si cambiaron tus planes, no te preocupes: avísanos y liberamos el horario para otra banda, así la agenda sigue fluyendo para todos. ¡Gracias! 🤘",
- "msgGracias": "Hola {nombre} 🎸 ¡Gracias por venir a {negocio}! Esperamos que la sesión haya estado genial. Cuando quieran volver, reservar con un poco de anticipación nos ayuda a mantener la agenda fluida y a tener espacio para todas las bandas. Y si te das un minuto para dejarnos una reseña, nos ayuda un mundo: {sitio} 🤘",
- "msgResena": "Hola {nombre} 🤘 ¡Qué bueno haber tenido a {banda} en {negocio}! Si tienes un minutito, cuéntanos cómo les fue: tu opinión ayuda a otras bandas a decidirse y a nosotros a mejorar. Puedes dejarla aquí: {enlaceResena} ¡Mil gracias! 🙌",
- "msgDescarga": "Hola {nombre} 🎧 ¡Ya está listo el material de {banda}! Lo puedes descargar aquí: {enlaceDescarga} Si algo no abre o necesitas otro formato, escríbenos y lo resolvemos. ¡Ojalá lo disfruten harto! 🤘",
- "msgHonor": "Hola {nombre} 🤘 ¡Nos encantó tener a {banda} en {negocio}! Nos gustaría que formaran parte de nuestro Cuadro de Honor, un espacio para mostrar a las bandas que pasan por aquí. Si se animan, es un formulario cortito: {enlaceHonor} ¡Gracias por la buena onda!"
-};
-
 var CLAVES_MENSAJES = ['msgRecordatorio', 'msgConfirmacion', 'msgCobroAbono', 'msgGracias', 'msgResena', 'msgDescarga', 'msgHonor'];
 
 /** Guarda los textos de los mensajes. Vacío = vuelve al texto original. */
@@ -121,20 +110,9 @@ function enviarRecordatorios() {
 }
 
 /** Datos que el portal necesita para armar los mensajes de WhatsApp (nunca incluye el token). */
-/** Pasa al texto nuevo los mensajes que seguían idénticos al original anterior (una sola vez). */
-function migrarMensajes_() {
-  var p = PropertiesService.getScriptProperties();
-  if (p.getProperty('MSG_ESTILO') === 'rock1') return;
-  var raw = leerConfigCruda_(), nuevos = {}, d = Reglas.CONFIG_POR_DEFECTO;
-  CLAVES_MENSAJES.forEach(function (k) { if (raw[k] !== undefined && String(raw[k]).trim() === String(MENSAJES_ANTERIORES_[k]).trim()) nuevos[k] = d[k]; });
-  if (Object.keys(nuevos).length) ponerConfig_(nuevos);
-  p.setProperty('MSG_ESTILO', 'rock1');
-}
-
 function waDatos_() {
   var cfg = getCfg_();
-  var def = Reglas.CONFIG_POR_DEFECTO, originales = {}; CLAVES_MENSAJES.forEach(function (k) { originales[k] = def[k]; });
-  return { originales: originales, plantillas: { msgRecordatorio: cfg.msgRecordatorio, msgConfirmacion: cfg.msgConfirmacion, msgCobroAbono: cfg.msgCobroAbono, msgGracias: cfg.msgGracias, msgResena: cfg.msgResena, msgDescarga: cfg.msgDescarga, msgHonor: cfg.msgHonor },
+  return { plantillas: { msgRecordatorio: cfg.msgRecordatorio, msgConfirmacion: cfg.msgConfirmacion, msgCobroAbono: cfg.msgCobroAbono, msgGracias: cfg.msgGracias, msgResena: cfg.msgResena, msgDescarga: cfg.msgDescarga, msgHonor: cfg.msgHonor },
     negocio: cfg.nombreNegocio, direccion: cfg.direccion, horasAnulacion: cfg.horasAnulacion, sitio: cfg.sitioUrl, auto: cfg.waAutoActivo,
     tieneToken: !!PropertiesService.getScriptProperties().getProperty('WA_TOKEN') };
 }

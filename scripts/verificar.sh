@@ -15,7 +15,7 @@ node tests/liquidacion.test.js | tail -1
 node tests/ventas.test.js | tail -1
 node tests/ajustes.test.js | tail -1
 node tests/whatsapp.test.js | tail -8
-for f in AdminApi Contenido Planes Ventas Socios Contabilidad Ajustes WhatsApp Sitio Pagos Correo; do cp apps-script/$f.gs /tmp/_v_$f.js && node --check /tmp/_v_$f.js && echo "ok  $f.gs sin errores de sintaxis"; done
+for f in AdminApi Contenido Planes Ventas Socios Contabilidad Ajustes WhatsApp Sitio Pagos; do cp apps-script/$f.gs /tmp/_v_$f.js && node --check /tmp/_v_$f.js && echo "ok  $f.gs sin errores de sintaxis"; done
 cp instalacion/Todo.gs /tmp/_todo.js && node --check /tmp/_todo.js && echo "ok  Todo.gs completo sin errores de sintaxis"
 sed -n '/^<script>/,/^<\/script>/p' apps-script/Admin.html | sed '1d;$d' > /tmp/_admin_html.js && node --check /tmp/_admin_html.js && echo "ok  Admin.html (script) sin errores de sintaxis"
 echo "--- Flujo completo (backend simulado) ---"

@@ -12,17 +12,15 @@ function exigirAdmin_() {
   if (!admin || !activo || activo !== admin) throw new Error('Acceso denegado.');
 }
 
-function paginaAdmin_(confirmar) {
+function paginaAdmin_() {
   try {
     exigirAdmin_();
   } catch (e) {
     return HtmlService.createHtmlOutput('<p style="font:16px sans-serif;padding:2rem">Acceso denegado. Inicia sesión con la cuenta de administración.</p>')
       .setTitle('Acceso denegado');
   }
-  var salida = HtmlService.createHtmlOutputFromFile('Admin').setTitle('Rockerío · Administración')
+  return HtmlService.createHtmlOutputFromFile('Admin').setTitle('Rockerío · Administración')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
-  if (/^RP-\d{3,8}(-\d)?$/.test(String(confirmar || ''))) salida.append('<script>window.CONFIRMAR_COD=' + JSON.stringify(String(confirmar)) + ';if(window.cargarJor)cargarJor();</script>');
-  return salida;
 }
 
 /** Cuando es true, adminResumen() no arma el resumen completo (lo usan las acciones rápidas de «Reservas y jornadas»). */
@@ -88,11 +86,6 @@ function adminCambiarEstado(codigo, estado) {
   var sh = abrirBd_().getSheetByName(HOJAS.reservas);
   var celda = sh.getLastRow() > 1 ? sh.createTextFinder(String(codigo)).matchEntireCell(true).findNext() : null;
   if (!celda || celda.getColumn() !== RES.codigo) throw new Error('No se encontró la reserva.');
-  var rAct = sh.getRange(celda.getRow(), 1, 1, ENCABEZADO_RESERVAS.length).getValues()[0];
-  if (ESTADOS_QUE_OCUPAN.indexOf(estadoNorm_(rAct[RES.estado - 1])) < 0 && ESTADOS_QUE_OCUPAN.indexOf(estado) >= 0) {
-    var choque = choqueAlReactivar_(rAct);
-    if (choque) throw new Error('CHOQUE: ese horario ya lo tiene ' + choque + '. Usa «Reagendar» para moverla a otro horario libre.');
-  }
   sh.getRange(celda.getRow(), RES.estado).setValue(estado);
   sincronizarEstado_(sh, celda.getRow()); // el disparador de edición no se activa con cambios hechos por script
   return adminResumen();

@@ -1,431 +1,437 @@
 {
- "_nota": "Edita este archivo para cambiar la ficha técnica. Cada sección tiene resumen, datos destacados (infografía), fotos (carrusel) y bloques de equipos.",
- "secciones": [
-  {
-   "id": "ensayo",
-   "icono": "🎸",
-   "titulo": "Sala de ensayo",
-   "resumen": "Backline completo, amplificadores valvulares y PA para ensayar como en vivo.",
-   "stats": [
-    [
-     "🥁",
-     "5 piezas",
-     "Pearl Export"
-    ],
-    [
-     "🔥",
-     "3",
-     "amplis valvulares"
-    ],
-    [
-     "🎧",
-     "8",
-     "in-ears inalámbricos"
-    ],
-    [
-     "🔊",
-     "2",
-     "cajas JBL Eon 615"
-    ]
-   ],
-   "fotos": [
+  "_nota": "Edita este archivo para cambiar la ficha técnica. Cada sección tiene resumen, datos destacados (infografía), fotos (carrusel) y bloques de equipos.",
+  "secciones": [
     {
-     "src": "assets/sala-1.jpg",
-     "titulo": "Sala de ensayo principal",
-     "descripcion": "Acondicionamiento acústico y backline valvular Laney y Orange."
+      "id": "ensayo",
+      "icono": "🎸",
+      "titulo": "Sala de ensayo",
+      "resumen": "Backline completo, amplificadores valvulares y PA para ensayar como en vivo.",
+      "stats": [
+        [
+          "🥁",
+          "5 piezas",
+          "Pearl Export"
+        ],
+        [
+          "🔥",
+          "3",
+          "amplis valvulares"
+        ],
+        [
+          "🎧",
+          "8",
+          "in-ears inalámbricos"
+        ],
+        [
+          "🔊",
+          "2",
+          "cajas JBL Eon 615"
+        ]
+      ],
+      "fotos": [
+        {
+          "src": "assets/sala-1.jpg",
+          "titulo": "Sala de ensayo principal",
+          "descripcion": "Acondicionamiento acústico y backline valvular Laney y Orange."
+        },
+        {
+          "src": "assets/fotos/bateria-azul-2.jpg",
+          "titulo": "Batería Pearl Export",
+          "descripcion": "Set de 5 piezas, parches Remo/Evans."
+        },
+        {
+          "src": "assets/amplificadores.jpg",
+          "titulo": "Amplificación",
+          "descripcion": "Guitarra y bajo microfoneados para el registro."
+        },
+        {
+          "src": "assets/fotos/bateria-azul-1.jpg",
+          "titulo": "Batería y microfonía",
+          "descripcion": "Miqueo con Shure, AKG y Sennheiser."
+        }
+      ],
+      "bloques": [
+        {
+          "titulo": "Backline",
+          "items": [
+            "Batería Pearl Export de 5 piezas, parches Remo/Evans (arriendo de platos opcional)",
+            "Micrófonos de batería: Sennheiser e602, AKG D112, Shure SM57, Sennheiser e609, Shure Beta 56A y AT2021",
+            "Bajo: Fender Rumble 500 Combo (350 W) con micrófono Shure Beta 62A",
+            "Guitarra 1: Laney Ironheart IRT60 valvular (combo 2×12\") con Shure SM57",
+            "Guitarra 2: Laney GH30 valvular (combo 1×12\") con Shure SM57",
+            "Guitarra 3: cabezal Orange TH30 valvular con gabinete Marshall 1922 (2×12\") y Sennheiser e609"
+          ]
+        },
+        {
+          "titulo": "Audio, mezcla y monitoreo",
+          "items": [
+            "PA: 2 cajas activas JBL Eon 615 (500 W) y notebook HP con internet",
+            "Consolas: Mackie ProFX10 v3 en la sala; Midas M32 + DL32 en el control room",
+            "In-ears: amplificador Mackie HM-800 con 8 receptores inalámbricos",
+            "Audífonos: 6 AKG K92 y 4 Sennheiser HD206",
+            "Micrófonos extra: Shure SM58, Beta 58A y PGA81",
+            "Cajas directas Radial (activa) y Alctron (pasiva estéreo), atriles Hercules y cableado completo"
+          ]
+        },
+        {
+          "titulo": "Grabación multipista incluida",
+          "items": [
+            "{escala}",
+            "Es opcional: puedes usar todo el tiempo solo para ensayar",
+            "El tiempo de grabación no es acumulable"
+          ]
+        },
+        {
+          "titulo": "Arriendo de instrumentos y accesorios ($3.000 por hora)",
+          "items": [
+            "Set de platos Kingdo SN8 B8: Hi-Hat 14”, Crash 16”, Crash 18” y Ride 20”",
+            "Guitarra eléctrica Squier Stratocaster Vintage Modified ’70",
+            "Bajo eléctrico Epiphone Thunderbird Pro IV",
+            "Guitarra electroacústica Takamine",
+            "Pedalera multiefecto para guitarra",
+            "Pedalera multiefecto para bajo"
+          ]
+        },
+        {
+          "titulo": "Registro de tu sesión",
+          "items": [
+            "Grabación con video GoPro Hero 13 ($20.000)",
+            "Entrega de material en bruto ($10.000, opcional)"
+          ]
+        },
+        {
+          "titulo": "Tarifas y condiciones",
+          "items": [
+            "Hora de sala de ensayo: {precioEnsayoHora}",
+            "Plan 8 horas (4 ensayos de 2 h): {plan8}",
+            "Plan 12 horas (4 ensayos de 3 h): {plan12}",
+            "Abono de {abonoPorHora} por hora para asegurar tu cupo; el saldo se paga al finalizar la sesión",
+            "Cambios de agenda con al menos {horasAnulacion} horas de anticipación"
+          ]
+        }
+      ]
     },
     {
-     "src": "assets/fotos/bateria-azul-2.jpg",
-     "titulo": "Batería Pearl Export",
-     "descripcion": "Set de 5 piezas, parches Remo/Evans."
+      "id": "grabacion",
+      "icono": "🥁",
+      "titulo": "Estudio de grabación",
+      "resumen": "Sala de captura con batería Gretsch y todo lo necesario para registrar tu proyecto.",
+      "stats": [
+        [
+          "🥁",
+          "5 piezas",
+          "Gretsch"
+        ],
+        [
+          "📏",
+          "22″",
+          "bombo"
+        ],
+        [
+          "💾",
+          "24 bit",
+          "48 kHz"
+        ],
+        [
+          "⏱️",
+          "Desde 1 h",
+          "valor por hora"
+        ]
+      ],
+      "fotos": [
+        {
+          "src": "assets/fotos/bateria-azul-3.jpg",
+          "titulo": "Sala de grabación",
+          "descripcion": "Batería de 5 piezas lista para registrar."
+        },
+        {
+          "src": "assets/bateria.jpg",
+          "titulo": "Batería",
+          "descripcion": "Atriles y sillín ajustable Dixon."
+        },
+        {
+          "src": "assets/fotos/microfono-amplificador.jpg",
+          "titulo": "Amplificadores microfoneados",
+          "descripcion": "Micrófono captando un Laney valvular."
+        }
+      ],
+      "bloques": [
+        {
+          "titulo": "Sala de grabación y backline",
+          "items": [
+            "Batería Gretsch de 5 piezas: bombo 22\", caja 14\" (parche Remo Controlled Sound), toms 10\", 12\" y 16\"",
+            "Atril de hi-hat, 4 atriles de platos y sillín ajustable Dixon",
+            "Arriendo de set de platos opcional"
+          ]
+        },
+        {
+          "titulo": "Formato y entrega",
+          "items": [
+            "Grabación en WAV de alta resolución, 24 bits / 48 kHz",
+            "Al terminar la sesión, el material multipista o la mezcla se envía por enlace directo de Google Drive"
+          ]
+        },
+        {
+          "titulo": "Cómo se reserva",
+          "items": [
+            "Sesiones desde 1 hora: el valor se ajusta a las horas que necesites",
+            "Asistencia técnica e ingeniería durante toda la sesión: microfonía, ruteo y toma de sonido",
+            "Abono por cada hora reservada para asegurar tu cupo; el saldo se paga al finalizar",
+            "Cambios de fecha u hora con al menos 24 horas de anticipación"
+          ]
+        }
+      ]
     },
     {
-     "src": "assets/amplificadores.jpg",
-     "titulo": "Amplificación",
-     "descripcion": "Guitarra y bajo microfoneados para el registro."
+      "id": "microfonos",
+      "icono": "🎙️",
+      "titulo": "Microfonía",
+      "resumen": "Cada micrófono con su foto, para qué lo usamos y su muestra de audio.",
+      "stats": [
+        [
+          "🎙️",
+          "17",
+          "micrófonos de estudio"
+        ],
+        [
+          "⭐",
+          "Telefunken",
+          "TF39 · M60 · M80/81/82"
+        ],
+        [
+          "🥁",
+          "Shure",
+          "Beta 91A · SM57 · SM58"
+        ],
+        [
+          "🎤",
+          "Rode",
+          "NT1-A"
+        ]
+      ],
+      "fotos": [
+        {
+          "src": "assets/fotos/microfono-amplificador.jpg",
+          "titulo": "Microfonía en acción",
+          "descripcion": "Captura de amplificadores y batería con micrófonos de estudio."
+        }
+      ],
+      "bloques": [],
+      "mics": true
     },
     {
-     "src": "assets/fotos/bateria-azul-1.jpg",
-     "titulo": "Batería y microfonía",
-     "descripcion": "Miqueo con Shure, AKG y Sennheiser."
+      "id": "control",
+      "icono": "🎚️",
+      "titulo": "Sala de control",
+      "resumen": "Consola digital y análoga, monitoreo de campo cercano y conectividad para grabar a todo el estudio.",
+      "stats": [
+        [
+          "🎚️",
+          "32",
+          "canales Midas M32"
+        ],
+        [
+          "🔈",
+          "8″",
+          "monitores Kali LP-8"
+        ],
+        [
+          "💿",
+          "24 bit",
+          "WAV 48 kHz"
+        ],
+        [
+          "🎛️",
+          "SSL SiX",
+          "suma análoga"
+        ]
+      ],
+      "fotos": [
+        {
+          "src": "assets/fotos/control-panoramica.jpg",
+          "titulo": "Control room y consola Midas M32",
+          "descripcion": "Puesto principal de ingeniería."
+        },
+        {
+          "src": "assets/fotos/control-consola.jpg",
+          "titulo": "Monitoreo de campo cercano",
+          "descripcion": "Kali Audio LP-8 y subwoofer."
+        },
+        {
+          "src": "assets/control-room.jpg",
+          "titulo": "Sala de control",
+          "descripcion": "Rack de procesadores y consola."
+        },
+        {
+          "src": "assets/control-room-2.jpg",
+          "titulo": "Consola y monitores",
+          "descripcion": "Mezcla con técnico durante toda la sesión."
+        }
+      ],
+      "bloques": [
+        {
+          "titulo": "Sala de control",
+          "items": [
+            "Consola digital Midas M32 (32 canales / 16 salidas)",
+            "Consola análoga SSL SiX: 2 channel strips dedicados para grabación, suma análoga y bus compressor SSL G Series",
+            "Mac Mini M4 (24 GB RAM / 500 GB SSD) con DAW Universal Audio LUNA y paquete completo de plugins Universal Audio y SSL",
+            "Monitores de campo cercano Kali Audio LP-8 (8 pulgadas)"
+          ]
+        },
+        {
+          "titulo": "Cajas directas y re-amping",
+          "items": [
+            "Caja directa Radial SB-1 (activa, 1 canal)",
+            "Caja directa Alctron (pasiva, 2 canales estéreo)",
+            "Caja de re-amplificación Radial (2 salidas)"
+          ]
+        },
+        {
+          "titulo": "Conectividad y monitoreo de músicos",
+          "items": [
+            "Stagebox Midas DL32 (32 entradas / 16 salidas)",
+            "Amplificador de audífonos Samson C-Que8 (4 canales)",
+            "5 audífonos AKG K92 para monitoreo de los músicos"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "estacion",
+      "icono": "💻",
+      "titulo": "Computador y DAW",
+      "resumen": "Mac mini M4 con Universal Audio LUNA 3.0 y una suite de software y plugins de primer nivel.",
+      "stats": [
+        [
+          "💻",
+          "Mac mini M4",
+          "estación"
+        ],
+        [
+          "🧠",
+          "24 GB",
+          "RAM"
+        ],
+        [
+          "⚡",
+          "500 GB",
+          "SSD"
+        ],
+        [
+          "🎚️",
+          "LUNA 3.0",
+          "Universal Audio"
+        ]
+      ],
+      "fotos": [
+        {
+          "src": "assets/control-room-2.jpg",
+          "titulo": "Estación de trabajo",
+          "descripcion": "Mac mini M4 y LUNA 3.0 en el control room."
+        }
+      ],
+      "bloques": [
+        {
+          "titulo": "Hardware y DAW",
+          "items": [
+            "Mac mini M4 · 24 GB de RAM · 500 GB de SSD",
+            "Universal Audio LUNA 3.0 como DAW principal, con procesamiento DSP en tiempo real y suma analógica"
+          ]
+        },
+        {
+          "titulo": "Software y plugins",
+          "items": [
+            "Universal Audio LUNA 3.0",
+            "Universal Audio Native",
+            "SSL Native",
+            "Slate Digital",
+            "Soundtoys",
+            "iZotope",
+            "Eventide",
+            "Neural DSP · Darkglass",
+            "Neural DSP · Archetype Gojira",
+            "Neural DSP · Archetype Nolly",
+            "AmpliTube",
+            "Studer (emulación de cinta)",
+            "Ampex (emulación de cinta)"
+          ]
+        },
+        {
+          "titulo": "Respaldo y acceso remoto",
+          "items": [
+            "Copias nocturnas con FreeFileSync y RealTimeSync en discos SSD",
+            "Control y respaldo remoto: Tailscale (VPN mesh) y Screen Sharing en Curtain Mode"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "comodidades",
+      "icono": "🛋️",
+      "titulo": "Comodidades",
+      "resumen": "Todo pensado para que llegues, te concentres en la música y te sientas cómodo.",
+      "stats": [
+        [
+          "❄️",
+          "Aire",
+          "acondicionado"
+        ],
+        [
+          "📶",
+          "Wi-Fi",
+          "alta velocidad"
+        ],
+        [
+          "☕",
+          "Té y café",
+          "libre disposición"
+        ],
+        [
+          "🌿",
+          "Patio",
+          "interior"
+        ]
+      ],
+      "fotos": [
+        {
+          "src": "assets/sala-patio.jpg",
+          "titulo": "Patio interior",
+          "descripcion": "Para descansar y compartir entre sesiones."
+        },
+        {
+          "src": "assets/sala-2.jpg",
+          "titulo": "Sala climatizada",
+          "descripcion": "Aire acondicionado para ensayar con comodidad."
+        }
+      ],
+      "bloques": [
+        {
+          "titulo": "Comodidades del espacio",
+          "items": [
+            "Climatización: aire acondicionado para ensayos y grabaciones confortables",
+            "Espacios: patio interior para descansar, compartir y despejarse entre sesiones",
+            "Conectividad: Wi-Fi de alta velocidad disponible en todo el recinto",
+            "Servicios: estación permanente de té, café y agua purificada a libre disposición",
+            "Estacionamiento: exterior, sujeto a disponibilidad"
+          ]
+        },
+        {
+          "titulo": "Asistencia técnica",
+          "items": [
+            "Soporte técnico especializado durante toda tu jornada, tanto en ensayo como en grabación"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "muestras",
+      "icono": "🎧",
+      "titulo": "Muestras",
+      "resumen": "Escucha canciones en bruto, mezcladas y masterizadas, y ensayos reales de banda.",
+      "stats": [],
+      "fotos": [],
+      "bloques": [],
+      "escucha": true
     }
-   ],
-   "bloques": [
-    {
-     "titulo": "Backline",
-     "items": [
-      "Batería Pearl Export de 5 piezas, parches Remo/Evans (arriendo de platos opcional)",
-      "Micrófonos de batería: Sennheiser e602, AKG D112, Shure SM57, Sennheiser e609, Shure Beta 56A y AT2021",
-      "Bajo: Fender Rumble 500 Combo (350 W) con micrófono Shure Beta 62A",
-      "Guitarra 1: Laney Ironheart IRT60 valvular (combo 2×12\") con Shure SM57",
-      "Guitarra 2: Laney GH30 valvular (combo 1×12\") con Shure SM57",
-      "Guitarra 3: cabezal Orange TH30 valvular con gabinete Marshall 1922 (2×12\") y Sennheiser e609"
-     ]
-    },
-    {
-     "titulo": "Audio, mezcla y monitoreo",
-     "items": [
-      "PA: 2 cajas activas JBL Eon 615 (500 W) y notebook HP con internet",
-      "Consolas: Mackie ProFX10 v3 en la sala; Midas M32 + DL32 en el control room",
-      "In-ears: amplificador Mackie HM-800 con 8 receptores inalámbricos",
-      "Audífonos: 6 AKG K92 y 4 Sennheiser HD206",
-      "Micrófonos extra: Shure SM58, Beta 58A y PGA81",
-      "Cajas directas Radial (activa) y Alctron (pasiva estéreo), atriles Hercules y cableado completo"
-     ]
-    },
-    {
-     "titulo": "Grabación multipista incluida",
-     "items": [
-      "{escala}",
-      "Es opcional: puedes usar todo el tiempo solo para ensayar",
-      "El tiempo de grabación no es acumulable"
-     ]
-    },
-    {
-     "titulo": "Arriendo de instrumentos y accesorios ($3.000 por hora)",
-     "items": [
-      "Set de platos Kingdo SN8 B8: Hi-Hat 14”, Crash 16”, Crash 18” y Ride 20”",
-      "Guitarra eléctrica Squier Stratocaster Vintage Modified ’70",
-      "Bajo eléctrico Epiphone Thunderbird Pro IV",
-      "Guitarra electroacústica Takamine",
-      "Pedalera multiefecto para guitarra",
-      "Pedalera multiefecto para bajo"
-     ]
-    },
-    {
-     "titulo": "Registro de tu sesión",
-     "items": [
-      "Grabación con video GoPro Hero 13 ($20.000)",
-      "Entrega de material en bruto ($10.000, opcional)"
-     ]
-    },
-    {
-     "titulo": "Tarifas y condiciones",
-     "items": [
-      "Hora de sala de ensayo: {precioEnsayoHora}",
-      "Plan 8 horas (4 ensayos de 2 h): {plan8}",
-      "Plan 12 horas (4 ensayos de 3 h): {plan12}",
-      "Abono de {abonoPorHora} por hora para asegurar tu cupo; el saldo se paga al finalizar la sesión",
-      "Cambios de agenda con al menos {horasAnulacion} horas de anticipación"
-     ]
-    }
-   ]
-  },
-  {
-   "id": "grabacion",
-   "icono": "🥁",
-   "titulo": "Estudio de grabación",
-   "resumen": "Sala de captura con batería Gretsch y todo lo necesario para registrar tu proyecto.",
-   "stats": [
-    [
-     "🥁",
-     "5 piezas",
-     "Gretsch"
-    ],
-    [
-     "📏",
-     "22″",
-     "bombo"
-    ],
-    [
-     "💾",
-     "24 bit",
-     "48 kHz"
-    ],
-    [
-     "⏱️",
-     "Desde 1 h",
-     "valor por hora"
-    ]
-   ],
-   "fotos": [
-    {
-     "src": "assets/fotos/bateria-azul-3.jpg",
-     "titulo": "Sala de grabación",
-     "descripcion": "Batería de 5 piezas lista para registrar."
-    },
-    {
-     "src": "assets/bateria.jpg",
-     "titulo": "Batería",
-     "descripcion": "Atriles y sillín ajustable Dixon."
-    },
-    {
-     "src": "assets/fotos/microfono-amplificador.jpg",
-     "titulo": "Amplificadores microfoneados",
-     "descripcion": "Micrófono captando un Laney valvular."
-    }
-   ],
-   "bloques": [
-    {
-     "titulo": "Sala de grabación y backline",
-     "items": [
-      "Batería Gretsch de 5 piezas: bombo 22\", caja 14\" (parche Remo Controlled Sound), toms 10\", 12\" y 16\"",
-      "Atril de hi-hat, 4 atriles de platos y sillín ajustable Dixon",
-      "Arriendo de set de platos opcional"
-     ]
-    },
-    {
-     "titulo": "Formato y entrega",
-     "items": [
-      "Grabación en WAV de alta resolución, 24 bits / 48 kHz",
-      "Al terminar la sesión, el material multipista o la mezcla se envía por enlace directo de Google Drive"
-     ]
-    },
-    {
-     "titulo": "Cómo se reserva",
-     "items": [
-      "Sesiones desde 1 hora: el valor se ajusta a las horas que necesites",
-      "Asistencia técnica e ingeniería durante toda la sesión: microfonía, ruteo y toma de sonido",
-      "Abono por cada hora reservada para asegurar tu cupo; el saldo se paga al finalizar",
-      "Cambios de fecha u hora con al menos 24 horas de anticipación"
-     ]
-    }
-   ]
-  },
-  {
-   "id": "microfonos",
-   "icono": "🎙️",
-   "titulo": "Microfonía",
-   "resumen": "Cada micrófono con su ficha técnica y sus propias muestras de audio: escucha cómo suena en caja, bombo, guitarras o voz.",
-   "stats": [
-    [
-     "🎙️",
-     "17",
-     "micrófonos de estudio"
-    ],
-    [
-     "⭐",
-     "Telefunken",
-     "TF39 · M60 · M80/81/82"
-    ],
-    [
-     "🥁",
-     "Shure",
-     "Beta 91A · SM57 · SM58"
-    ],
-    [
-     "🎤",
-     "Rode",
-     "NT1-A"
-    ]
-   ],
-   "fotos": [],
-   "bloques": [],
-   "mics": true
-  },
-  {
-   "id": "control",
-   "icono": "🎚️",
-   "titulo": "Sala de control",
-   "resumen": "Consola digital y análoga, monitoreo de campo cercano y conectividad para grabar a todo el estudio.",
-   "stats": [
-    [
-     "🎚️",
-     "32",
-     "canales Midas M32"
-    ],
-    [
-     "🔈",
-     "8″",
-     "monitores Kali LP-8"
-    ],
-    [
-     "💿",
-     "24 bit",
-     "WAV 48 kHz"
-    ],
-    [
-     "🎛️",
-     "SSL SiX",
-     "suma análoga"
-    ]
-   ],
-   "fotos": [
-    {
-     "src": "assets/fotos/control-panoramica.jpg",
-     "titulo": "Control room y consola Midas M32",
-     "descripcion": "Puesto principal de ingeniería."
-    },
-    {
-     "src": "assets/fotos/control-consola.jpg",
-     "titulo": "Monitoreo de campo cercano",
-     "descripcion": "Kali Audio LP-8 y subwoofer."
-    },
-    {
-     "src": "assets/control-room.jpg",
-     "titulo": "Sala de control",
-     "descripcion": "Rack de procesadores y consola."
-    },
-    {
-     "src": "assets/control-room-2.jpg",
-     "titulo": "Consola y monitores",
-     "descripcion": "Mezcla con técnico durante toda la sesión."
-    }
-   ],
-   "bloques": [
-    {
-     "titulo": "Sala de control",
-     "items": [
-      "Consola digital Midas M32 (32 canales / 16 salidas)",
-      "Consola análoga SSL SiX: 2 channel strips dedicados para grabación, suma análoga y bus compressor SSL G Series",
-      "Mac Mini M4 (24 GB RAM / 500 GB SSD) con DAW Universal Audio LUNA y paquete completo de plugins Universal Audio y SSL",
-      "Monitores de campo cercano Kali Audio LP-8 (8 pulgadas)"
-     ]
-    },
-    {
-     "titulo": "Cajas directas y re-amping",
-     "items": [
-      "Caja directa Radial SB-1 (activa, 1 canal)",
-      "Caja directa Alctron (pasiva, 2 canales estéreo)",
-      "Caja de re-amplificación Radial (2 salidas)"
-     ]
-    },
-    {
-     "titulo": "Conectividad y monitoreo de músicos",
-     "items": [
-      "Stagebox Midas DL32 (32 entradas / 16 salidas)",
-      "Amplificador de audífonos Samson C-Que8 (4 canales)",
-      "5 audífonos AKG K92 para monitoreo de los músicos"
-     ]
-    }
-   ]
-  },
-  {
-   "id": "estacion",
-   "icono": "💻",
-   "titulo": "Computador y DAW",
-   "resumen": "Mac mini M4 con Universal Audio LUNA 3.0 y una suite de software y plugins de primer nivel.",
-   "stats": [
-    [
-     "💻",
-     "Mac mini M4",
-     "estación"
-    ],
-    [
-     "🧠",
-     "24 GB",
-     "RAM"
-    ],
-    [
-     "⚡",
-     "500 GB",
-     "SSD"
-    ],
-    [
-     "🎚️",
-     "LUNA 3.0",
-     "Universal Audio"
-    ]
-   ],
-   "fotos": [
-    {
-     "src": "assets/control-room-2.jpg",
-     "titulo": "Estación de trabajo",
-     "descripcion": "Mac mini M4 y LUNA 3.0 en el control room."
-    }
-   ],
-   "bloques": [
-    {
-     "titulo": "Hardware y DAW",
-     "items": [
-      "Mac mini M4 · 24 GB de RAM · 500 GB de SSD",
-      "Universal Audio LUNA 3.0 como DAW principal, con procesamiento DSP en tiempo real y suma analógica"
-     ]
-    },
-    {
-     "titulo": "Software y plugins",
-     "items": [
-      "Universal Audio LUNA 3.0",
-      "Universal Audio Native",
-      "SSL Native",
-      "Slate Digital",
-      "Soundtoys",
-      "iZotope",
-      "Eventide",
-      "Neural DSP · Darkglass",
-      "Neural DSP · Archetype Gojira",
-      "Neural DSP · Archetype Nolly",
-      "AmpliTube",
-      "Studer (emulación de cinta)",
-      "Ampex (emulación de cinta)"
-     ]
-    },
-    {
-     "titulo": "Respaldo y acceso remoto",
-     "items": [
-      "Copias nocturnas con FreeFileSync y RealTimeSync en discos SSD",
-      "Control y respaldo remoto: Tailscale (VPN mesh) y Screen Sharing en Curtain Mode"
-     ]
-    }
-   ]
-  },
-  {
-   "id": "comodidades",
-   "icono": "🛋️",
-   "titulo": "Comodidades",
-   "resumen": "Todo pensado para que llegues, te concentres en la música y te sientas cómodo.",
-   "stats": [
-    [
-     "❄️",
-     "Aire",
-     "acondicionado"
-    ],
-    [
-     "📶",
-     "Wi-Fi",
-     "alta velocidad"
-    ],
-    [
-     "☕",
-     "Té y café",
-     "libre disposición"
-    ],
-    [
-     "🌿",
-     "Patio",
-     "interior"
-    ]
-   ],
-   "fotos": [
-    {
-     "src": "assets/sala-patio.jpg",
-     "titulo": "Patio interior",
-     "descripcion": "Para descansar y compartir entre sesiones."
-    },
-    {
-     "src": "assets/sala-2.jpg",
-     "titulo": "Sala climatizada",
-     "descripcion": "Aire acondicionado para ensayar con comodidad."
-    }
-   ],
-   "bloques": [
-    {
-     "titulo": "Comodidades del espacio",
-     "items": [
-      "Climatización: aire acondicionado para ensayos y grabaciones confortables",
-      "Espacios: patio interior para descansar, compartir y despejarse entre sesiones",
-      "Conectividad: Wi-Fi de alta velocidad disponible en todo el recinto",
-      "Servicios: estación permanente de té, café y agua purificada a libre disposición",
-      "Estacionamiento: exterior, sujeto a disponibilidad"
-     ]
-    },
-    {
-     "titulo": "Asistencia técnica",
-     "items": [
-      "Soporte técnico especializado durante toda tu jornada, tanto en ensayo como en grabación"
-     ]
-    }
-   ]
-  },
-  {
-   "id": "muestras",
-   "icono": "🎧",
-   "titulo": "Muestras",
-   "resumen": "Escucha canciones en bruto, mezcladas y masterizadas, y ensayos reales de banda.",
-   "stats": [],
-   "fotos": [],
-   "bloques": [],
-   "escucha": true
-  }
- ]
+  ]
 }

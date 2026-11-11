@@ -737,48 +737,4 @@ t('Mercado Pago: pago aprobado confirma la reserva y anota la comisión como gas
   assert.ok(g.estado.correos.some((c) => /pagada por Mercado Pago/.test(c.subject)));
 });
 
-console.log('\n== Una reserva anulada no puede reactivarse sobre otra ==');
-t('reactivar una reserva cuyo horario ya tomó otra: se rechaza y no hay superposición', () => {
-  const tA = '+56 9 5555 0003', tB = '+56 9 5555 0004'; let a = null, fch = null;
-  for (let d = 15; d < 45; d++) { fch = sumar(f3, d); a = g.post(sol({ fecha: fch, inicio: 18, horas: 2, telefono: '+56 9 6000 ' + (1000 + d), banda: 'Primeros', nombre: 'Ana A', correo: 'a@a.cl' })); if (a.ok) break; }
-  assert.ok(a.ok, JSON.stringify(a));
-  g.admin('adminCambiarEstado', a.codigo, 'Anulada');
-  const b = g.post(sol({ fecha: fch, inicio: 19, horas: 1, telefono: tB, banda: 'Segundos', nombre: 'Beto B', correo: 'b@b.cl' })); assert.ok(b.ok, JSON.stringify(b));
-  let msg = ''; try { g.admin('adminCambiarEstado', a.codigo, 'Reservado (con abono)'); } catch (e) { msg = e.message; }
-  assert.ok(/CHOQUE/.test(msg), 'debe rechazar: ' + msg);
-  assert.strictEqual(g.admin('adminJornadas').reservas.find((q) => q.codigo === a.codigo).estado, 'Anulada');
-});
-
-console.log('\n== Enlace para confirmar desde WhatsApp ==');
-t('el texto de WhatsApp y el correo traen el enlace de gestión; el portal lo recibe solo con código válido', () => {
-  let r = null; for (let d = 16; d < 45; d++) { r = g.post(sol({ fecha: sumar(f3, d), inicio: 21, horas: 1, telefono: '+56 9 7000 ' + (1000 + d), banda: 'Enlazados', nombre: 'Eli Enlace', correo: 'e@e.cl' })); if (r.ok) break; }
-  assert.ok(r.ok, JSON.stringify(r));
-  assert.ok(new RegExp('/admin/\\?c=' + r.codigo + '$').test(r.whatsapp), r.whatsapp);
-  assert.ok(g.estado.correos.some((c) => c.body.indexOf('/admin/?c=' + r.codigo) >= 0), 'correo con enlace');
-});
-t('enlaceGestion_ rechaza códigos o sitios no válidos', () => {
-  assert.strictEqual(C.enlaceGestion_({ sitioUrl: 'https://x.cl/' }, 'RP-123456', '> '), '> https://x.cl/admin/?c=RP-123456');
-  assert.strictEqual(C.enlaceGestion_({ sitioUrl: 'https://x.cl' }, '"><script>', '> '), '');
-  assert.strictEqual(C.enlaceGestion_({ sitioUrl: 'http://x.cl' }, 'RP-123456', '> '), '');
-});
-
-console.log('\n== Correos con la identidad de Rockerío ==');
-t('correo HTML: logo, escapado de textos y enlaces solo https; siempre con versión en texto', () => {
-  const cfg = { nombreNegocio: 'Rockerío <b>', direccion: 'Calle 1', sitioUrl: 'https://rockerioproducciones.cl', whatsapp: '56963402567', redInstagram: 'https://instagram.com/x' };
-  const o = { titulo: 'Hola <script>alert(1)</script>', saludo: 'Pía "la" <i>', filas: [['Banda', '<img src=x onerror=1>']], boton: { texto: 'Ir', url: 'javascript:alert(1)' }, boton2: { texto: 'Ok', url: 'https://x.cl/a?b=1' } };
-  const h = C.correoHtml_(cfg, o);
-  assert.ok(h.indexOf('assets/logo-horizontal-dorado.png') > 0, 'trae el logo');
-  assert.ok(h.indexOf('<script') < 0 && h.indexOf('<img src=x') < 0 && h.indexOf('<b>') < 0, 'sin HTML inyectado');
-  assert.ok(h.indexOf('javascript:') < 0, 'sin enlaces peligrosos'); assert.ok(h.indexOf('https://x.cl/a?b=1') > 0);
-  assert.ok(C.correoTexto_(cfg, o).indexOf('Banda: ') >= 0);
-});
-t('las reservas mandan correo HTML al cliente y al administrador', () => {
-  const cs = g.estado.correos.filter((c) => /^Tu reserva #|^Nueva reserva #/.test(c.subject));
-  assert.ok(cs.length >= 2 && cs.every((c) => c.htmlBody && c.htmlBody.indexOf('logo-horizontal-dorado') > 0 && c.body.length > 50));
-});
-t('los 7 mensajes de WhatsApp nuevos caben (≤1000), usan solo claves conocidas y el cambio automático respeta lo editado', () => {
-  const d = C.Reglas.CONFIG_POR_DEFECTO;
-  ['msgRecordatorio', 'msgConfirmacion', 'msgCobroAbono', 'msgGracias', 'msgResena', 'msgDescarga', 'msgHonor'].forEach((k) => { assert.ok(d[k].length <= 1000, k); assert.ok(d[k].indexOf('🤘') >= 0 || d[k].indexOf('🔥') >= 0, k + ' sin estilo'); });
-});
-
 console.log('\n' + ok + ' pasos correctos, ' + fallas + ' con falla.');
