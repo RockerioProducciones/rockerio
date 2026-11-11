@@ -110,12 +110,12 @@
       <fieldset id="paso-datos" class="paso off">
         <legend>5 · Tus datos</legend>
         <div class="fila">
-          <label>Nombre de la banda<input id="banda" maxlength="60" required></label>
-          <label>Tu nombre<input id="nombre" maxlength="60" required autocomplete="name"></label>
+          <label>Banda o proyecto<input id="banda" maxlength="60" required placeholder="Ej. Black Sabbath"></label>
+          <label>Tu nombre<input id="nombre" maxlength="60" required autocomplete="name" placeholder="Ej. Ozzy Osbourne"></label>
         </div>
         <div class="fila">
           <label>WhatsApp<input id="telefono" type="tel" inputmode="tel" value="+569 " placeholder="+569 1234 5678" required autocomplete="tel"></label>
-          <label>Correo<input id="correo" type="email" required autocomplete="email"></label>
+          <label>Correo<input id="correo" type="email" required autocomplete="email" placeholder="Ej. ozzy@gmail.com"></label>
         </div>
         <label>Comentarios (opcional)<textarea id="comentario" maxlength="300" rows="2"></textarea></label>
         <input type="text" id="web" name="web" tabindex="-1" autocomplete="off" aria-hidden="true" class="trampa">
@@ -158,8 +158,8 @@
     <div id="plan-horas" class="horarios"></div>
     <ul id="plan-lista" class="plan-lista"></ul>
     <form id="f-plan" class="form" novalidate hidden>
-      <div class="fila"><label>Nombre de la banda<input name="banda" maxlength="60" required></label><label>Tu nombre<input name="nombre" maxlength="60" required></label></div>
-      <div class="fila"><label>WhatsApp<input name="telefono" type="tel" required value="+569 " placeholder="+569 1234 5678"></label><label>Correo<input name="correo" type="email" required></label></div>
+      <div class="fila"><label>Banda o proyecto<input name="banda" maxlength="60" required placeholder="Ej. Black Sabbath"></label><label>Tu nombre<input name="nombre" maxlength="60" required placeholder="Ej. Ozzy Osbourne" autocomplete="name"></label></div>
+      <div class="fila"><label>WhatsApp<input name="telefono" type="tel" required value="+569 " placeholder="+569 1234 5678"></label><label>Correo<input name="correo" type="email" required placeholder="Ej. ozzy@gmail.com" autocomplete="email"></label></div>
       <input type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true" class="trampa">
       <label class="chk"><input type="checkbox" name="tyc" required><span>Acepto que el plan se paga completo por adelantado para confirmar mis sesiones.</span></label>
       <p class="error" hidden></p><button class="btn" type="submit">Solicitar plan</button>
@@ -211,12 +211,12 @@
     <p class="sub">¿Grabaste o ensayaste en Rockerío Producciones? Toma 1 minuto: cuéntanos de tu banda y la mostramos aquí. Revisamos cada solicitud antes de publicarla.</p>
     <ol class="honor-pasos"><li><b>1</b> Llena el formulario</li><li><b>2</b> Revisamos tu solicitud</li><li><b>3</b> Apareces en el cuadro</li></ol>
     <form id="f-honor" class="form" novalidate>
-      <div class="fila"><label>Logo de tu banda<input name="logoArchivo" type="file" accept="image/png,image/jpeg,image/webp"></label><label>Nombre de la banda o proyecto *<input name="banda" maxlength="60" required placeholder="Ej. Los Ensayos"></label></div>
+      <div class="fila"><label>Logo de tu banda<input name="logoArchivo" type="file" accept="image/png,image/jpeg,image/webp"></label><label>Nombre de la banda o proyecto *<input name="banda" maxlength="60" required placeholder="Ej. Black Sabbath"></label></div>
       <div class="fila"><label>Estilo musical<input name="genero" maxlength="60" placeholder="Ej. Rock progresivo y metal"></label><label>Formación (opcional)<input name="formacion" maxlength="120" placeholder="Ej. Guitarra, bajo, batería y voz"></label></div>
       <fieldset class="honor-redes"><legend>Canal de YouTube o redes sociales (elige hasta 3)</legend><div id="honor-redes"></div><button type="button" class="btn chico sec-b" id="honor-red-mas">+ Agregar red</button></fieldset>
       <label>Link de tu último trabajo<input name="ultimo" type="url" maxlength="300" placeholder="https://youtu.be/… (video, single, disco)"></label>
       <label>Mini reseña de tu banda *<textarea name="resena" rows="3" maxlength="500" required placeholder="Quiénes son, qué grabaron o ensayaron aquí…"></textarea><small class="contador" id="honor-cont">0 / 500</small></label>
-      <div class="fila"><label>WhatsApp de contacto *<input name="telefono" type="tel" required value="+569 " placeholder="+569 1234 5678"></label><label>Correo *<input name="correo" type="email" required placeholder="tu@correo.cl"></label></div>
+      <div class="fila"><label>WhatsApp de contacto *<input name="telefono" type="tel" required value="+569 " placeholder="+569 1234 5678"></label><label>Correo *<input name="correo" type="email" required placeholder="Ej. ozzy@gmail.com" autocomplete="email"></label></div>
       <input type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true" class="trampa">
       <p class="error" hidden></p><p class="ok" hidden></p><button class="btn" type="submit">Enviar mi banda</button>
     </form>
@@ -234,7 +234,7 @@
     <p class="sub">Solo con el código de tu reserva (lo recibes al reservar) y el WhatsApp con el que reservaste.</p>
     <form id="f-resena" class="form" novalidate>
       <div class="fila"><label>Código de tu reserva (ej. RP-1001)<input name="codigo" maxlength="20" required></label><label>WhatsApp de la reserva<input name="telefono" type="tel" required value="+569 "></label></div>
-      <div class="fila"><label>Tu nombre<input name="nombre" maxlength="40" required></label><label class="sel-est">Evaluación<select name="estrellas"><option value="5">★★★★★</option><option value="4">★★★★☆</option><option value="3">★★★☆☆</option><option value="2">★★☆☆☆</option><option value="1">★☆☆☆☆</option></select></label></div>
+      <div class="fila"><label>Tu nombre<input name="nombre" maxlength="40" required placeholder="Ej. Ozzy Osbourne" autocomplete="name"></label><label class="sel-est">Evaluación<select name="estrellas"><option value="5">★★★★★</option><option value="4">★★★★☆</option><option value="3">★★★☆☆</option><option value="2">★★☆☆☆</option><option value="1">★☆☆☆☆</option></select></label></div>
       <label>Comentario<textarea name="comentario" rows="3" maxlength="400"></textarea></label>
       <input type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true" class="trampa">
       <p class="error" hidden></p><p class="ok" hidden></p><button class="btn" type="submit">Enviar opinión</button>
@@ -247,8 +247,8 @@
 <section id="cotizar" class="sec">
   <h2>Cotizar</h2><p class="sub">Planes mensuales, producción musical u otras consultas.</p>
   <form id="f-cot" class="form" novalidate>
-    <div class="fila"><label>¿Qué necesitas?<select name="tipo"><option value="plan8">Plan mensual de 8 horas</option><option value="plan12">Plan mensual de 12 horas</option><option value="produccion">Producción musical</option><option value="otro">Otra consulta</option></select></label><label>Tu nombre<input name="nombre" maxlength="60" required></label></div>
-    <div class="fila"><label>WhatsApp<input name="telefono" type="tel" required value="+569 "></label><label>Correo<input name="correo" type="email" required></label></div>
+    <div class="fila"><label>¿Qué necesitas?<select name="tipo"><option value="plan8">Plan mensual de 8 horas</option><option value="plan12">Plan mensual de 12 horas</option><option value="produccion">Producción musical</option><option value="otro">Otra consulta</option></select></label><label>Tu nombre<input name="nombre" maxlength="60" required placeholder="Ej. Ozzy Osbourne" autocomplete="name"></label></div>
+    <div class="fila"><label>WhatsApp<input name="telefono" type="tel" required value="+569 "></label><label>Correo<input name="correo" type="email" required placeholder="Ej. ozzy@gmail.com" autocomplete="email"></label></div>
     <label>Cuéntanos qué buscas<textarea name="mensaje" rows="3" maxlength="600" required></textarea></label>
     <input type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true" class="trampa">
     <p class="error" hidden></p><p class="ok" hidden></p><button class="btn" type="submit">Pedir cotización</button>
