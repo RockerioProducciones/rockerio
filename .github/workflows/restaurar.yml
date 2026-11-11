@@ -1,0 +1,37 @@
+name: Volver a una versión anterior (rescate)
+# Se usa desde GitHub → Actions → «Volver a una versión anterior» → Run workflow → escribir el nombre de la versión (por ejemplo estable-2026-11-11-0118).
+# Deja el sitio y el portal exactamente como estaban en esa versión. No borra nada: la versión actual queda guardada en el historial.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Nombre de la versión estable a restaurar (ej. estable-2026-11-11-0118)'
+        required: true
+        type: string
+permissions:
+  contents: write
+  actions: write
+jobs:
+  volver:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0, fetch-tags: true }
+      - name: Restaurar archivos de esa versión
+        env:
+          V: ${{ inputs.version }}
+        run: |
+          case "$V" in estable-*) ;; *) echo "El nombre debe empezar con estable-"; exit 1;; esac
+          git rev-parse --verify "refs/tags/$V" >/dev/null || { echo "No existe la versión $V"; exit 1; }
+          git rm -rq --cached . >/dev/null
+          git checkout "refs/tags/$V" -- .
+          git ls-files -o --exclude-standard -z | xargs -0 -r rm -f
+          git add -A
+          if git diff --cached --quiet; then echo "Ya estaba en esa versión; nada que cambiar."; exit 0; fi
+          git config user.name "Rescate Rockerío"; git config user.email "rescate@users.noreply.github.com"
+          git commit -m "Rescate: volver a $V"
+          git push
+      - name: Publicar el portal (Apps Script)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run "Publicar portal (Apps Script)" --ref main
