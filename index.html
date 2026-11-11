@@ -51,7 +51,6 @@
 <div id="menu" class="menu" role="navigation" aria-label="¿Qué quieres hacer?">
   <a class="tarjeta principal" href="#reservar" data-vista="reservar" data-ico="📅"><b>Reservar</b><span>Sala o estudio en 6 pasos rápidos</span></a>
   <a class="tarjeta" href="#nosotros" data-vista="nosotros" data-ico="🎚️"><b>Producción</b><span>Enfoque y presentación</span></a>
-  <a class="tarjeta" href="#demo" data-vista="demo" data-ico="🎧"><b>Demostración técnica</b><span>Raw, mezcla, master y pistas</span></a>
   <a class="tarjeta" href="#ficha" data-vista="ficha" data-ico="🎛️"><b>Ficha técnica</b><span>Micrófonos, backline y más</span></a>
   <a class="tarjeta" href="#planes" data-vista="planes" data-ico="🏷️"><b>Planes mensuales</b><span>Pack de 4 reservas</span></a>
   <a class="tarjeta" href="#galeria" data-vista="galeria" data-ico="🖼️"><b>Galería</b><span>Fotos y videos</span></a>
@@ -174,6 +173,7 @@
   <h2>Producción</h2>
   <div class="ficha-tabs prod-tabs" role="tablist" id="prod-tabs">
     <button type="button" class="ficha-tab" role="tab" data-p="sobre" aria-selected="true"><span class="ft-ico">🎚️</span><span class="ft-tit">Sobre mí</span></button>
+    <button type="button" class="ficha-tab" role="tab" data-p="demo" aria-selected="false"><span class="ft-ico">🎧</span><span class="ft-tit">Demostración técnica</span></button>
     <button type="button" class="ficha-tab" role="tab" data-p="metodo" aria-selected="false"><span class="ft-ico">🏭</span><span class="ft-tit">Estudio y método</span></button>
   </div>
   <div class="prod-panel" data-p="sobre">
@@ -182,6 +182,11 @@
     <p data-ed="nos.enf.p" data-ed-l="Enfoque: párrafo">Mi pasión y especialidad es el rock y sus géneros derivados, con una dedicación especial hacia las bandas instrumentales. Me apasiona acompañar la música en sus distintas etapas:</p>
     <ul class="reg-lista"><li data-ed="nos.enf.l1" data-ed-l="Enfoque: punto 1">Bandas de jóvenes que están partiendo y dando forma a sus primeros proyectos.</li><li data-ed="nos.enf.l2" data-ed-l="Enfoque: punto 2">Proyectos emergentes que ya están en ruta buscando consolidar su sonido.</li><li data-ed="nos.enf.l3" data-ed-l="Enfoque: punto 3">Músicos que vuelven a juntarse tras años de pausas para revivir sus canciones con la experiencia de hoy.</li></ul></div>
     <p class="firma"><b>Juan Carlos Retamal González</b><br><span>Técnico Superior en Informática e Ingeniero en Sonido</span></p>
+  </div>
+  <div class="prod-panel" data-p="demo" hidden>
+    <p class="sub demo-intro" data-ed="demo.intro" data-ed-l="Demostración técnica: introducción">Aquí escuchas lo que hago con la música que se graba: cada instrumento por separado y el paso de la toma en bruto a la mezcla y al master.</p>
+    <div class="caja comp-ab mezclador" id="mezclador" hidden></div>
+    <p class="nota prod-vacio" id="mezclador-vacio" hidden>Muy pronto: un mini mezclador para escuchar cada instrumento solo y comparar el sonido en bruto, mezclado y masterizado.</p>
   </div>
   <div class="prod-panel" data-p="metodo" hidden>
   <div class="prod-bloque"><h3 data-ed="nos.fil.t" data-ed-l="Filosofía: título">Nuestra filosofía (sin rodeos ni humo)</h3>
@@ -199,12 +204,7 @@
   <p><a class="btn" href="#ficha">Ver ficha técnica</a></p>
 </section>
 
-<section id="demo" class="sec">
-  <h2>Demostración técnica</h2>
-  <p class="sub demo-intro" data-ed="demo.intro" data-ed-l="Demostración: introducción">Aquí escuchas lo que hago con la música que se graba: cada instrumento por separado y el paso de la toma en bruto a la mezcla y al master.</p>
-  <div class="caja comp-ab mezclador" id="mezclador" hidden></div>
-  <p class="nota prod-vacio" id="mezclador-vacio" hidden>Muy pronto: un mini mezclador para escuchar cada instrumento solo y comparar el sonido en bruto, mezclado y masterizado.</p>
-</section>
+
 
 <section id="ficha" class="sec">
   <h2>Ficha técnica</h2><div id="ficha-in" class="ficha-app"></div>

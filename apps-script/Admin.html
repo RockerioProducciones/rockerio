@@ -895,11 +895,11 @@ ejecutar('adminResumen');
 
 /* ---------- Editor del sitio web: tarjetas de secciones → editar → un solo botón «Guardar cambios» ---------- */
 var ST={datos:null,sec:'',doc:null,cargando:false,tareas:[],vista:'lista'};
-var SEC_VER={nosotros:'verProduccion',demo:'verDemo',ficha:'verFicha',planes:'verPlanes',galeria:'verGaleria',opiniones:'verEvaluaciones',proaudix:'verProaudix',contacto:'verContacto',bandas:'verHonor',tienda:'verTienda',cotizar:'verCotizar',reglamento:'verReglamento'};
-var SEC_ICO={inicio:'🏠',nosotros:'🎚️',demo:'🎧',ficha:'🎛️',galeria:'🖼️',tienda:'🛍️',proaudix:'🛡️',contacto:'📞',reglamento:'📖',planes:'🏷️',opiniones:'⭐',bandas:'🏅',cotizar:'📝'};
-var SEC_DESC={inicio:'Título, frase y logo de la portada',nosotros:'Presentación, filosofía, método y fotos',demo:'Mezclador de pistas: instrumentos solos y comparación en bruto, mezcla y master',ficha:'Equipos, micrófonos y audios de muestra',galeria:'Fotos, videos y playlist',tienda:'Texto de la tienda',proaudix:'Textos, logo y enlaces de ProAudix',contacto:'Dirección, redes sociales y enlaces',reglamento:'Reglas que aceptan los clientes'};
+var SEC_VER={nosotros:'verProduccion',ficha:'verFicha',planes:'verPlanes',galeria:'verGaleria',opiniones:'verEvaluaciones',proaudix:'verProaudix',contacto:'verContacto',bandas:'verHonor',tienda:'verTienda',cotizar:'verCotizar',reglamento:'verReglamento'};
+var SEC_ICO={inicio:'🏠',nosotros:'🎚️',ficha:'🎛️',galeria:'🖼️',tienda:'🛍️',proaudix:'🛡️',contacto:'📞',reglamento:'📖',planes:'🏷️',opiniones:'⭐',bandas:'🏅',cotizar:'📝'};
+var SEC_DESC={inicio:'Título, frase y logo de la portada',nosotros:'Presentación, demostración técnica (mezclador), método y fotos',ficha:'Equipos, micrófonos y audios de muestra',galeria:'Fotos, videos y playlist',tienda:'Texto de la tienda',proaudix:'Textos, logo y enlaces de ProAudix',contacto:'Dirección, redes sociales y enlaces',reglamento:'Reglas que aceptan los clientes'};
 var SEC_CFG={inicio:['heroTitulo','heroTexto','avisoBanner'],contacto:['direccion','correoContacto','whatsapp','mapsUrl','sitioWeb','redInstagram','redFacebook','redYoutube','redTiktok','redSpotify','redYoutubeMusic','redTwitch','redLinktree','enlacesExtra'],proaudix:['proaudixTexto','proaudixWhatsapp','proaudixWeb','proaudixInstagram','proaudixFacebook','proaudixYoutube','proaudixEnlaces']};
-var SEC_FIJAS=[['inicio','Portada'],['nosotros','Producción'],['demo','Demostración técnica'],['ficha','Ficha técnica'],['galeria','Galería'],['proaudix','ProAudix'],['contacto','Contacto y redes'],['reglamento','Reglamento']];
+var SEC_FIJAS=[['inicio','Portada'],['nosotros','Producción'],['ficha','Ficha técnica'],['galeria','Galería'],['proaudix','ProAudix'],['contacto','Contacto y redes'],['reglamento','Reglamento']];
 var SITIO_GRUPOS=['Portada y secciones','Contacto y redes','ProAudix'];
 function sBase(){return(ST.datos&&ST.datos.base)||''}
 function sUrl(u){return /^assets\//.test(u||'')?sBase()+'/'+u:u}
@@ -961,7 +961,7 @@ function pintarSitioPanel(){var p=$('sitio-panel'),top=$('sitio-top');if(!ST.dat
     tareaParte('textos',function(){var o=Object.assign({},ST.datos.sitio.textos||{});campos.forEach(function(c){var v=c[1].value.trim();if(!v||v===c[2])delete o[c[0]];else o[c[0]]=v});return o})}
   if(sid==='ficha'){p.appendChild(editorFicha());p.appendChild(editorMics())}
   if(sid==='galeria'){p.appendChild(editorGaleria());p.appendChild(editorPlaylist())}
-  var mover={nosotros:['Presentación personal'],demo:['Mezclador de pistas'],ficha:['Muestras de audio'],reglamento:['Reglamento interno']}[sid]||[];
+  var mover={nosotros:['Presentación personal','Mezclador de pistas'],ficha:['Muestras de audio'],reglamento:['Reglamento interno']}[sid]||[];
   mover.forEach(function(t){var o=SUB[t];if(o)p.appendChild(o)});
   if(ST.datos.aviso&&!ST.doc)top.appendChild(par('⚠ '+ST.datos.aviso,'color:#FCC631;font-size:13px;margin:.3rem 0'));
   var bar=el_('div','sitio-barra');bar.appendChild(btn('💾 Guardar cambios',guardarSeccion));bar.appendChild(el_('small','','Guarda todo lo de esta sección. Presentación, reglamento y audios tienen su propio botón.'));p.appendChild(bar)}
