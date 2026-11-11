@@ -400,28 +400,83 @@
       var tm = document.querySelector('#galeria-in .ficha-tab[data-id="musica"]'); if (tm && tm.getAttribute('aria-selected') === 'true') tm.click();
     }).catch(function () {});
   }
+  /* Tienda: categorías, búsqueda y un pedido con varios productos que se envía de una vez por WhatsApp (pensada para el celular). */
+  var carro = {}, tiendaCat = 'todo', tiendaQ = '';
   function pintarTienda(items) {
     var cont = $('tienda-in'); cont.textContent = '';
     items = (items || []).filter(function (p) { return !/beb/i.test(p.categoria || ''); });
     if (!items.length) { $('tienda').hidden = true; return; }
     $('tienda').hidden = !cfg.verTienda;
-    var rejilla = el('div', 'prods tienda-grid'); cont.appendChild(rejilla);
-    items.forEach(function (p) {
-      var agotado = p.stock === 0, f = el('div', 'prod' + (agotado ? ' agotado' : '') + (p.foto ? ' con-foto' : ''));
-      var fo = el('div', 'prod-fotobox');
-      if (p.foto) { var im = el('img', 'prod-foto'); im.src = p.foto; im.alt = p.nombre; im.loading = 'lazy'; fo.appendChild(im); } else fo.appendChild(el('span', 'prod-sinfoto', '🎸'));
-      f.appendChild(fo);
-      f.appendChild(el('div', 'prod-cat', p.categoria || 'Insumos'));
-      f.appendChild(el('h4', 'prod-nom', p.nombre));
-      if (p.detalle) f.appendChild(el('p', 'prod-det', p.detalle));
-      var pie = el('div', 'prod-pie'); pie.appendChild(el('span', 'pr', p.precio ? R.clp(p.precio) : 'Consultar'));
-      if (!agotado) {
-        var b = el('a', 'prod-wsp', 'Comprar por WhatsApp'); b.target = '_blank'; b.rel = 'noopener';
-        b.href = wspUrl('Hola 👋 Me gustaría comprar: ' + p.nombre + (p.detalle ? ' (' + p.detalle + ')' : '') + (p.precio ? ' — ' + R.clp(p.precio) : '') + '. ¿Lo tienen disponible?');
-        pie.appendChild(b);
-      } else pie.appendChild(el('span', 'prod-ago', 'Agotado'));
-      f.appendChild(pie); rejilla.appendChild(f);
-    });
+    var cats = []; items.forEach(function (p) { var c = p.categoria || 'Insumos'; if (cats.indexOf(c) < 0) cats.push(c); });
+    if (tiendaCat !== 'todo' && cats.indexOf(tiendaCat) < 0) tiendaCat = 'todo';
+    var maxDe = function (p) { return p.stock === null || p.stock === undefined ? 20 : Math.max(0, Math.min(20, p.stock)); };
+    var clave = function (p) { return (p.categoria || '') + '|' + p.nombre; };
+    // se limpia del pedido lo que ya no existe o se agotó
+    Object.keys(carro).forEach(function (k) { var p = items.filter(function (x) { return clave(x) === k; })[0]; if (!p || !maxDe(p)) delete carro[k]; else carro[k].p = p; });
+
+    var barra = el('div', 'tp-barra');
+    var buscar = el('input', 'tp-buscar'); buscar.type = 'search'; buscar.placeholder = 'Buscar producto…'; buscar.maxLength = 40; buscar.autocomplete = 'off'; buscar.value = tiendaQ; buscar.setAttribute('aria-label', 'Buscar producto');
+    var chips = el('div', 'tp-chips'); chips.setAttribute('role', 'group'); chips.setAttribute('aria-label', 'Categorías');
+    barra.appendChild(buscar); barra.appendChild(chips); cont.appendChild(barra);
+    var rejilla = el('div', 'tp-grid'), vacio = el('p', 'nota tp-vacio', 'No encontramos productos con esa búsqueda. Escríbenos por WhatsApp y los conseguimos.'); vacio.hidden = true;
+    cont.appendChild(rejilla); cont.appendChild(vacio);
+
+    var bar = el('div', 'tp-carro'); bar.hidden = true; bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', 'Tu pedido');
+    var resumen = el('div', 'tp-res'); resumen.setAttribute('aria-live', 'polite');
+    var accion = el('div', 'tp-acc'), vaciar = el('button', 'tp-vaciar', 'Vaciar'); vaciar.type = 'button';
+    var pedir = el('a', 'tp-pedir', '💬 Enviar pedido'); pedir.target = '_blank'; pedir.rel = 'noopener';
+    accion.appendChild(vaciar); accion.appendChild(pedir); bar.appendChild(resumen); bar.appendChild(accion); cont.appendChild(bar);
+
+    function lineas() { return Object.keys(carro).map(function (k) { return carro[k]; }).filter(function (x) { return x.n > 0; }); }
+    function actualizarBarra() {
+      var ls = lineas(), n = ls.reduce(function (a, x) { return a + x.n; }, 0); bar.hidden = !n; if (!n) return;
+      var total = 0, sin = 0; ls.forEach(function (x) { if (x.p.precio) total += x.p.precio * x.n; else sin++; });
+      resumen.textContent = ''; resumen.appendChild(el('b', '', '🛒 ' + n + (n === 1 ? ' producto' : ' productos')));
+      resumen.appendChild(el('span', '', total ? R.clp(total) + (sin ? ' + ' + sin + ' por consultar' : '') : 'Precio por consultar'));
+      var msg = 'Hola 👋 Quiero pedir en ' + (cfg.nombreNegocio || 'Rockerío') + ':\n' + ls.map(function (x) { return '• ' + x.n + ' × ' + x.p.nombre + (x.p.precio ? ' — ' + R.clp(x.p.precio * x.n) : ' (consultar precio)'); }).join('\n') +
+        (total ? '\nTotal estimado: ' + R.clp(total) + (sin ? ' + productos por cotizar' : '') : '') + '\n¿Los tienen disponibles?';
+      pedir.href = wspUrl(msg);
+    }
+    vaciar.addEventListener('click', function () { carro = {}; pintarRejilla(); actualizarBarra(); });
+
+    function tarjeta(p, fotos) {
+      var agotado = !maxDe(p), k = clave(p), f = el('article', 'tp' + (agotado ? ' agotado' : ''));
+      var fb = el('button', 'tp-foto'); fb.type = 'button'; fb.setAttribute('aria-label', 'Ver foto de ' + p.nombre);
+      if (p.foto) { var im = el('img'); im.src = p.foto; im.alt = ''; im.loading = 'lazy'; im.decoding = 'async'; fb.appendChild(im); fb.addEventListener('click', function () { var pos = 0; fotos.forEach(function (x, i) { if (x.src === p.foto) pos = i; }); visor(fotos, pos); }); }
+      else { fb.appendChild(el('span', 'tp-sinfoto', '🎸')); fb.disabled = true; }
+      if (agotado) fb.appendChild(el('span', 'tp-ins ago', 'Agotado')); else if (p.stock !== null && p.stock !== undefined && p.stock <= 3) fb.appendChild(el('span', 'tp-ins', 'Quedan ' + p.stock));
+      f.appendChild(fb); f.appendChild(el('div', 'tp-cat', p.categoria || 'Insumos')); f.appendChild(el('h4', 'tp-nom', p.nombre)); if (p.detalle) f.appendChild(el('p', 'tp-det', p.detalle));
+      var pie = el('div', 'tp-pie'); pie.appendChild(el('span', 'tp-precio' + (p.precio ? '' : ' consultar'), p.precio ? R.clp(p.precio) : 'Consultar')); f.appendChild(pie);
+      var ctl = el('div', 'tp-ctl'); f.appendChild(ctl);
+      function ctrl() {
+        ctl.textContent = ''; var x = carro[k], n = x ? x.n : 0;
+        if (agotado) { ctl.appendChild(el('span', 'tp-agot', 'Sin stock por ahora')); return; }
+        if (!n) { var a = el('button', 'tp-add', '+ Agregar'); a.type = 'button'; a.setAttribute('aria-label', 'Agregar ' + p.nombre); a.addEventListener('click', function () { carro[k] = { p: p, n: 1 }; ctrl(); actualizarBarra(); }); ctl.appendChild(a); return; }
+        var menos = el('button', 'tp-q', '−'), mas = el('button', 'tp-q', '+'), cant = el('b', 'tp-n', String(n)); menos.type = mas.type = 'button';
+        menos.setAttribute('aria-label', 'Quitar uno de ' + p.nombre); mas.setAttribute('aria-label', 'Agregar uno más de ' + p.nombre); mas.disabled = n >= maxDe(p);
+        menos.addEventListener('click', function () { if (n <= 1) delete carro[k]; else carro[k].n = n - 1; ctrl(); actualizarBarra(); });
+        mas.addEventListener('click', function () { if (n < maxDe(p)) { carro[k].n = n + 1; ctrl(); actualizarBarra(); } });
+        ctl.appendChild(menos); ctl.appendChild(cant); ctl.appendChild(mas);
+      }
+      ctrl(); return f;
+    }
+    function visibles() {
+      var q = tiendaQ.toLowerCase().trim();
+      return items.filter(function (p) { return (tiendaCat === 'todo' || (p.categoria || 'Insumos') === tiendaCat) && (!q || (p.nombre + ' ' + (p.detalle || '') + ' ' + (p.categoria || '')).toLowerCase().indexOf(q) >= 0); });
+    }
+    function pintarRejilla() {
+      rejilla.textContent = ''; var vs = visibles(), fotos = vs.filter(function (p) { return p.foto; }).map(function (p) { return { src: p.foto, alt: p.nombre }; });
+      vs.forEach(function (p) { rejilla.appendChild(tarjeta(p, fotos)); }); vacio.hidden = !!vs.length;
+    }
+    function pintarChips() {
+      chips.textContent = '';
+      [['todo', 'Todo', items.length]].concat(cats.map(function (c) { return [c, c, items.filter(function (p) { return (p.categoria || 'Insumos') === c; }).length]; })).forEach(function (c) {
+        var b = el('button', 'tp-chip'); b.type = 'button'; b.setAttribute('aria-pressed', c[0] === tiendaCat ? 'true' : 'false'); b.appendChild(document.createTextNode(c[1])); b.appendChild(el('small', '', String(c[2])));
+        b.addEventListener('click', function () { tiendaCat = c[0]; pintarChips(); pintarRejilla(); }); chips.appendChild(b);
+      });
+    }
+    buscar.addEventListener('input', function () { tiendaQ = buscar.value; pintarRejilla(); });
+    pintarChips(); pintarRejilla(); actualizarBarra();
   }
 
   /* ---------- reserva: pasos ---------- */
