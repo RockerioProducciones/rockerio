@@ -26,6 +26,7 @@ jobs:
           git rm -rq --cached . >/dev/null
           git checkout "refs/remotes/origin/$V" -- .
           git ls-files -o --exclude-standard -z | xargs -0 -r rm -f
+          git checkout refs/remotes/origin/main -- .github RESCATE.md
           git add -A
           if git diff --cached --quiet; then echo "Ya estaba en esa versión; nada que cambiar."; exit 0; fi
           git config user.name "Rescate Rockerío"; git config user.email "rescate@users.noreply.github.com"
