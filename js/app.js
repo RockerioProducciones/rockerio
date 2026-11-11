@@ -264,7 +264,7 @@
     if (!fichaDatos) { dato('ficha', 'data/ficha.json').then(function (d) { fichaDatos = fichaDatos || d; pintarFicha(); }).catch(function () { $('ficha').hidden = true; }); return; }
     var cont = $('ficha-in'); cont.textContent = ''; cont.className = 'ficha-app';
     var v = { precioEnsayoHora: R.clp(cfg.precioEnsayoHora), plan8: R.clp(cfg.plan8), plan12: R.clp(cfg.plan12), abonoPorHora: R.clp(cfg.abonoPorHora), horasAnulacion: cfg.horasAnulacion };
-    var secs = fichaDatos.secciones || []; if (!secs.length) { $('ficha').hidden = true; return; }
+    var secs = (fichaDatos.secciones || []).filter(function (x) { return !(x && (x.escucha || x.id === 'muestras')); }); // «Muestras» ya no va en la ficha: el audio vive en cada micrófono if (!secs.length) { $('ficha').hidden = true; return; }
     if (!fichaTab || !secs.some(function (s) { return s.id === fichaTab; })) fichaTab = secs[0].id;
     var tabs = el('div', 'ficha-tabs'); tabs.setAttribute('role', 'tablist'); cont.appendChild(tabs);
     var panel = el('div', 'ficha-panel'); cont.appendChild(panel);

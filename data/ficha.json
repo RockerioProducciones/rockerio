@@ -422,16 +422,6 @@
           ]
         }
       ]
-    },
-    {
-      "id": "muestras",
-      "icono": "🎧",
-      "titulo": "Muestras",
-      "resumen": "Escucha canciones en bruto, mezcladas y masterizadas, y ensayos reales de banda.",
-      "stats": [],
-      "fotos": [],
-      "bloques": [],
-      "escucha": true
     }
   ]
 }

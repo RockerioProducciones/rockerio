@@ -93,7 +93,7 @@ const { sembrar } = require('./demo.js');
   await p.locator('.ficha-tab', { hasText: 'Microfonía' }).click(); await p.waitForTimeout(300);
   ok(/Telefunken/.test(await p.textContent('.ficha-panel')) && await p.locator('.ficha-panel .mic-it').count() >= 8 && /Uso:/.test(await p.textContent('.ficha-panel .mic-it')), 'micrófonos: foto, marca/modelo, uso y muestra en una sola tarjeta'); await p.locator('#mics').screenshot({ path: 'v-mics.png' });
     { const n = await p.locator('.ficha-panel .mic-it:visible').count(); await p.locator('.mic-chip').nth(1).click(); const m = await p.locator('.ficha-panel .mic-it:visible').count(); ok(await p.locator('.mic-chip').count() > 2 && m > 0 && m < n, 'filtro de micrófonos por uso'); await p.locator('.mic-chip').first().click(); }
-  await p.locator('.ficha-tab', { hasText: 'Muestras' }).click(); await p.waitForTimeout(300);
+  ok(await p.locator('.ficha-tab', { hasText: 'Muestras' }).count() === 0, 'la ficha técnica ya no tiene la pestaña Muestras');
   await p.locator('.ficha-tab', { hasText: 'Sala de control' }).click(); await p.waitForTimeout(300); await p.screenshot({ path: 'v-ficha-control.png' });
   await p.goto('http://localhost:8099/#galeria'); await p.waitForTimeout(700);
   ok(await p.locator('#galeria-car .fo-it').count() >= 8 && (await p.locator('#galeria-car .fo-it img').first().boundingBox()).width < 140, 'galería: fotos pequeñas con texto');
