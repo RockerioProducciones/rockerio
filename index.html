@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="css/pulido.css">
 <link rel="stylesheet" href="css/produccion.css">
 <link rel="stylesheet" href="css/legible.css">
-<script>(function(){try{var q=/[?&]rediseno=(\d)/.exec(location.search);if(q)localStorage.setItem('rk-rd',q[1]);if(localStorage.getItem('rk-rd')==='1'){document.documentElement.classList.add('rd');var l=document.createElement('link');l.rel='stylesheet';l.href='css/rediseno.css';document.head.appendChild(l)}}catch(e){}})()</script>
+<script>(function(){try{var q=/[?&]rediseno=(\d)/.exec(location.search);if(q)localStorage.setItem('rk-rd',q[1]);if(localStorage.getItem('rk-rd')!=='0'){document.documentElement.classList.add('rd');['css/rediseno.css','https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap'].forEach(function(h){var l=document.createElement('link');l.rel='stylesheet';l.href=h;document.head.appendChild(l)})}}catch(e){}})()</script>
 <script src="js/tema.js"></script><script src="js/teclado.js" defer></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;800&family=Nunito:wght@400;700&family=Space+Mono:wght@400;700&family=Archivo+Black&family=Bebas+Neue&family=Poppins:wght@400;600&display=swap"></head>
 <body>
