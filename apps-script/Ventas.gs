@@ -84,7 +84,7 @@ function adminCargarBase(tipo) {
 }
 
 function adminEliminarProducto(fila, tipo) {
-  exigirAdmin_(); respaldoAntes_('eliminar producto');
+  exigirAdmin_();
   return conBloqueo_(function () {
     var sh = hojaCatalogo_(tipo);
     sh.deleteRow(filaProducto_(sh, fila));
@@ -246,7 +246,7 @@ function adminCobrar(id, pago) {
 }
 /** Anula una venta (queda en el historial como «Anulada») y devuelve las unidades al stock. */
 function adminAnularVenta(id) {
-  exigirAdmin_(); respaldoAntes_('anular venta');
+  exigirAdmin_();
   return conBloqueo_(function () {
     var ss = abrirBd_(), sh = ss.getSheetByName(HOJAS.ventas), f = filaPorTexto_(sh, id, VT.id);
     if (!f) throw new Error('Venta no encontrada.');
@@ -302,7 +302,7 @@ function adminEditarVenta(id, d) {
 
 /** Elimina del todo una venta (por ejemplo, una duplicada). Si no estaba anulada, devuelve las unidades al stock. */
 function adminEliminarVenta(id) {
-  exigirAdmin_(); respaldoAntes_('eliminar venta');
+  exigirAdmin_();
   return conBloqueo_(function () {
     var sh = abrirBd_().getSheetByName(HOJAS.ventas), f = filaPorTexto_(sh, id, VT.id);
     if (!f) throw new Error('Venta no encontrada.');
@@ -364,7 +364,7 @@ function cerrarMes_(mes) {
 
 /** Disparador del día 1 de cada mes: guarda el balance del mes que terminó. */
 function cerrarMesAnterior() {
-  try { cerrarMes_(Reglas.sumarDias(ahoraChile_().fecha.slice(0, 8) + '01', -1).slice(0, 7)); } catch (e) { avisarFallo_('cierre mensual', e); throw e; }
+  cerrarMes_(Reglas.sumarDias(ahoraChile_().fecha.slice(0, 8) + '01', -1).slice(0, 7));
 }
 
 function leerHistorial_() {
@@ -377,6 +377,6 @@ function leerHistorial_() {
 }
 
 function adminCerrarMes(mes) {
-  exigirAdmin_(); respaldoAntes_('cerrar mes');
+  exigirAdmin_();
   return conBloqueo_(function () { cerrarMes_(mes); return adminResumen(); });
 }

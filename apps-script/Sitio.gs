@@ -48,11 +48,8 @@ function limpiarFotosSitio_(o) {
 function fotoItem_(f) {
   f = f || {};
   var src = urlImagenSitio_(f.src); if (!src) return null;
-  var o = { src: src, titulo: limpiar_(f.titulo, 80), descripcion: limpiar_(f.descripcion, 220), alt: limpiar_(f.alt || f.titulo, 120) };
-  if (CATEGORIAS_GALERIA.indexOf(String(f.categoria || '')) >= 0 && f.categoria) o.categoria = String(f.categoria);
-  return o;
+  return { src: src, titulo: limpiar_(f.titulo, 80), descripcion: limpiar_(f.descripcion, 220), alt: limpiar_(f.alt || f.titulo, 120) };
 }
-var CATEGORIAS_GALERIA = ['control', 'sala', 'equipos', 'patio'];
 
 function limpiarGaleriaSitio_(arr) {
   var out = [];
@@ -156,7 +153,7 @@ function sitioPublico_() {
 
 /** Guarda una parte. valor vacío ({} o []) = vuelve al contenido original del sitio. */
 function adminGuardarSitio(parte, valor) {
-  exigirAdmin_(); respaldoAntes_('guardar sitio');
+  exigirAdmin_();
   if (typeof valor === 'string') { try { valor = JSON.parse(valor); } catch (e) { throw new Error('No se pudo leer lo que enviaste.'); } }
   var limpio = validarParteSitio_(String(parte), valor), vacio = Array.isArray(limpio) ? !limpio.length : !Object.keys(limpio).length;
   var txt = JSON.stringify(limpio);

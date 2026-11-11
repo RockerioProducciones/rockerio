@@ -53,7 +53,7 @@ const { sembrar } = require('./demo.js');
   // volver al inicio
   await p.click('.volver'); await p.waitForTimeout(300); ok(await p.locator('.menu').isVisible(), 'botón Inicio vuelve al menú');
   // otras vistas
-  for (const [id, sel] of [['ficha', '#ficha-in .card'], ['galeria', '#galeria-in .gal-it img'], ['tienda', '#tienda-in'], ['reglamento', '#reglamento-in'], ['planes', '#plan-cards'], ['cotizar', '#f-cot'], ['contacto', '#wsp']]) {
+  for (const [id, sel] of [['ficha', '#ficha-in .card'], ['galeria', '#galeria-car .fo-it img'], ['tienda', '#tienda-in'], ['reglamento', '#reglamento-in'], ['planes', '#plan-cards'], ['cotizar', '#f-cot'], ['contacto', '#wsp']]) {
     await p.goto('http://localhost:8099/#' + id); await p.waitForTimeout(500);
     ok(await p.locator(sel).first().isVisible(), 'vista ' + id); await p.screenshot({ path: 'v-' + id + '.png' });
   }
@@ -71,7 +71,7 @@ const { sembrar } = require('./demo.js');
   const ft = await p.evaluate(() => document.querySelector('[data-ed="nos.fil.p1"]').innerHTML);
   console.log(/<strong>Texto nuevo:<\/strong> editado desde el portal/.test(ft) ? '  ok  el texto editado y su negrita se ven en el sitio' : 'FALLA texto editado: ' + ft);
   await p.goto('http://localhost:8099/#galeria'); await p.reload(); await p.waitForFunction(() => window.RK && window.RK.conectado()); await p.waitForTimeout(700);
-  const nfotos = await p.locator('#galeria-in .gal-it').count(), heroBg = await p.locator('#galeria-in .ficha-hero').evaluate((e) => e.style.backgroundImage); console.log(nfotos === 0 && /sala-1\.jpg/.test(heroBg) ? '  ok  la galería editada reemplaza a la original' : 'FALLA galería: ' + nfotos + ' ' + heroBg);
+  const nfotos = await p.locator('#galeria-car .fo-it img').count(); console.log(nfotos === 1 ? '  ok  la galería editada reemplaza a la original' : 'FALLA galería: ' + nfotos);
   ['textos', 'galeria'].forEach((x) => g.admin('adminGuardarSitio', x, x === 'galeria' ? [] : {}));
   await p.goto('http://localhost:8099/#bandas'); await p.waitForTimeout(700);
   await p.goto('http://localhost:8099/#reservar'); await p.reload(); await p.waitForFunction(() => window.RK && window.RK.conectado()); await p.waitForTimeout(600);
@@ -81,86 +81,26 @@ const { sembrar } = require('./demo.js');
   ok(/1 hora/.test(await p.textContent('#aviso-incl')), 'con 3 horas incluye 1 hora de grabación');
   ok(await p.locator('.opcion .desc').count() === 2, 'descripciones de sala y estudio');
   await p.goto('http://localhost:8099/#nosotros'); await p.waitForTimeout(600);
-  await p.locator('#prod-tabs [data-p="trabajos"]').click();
-  ok(await p.locator('#nosotros .prod-panel[data-p="trabajos"] [data-playlist] iframe').count() === 1 && await p.locator('#trabajos-vacio').isHidden(), 'la playlist está en la pestaña Trabajos terminados de Producción');
-  ok(await p.locator('#nosotros .prod-panel[data-p="metodo"] [data-playlist]').count() === 0, 'ya no está al final de Estudio y método');
+  ok(await p.locator('#nosotros [data-playlist] iframe').count() === 1, 'reproductor de playlist en Producción');
   await p.goto('http://localhost:8099/#galeria'); await p.waitForTimeout(600);
   ok(await p.locator('#galeria [data-playlist] iframe').count() === 1, 'reproductor de playlist en Galería');
-  // Tienda: categorías, búsqueda y pedido por WhatsApp
-  await p.goto('http://localhost:8099/#tienda'); await p.waitForTimeout(700);
-  ok(await p.locator('.tp-chip').count() >= 3 && await p.locator('.tp').count() >= 10, 'tienda: chips de categorías y todos los productos');
-  await p.locator('.tp-chip', { hasText: 'Percusión' }).click();
-  ok(await p.locator('.tp').count() === 2, 'tienda: filtrar por categoría');
-  await p.locator('.tp-chip', { hasText: 'Todo' }).click(); await p.locator('.tp-buscar').fill('slinky'); await p.waitForTimeout(200);
-  ok(await p.locator('.tp').count() >= 1 && await p.locator('.tp').count() < 5, 'tienda: la búsqueda filtra por nombre');
-  await p.locator('.tp-add').first().click(); await p.locator('.tp-q', { hasText: '+' }).first().click();
-  ok(await p.locator('.tp-carro').isVisible() && /2 productos/.test(await p.locator('.tp-res').textContent()), 'tienda: el pedido suma 2 productos');
-  const hrefPedido = decodeURIComponent(await p.locator('.tp-pedir').getAttribute('href'));
-  ok(/wa\.me\//.test(hrefPedido) && /2 × .*Slinky/i.test(hrefPedido) && /Total estimado/.test(hrefPedido), 'tienda: el mensaje de WhatsApp trae cantidades y total');
-  const bb = await p.locator('.tp-carro').boundingBox(), vh = p.viewportSize().height;
-  ok(bb && bb.y + bb.height <= vh + 1 && bb.y >= 0, 'tienda: la barra del pedido queda a la vista al desplazarse');
-  await p.locator('.tp-vaciar').click();
-  ok(await p.locator('.tp-carro').isHidden(), 'tienda: vaciar el pedido oculta la barra');
-  await p.locator('.tp-buscar').fill('');
   await p.goto('http://localhost:8099/#ficha'); await p.waitForTimeout(600);
-  ok(await p.locator('#ficha-in .ficha-tab').count() === 7, '7 pestañas en la ficha técnica');
+  ok(await p.locator('.ficha-tab').count() === 7, '7 pestañas en la ficha técnica');
   ok(await p.locator('.ficha-panel .fo-it').count() >= 2, 'fotos pequeñas con texto en la ficha');
   await p.locator('.ficha-tab', { hasText: 'Computador y DAW' }).click(); await p.waitForTimeout(300);
   ok(/Mac mini M4/.test(await p.textContent('.ficha-panel')) && /LUNA 3\.0/.test(await p.textContent('.ficha-panel')), 'estación de trabajo con Mac mini M4 y LUNA 3.0');
   await p.screenshot({ path: 'v-ficha-estacion.png', fullPage: true });
   await p.locator('.ficha-tab', { hasText: 'Microfonía' }).click(); await p.waitForTimeout(300);
-  ok(/Telefunken/.test(await p.textContent('.ficha-panel')) && await p.locator('.ficha-panel .mic-it').count() >= 8 && await p.locator('.ficha-panel .mic-it .mic-spec').count() >= 8 && await p.locator('.ficha-panel .mic-it .mic-m-tit').count() >= 8 && await p.locator('#ficha-in .ficha-panel .ficha-hero img, #ficha-in .ficha-panel .ficha-hero[style*=url]').count() === 0, 'micrófonos: marca/modelo, tipo, patrón, reseña y muestras en una sola tarjeta (sin foto repetida arriba)'); await p.locator('#mics').screenshot({ path: 'v-mics.png' });
+  ok(/Telefunken/.test(await p.textContent('.ficha-panel')) && await p.locator('.ficha-panel .mic-it').count() >= 8 && await p.locator('.ficha-panel .mic-it .mic-spec').count() >= 8 && await p.locator('.ficha-panel .mic-it .mic-m-tit').count() >= 8 && await p.locator('.ficha-panel .ficha-hero img, .ficha-panel .ficha-hero[style*=url]').count() === 0, 'micrófonos: marca/modelo, tipo, patrón, reseña y muestras en una sola tarjeta (sin foto repetida arriba)'); await p.locator('#mics').screenshot({ path: 'v-mics.png' });
     { const n = await p.locator('.ficha-panel .mic-it:visible').count(); await p.locator('.mic-chip').nth(1).click(); const m = await p.locator('.ficha-panel .mic-it:visible').count(); ok(await p.locator('.mic-chip').count() > 2 && m > 0 && m < n, 'filtro de micrófonos por uso'); await p.locator('.mic-chip').first().click(); }
   await p.locator('.ficha-tab', { hasText: 'Muestras' }).click(); await p.waitForTimeout(300);
   await p.locator('.ficha-tab', { hasText: 'Sala de control' }).click(); await p.waitForTimeout(300); await p.screenshot({ path: 'v-ficha-control.png' });
   await p.goto('http://localhost:8099/#reglamento'); await p.waitForTimeout(500);
   ok(/Protección de datos personales/.test(await p.textContent('#reglamento-in')) && /no vendemos/i.test(await p.textContent('#reglamento-in')), 'el reglamento incluye la protección de datos personales');
   await p.goto('http://localhost:8099/#galeria'); await p.waitForTimeout(700);
-  ok(await p.locator('#galeria-in .ficha-tab').count() >= 5 && await p.locator('#galeria-in .gal-it').count() >= 8, 'galería: pestañas por categoría y fotos en cuadrícula');
-  await p.locator('#galeria-in .ficha-tab', { hasText: 'Control room' }).click(); await p.waitForTimeout(250);
-  ok(await p.locator('#galeria-in .ficha-hero h3').textContent() === 'Control room' && await p.locator('#galeria-in .gal-it').count() === 3, 'la pestaña Control room muestra su portada y las otras 3 fotos');
-  await p.locator('#galeria-in .gal-it').first().click(); await p.waitForTimeout(250);
-  ok(await p.locator('.visor').count() === 1, 'al tocar una foto se abre el visor'); await p.keyboard.press('Escape');
-  await p.locator('#galeria-in .ficha-tab', { hasText: 'Música' }).click(); await p.waitForTimeout(250);
-  ok(await p.locator('#galeria-in .ficha-panel [data-playlist] iframe').count() === 1, 'la pestaña Música muestra la playlist');
-  await p.locator('#galeria-in .ficha-tab').first().click(); await p.click('#galeria-in .gal-it img'); await p.waitForTimeout(300); ok(await p.locator('.visor img').count() === 1, 'al tocar una foto se abre en grande'); await p.keyboard.press('Escape'); await p.screenshot({ path: 'v-galeria.png' });
+  ok(await p.locator('#galeria-car .fo-it').count() >= 8 && (await p.locator('#galeria-car .fo-it img').first().boundingBox()).width < 140, 'galería: fotos pequeñas con texto');
+  await p.click('#galeria-car .fo-it img'); await p.waitForTimeout(300); ok(await p.locator('.visor img').count() === 1, 'al tocar una foto se abre en grande'); await p.keyboard.press('Escape'); await p.screenshot({ path: 'v-galeria.png' });
   await p.goto('http://localhost:8099/#nosotros'); await p.waitForTimeout(500); await p.screenshot({ path: 'v-prod.png', fullPage: true });
-
-  // Demostración técnica: mezclador de pistas (Web Audio) con audios reales subidos por el portal simulado
-  const wavB64 = (f) => { const n = 16000, b = Buffer.alloc(44 + n * 2); b.write('RIFF', 0); b.writeUInt32LE(36 + n * 2, 4); b.write('WAVEfmt ', 8); b.writeUInt32LE(16, 16); b.writeUInt16LE(1, 20); b.writeUInt16LE(1, 22); b.writeUInt32LE(8000, 24); b.writeUInt32LE(16000, 28); b.writeUInt16LE(2, 32); b.writeUInt16LE(16, 34); b.write('data', 36); b.writeUInt32LE(n * 2, 40); for (let i = 0; i < n; i++) b.writeInt16LE(Math.round(Math.sin(2 * Math.PI * f * i / 8000) * 9000), 44 + i * 2); return b.toString('base64'); };
-  const sube = (et, f) => g.admin('adminSubirArchivoAudio', { grupo: 'Tema', etiqueta: et, b64: wavB64(f) });
-  g.admin('adminGuardarMezclador', { titulo: 'Tema demo', descripcion: 'Tramo de prueba', pistas: { 'Batería|En bruto': sube('bat raw', 110), 'Batería|Mezcla': sube('bat mix', 220), 'Bajo|En bruto': sube('bajo raw', 55), 'Bajo|Mezcla': sube('bajo mix', 82) } });
-  await p.goto('http://localhost:8099/#nosotros'); await p.reload(); await p.waitForFunction(() => window.RK && window.RK.conectado()); await p.waitForTimeout(700);
-  await p.locator('#prod-tabs [data-p="demo"]').click();
-  ok(await p.locator('#mezclador').isVisible(), 'el mezclador aparece cuando hay una canción cargada');
-  await p.locator('#mezclador .btn', { hasText: 'Cargar mezclador' }).click();
-  await p.waitForSelector('#mezclador .mz-pista', { timeout: 15000 });
-  ok(await p.locator('#mezclador .mz-pista').count() === 2 && await p.locator('#mezclador .mz-et').count() === 2, 'el mezclador carga 2 pistas y 2 etapas (las vacías no se muestran)');
-  await p.locator('#mezclador .mz-play').click(); await p.waitForTimeout(1300);
-  ok((await p.locator('#mezclador .mz-play').getAttribute('aria-pressed')) === 'true', 'el mezclador reproduce');
-  ok(Number(await p.locator('#mezclador .mz-pistas').getAttribute('aria-valuenow')) > 0 || (await p.locator('#mezclador .mz-reloj b').textContent()) !== '00:00.0', 'el reloj y la posición avanzan');
-  ok(await p.locator('#mezclador .mz-onda canvas').first().evaluate((c) => { const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; for (let i = 3; i < d.length; i += 4) if (d[i] > 0) return true; return false; }), 'se dibuja la forma de onda');
-  await p.locator('#mezclador .mz-pista').nth(1).locator('.mz-b').nth(0).click();
-  ok(await p.locator('#mezclador .mz-pista').nth(0).evaluate((e) => e.classList.contains('apagada')) && !(await p.locator('#mezclador .mz-pista').nth(1).evaluate((e) => e.classList.contains('apagada'))), 'Solo en una pista apaga las demás');
-  await p.locator('#mezclador .mz-pista').nth(1).locator('.mz-b').nth(1).click();
-  ok(await p.locator('#mezclador .mz-pista').nth(1).evaluate((e) => e.classList.contains('apagada')), 'Silenciar apaga la pista aunque tenga solo');
-  await p.locator('#mezclador .mz-et').nth(1).click();
-  ok(await p.locator('#mezclador .mz-et').nth(1).getAttribute('aria-pressed') === 'true', 'se puede cambiar de etapa mientras suena');
-  ok(await p.locator('#mezclador .mz-globo.ver').count() === 1 && /MIX/.test(await p.locator('#mezclador .mz-globo').textContent()), 'al cambiar de etapa aparece el globo que explica la mezcla');
-  await p.locator('#mezclador .btn', { hasText: 'Reiniciar pistas' }).click();
-  ok(await p.locator('#mezclador .apagada').count() === 0, 'Reiniciar pistas deja todo activo');
-  await p.locator('#mezclador .mz-pista').nth(0).locator('.mz-b').first().click();
-  ok(/SOLO/.test(await p.locator('#mezclador .mz-globo').textContent()), 'al hacer solo aparece un globo con la explicación');
-  await p.locator('#prod-tabs [data-p="sobre"]').click();
-  ok(await p.locator('#mezclador .mz-play').getAttribute('aria-pressed') === 'false', 'al cambiar de pestaña el mezclador se pausa');
-  await p.screenshot({ path: 'v-demo.png', fullPage: true });
-
-  await p.goto('http://localhost:8099/#nosotros'); await p.waitForTimeout(400);
-  ok(await p.locator('#prod-tabs .ficha-tab').count() === 4 && /Demostración/.test(await p.locator('#prod-tabs .ficha-tab').nth(1).textContent()) && /Trabajos/.test(await p.locator('#prod-tabs .ficha-tab').nth(3).textContent()), 'Producción: Sobre mí, Demostración técnica, Estudio y método, Trabajos terminados');
-  ok(await p.locator('#nosotros .prod-panel:not([hidden])').count() === 1, 'solo un panel de Producción visible a la vez');
-  await p.locator('#prod-tabs [data-p="metodo"]').click();
-  ok(await p.locator('#nosotros .prod-panel[data-p="metodo"]').isVisible() && !(await p.locator('#nosotros .prod-panel[data-p="sobre"]').isVisible()), 'la pestaña Método muestra su panel y oculta el otro');
-  await p.locator('#prod-tabs [data-p="metodo"]').click();
   ok(await p.locator('#nosotros .prod-foto').count() === 1, 'una sola foto en Producción, junto al texto');
   await p.goto('http://localhost:8099/#bandas'); await p.waitForTimeout(500);
   ok(await p.locator('#bandas.activa').count() === 1, 'cuadro de honor abre');
@@ -180,7 +120,6 @@ const { sembrar } = require('./demo.js');
   // secciones nuevas del sitio
   for (const [id, sel, txt] of [['nosotros', '#nosotros-in p', /Rocker/], ['proaudix', '#pa-texto', /ProAudix/], ['contacto', '#redes .enlace', /Instagram|Mi canal/], ['opiniones', '#resenas', null]]) {
     await p.goto('http://localhost:8099/#' + id); await p.waitForTimeout(600);
-    if (id === 'nosotros') await p.locator('#prod-tabs [data-p="sobre"]').click();
     ok(await p.locator(sel).first().isVisible() || id === 'contacto' || id === 'opiniones', 'sección ' + id + ' visible'); await p.screenshot({ path: 's-' + id + '.png' });
   }
   // temas

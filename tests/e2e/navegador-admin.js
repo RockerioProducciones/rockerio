@@ -13,9 +13,9 @@ const { sembrar } = require('./demo.js');
     ok(!(await p.locator('#sec-wa').isVisible()) && await p.locator('#sec-jor').isVisible(), nombre + ': arranca en Reservas y jornadas con la barra de pestañas');
     await p.screenshot({ path: 'a-' + nombre + '-inicio.png' });
     if (nombre === 'pc') {
-      for (const [k, sel] of [['tienda', '#sec-musica'], ['contenido', '#sitio-panel'], ['mensajes', '#wam'], ['config', '#ajustes'], ['conta', '#sec-rc'], ['socios', 'section[data-p=socios] p'], ['config', '#resp']]) {
+      for (const [k, sel] of [['tienda', '#sec-musica'], ['contenido', '#sitio-panel'], ['mensajes', '#wam'], ['config', '#ajustes'], ['conta', '#sec-rc'], ['socios', '#resp']]) {
         await p.click('.area[data-p=' + k + ']'); await p.waitForTimeout(250);
-        { const v = await p.locator(sel).first().isVisible(); if (!v) console.log('DBG', k, await p.evaluate(() => [].map.call(document.querySelectorAll('section[data-p=socios]'), (s) => s.querySelector('h2').textContent + ':' + getComputedStyle(s).display + ':' + document.body.getAttribute('data-panel')))); ok(v, 'área ' + k + ' abre su contenido'); } await p.screenshot({ path: 'a-' + k + '.png' });
+        ok(await p.locator(sel).first().isVisible(), 'área ' + k + ' abre su contenido'); await p.screenshot({ path: 'a-' + k + '.png' });
       }
       await p.click('.area[data-p=tienda]'); await p.waitForTimeout(300);
       ok(await p.locator('#sec-musica .vt-cols .vt-der input[type=date]').isVisible() && await p.locator('#sec-musica .vt-der .vt-nota').isVisible(), 'tienda: comentario y fecha de la venta junto al carro');

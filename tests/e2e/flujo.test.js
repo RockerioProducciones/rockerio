@@ -260,11 +260,6 @@ t('costos del mes y compra con factura (IVA 19%)', () => {
 t('cerrar el mes guarda una foto en el historial', () => {
   g.admin('adminCerrarMes', hoy.slice(0, 7)); assert.ok(g.hoja('HistorialBalance').length >= 2);
 });
-t('antes de un cambio grande se guarda una copia automática (una cada 10 min como máximo)', () => {
-  const antes = g.estado.copias.filter((c) => /^Antes de /.test(c.n));
-  assert.ok(antes.length >= 1, 'debe existir una copia «Antes de…»');
-  assert.strictEqual(antes.length, 1, 'no se repite dentro de 10 minutos');
-});
 t('respaldo crea una copia de la hoja y rota las antiguas', () => {
   const m = g.admin('adminRespaldar'); assert.ok(/Respaldo creado/.test(m)); assert.ok(g.estado.copias.length >= 1);
 });
@@ -477,53 +472,18 @@ t('importar clientes en bloque: agrega, omite repetidos y teléfonos inválidos'
   const cl = gx.admin('adminJornadas').clientes; assert.ok(cl.some((c) => c.telefono === '56990830392' && c.banda === 'Banda'), 'cliente guardado con teléfono normalizado');
 });
 
-t('mezclador: guarda pistas, entrega solo audios autorizados y valida', () => {
+t('comparador de sonido: guardar canción con 3 versiones, publicarla, reemplazarla y eliminarla', () => {
   const gx = require('./gas-sim').crear(); gx.instalar();
-  const b64 = Buffer.from([0x49, 0x44, 0x33, 3, 0, 0, 1, 2, 3, 4, 5, 6]).toString('base64');
-  const url = (et) => gx.admin('adminSubirArchivoAudio', { grupo: 'Cancion', etiqueta: et, b64 });
-  const u1 = url('Bateria raw'), u2 = url('Bajo raw');
-  const huerfano = url('Suelto'); // subido pero sin fila Mezclador
-  assert.throws(() => gx.admin('adminGuardarMezclador', { titulo: 'Tema', pistas: { 'Batería|En bruto': u1 } }), /al menos 2/);
-  assert.throws(() => gx.admin('adminGuardarMezclador', { titulo: 'Tema', pistas: { 'Batería|En bruto': 'http://malo', 'Bajo|En bruto': u2 } }), /https/);
-  gx.admin('adminGuardarMezclador', { titulo: 'Tema', descripcion: 'Demo', pistas: { 'Batería|En bruto': u1, 'Bajo|En bruto': u2, 'Batería|Mezcla': u1 } });
-  const g = gx.get({ accion: 'contenido' }).contenido.muestras.filter((x) => x.tipo === 'Mezclador');
-  assert.strictEqual(g.length, 1); assert.strictEqual(g[0].items.length, 3); assert.strictEqual(g[0].items[0].etiqueta, 'Batería · En bruto');
-  const id = /\/d\/([\w-]+)\//.exec(u1)[1], ok = gx.get({ accion: 'audiomix', id });
-  assert.strictEqual(ok.ok, true); assert.strictEqual(ok.tipo, 'audio/mpeg'); assert.strictEqual(ok.b64, b64);
-  assert.strictEqual(gx.get({ accion: 'audiomix', id: /\/d\/([\w-]+)\//.exec(huerfano)[1] }).ok, false);
-  assert.strictEqual(gx.get({ accion: 'audiomix', id: '../../x' }).ok, false);
-  gx.admin('adminGuardarMezclador', { titulo: 'Tema', pistas: { 'Batería|En bruto': u1, 'Bajo|En bruto': u2 } });
-  assert.strictEqual(gx.get({ accion: 'contenido' }).contenido.muestras.filter((x) => x.tipo === 'Mezclador')[0].items.length, 2);
-  gx.admin('adminEliminarMezclador', 'Tema');
-  assert.strictEqual(gx.get({ accion: 'contenido' }).contenido.muestras.filter((x) => x.tipo === 'Mezclador').length, 0);
-  assert.strictEqual(gx.get({ accion: 'audiomix', id }).ok, false);
-});
-t('rendimiento: agenda y disponibilidad usan caché y se renuevan al reservar', () => {
-  const gx = require('./gas-sim').crear(); gx.instalar();
-  const dia = gx.get({ accion: 'agenda' }).dias, fecha = Object.keys(dia).filter((d) => d >= f3 && dia[d].libres.includes(19))[0];
-  assert.ok(fecha, 'hay un día con las 19 h libres');
-  const antes = gx.get({ accion: 'disponibilidad', fecha }), antesAg = gx.get({ accion: 'agenda' });
-  assert.ok(antes.libres.includes(19));
-  // segunda lectura sale de la caché (mismo contenido)
-  assert.deepStrictEqual(gx.get({ accion: 'disponibilidad', fecha }), antes);
-  const r = gx.post(Object.assign({ accion: 'reservar', servicio: 'ensayo', fecha, inicio: 19, horas: 1, extras: 0, video: false, raw: false }, banda));
-  assert.ok(r.ok, JSON.stringify(r));
-  const despues = gx.get({ accion: 'disponibilidad', fecha });
-  assert.ok(!despues.libres.includes(19), 'tras reservar la hora ya no aparece libre (caché renovada)');
-  assert.ok(!gx.get({ accion: 'agenda' }).dias[fecha].libres.includes(19), 'la agenda también');
-  void antesAg;
-  // un error no se guarda en caché
-  assert.strictEqual(gx.get({ accion: 'disponibilidad', fecha: 'mala' }).ok, false);
-});
-t('estabilidad: un fallo avisa al administrador una sola vez (sin llenarle el correo)', () => {
-  const gx = require('./gas-sim').crear(); gx.instalar();
-  const n0 = gx.estado.correos.length;
-  gx.ctx.avisarFallo_('prueba', new Error('algo se rompió'));
-  gx.ctx.avisarFallo_('prueba', new Error('otra vez'));
-  const nuevos = gx.estado.correos.slice(n0).filter((c) => /algo falló \(prueba\)/.test(c.subject));
-  assert.strictEqual(nuevos.length, 1); assert.ok(/algo se rompió/.test(nuevos[0].body));
-  gx.ctx.avisarFallo_('otra cosa', new Error('x'));
-  assert.strictEqual(gx.estado.correos.slice(n0).filter((c) => /algo falló/.test(c.subject)).length, 2, 'cada tipo avisa por separado');
+  const d = { titulo: 'Mi canción', descripcion: 'Demo', bruto: 'https://drive.google.com/file/d/AAA/view', mezclada: 'https://drive.google.com/file/d/BBB/view', master: 'https://drive.google.com/file/d/CCC/view' };
+  gx.admin('adminGuardarComparador', d);
+  let g = gx.get({ accion: 'contenido' }).contenido.muestras.filter((x) => x.tipo === 'Comparador');
+  assert.strictEqual(g.length, 1); assert.deepStrictEqual(g[0].items.map((i) => i.etiqueta), ['En bruto', 'Mezclada', 'Masterizada']);
+  gx.admin('adminGuardarComparador', Object.assign({}, d, { master: 'https://drive.google.com/file/d/ZZZ/view' }));
+  g = gx.get({ accion: 'contenido' }).contenido.muestras.filter((x) => x.tipo === 'Comparador');
+  assert.strictEqual(g.length, 1); assert.ok(/ZZZ/.test(JSON.stringify(g)), 'reemplaza la versión');
+  assert.throws(() => gx.admin('adminGuardarComparador', Object.assign({}, d, { bruto: '' })), /En bruto/);
+  gx.admin('adminEliminarComparador', 'Mi canción');
+  assert.strictEqual(gx.get({ accion: 'contenido' }).contenido.muestras.filter((x) => x.tipo === 'Comparador').length, 0);
 });
 t('postular al cuadro de honor con redes (máx. 3) y último trabajo', () => {
   const gx = require('./gas-sim').crear(); gx.instalar();

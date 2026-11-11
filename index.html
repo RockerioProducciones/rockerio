@@ -7,7 +7,6 @@
 <meta name="description" content="Sala de ensayo y estudio de grabación en Quinta Normal, Santiago. Reserva en línea, ficha técnica y tienda de insumos.">
 <meta property="og:title" content="ROCKERÍO Producciones">
 <meta property="og:description" content="Sala de ensayo y estudio de grabación en Quinta Normal. Reserva en línea.">
-<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'">
 <link rel="canonical" href="https://rockerioproducciones.cl/"><meta property="og:url" content="https://rockerioproducciones.cl/">
 <meta property="og:image" content="https://rockerioproducciones.cl/assets/og.jpg">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
@@ -17,9 +16,7 @@
 <meta property="og:type" content="website">
 <link rel="icon" href="assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet"></noscript>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/temas.css">
 <link rel="stylesheet" href="css/movil.css">
@@ -27,8 +24,7 @@
 <link rel="stylesheet" href="css/pulido.css">
 <link rel="stylesheet" href="css/legible.css">
 <script src="js/tema.js"></script><script src="js/teclado.js" defer></script>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;800&family=Nunito:wght@400;700&family=Space+Mono:wght@400;700&family=Archivo+Black&family=Bebas+Neue&family=Poppins:wght@400;600&display=swap" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;800&family=Nunito:wght@400;700&family=Space+Mono:wght@400;700&family=Archivo+Black&family=Bebas+Neue&family=Poppins:wght@400;600&display=swap"></noscript></head>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;800&family=Nunito:wght@400;700&family=Space+Mono:wght@400;700&family=Archivo+Black&family=Bebas+Neue&family=Poppins:wght@400;600&display=swap"></head>
 <body>
 <div id="aviso" class="aviso" hidden></div>
 <header class="top">
@@ -149,8 +145,13 @@
 
 <section id="planes" class="sec">
   <h2>Planes mensuales</h2>
-  <p class="sub">Un pack de 4 reservas de ensayo (de 2 o 3 horas) para usar durante el mes en curso o el siguiente. Tus reservas quedan confirmadas al validar tu pago. Los cambios se piden con 24 horas de anticipación; de lo contrario se retiene el abono de $5.000 por hora.</p>
+  <p class="sub">Asegura 4 ensayos fijos para tu banda, con grabación incluida y condiciones preferentes. Elige el plan según las horas que necesitas.</p>
   <div id="plan-cards" class="grid plan-grid"></div>
+  <div class="plan-cond caja"><h3>Condiciones del plan mensual</h3>
+    <ul><li><b>Pago inicial:</b> se abona la totalidad del plan al inicio, para fijar tus 4 reservas en la agenda.</li>
+    <li><b>Agendamiento:</b> eliges los 4 ensayos de una vez, dentro del mes en curso o del siguiente.</li>
+    <li><b>Flexibilidad:</b> puedes pedir cambios avisando con al menos 24 horas de anticipación. Si no avisas a tiempo, se retiene el abono de $5.000 por hora solicitada.</li>
+    <li><b>Grabación incluida:</b> cada ensayo del plan incluye minutos de grabación con mezcla, según las horas de la sesión.</li></ul></div>
   <div id="plan-wiz" class="caja" hidden>
     <h3 id="plan-tit"></h3>
     <p>Elige tus sesiones: <b id="plan-prog"></b></p>
@@ -170,44 +171,25 @@
 
 <section id="nosotros" class="sec">
   <h2>Producción</h2>
-  <div class="ficha-tabs prod-tabs" role="tablist" id="prod-tabs">
-    <button type="button" class="ficha-tab" role="tab" data-p="sobre" aria-selected="false"><span class="ft-ico">🎚️</span><span class="ft-tit">Sobre mí</span></button>
-    <button type="button" class="ficha-tab" role="tab" data-p="demo" aria-selected="true"><span class="ft-ico">🎧</span><span class="ft-tit">Demostración técnica</span></button>
-    <button type="button" class="ficha-tab" role="tab" data-p="metodo" aria-selected="false"><span class="ft-ico">🏭</span><span class="ft-tit">Estudio y método</span></button>
-    <button type="button" class="ficha-tab" role="tab" data-p="trabajos" aria-selected="false"><span class="ft-ico">🎵</span><span class="ft-tit">Trabajos terminados</span></button>
-  </div>
-  <div class="prod-panel" data-p="sobre" hidden>
-      <div class="caja intro-prod"><h3 id="nosotros-t"></h3><div id="nosotros-in" class="texto"></div></div>
+  <div class="caja intro-prod"><h3 id="nosotros-t"></h3><div id="nosotros-in" class="texto"></div></div>
+  <div class="caja comp-ab" id="comparador" hidden></div>
   <div class="prod-bloque"><h3 data-ed="nos.enf.t" data-ed-l="Enfoque: título">Enfoque y pasión</h3>
     <p data-ed="nos.enf.p" data-ed-l="Enfoque: párrafo">Mi pasión y especialidad es el rock y sus géneros derivados, con una dedicación especial hacia las bandas instrumentales. Me apasiona acompañar la música en sus distintas etapas:</p>
     <ul class="reg-lista"><li data-ed="nos.enf.l1" data-ed-l="Enfoque: punto 1">Bandas de jóvenes que están partiendo y dando forma a sus primeros proyectos.</li><li data-ed="nos.enf.l2" data-ed-l="Enfoque: punto 2">Proyectos emergentes que ya están en ruta buscando consolidar su sonido.</li><li data-ed="nos.enf.l3" data-ed-l="Enfoque: punto 3">Músicos que vuelven a juntarse tras años de pausas para revivir sus canciones con la experiencia de hoy.</li></ul></div>
-    <p class="firma"><b>Juan Carlos Retamal González</b><br><span>Técnico Superior en Informática e Ingeniero en Sonido</span></p>
-  </div>
-  <div class="prod-panel" data-p="demo">
-    <p class="sub demo-intro" data-ed="demo.intro" data-ed-l="Demostración técnica: introducción">Aquí escuchas lo que hago con la música que se graba: cada instrumento por separado y el paso de la toma en bruto a la mezcla y al master.</p>
-    <div class="caja comp-ab mezclador" id="mezclador" hidden></div>
-    <p class="nota prod-vacio" id="mezclador-vacio" hidden>Muy pronto: un mini mezclador para escuchar cada instrumento solo y comparar el sonido en bruto, mezclado y masterizado.</p>
-  </div>
-  <div class="prod-panel" data-p="metodo" hidden>
+  <div class="playlist caja" data-playlist hidden></div>
   <div class="prod-bloque"><h3 data-ed="nos.fil.t" data-ed-l="Filosofía: título">Nuestra filosofía (sin rodeos ni humo)</h3>
     <p data-ed="nos.fil.p1" data-ed-l="Filosofía: punto 1"><strong>Honestidad técnica:</strong> no vendemos promesas mágicas. Trabajamos al máximo sobre la mejor interpretación que logremos registrar juntos. Buscamos el mejor sonido posible con las herramientas que tenemos.</p>
     <p data-ed="nos.fil.p2" data-ed-l="Filosofía: punto 2"><strong>Acompañamiento cercano:</strong> resolvemos dudas técnicas a lo largo de todo el camino. Aporto ideas musicales y soluciones técnico-artísticas para potenciar la visión de la banda.</p>
     <p data-ed="nos.fil.p3" data-ed-l="Filosofía: punto 3"><strong>Aprender escuchando:</strong> creemos que la mejor materia prima son los ensayos grabados. Que la banda salga del estudio escuchando lo que acaba de interpretar es la herramienta más directa para crecer.</p>
     <p data-ed="nos.fil.p4" data-ed-l="Filosofía: punto 4"><strong>Tu ritmo, tu sonido:</strong> adaptamos el proceso a la dinámica de tu banda. Con nuestra plantilla digital tomamos decisiones sonoras en tiempo real, optimizando el tiempo y facilitando ajustes sin perder agilidad.</p></div>
-    <div class="prod-split"><figure class="prod-foto"><img data-ed-foto="prodFoto" data-ed-l="Foto de Producción (control room)" src="assets/fotos/control-panoramica.jpg" alt="Control room con consola Midas M32 y monitores" loading="lazy"></figure>
+  <div class="prod-split"><figure class="prod-foto"><img data-ed-foto="prodFoto" data-ed-l="Foto de Producción (control room)" src="assets/fotos/control-panoramica.jpg" alt="Control room con consola Midas M32 y monitores" loading="lazy"></figure>
   <div class="prod-bloque"><h3 data-ed="nos.inf.t" data-ed-l="Infraestructura: título">Infraestructura y método técnico</h3>
     <p data-ed="nos.inf.p1" data-ed-l="Infraestructura: punto 1"><strong>Espacios e interconexión:</strong> integramos la sala de control, la sala de ensayo y la sala de grabación mediante la consola digital Midas M32 y la caja Midas DL32 sobre red de alta velocidad.</p>
     <p data-ed="nos.inf.p2" data-ed-l="Infraestructura: punto 2"><strong>Flujo híbrido in the box / analógico:</strong> consola de suma SSL SiX y estación de trabajo Apple Mac Mini M4 corriendo Universal Audio LUNA, con plugins UAD Native, Solid State Logic, Soundtoys y Slate Digital.</p>
-    <p data-ed="nos.inf.p3" data-ed-l="Infraestructura: punto 3"><strong>Respaldo automatizado:</strong> copias de seguridad nocturnas con FreeFileSync y RealTimeSync, resguardando cada proyecto en discos SSD.</p></div></div>
-  </div>
-  <div class="prod-panel" data-p="trabajos" hidden>
-    <div class="playlist caja" data-playlist hidden></div>
-    <p class="nota prod-vacio" id="trabajos-vacio">Muy pronto: aquí escucharás los trabajos terminados.</p>
-  </div>
+    <p data-ed="nos.inf.p3" data-ed-l="Infraestructura: punto 3"><strong>Respaldo automatizado:</strong> copias de seguridad nocturnas con FreeFileSync y RealTimeSync, resguardando cada proyecto en discos SSD.</p>
+    <p class="firma"><b>Juan Carlos Retamal González</b><br><span>Técnico Superior en Informática e Ingeniero en Sonido</span></p></div></div>
   <p><a class="btn" href="#ficha">Ver ficha técnica</a></p>
 </section>
-
-
 
 <section id="ficha" class="sec">
   <h2>Ficha técnica</h2><div id="ficha-in" class="ficha-app"></div>
@@ -276,8 +258,7 @@
 
 <section id="reglamento" class="sec"><h2>Reglamento interno</h2><div id="reglamento-in" class="reglamento"></div></section>
 
-<section id="galeria" class="sec"><h2>Galería</h2><div id="galeria-in" class="ficha-app"></div>
-  <div id="galeria-guarda" hidden><div class="playlist caja" id="gal-playlist" data-playlist hidden></div></div></section>
+<section id="galeria" class="sec"><h2>Galería</h2><div id="galeria-info"></div><div id="galeria-car" class="carr-caja"></div><div class="playlist caja" data-playlist hidden></div><div id="galeria-in" class="galeria"></div></section>
 
 <section id="tienda" class="sec">
   <h2>Tienda de música e insumos</h2>
@@ -316,7 +297,6 @@
 <script src="js/reglas.js"></script>
 <script src="js/app.js"></script>
 <script src="js/planes.js"></script>
-<script src="js/mezclador.js"></script>
 <script src="js/contenido.js"></script>
 <script src="js/pasos.js"></script>
 <script src="js/vistas.js"></script>

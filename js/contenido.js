@@ -31,6 +31,47 @@
     c.appendChild(s); g.items.forEach(function (i) { c.appendChild(muestra(i)); }); if (abierta) c.open = true; return c;
   }
 
+  /* ---------- comparador A/B/C: la misma canción en bruto, mezclada y masterizada ---------- */
+  var ETAPAS = [
+    ['01. RAW', 'Toma directa sin procesar', 'Dinámica seca, frecuencias sin ecualizar, balance plano de microfonía.', 'En bruto'],
+    ['02. MIX', 'Mezcla y panning pro', 'Apertura estéreo, EQ correctiva, gating de batería y saturación cálida.', 'Mezclada'],
+    ['03. MASTER (-14 LUFS)', 'Master comercial para streaming', 'Compresión de bus analógica SSL, pegada, brillo analógico y volumen estándar comercial.', 'Masterizada']
+  ];
+  function comparador(grupos) {
+    var cont = $('comparador'); if (!cont) return;
+    cont.textContent = ''; cont.hidden = !grupos.length; if (!grupos.length) return;
+    cont.appendChild(el('div', 'comp-kick', 'Experiencia interactiva en tiempo real'));
+    cont.appendChild(el('h3', 'comp-tit', 'Comparador A/B/C: Raw → Mix → Master'));
+    cont.appendChild(el('p', 'comp-sub', 'Toca cualquiera de las 3 etapas para escuchar la evolución sonora de una misma canción en Rockerío Producciones: desde la captura en bruto de sala, la apertura estéreo y el balance de mezcla, hasta el punch comercial con compresión de bus analógica SSL.'));
+    var sel = el('div', 'comp-canciones'), cuerpo = el('div'); cont.appendChild(sel); cont.appendChild(cuerpo);
+    function mostrar(g, btnSel) {
+      [].forEach.call(sel.children, function (b) { b.setAttribute('aria-pressed', b === btnSel ? 'true' : 'false'); });
+      cuerpo.textContent = '';
+      if (g.descripcion) cuerpo.appendChild(el('p', 'nota', g.descripcion));
+      var fila = el('div', 'comp-etapas'), play = el('div', 'comp-play'), actual = null, tiempo = 0;
+      ETAPAS.forEach(function (e, i) {
+        var it = g.items.filter(function (x) { return x.etiqueta === e[3]; })[0]; if (!it) return;
+        var b = el('button', 'comp-et'); b.type = 'button'; b.setAttribute('aria-pressed', 'false');
+        b.appendChild(el('span', 'comp-n', e[0])); b.appendChild(el('span', 'comp-pl', '▶'));
+        b.appendChild(el('b', '', e[1])); b.appendChild(el('small', '', e[2]));
+        b.addEventListener('click', function () {
+          var a0 = play.querySelector('audio'); if (a0) tiempo = a0.currentTime;
+          [].forEach.call(fila.children, function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+          play.textContent = ''; var p = reproductor(it.enlace); play.appendChild(p);
+          if (p.tagName === 'AUDIO') { p.addEventListener('loadedmetadata', function () { try { p.currentTime = tiempo; } catch (x) { /* sin posición */ } p.play().catch(function () {}); }); p.preload = 'metadata'; }
+          actual = i;
+        });
+        fila.appendChild(b);
+      });
+      cuerpo.appendChild(fila); cuerpo.appendChild(play);
+    }
+    grupos.forEach(function (g, i) {
+      if (grupos.length > 1) { var b = el('button', 'btn chico sec-b', g.grupo); b.type = 'button'; b.addEventListener('click', function () { mostrar(g, b); }); sel.appendChild(b); }
+      else cont.insertBefore(el('div', 'comp-cancion', '🎵 ' + g.grupo), sel);
+    });
+    if (grupos.length > 1) mostrar(grupos[0], sel.firstChild); else mostrar(grupos[0], null);
+  }
+
   /** Micrófonos: cada tarjeta trae foto, marca/modelo, tipo y patrón, uso, reseña técnica y sus propias muestras de audio. */
   var MARCAS = ['telefunken', 'shure', 'rode', 'røde', 'neumann', 'akg', 'sennheiser', 'audix', 'beyerdynamic', 'audio-technica', 'electro-voice', 'warm audio', 'universal audio', 'sm'];
   function partirNombre(m) {
@@ -76,26 +117,11 @@
     });
   }
 
-
-  /* ---------- pestañas de Producción (mismo esquema que la ficha técnica) ---------- */
-  function pestanasProd(tabsId, seccion) {
-    var tabs = $(tabsId); if (!tabs) return;
-    var paneles = [].slice.call(document.querySelectorAll('#' + seccion + ' .prod-panel'));
-    function ir(id) {
-      if (RK.mezPausar) RK.mezPausar();
-      [].forEach.call(tabs.querySelectorAll('.ficha-tab'), function (b) { b.setAttribute('aria-selected', b.getAttribute('data-p') === id ? 'true' : 'false'); });
-      paneles.forEach(function (p) { p.hidden = p.getAttribute('data-p') !== id; });
-    }
-    [].forEach.call(tabs.querySelectorAll('.ficha-tab'), function (b) { b.addEventListener('click', function () { ir(b.getAttribute('data-p')); }); });
-  }
-  pestanasProd('prod-tabs', 'nosotros');
-  window.addEventListener('hashchange', function () { if (RK.mezPausar) RK.mezPausar(); });
-
   /* ---------- pintado ---------- */
   function pintar(c) {
     var mics = c.muestras.filter(function (g) { return g.tipo === 'Micrófono'; });
-    var otros = c.muestras.filter(function (g) { return g.tipo !== 'Micrófono' && g.tipo !== 'Comparador' && g.tipo !== 'Aislado' && g.tipo !== 'Mezclador'; });
-    if (RK.mezclador) RK.mezclador(c.muestras.filter(function (g) { return g.tipo === 'Mezclador'; }));
+    var otros = c.muestras.filter(function (g) { return g.tipo !== 'Micrófono' && g.tipo !== 'Comparador'; });
+    comparador(c.muestras.filter(function (g) { return g.tipo === 'Comparador'; }));
     $('escucha-box').hidden = !otros.length;
     RK.micsCatalogo().then(function (cat) { pintarMics(cat || [], mics); });
     otros.forEach(function (g) { $('escucha').appendChild(tarjeta(g)); });

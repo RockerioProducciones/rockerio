@@ -633,15 +633,13 @@ function doGet(e) {
   try {
     switch (p.accion) {
       case 'config':
-        return json_({ ok: true, config: configPublica_(), tienda: tiendaEnCache_(), sitio: sitioPublico_(), ahora: ahoraChile_() });
+        return json_({ ok: true, config: configPublica_(), tienda: tiendaPublica_(), sitio: sitioPublico_(), ahora: ahoraChile_() });
       case 'contenido':
         return json_({ ok: true, contenido: contenidoPublico_() });
-      case 'audiomix':
-        return json_(audioMezclador_(p.id));
       case 'agenda':
-        return jsonEnCache_('ag|' + String(p.dias || '') + '|' + (p.plan === '1' ? 1 : 0), function () { return agenda_(p.dias, p.plan === '1'); });
+        return json_(agenda_(p.dias, p.plan === '1'));
       case 'disponibilidad':
-        return jsonEnCache_('di|' + String(p.fecha || '').slice(0, 10), function () { return disponibilidad_(String(p.fecha || '')); });
+        return json_(disponibilidad_(String(p.fecha || '')));
       case 'socios':
         return json_(sociosDatos_(String(p.t || ''), String(p.mes || '')));
       default:
@@ -649,7 +647,6 @@ function doGet(e) {
     }
   } catch (err) {
     console.error(err && err.stack || err);
-    avisarFallo_('lectura del sitio', err);
     return json_({ ok: false, error: 'No pudimos cargar los datos. Intenta de nuevo.' });
   }
 }
@@ -677,43 +674,8 @@ function doPost(e) {
     }
   } catch (err) {
     console.error(err && err.stack || err);
-    avisarFallo_('envío de formularios', err);
     return json_({ ok: false, codigo: 'ERROR', error: 'No pudimos registrar tu reserva. Escríbenos por WhatsApp.' });
   }
-}
-
-/* ---------- velocidad: respuestas públicas con caché breve (se renuevan solas al cambiar la agenda) ---------- */
-var TTL_AGENDA_S = 30, TTL_TIENDA_S = 120;
-/** Cambia la «versión» de la agenda: lo guardado en caché deja de valer. Se llama después de cada escritura con bloqueo. */
-function invalidarAgenda_() {
-  try { var c = CacheService.getScriptCache(); c.put('agver', String(Date.now()), 21600); c.remove('tienda'); } catch (e) { /* sin caché */ }
-}
-/** Devuelve la respuesta guardada (misma versión de agenda, máx. 30 s) o la calcula y la guarda. Solo se guarda si salió bien. */
-function jsonEnCache_(clave, fn) {
-  var cache = null, k = '';
-  try { cache = CacheService.getScriptCache(); k = 'c|' + (cache.get('agver') || '0') + '|' + clave; var g = cache.get(k); if (g) return ContentService.createTextOutput(g).setMimeType(ContentService.MimeType.JSON); } catch (e) { cache = null; }
-  var r = fn(), txt = JSON.stringify(r);
-  if (cache && r && r.ok) { try { cache.put(k, txt, TTL_AGENDA_S); } catch (e) { /* demasiado grande */ } }
-  return ContentService.createTextOutput(txt).setMimeType(ContentService.MimeType.JSON);
-}
-function tiendaEnCache_() {
-  var cache = null;
-  try { cache = CacheService.getScriptCache(); var g = cache.get('tienda'); if (g) return JSON.parse(g); } catch (e) { cache = null; }
-  var t = tiendaPublica_();
-  if (cache) { try { cache.put('tienda', JSON.stringify(t), TTL_TIENDA_S); } catch (e) { /* demasiado grande */ } }
-  return t;
-}
-
-/* ---------- estabilidad: aviso por correo cuando algo falla (máx. 1 aviso por tipo cada 6 horas) ---------- */
-function avisarFallo_(donde, err) {
-  try {
-    var cache = CacheService.getScriptCache(), k = 'fallo_' + String(donde).replace(/[^\wáéíóúñ ]/gi, '').slice(0, 40);
-    if (cache.get(k)) return;
-    cache.put(k, '1', 21600);
-    var a = PropertiesService.getScriptProperties().getProperty('ADMIN_EMAIL'); if (!a) return;
-    MailApp.sendEmail({ to: a, subject: 'Rockerío: algo falló (' + donde + ')', body: 'Se registró un error en «' + donde + '».\n\nMensaje: ' + String(err && err.message || err).replace(/\s+/g, ' ').slice(0, 300) +
-      '\n\nPuedes verlo en Apps Script → Ejecuciones. Si se repite, no te avisaremos de nuevo por 6 horas.' });
-  } catch (e) { /* sin aviso */ }
 }
 
 function json_(obj) {
@@ -958,7 +920,6 @@ function reservar_(sol) {
     };
   } finally {
     lock.releaseLock();
-    invalidarAgenda_();
   }
 
   notificar_(cfg, v, codigo);
@@ -1084,7 +1045,7 @@ function notificar_(cfg, v, codigo) {
 /** Cada hora: libera las reservas pendientes que no recibieron abono a tiempo. */
 /** Disparador (cada 5 minutos): libera las reservas que no abonaron a tiempo. */
 function liberarPendientes() {
-  try { conBloqueo_(function () { liberarVencidas_(getCfg_()); }); } catch (e) { avisarFallo_('liberar reservas vencidas', e); throw e; }
+  conBloqueo_(function () { liberarVencidas_(getCfg_()); });
 }
 
 /** Anula las reservas «sin abono» cuyo plazo (minutosReserva) venció y libera su horario. Llamar con el bloqueo tomado. */
@@ -1116,7 +1077,6 @@ function liberarVencidas_(cfg) {
  *  - Si cambia el Estado de una reserva, actualiza (o elimina) su evento del calendario.
  */
 function alEditar(e) {
-  invalidarAgenda_();
   try {
     CacheService.getScriptCache().remove('cfgraw');
     if (!e || !e.range) return;
@@ -1872,7 +1832,7 @@ function adminConfigurar(reservasActivas, avisoBanner, pagoOnline, pagoTransfere
 function conBloqueo_(fn) {
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(20000)) throw new Error('El sistema está ocupado. Intenta de nuevo.');
-  try { return fn(); } finally { lock.releaseLock(); invalidarAgenda_(); }
+  try { return fn(); } finally { lock.releaseLock(); }
 }
 
 function filaProducto_(sh, fila) {
@@ -1890,16 +1850,20 @@ var RESPALDOS_A_CONSERVAR = 30;
  * Copia diaria (3 AM) de toda la base de datos a la carpeta "Rockerío · Respaldos" de tu Google Drive.
  * Conserva las últimas 30 copias. Si falla, avisa por correo al administrador.
  */
-function respaldar(nota) {
+function respaldar() {
   try {
     var props = PropertiesService.getScriptProperties();
-    var carpeta = carpetaRespaldos_();
-    var hoy = ahoraChile_().fecha, nm = nota ? ' ' + limpiar_(nota, 40).replace(/[\\\/:*?"<>|]/g, '') : '';
-    var hora = Utilities.formatDate(new Date(), Reglas.TZ, 'HH-mm');
-    var copia = DriveApp.getFileById(props.getProperty('SHEET_ID')).makeCopy('Respaldo ' + hoy + (nota ? ' ' + hora + nm : '') + ' · Rockerío', carpeta);
-    podarRespaldos_(carpeta);
+    var it = DriveApp.getFoldersByName(CARPETA_RESPALDOS);
+    var carpeta = it.hasNext() ? it.next() : DriveApp.createFolder(CARPETA_RESPALDOS);
+    var hoy = ahoraChile_().fecha;
+    var copia = DriveApp.getFileById(props.getProperty('SHEET_ID')).makeCopy('Respaldo ' + hoy + ' · Rockerío', carpeta);
+    var archivos = [], f = carpeta.getFiles();
+    while (f.hasNext()) archivos.push(f.next());
+    archivos.sort(function (a, b) { return b.getDateCreated() - a.getDateCreated(); });
+    archivos = archivos.filter(function (a) { return /^Respaldo /.test(a.getName()); });
+    archivos.slice(RESPALDOS_A_CONSERVAR).forEach(function (a) { a.setTrashed(true); });
     props.setProperty('ULTIMO_RESPALDO', hoy);
-    return 'Respaldo creado: ' + copia.getName() + '.';
+    return 'Respaldo creado: ' + copia.getName() + ' (se conservan ' + RESPALDOS_A_CONSERVAR + ').';
   } catch (err) {
     console.error(err && err.stack || err);
     try {
@@ -1910,35 +1874,9 @@ function respaldar(nota) {
   }
 }
 
-/** Cuántas copias se conservan de cada tipo (lo más nuevo primero). */
-var RESPALDOS_FAMILIAS = [[/^Respaldo /, 30], [/^Antes de /, 25], [/^Previo a restaurar /, 15]];
-function podarRespaldos_(carpeta) {
-  var archivos = [], f = carpeta.getFiles();
-  while (f.hasNext()) archivos.push(f.next());
-  archivos.sort(function (a, b) { return b.getDateCreated() - a.getDateCreated(); });
-  RESPALDOS_FAMILIAS.forEach(function (fam) {
-    archivos.filter(function (a) { return fam[0].test(a.getName()); }).slice(fam[1]).forEach(function (a) { a.setTrashed(true); });
-  });
-}
-
-/**
- * Copia de seguridad automática ANTES de un cambio grande (importar, eliminar, cerrar mes, reemplazar contenido).
- * Máximo una cada 10 minutos para no frenar el trabajo; si falla, nunca bloquea la acción.
- */
-function respaldoAntes_(motivo) {
-  try {
-    var props = PropertiesService.getScriptProperties(), ahora = Date.now(), ult = Number(props.getProperty('ULTIMO_PREVIO') || 0);
-    if (ahora - ult < 10 * 60 * 1000) return;
-    props.setProperty('ULTIMO_PREVIO', String(ahora));
-    var carpeta = carpetaRespaldos_();
-    DriveApp.getFileById(props.getProperty('SHEET_ID')).makeCopy('Antes de ' + limpiar_(motivo, 40) + ' ' + ahoraChile_().fecha + ' ' + Utilities.formatDate(new Date(), Reglas.TZ, 'HH-mm') + ' · Rockerío', carpeta);
-    podarRespaldos_(carpeta);
-  } catch (err) { console.error('respaldoAntes_: ' + (err && err.message || err)); }
-}
-
-function adminRespaldar(nota) {
+function adminRespaldar() {
   exigirAdmin_();
-  return respaldar(nota ? String(nota) : '');
+  return respaldar();
 }
 
 function carpetaRespaldos_() {
@@ -1946,16 +1884,16 @@ function carpetaRespaldos_() {
   return it.hasNext() ? it.next() : DriveApp.createFolder(CARPETA_RESPALDOS);
 }
 
-/** Lista las copias disponibles (más nuevas primero) con su tipo: diaria/manual, automática antes de un cambio, o previa a restaurar. */
+/** Lista las copias disponibles (más nuevas primero). */
 function adminListarRespaldos() {
   exigirAdmin_();
   var out = [], f = carpetaRespaldos_().getFiles();
   while (f.hasNext()) {
-    var a = f.next(), nm = a.getName();
-    out.push({ id: a.getId(), nombre: nm.replace(/ · Rockerío$/, ''), tipo: /^Antes de /.test(nm) ? 'antes' : /^Previo a restaurar/.test(nm) ? 'previo' : 'copia', creado: Utilities.formatDate(a.getDateCreated(), 'America/Santiago', 'yyyy-MM-dd HH:mm'), t: a.getDateCreated().getTime() });
+    var a = f.next();
+    out.push({ id: a.getId(), nombre: a.getName(), creado: Utilities.formatDate(a.getDateCreated(), 'America/Santiago', 'yyyy-MM-dd HH:mm'), t: a.getDateCreated().getTime() });
   }
   out.sort(function (a, b) { return b.t - a.t; });
-  return out.slice(0, 80).map(function (x) { delete x.t; return x; });
+  return out.slice(0, 60).map(function (x) { delete x.t; return x; });
 }
 
 /**
@@ -1976,7 +1914,6 @@ function adminRestaurar(id) {
     });
     var previo = DriveApp.getFileById(PropertiesService.getScriptProperties().getProperty('SHEET_ID'))
       .makeCopy('Previo a restaurar ' + ahoraChile_().fecha + ' ' + Utilities.formatDate(new Date(), Reglas.TZ, 'HH-mm') + ' · Rockerío', carpeta);
-    try { podarRespaldos_(carpeta); } catch (e) { /* sin poda */ }
     var n = 0;
     origen.getSheets().forEach(function (h) {
       var d = destino.getSheetByName(h.getName());
@@ -2093,7 +2030,7 @@ function adminGuardarCliente(d) {
 
 /** Importa clientes en bloque. filas = [{nombre, apellido?, banda, telefono}]. Omite los que ya existen (por teléfono). Devuelve {agregados, omitidos:[texto]}. */
 function adminImportarClientes(filas) {
-  exigirAdmin_(); respaldoAntes_('importar clientes');
+  exigirAdmin_();
   if (!filas || !filas.length) throw new Error('No hay clientes para importar.');
   if (filas.length > 300) throw new Error('Máximo 300 clientes por vez.');
   return conBloqueo_(function () {
@@ -2116,7 +2053,7 @@ function adminImportarClientes(filas) {
 
 /** Quita el cliente de la base. Sus reservas pasadas se conservan en la hoja Reservas. */
 function adminEliminarCliente(clave) {
-  exigirAdmin_(); respaldoAntes_('eliminar cliente');
+  exigirAdmin_();
   return conBloqueo_(function () {
     var sh = abrirBd_().getSheetByName(HOJAS.clientes), n = sh.getLastRow(), fila = -1;
     if (n > 1) sh.getRange(2, 1, n - 1, 1).getValues().forEach(function (r, i) { if (String(r[0]) === String(clave)) fila = i + 2; });
@@ -2249,7 +2186,7 @@ function adminReservaManual(p) {
 
 /** Elimina una reserva (fila y evento del calendario). Para anular conservando el historial usa «Anulada». */
 function adminEliminarReserva(codigo) {
-  exigirAdmin_(); respaldoAntes_('eliminar reserva');
+  exigirAdmin_();
   return conBloqueo_(function () {
     var sh = abrirBd_().getSheetByName(HOJAS.reservas), celda = sh.getLastRow() > 1 ? sh.createTextFinder(String(codigo)).matchEntireCell(true).findNext() : null;
     if (!celda || celda.getColumn() !== RES.codigo) throw new Error('No se encontró la reserva.');
@@ -2440,7 +2377,7 @@ function adminAjustarRetencion(codigo, monto, nota) {
 var ESTADOS_MOD = ['PENDIENTE', 'APROBADA', 'RECHAZADA'];
 var ESTADOS_SOL = ['NUEVA', 'COTIZADA', 'ACEPTADA', 'RECHAZADA', 'CERRADA'];
 var TIPOS_SOL = { plan8: 'Plan mensual de 8 horas', plan12: 'Plan mensual de 12 horas', produccion: 'Producción musical', otro: 'Otra consulta' };
-var TIPOS_MUESTRA = ['Micrófono', 'Canción', 'Ensayo', 'Mezclador', 'Otro'];
+var TIPOS_MUESTRA = ['Micrófono', 'Canción', 'Ensayo', 'Comparador', 'Otro'];
 var REDES_HONOR = ['Instagram', 'YouTube', 'TikTok', 'Facebook', 'Spotify', 'Bandcamp', 'SoundCloud', 'X', 'Sitio web'];
 
 /* ---------- limpieza y validación (funciones puras, con pruebas en tests/contenido.test.js) ---------- */
@@ -2749,6 +2686,35 @@ function adminGuardarMuestra(p) {
   });
 }
 
+/** Comparador A/B/C: una canción en tres versiones. d = {titulo, descripcion, bruto, mezclada, master}. Reemplaza la canción si ya existía. */
+function adminGuardarComparador(d) {
+  exigirAdmin_();
+  var titulo = limpiar_(d.titulo, 80);
+  if (!titulo) throw new Error('Escribe el nombre de la canción.');
+  var vers = [['En bruto', d.bruto], ['Mezclada', d.mezclada], ['Masterizada', d.master]];
+  vers.forEach(function (v) {
+    var e = String(v[1] || '').trim();
+    if (!/^https:\/\/\S{4,400}$/.test(e) && !/^audio\/[\w\-. \/]{1,150}$/.test(e)) throw new Error('Falta el enlace de la versión «' + v[0] + '» (debe empezar con https://).');
+  });
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.muestras), n = sh.getLastRow();
+    for (var i = n; i >= 2; i--) { var r = sh.getRange(i, 1, 1, 2).getValues()[0]; if (String(r[1]) === 'Comparador' && String(r[0]) === titulo) sh.deleteRow(i); }
+    vers.forEach(function (v) { sh.appendRow([textoSeguro_(titulo), 'Comparador', v[0], String(v[1]).trim(), textoSeguro_(limpiar_(d.descripcion, 300)), 'SI']); });
+    limpiarCacheContenido_();
+    return adminResumen();
+  });
+}
+
+function adminEliminarComparador(titulo) {
+  exigirAdmin_();
+  return conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.muestras), n = sh.getLastRow();
+    for (var i = n; i >= 2; i--) { var r = sh.getRange(i, 1, 1, 2).getValues()[0]; if (String(r[1]) === 'Comparador' && String(r[0]) === String(titulo)) sh.deleteRow(i); }
+    limpiarCacheContenido_();
+    return adminResumen();
+  });
+}
+
 function adminEliminarMuestra(fila) {
   exigirAdmin_();
   return conBloqueo_(function () {
@@ -2832,65 +2798,13 @@ function adminSubirAudio(p) {
   return adminGuardarMuestra({ fila: null, grupo: p.grupo, tipo: p.tipo, etiqueta: p.etiqueta, descripcion: p.descripcion, enlace: 'https://drive.google.com/file/d/' + id + '/view', visible: true });
 }
 
-/** Sube un audio a Drive y devuelve solo su enlace (para armar el mezclador). */
+/** Sube un audio a Drive y devuelve solo su enlace (para armar el comparador). */
 function adminSubirArchivoAudio(p) {
   exigirAdmin_();
   var bytes = decodificar_(p.b64, 12 * 1024 * 1024), t = tipoAudio_(bytes);
   if (!t) throw new Error('El archivo debe ser un audio mp3, wav, m4a u ogg.');
   var id = guardarPublico_(carpetaDrive_(CARPETA_AUDIOS), limpiar_(p.grupo, 40).replace(/[^\w\- ]/g, '') + '-' + limpiar_(p.etiqueta, 20).replace(/[^\w\- ]/g, '') + '-' + Date.now() + '.' + t[1], t[0], bytes);
   return 'https://drive.google.com/file/d/' + id + '/view';
-}
-
-
-/* ---------- Mezclador (mini DAW del sitio): una canción de ~20 s en pistas, en tres etapas ---------- */
-var MEZ_INSTRUMENTOS = ['Batería', 'Bajo', 'Guitarras', 'Voces', 'Otros'];
-var MEZ_ETAPAS = ['En bruto', 'Mezcla', 'Master'];
-function enlaceAudioValido_(e) { return /^https:\/\/\S{4,400}$/.test(e) || /^audio\/[\w\-. \/]{1,150}$/.test(e); }
-
-/** d = {titulo, descripcion, pistas: {'Batería|En bruto': enlace, …}}. Reemplaza la canción si ya existía. */
-function adminGuardarMezclador(d) {
-  exigirAdmin_();
-  var titulo = limpiar_(d.titulo, 80);
-  if (!titulo) throw new Error('Escribe el nombre de la canción.');
-  var filas = [], pistas = d.pistas || {};
-  MEZ_INSTRUMENTOS.forEach(function (i) {
-    MEZ_ETAPAS.forEach(function (e) {
-      var v = String(pistas[i + '|' + e] || '').trim(); if (!v) return;
-      if (!enlaceAudioValido_(v)) throw new Error('El enlace de «' + i + ' · ' + e + '» debe empezar con https:// o ser una ruta audio/archivo.mp3.');
-      filas.push([textoSeguro_(titulo), 'Mezclador', i + ' · ' + e, v, textoSeguro_(limpiar_(d.descripcion, 300)), 'SI']);
-    });
-  });
-  if (filas.length < 2) throw new Error('Agrega al menos 2 pistas para armar el mezclador.');
-  return conBloqueo_(function () {
-    var sh = abrirBd_().getSheetByName(HOJAS.muestras), n = sh.getLastRow();
-    for (var i = n; i >= 2; i--) { var r = sh.getRange(i, 1, 1, 2).getValues()[0]; if (String(r[1]) === 'Mezclador' && String(r[0]) === titulo) sh.deleteRow(i); }
-    filas.forEach(function (f) { sh.appendRow(f); });
-    limpiarCacheContenido_();
-    return adminResumen();
-  });
-}
-function adminEliminarMezclador(titulo) {
-  exigirAdmin_();
-  return conBloqueo_(function () {
-    var sh = abrirBd_().getSheetByName(HOJAS.muestras), n = sh.getLastRow();
-    for (var i = n; i >= 2; i--) { var r = sh.getRange(i, 1, 1, 2).getValues()[0]; if (String(r[1]) === 'Mezclador' && String(r[0]) === String(titulo)) sh.deleteRow(i); }
-    limpiarCacheContenido_();
-    return adminResumen();
-  });
-}
-/** Entrega el audio de una pista (en base64) para que el navegador lo mezcle. Solo sirve archivos que estén en una fila visible de tipo Mezclador. */
-function audioMezclador_(id) {
-  id = String(id || '');
-  if (!/^[\w-]{4,80}$/.test(id)) return { ok: false, error: 'Audio no válido.' };
-  if (limiteGlobal_('audiomix', 1500)) return { ok: false, codigo: 'TASA', error: 'Hay muchas solicitudes ahora. Intenta más tarde.' };
-  var sh = abrirBd_().getSheetByName(HOJAS.muestras), permitido = false;
-  if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 6).getValues().forEach(function (r) {
-    if (String(r[1]) === 'Mezclador' && Reglas.aBool(r[5], false) && String(r[3]).indexOf('/d/' + id + '/') >= 0) permitido = true;
-  });
-  if (!permitido) return { ok: false, error: 'Audio no disponible.' };
-  var bytes = DriveApp.getFileById(id).getBlob().getBytes(), t = tipoAudio_(bytes);
-  if (!t || bytes.length > 12 * 1024 * 1024) return { ok: false, error: 'Audio no disponible.' };
-  return { ok: true, tipo: t[0], b64: Utilities.base64Encode(bytes) };
 }
 
 /** Edita los datos de una banda del cuadro de honor (y opcionalmente cambia el logo). */
@@ -2938,7 +2852,7 @@ function adminAgregarHonor(d) {
   });
 }
 function adminEliminarHonor(fila) {
-  exigirAdmin_(); respaldoAntes_('eliminar honor');
+  exigirAdmin_();
   return conBloqueo_(function () {
     var sh = abrirBd_().getSheetByName(HOJAS.honor); sh.deleteRow(filaProducto_(sh, fila));
     limpiarCacheContenido_();
@@ -2990,7 +2904,6 @@ function reservarPlan_(sol) {
     registrarCliente_(v.datos);
   } finally {
     lock.releaseLock();
-    invalidarAgenda_();
   }
 
   var texto = textoPlan_(cfg, v, codigo);
@@ -3239,7 +3152,7 @@ function adminCargarBase(tipo) {
 }
 
 function adminEliminarProducto(fila, tipo) {
-  exigirAdmin_(); respaldoAntes_('eliminar producto');
+  exigirAdmin_();
   return conBloqueo_(function () {
     var sh = hojaCatalogo_(tipo);
     sh.deleteRow(filaProducto_(sh, fila));
@@ -3401,7 +3314,7 @@ function adminCobrar(id, pago) {
 }
 /** Anula una venta (queda en el historial como «Anulada») y devuelve las unidades al stock. */
 function adminAnularVenta(id) {
-  exigirAdmin_(); respaldoAntes_('anular venta');
+  exigirAdmin_();
   return conBloqueo_(function () {
     var ss = abrirBd_(), sh = ss.getSheetByName(HOJAS.ventas), f = filaPorTexto_(sh, id, VT.id);
     if (!f) throw new Error('Venta no encontrada.');
@@ -3457,7 +3370,7 @@ function adminEditarVenta(id, d) {
 
 /** Elimina del todo una venta (por ejemplo, una duplicada). Si no estaba anulada, devuelve las unidades al stock. */
 function adminEliminarVenta(id) {
-  exigirAdmin_(); respaldoAntes_('eliminar venta');
+  exigirAdmin_();
   return conBloqueo_(function () {
     var sh = abrirBd_().getSheetByName(HOJAS.ventas), f = filaPorTexto_(sh, id, VT.id);
     if (!f) throw new Error('Venta no encontrada.');
@@ -3519,7 +3432,7 @@ function cerrarMes_(mes) {
 
 /** Disparador del día 1 de cada mes: guarda el balance del mes que terminó. */
 function cerrarMesAnterior() {
-  try { cerrarMes_(Reglas.sumarDias(ahoraChile_().fecha.slice(0, 8) + '01', -1).slice(0, 7)); } catch (e) { avisarFallo_('cierre mensual', e); throw e; }
+  cerrarMes_(Reglas.sumarDias(ahoraChile_().fecha.slice(0, 8) + '01', -1).slice(0, 7));
 }
 
 function leerHistorial_() {
@@ -3532,7 +3445,7 @@ function leerHistorial_() {
 }
 
 function adminCerrarMes(mes) {
-  exigirAdmin_(); respaldoAntes_('cerrar mes');
+  exigirAdmin_();
   return conBloqueo_(function () { cerrarMes_(mes); return adminResumen(); });
 }
 
@@ -3839,7 +3752,7 @@ function adminGuardarCompra(c) {
 }
 
 function adminEliminarCompra(fila) {
-  exigirAdmin_(); respaldoAntes_('eliminar compra');
+  exigirAdmin_();
   return conBloqueo_(function () {
     var sh = abrirBd_().getSheetByName(HOJAS.compras);
     fila = Number(fila);
@@ -3923,7 +3836,7 @@ function adminGuardarMovimiento(m) {
 }
 
 function adminEliminarMovimiento(id) {
-  exigirAdmin_(); respaldoAntes_('eliminar movimiento');
+  exigirAdmin_();
   return conBloqueo_(function () {
     var sh = abrirBd_().getSheetByName(HOJAS.movimientos), f = sh.getLastRow() > 1 ? filaPorTexto_(sh, id, 1) : 0;
     if (!f) throw new Error('Movimiento no encontrado.');
@@ -4170,7 +4083,7 @@ var ESQUEMA = [
 
   ['heroTitulo', 'Portada: título', 'texto', 'Portada y secciones', 'Frase grande de la portada.', 60],
   ['heroTexto', 'Portada: texto', 'texto', 'Portada y secciones', 'Frase de apoyo bajo el título.', 160],
-  ['verProduccion', 'Mostrar «Producción»', 'sino', 'Portada y secciones', 'Tu presentación, demostración técnica, enfoque e infraestructura.'],
+  ['verProduccion', 'Mostrar «Producción»', 'sino', 'Portada y secciones', 'Tu presentación y enfoque.'],
   ['verFicha', 'Mostrar «Ficha técnica»', 'sino', 'Portada y secciones', 'Equipos, micrófonos y backline.'],
   ['verPlanes', 'Mostrar «Planes mensuales»', 'sino', 'Portada y secciones', 'Permite a los clientes solicitar planes.'],
   ['verGaleria', 'Mostrar «Galería»', 'sino', 'Portada y secciones', 'Fotos y videos.'],
@@ -4426,9 +4339,6 @@ function adminProbarWhatsApp(telefono) {
  * Solo actúa si waAutoActivo = SI. Cada reserva se marca para no repetir el envío.
  */
 function enviarRecordatorios() {
-  try { enviarRecordatorios_(); } catch (e) { avisarFallo_('recordatorios de WhatsApp', e); throw e; }
-}
-function enviarRecordatorios_() {
   var cfg = getCfg_();
   if (!cfg.waAutoActivo) return;
   conBloqueo_(function () {
@@ -4521,11 +4431,8 @@ function limpiarFotosSitio_(o) {
 function fotoItem_(f) {
   f = f || {};
   var src = urlImagenSitio_(f.src); if (!src) return null;
-  var o = { src: src, titulo: limpiar_(f.titulo, 80), descripcion: limpiar_(f.descripcion, 220), alt: limpiar_(f.alt || f.titulo, 120) };
-  if (CATEGORIAS_GALERIA.indexOf(String(f.categoria || '')) >= 0 && f.categoria) o.categoria = String(f.categoria);
-  return o;
+  return { src: src, titulo: limpiar_(f.titulo, 80), descripcion: limpiar_(f.descripcion, 220), alt: limpiar_(f.alt || f.titulo, 120) };
 }
-var CATEGORIAS_GALERIA = ['control', 'sala', 'equipos', 'patio'];
 
 function limpiarGaleriaSitio_(arr) {
   var out = [];
@@ -4629,7 +4536,7 @@ function sitioPublico_() {
 
 /** Guarda una parte. valor vacío ({} o []) = vuelve al contenido original del sitio. */
 function adminGuardarSitio(parte, valor) {
-  exigirAdmin_(); respaldoAntes_('guardar sitio');
+  exigirAdmin_();
   if (typeof valor === 'string') { try { valor = JSON.parse(valor); } catch (e) { throw new Error('No se pudo leer lo que enviaste.'); } }
   var limpio = validarParteSitio_(String(parte), valor), vacio = Array.isArray(limpio) ? !limpio.length : !Object.keys(limpio).length;
   var txt = JSON.stringify(limpio);

@@ -325,62 +325,16 @@
     b.addEventListener('click', function () { var fr = el('iframe'); fr.src = emb; fr.allowFullscreen = true; fr.loading = 'lazy'; fr.referrerPolicy = 'no-referrer'; fr.title = f.alt || 'Video'; c.replaceChild(fr, b); });
     c.appendChild(b); return c;
   }
-  var seqG = 0, seqP = 0, galTab = 'todas';
-  var CATS_GAL = [
-    ['control', '🎛️', 'Control room', 'Donde se graba, mezcla y masteriza: consola, monitoreo y procesamiento.'],
-    ['sala', '🎸', 'Sala de ensayo', 'Acondicionada para ensayar y grabar en vivo, con backline listo.'],
-    ['equipos', '🎙️', 'Equipos', 'Baterías, amplificadores y micrófonos con los que trabajamos.'],
-    ['patio', '🌿', 'Patio', 'Un respiro entre toma y toma.']
-  ];
-  /** Categoría de una foto: la que eligió la dueña en el portal o, si no eligió, la que se deduce del título. */
-  function catFoto(f) {
-    if (f.categoria) return f.categoria;
-    var t = ((f.titulo || '') + ' ' + (f.alt || '')).toLowerCase();
-    if (/patio/.test(t)) return 'patio'; if (/control|consola|monitor/.test(t)) return 'control'; if (/sala/.test(t)) return 'sala'; if (/bater|amplific|micr[oó]fon|equipo/.test(t)) return 'equipos';
-    return 'otras';
-  }
+  var seqG = 0, seqP = 0;
   function pintarGaleria() {
     var n = ++seqG;
     dato('galeria', 'data/galeria.json').then(function (g) {
       if (n !== seqG) return;
-      var cont = $('galeria-in'); cont.textContent = ''; cont.className = 'ficha-app';
+      var cont = $('galeria-in'); cont.textContent = '';
       var fotos = g.filter(function (f) { return f.src; }), videos = g.filter(function (f) { return f.video; });
-      var secs = [];
-      if (fotos.length) secs.push({ id: 'todas', ico: '📸', tit: 'Todas', resumen: 'Un recorrido por el estudio: control room, sala de ensayo, equipos y patio.', fotos: fotos,
-        stats: [['📸', String(fotos.length), 'fotos del estudio'], ['🎛️', '2', 'salas: ensayo y grabación'], ['🎙️', '17', 'micrófonos de estudio'], ['🎚️', '32', 'canales Midas M32']] });
-      CATS_GAL.forEach(function (c) { var fs = fotos.filter(function (f) { return catFoto(f) === c[0]; }); if (fs.length && fs.length < fotos.length) secs.push({ id: c[0], ico: c[1], tit: c[2], resumen: c[3], fotos: fs, stats: [['📸', String(fs.length), fs.length === 1 ? 'foto' : 'fotos']] }); });
-      if (videos.length) secs.push({ id: 'videos', ico: '🎬', tit: 'Videos', resumen: 'Toca «Ver video» para reproducirlo sin salir de la página.', videos: videos, stats: [['🎬', String(videos.length), videos.length === 1 ? 'video' : 'videos']] });
-      secs.push({ id: 'musica', ico: '🎵', tit: 'Música', resumen: 'Trabajos terminados en nuestra playlist.', musica: true });
-      if (!secs.some(function (s) { return s.id === galTab; })) galTab = secs[0].id;
-      var guarda = $('galeria-guarda'), caja = $('gal-playlist');
-      var tabs = el('div', 'ficha-tabs'); tabs.setAttribute('role', 'tablist'); cont.appendChild(tabs);
-      var panel = el('div', 'ficha-panel'); cont.appendChild(panel);
-      function mostrar(id) {
-        galTab = id; guarda.appendChild(caja); panel.textContent = '';
-        [].forEach.call(tabs.children, function (b) { b.setAttribute('aria-selected', b.getAttribute('data-id') === id ? 'true' : 'false'); });
-        var s = secs.filter(function (x) { return x.id === id; })[0]; if (!s) return;
-        var fts = s.fotos || [], hero = el('div', 'ficha-hero' + (fts.length ? '' : ' sin-foto'));
-        if (fts.length) { hero.style.backgroundImage = 'url("' + fts[0].src.replace(/"/g, '') + '")'; hero.tabIndex = 0; hero.setAttribute('role', 'button'); hero.setAttribute('aria-label', 'Ampliar foto de ' + s.tit); hero.addEventListener('click', function (e) { if (e.target.closest('.info-stats')) return; visor(fts, 0); }); hero.addEventListener('keydown', function (e) { if (e.key === 'Enter') visor(fts, 0); }); }
-        var cab = el('div', 'ficha-cab'); cab.appendChild(el('span', 'ficha-ico', s.ico)); var tx = el('div'); tx.appendChild(el('h3', '', s.tit)); if (s.resumen) tx.appendChild(el('p', 'sub', s.resumen)); cab.appendChild(tx); hero.appendChild(cab);
-        if (s.stats && s.stats.length) hero.appendChild(infografia(s.stats));
-        panel.appendChild(hero);
-        if (fts.length > 1) {
-          var grid = el('div', 'gal-grid');
-          fts.forEach(function (f, k) {
-            if (!k) return;
-            var it = el('figure', 'gal-it'), im = el('img'); im.src = f.src; im.alt = f.alt || f.titulo || ''; im.loading = 'lazy'; im.decoding = 'async';
-            it.tabIndex = 0; it.setAttribute('role', 'button'); it.setAttribute('aria-label', 'Ampliar: ' + (f.titulo || f.alt || 'foto'));
-            it.addEventListener('click', function () { visor(fts, k); }); it.addEventListener('keydown', function (e) { if (e.key === 'Enter') visor(fts, k); });
-            var cap = el('figcaption'); cap.appendChild(el('b', '', f.titulo || f.alt || '')); if (f.descripcion) cap.appendChild(el('span', '', f.descripcion));
-            it.appendChild(im); it.appendChild(cap); grid.appendChild(it);
-          });
-          panel.appendChild(grid);
-        }
-        if (s.videos) { var gv = el('div', 'gal-videos'); s.videos.forEach(function (f) { gv.appendChild(tarjetaVideo(f)); }); panel.appendChild(gv); }
-        if (s.musica) { if (caja.hidden) panel.appendChild(el('p', 'nota prod-vacio', 'Muy pronto: aquí escucharás los trabajos terminados.')); else panel.appendChild(caja); }
-      }
-      secs.forEach(function (s) { var b = el('button', 'ficha-tab'); b.appendChild(el('span', 'ft-ico', s.ico)); b.appendChild(el('span', 'ft-tit', s.tit)); b.type = 'button'; b.setAttribute('role', 'tab'); b.setAttribute('data-id', s.id); b.addEventListener('click', function () { mostrar(s.id); }); tabs.appendChild(b); });
-      mostrar(galTab);
+      var info = $('galeria-info'); if (info) { info.textContent = ''; info.appendChild(infografia([['📸', String(fotos.length), 'fotos del estudio'], ['🎛️', '2', 'salas: ensayo y grabación'], ['🎙️', '17', 'micrófonos de estudio'], ['🎚️', '32', 'canales Midas M32']])); }
+      var cc = $('galeria-car'); if (cc) listaFotos(cc, fotos);
+      videos.forEach(function (f) { cont.appendChild(tarjetaVideo(f)); });
     }).catch(function () { $('galeria').hidden = true; });
   }
   /** Reproductor de tu playlist de YouTube Music (data/playlist.json) en Producción y Galería. */
@@ -395,88 +349,32 @@
         var fr = el('iframe', 'pl-frame'); fr.src = 'https://www.youtube-nocookie.com/embed/videoseries?list=' + m[1]; fr.title = 'Playlist de trabajos terminados'; fr.loading = 'lazy';
         fr.allow = 'accelerometer; encrypted-media; picture-in-picture'; fr.setAttribute('allowfullscreen', ''); c.appendChild(fr);
         var b = el('a', 'btn chico', 'Abrir en YouTube Music'); b.href = d.url; b.target = '_blank'; b.rel = 'noopener'; c.appendChild(b);
-        c.hidden = false; var vt = $('trabajos-vacio'); if (vt) vt.hidden = true;
+        c.hidden = false;
       });
-      var tm = document.querySelector('#galeria-in .ficha-tab[data-id="musica"]'); if (tm && tm.getAttribute('aria-selected') === 'true') tm.click();
     }).catch(function () {});
   }
-  /* Tienda: categorías, búsqueda y un pedido con varios productos que se envía de una vez por WhatsApp (pensada para el celular). */
-  var carro = {}, tiendaCat = 'todo', tiendaQ = '';
   function pintarTienda(items) {
     var cont = $('tienda-in'); cont.textContent = '';
     items = (items || []).filter(function (p) { return !/beb/i.test(p.categoria || ''); });
     if (!items.length) { $('tienda').hidden = true; return; }
     $('tienda').hidden = !cfg.verTienda;
-    var cats = []; items.forEach(function (p) { var c = p.categoria || 'Insumos'; if (cats.indexOf(c) < 0) cats.push(c); });
-    if (tiendaCat !== 'todo' && cats.indexOf(tiendaCat) < 0) tiendaCat = 'todo';
-    var maxDe = function (p) { return p.stock === null || p.stock === undefined ? 20 : Math.max(0, Math.min(20, p.stock)); };
-    var clave = function (p) { return (p.categoria || '') + '|' + p.nombre; };
-    // se limpia del pedido lo que ya no existe o se agotó
-    Object.keys(carro).forEach(function (k) { var p = items.filter(function (x) { return clave(x) === k; })[0]; if (!p || !maxDe(p)) delete carro[k]; else carro[k].p = p; });
-
-    var barra = el('div', 'tp-barra');
-    var buscar = el('input', 'tp-buscar'); buscar.type = 'search'; buscar.placeholder = 'Buscar producto…'; buscar.maxLength = 40; buscar.autocomplete = 'off'; buscar.value = tiendaQ; buscar.setAttribute('aria-label', 'Buscar producto');
-    var chips = el('div', 'tp-chips'); chips.setAttribute('role', 'group'); chips.setAttribute('aria-label', 'Categorías');
-    barra.appendChild(buscar); barra.appendChild(chips); cont.appendChild(barra);
-    var rejilla = el('div', 'tp-grid'), vacio = el('p', 'nota tp-vacio', 'No encontramos productos con esa búsqueda. Escríbenos por WhatsApp y los conseguimos.'); vacio.hidden = true;
-    cont.appendChild(rejilla); cont.appendChild(vacio);
-
-    var bar = el('div', 'tp-carro'); bar.hidden = true; bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', 'Tu pedido');
-    var resumen = el('div', 'tp-res'); resumen.setAttribute('aria-live', 'polite');
-    var accion = el('div', 'tp-acc'), vaciar = el('button', 'tp-vaciar', 'Vaciar'); vaciar.type = 'button';
-    var pedir = el('a', 'tp-pedir', '💬 Enviar pedido'); pedir.target = '_blank'; pedir.rel = 'noopener';
-    accion.appendChild(vaciar); accion.appendChild(pedir); bar.appendChild(resumen); bar.appendChild(accion); cont.appendChild(bar);
-
-    function lineas() { return Object.keys(carro).map(function (k) { return carro[k]; }).filter(function (x) { return x.n > 0; }); }
-    function actualizarBarra() {
-      var ls = lineas(), n = ls.reduce(function (a, x) { return a + x.n; }, 0); bar.hidden = !n; if (!n) return;
-      var total = 0, sin = 0; ls.forEach(function (x) { if (x.p.precio) total += x.p.precio * x.n; else sin++; });
-      resumen.textContent = ''; resumen.appendChild(el('b', '', '🛒 ' + n + (n === 1 ? ' producto' : ' productos')));
-      resumen.appendChild(el('span', '', total ? R.clp(total) + (sin ? ' + ' + sin + ' por consultar' : '') : 'Precio por consultar'));
-      var msg = 'Hola 👋 Quiero pedir en ' + (cfg.nombreNegocio || 'Rockerío') + ':\n' + ls.map(function (x) { return '• ' + x.n + ' × ' + x.p.nombre + (x.p.precio ? ' — ' + R.clp(x.p.precio * x.n) : ' (consultar precio)'); }).join('\n') +
-        (total ? '\nTotal estimado: ' + R.clp(total) + (sin ? ' + productos por cotizar' : '') : '') + '\n¿Los tienen disponibles?';
-      pedir.href = wspUrl(msg);
-    }
-    vaciar.addEventListener('click', function () { carro = {}; pintarRejilla(); actualizarBarra(); });
-
-    function tarjeta(p, fotos) {
-      var agotado = !maxDe(p), k = clave(p), f = el('article', 'tp' + (agotado ? ' agotado' : ''));
-      var fb = el('button', 'tp-foto'); fb.type = 'button'; fb.setAttribute('aria-label', 'Ver foto de ' + p.nombre);
-      if (p.foto) { var im = el('img'); im.src = p.foto; im.alt = ''; im.loading = 'lazy'; im.decoding = 'async'; fb.appendChild(im); fb.addEventListener('click', function () { var pos = 0; fotos.forEach(function (x, i) { if (x.src === p.foto) pos = i; }); visor(fotos, pos); }); }
-      else { fb.appendChild(el('span', 'tp-sinfoto', '🎸')); fb.disabled = true; }
-      if (agotado) fb.appendChild(el('span', 'tp-ins ago', 'Agotado')); else if (p.stock !== null && p.stock !== undefined && p.stock <= 3) fb.appendChild(el('span', 'tp-ins', 'Quedan ' + p.stock));
-      f.appendChild(fb); f.appendChild(el('div', 'tp-cat', p.categoria || 'Insumos')); f.appendChild(el('h4', 'tp-nom', p.nombre)); if (p.detalle) f.appendChild(el('p', 'tp-det', p.detalle));
-      var pie = el('div', 'tp-pie'); pie.appendChild(el('span', 'tp-precio' + (p.precio ? '' : ' consultar'), p.precio ? R.clp(p.precio) : 'Consultar')); f.appendChild(pie);
-      var ctl = el('div', 'tp-ctl'); f.appendChild(ctl);
-      function ctrl() {
-        ctl.textContent = ''; var x = carro[k], n = x ? x.n : 0;
-        if (agotado) { ctl.appendChild(el('span', 'tp-agot', 'Sin stock por ahora')); return; }
-        if (!n) { var a = el('button', 'tp-add', '+ Agregar'); a.type = 'button'; a.setAttribute('aria-label', 'Agregar ' + p.nombre); a.addEventListener('click', function () { carro[k] = { p: p, n: 1 }; ctrl(); actualizarBarra(); }); ctl.appendChild(a); return; }
-        var menos = el('button', 'tp-q', '−'), mas = el('button', 'tp-q', '+'), cant = el('b', 'tp-n', String(n)); menos.type = mas.type = 'button';
-        menos.setAttribute('aria-label', 'Quitar uno de ' + p.nombre); mas.setAttribute('aria-label', 'Agregar uno más de ' + p.nombre); mas.disabled = n >= maxDe(p);
-        menos.addEventListener('click', function () { if (n <= 1) delete carro[k]; else carro[k].n = n - 1; ctrl(); actualizarBarra(); });
-        mas.addEventListener('click', function () { if (n < maxDe(p)) { carro[k].n = n + 1; ctrl(); actualizarBarra(); } });
-        ctl.appendChild(menos); ctl.appendChild(cant); ctl.appendChild(mas);
-      }
-      ctrl(); return f;
-    }
-    function visibles() {
-      var q = tiendaQ.toLowerCase().trim();
-      return items.filter(function (p) { return (tiendaCat === 'todo' || (p.categoria || 'Insumos') === tiendaCat) && (!q || (p.nombre + ' ' + (p.detalle || '') + ' ' + (p.categoria || '')).toLowerCase().indexOf(q) >= 0); });
-    }
-    function pintarRejilla() {
-      rejilla.textContent = ''; var vs = visibles(), fotos = vs.filter(function (p) { return p.foto; }).map(function (p) { return { src: p.foto, alt: p.nombre }; });
-      vs.forEach(function (p) { rejilla.appendChild(tarjeta(p, fotos)); }); vacio.hidden = !!vs.length;
-    }
-    function pintarChips() {
-      chips.textContent = '';
-      [['todo', 'Todo', items.length]].concat(cats.map(function (c) { return [c, c, items.filter(function (p) { return (p.categoria || 'Insumos') === c; }).length]; })).forEach(function (c) {
-        var b = el('button', 'tp-chip'); b.type = 'button'; b.setAttribute('aria-pressed', c[0] === tiendaCat ? 'true' : 'false'); b.appendChild(document.createTextNode(c[1])); b.appendChild(el('small', '', String(c[2])));
-        b.addEventListener('click', function () { tiendaCat = c[0]; pintarChips(); pintarRejilla(); }); chips.appendChild(b);
-      });
-    }
-    buscar.addEventListener('input', function () { tiendaQ = buscar.value; pintarRejilla(); });
-    pintarChips(); pintarRejilla(); actualizarBarra();
+    var rejilla = el('div', 'prods tienda-grid'); cont.appendChild(rejilla);
+    items.forEach(function (p) {
+      var agotado = p.stock === 0, f = el('div', 'prod' + (agotado ? ' agotado' : '') + (p.foto ? ' con-foto' : ''));
+      var fo = el('div', 'prod-fotobox');
+      if (p.foto) { var im = el('img', 'prod-foto'); im.src = p.foto; im.alt = p.nombre; im.loading = 'lazy'; fo.appendChild(im); } else fo.appendChild(el('span', 'prod-sinfoto', '🎸'));
+      f.appendChild(fo);
+      f.appendChild(el('div', 'prod-cat', p.categoria || 'Insumos'));
+      f.appendChild(el('h4', 'prod-nom', p.nombre));
+      if (p.detalle) f.appendChild(el('p', 'prod-det', p.detalle));
+      var pie = el('div', 'prod-pie'); pie.appendChild(el('span', 'pr', p.precio ? R.clp(p.precio) : 'Consultar'));
+      if (!agotado) {
+        var b = el('a', 'prod-wsp', 'Comprar por WhatsApp'); b.target = '_blank'; b.rel = 'noopener';
+        b.href = wspUrl('Hola 👋 Me gustaría comprar: ' + p.nombre + (p.detalle ? ' (' + p.detalle + ')' : '') + (p.precio ? ' — ' + R.clp(p.precio) : '') + '. ¿Lo tienen disponible?');
+        pie.appendChild(b);
+      } else pie.appendChild(el('span', 'prod-ago', 'Agotado'));
+      f.appendChild(pie); rejilla.appendChild(f);
+    });
   }
 
   /* ---------- reserva: pasos ---------- */

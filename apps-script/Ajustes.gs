@@ -67,7 +67,7 @@ var ESQUEMA = [
 
   ['heroTitulo', 'Portada: título', 'texto', 'Portada y secciones', 'Frase grande de la portada.', 60],
   ['heroTexto', 'Portada: texto', 'texto', 'Portada y secciones', 'Frase de apoyo bajo el título.', 160],
-  ['verProduccion', 'Mostrar «Producción»', 'sino', 'Portada y secciones', 'Tu presentación, demostración técnica, enfoque e infraestructura.'],
+  ['verProduccion', 'Mostrar «Producción»', 'sino', 'Portada y secciones', 'Tu presentación y enfoque.'],
   ['verFicha', 'Mostrar «Ficha técnica»', 'sino', 'Portada y secciones', 'Equipos, micrófonos y backline.'],
   ['verPlanes', 'Mostrar «Planes mensuales»', 'sino', 'Portada y secciones', 'Permite a los clientes solicitar planes.'],
   ['verGaleria', 'Mostrar «Galería»', 'sino', 'Portada y secciones', 'Fotos y videos.'],
