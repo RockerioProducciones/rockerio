@@ -61,8 +61,9 @@ function adminGuardarProducto(p) {
     precio === '' ? '' : Number(precio), stock === '' ? '' : Number(stock), p.visible ? 'SI' : 'NO', foto
   ];
   return conBloqueo_(function () {
-    var sh = hojaCatalogo_(p.tipo);
+    var sh = hojaCatalogo_(p.tipo), ant = p.fila ? sh.getRange(filaProducto_(sh, p.fila), 1, 1, 7).getValues()[0] : null;
     if (p.fila) sh.getRange(filaProducto_(sh, p.fila), 1, 1, 7).setValues([fila]); else sh.appendRow(fila);
+    registrarCambio_('Producto', nombre, ant ? ant.join(' | ') : '', fila.join(' | '));
     return adminResumen();
   });
 }
@@ -86,8 +87,9 @@ function adminCargarBase(tipo) {
 function adminEliminarProducto(fila, tipo) {
   exigirAdmin_();
   return conBloqueo_(function () {
-    var sh = hojaCatalogo_(tipo);
-    sh.deleteRow(filaProducto_(sh, fila));
+    var sh = hojaCatalogo_(tipo), fp = filaProducto_(sh, fila);
+    registrarCambio_('Producto eliminado', String(sh.getRange(fp, 2).getValue()), sh.getRange(fp, 1, 1, 7).getValues()[0].join(' | '), '');
+    sh.deleteRow(fp);
     return adminResumen();
   });
 }

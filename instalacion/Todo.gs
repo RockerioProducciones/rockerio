@@ -1806,7 +1806,7 @@ function respaldar() {
     var archivos = [], f = carpeta.getFiles();
     while (f.hasNext()) archivos.push(f.next());
     archivos.sort(function (a, b) { return b.getDateCreated() - a.getDateCreated(); });
-    archivos = archivos.filter(function (a) { return /^Respaldo /.test(a.getName()); });
+    archivos = archivos.filter(function (a) { return /^Respaldo /.test(a.getName()); }); // «Instantánea…» y «Previo…» no se borran solas
     archivos.slice(RESPALDOS_A_CONSERVAR).forEach(function (a) { a.setTrashed(true); });
     props.setProperty('ULTIMO_RESPALDO', hoy);
     return 'Respaldo creado: ' + copia.getName() + ' (se conservan ' + RESPALDOS_A_CONSERVAR + ').';
@@ -1823,6 +1823,42 @@ function respaldar() {
 function adminRespaldar() {
   exigirAdmin_();
   return respaldar();
+}
+
+/** Instantánea con nombre (la pones tú, antes de un cambio grande). No se borra sola. */
+function adminInstantanea(nombre) {
+  exigirAdmin_();
+  var n = String(nombre || '').replace(/[^\w\sáéíóúñÁÉÍÓÚÑ\-.,()]/g, '').trim().slice(0, 50) || 'sin nombre';
+  var copia = DriveApp.getFileById(PropertiesService.getScriptProperties().getProperty('SHEET_ID'))
+    .makeCopy('Instantánea ' + n + ' ' + ahoraChile_().fecha + ' ' + Utilities.formatDate(new Date(), Reglas.TZ, 'HH-mm') + ' · Rockerío', carpetaRespaldos_());
+  registrarCambio_('Instantánea', n, '', copia.getName());
+  return 'Instantánea guardada: «' + copia.getName() + '».';
+}
+
+/* ---------- Registro de tus cambios personales (hoja «Cambios») ---------- */
+
+var CAMBIOS_MAX = 1000;
+
+/** Anota quién/qué cambió y el valor anterior. Nunca interrumpe lo que estás guardando; las claves y tokens no se anotan. */
+function registrarCambio_(tipo, detalle, antes, ahora) {
+  try {
+    if (/token|clave|secret|password|contraseña/i.test(String(detalle))) return;
+    var ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty('SHEET_ID')), sh = ss.getSheetByName('Cambios');
+    if (!sh) { sh = ss.insertSheet('Cambios'); sh.getRange(1, 1, 1, 5).setValues([['Fecha', 'Tipo', 'Qué', 'Antes', 'Después']]).setFontWeight('bold'); sh.setFrozenRows(1); }
+    var rec = function (v) { return String(v === undefined || v === null ? '' : v).slice(0, 1500); };
+    sh.appendRow([Utilities.formatDate(new Date(), 'America/Santiago', 'yyyy-MM-dd HH:mm'), rec(tipo), rec(detalle), rec(antes), rec(ahora)]);
+    var n = sh.getLastRow();
+    if (n > CAMBIOS_MAX + 1) sh.deleteRows(2, n - CAMBIOS_MAX - 1);
+  } catch (err) { console.error('registrarCambio_: ' + err); }
+}
+
+function adminListarCambios() {
+  exigirAdmin_();
+  var sh = abrirBd_().getSheetByName('Cambios'), n = sh ? sh.getLastRow() : 0;
+  if (n < 2) return [];
+  return sh.getRange(Math.max(2, n - 99), 1, Math.min(100, n - 1), 5).getValues().reverse().map(function (r) {
+    return { fecha: String(r[0]), tipo: String(r[1]), que: String(r[2]), antes: String(r[3]).slice(0, 300), ahora: String(r[4]).slice(0, 300) };
+  });
 }
 
 function carpetaRespaldos_() {
@@ -1863,7 +1899,7 @@ function adminRestaurar(id) {
     var n = 0;
     origen.getSheets().forEach(function (h) {
       var d = destino.getSheetByName(h.getName());
-      if (!d) return;
+      if (!d || h.getName() === 'Cambios') return; // el registro de cambios no se retrocede
       var filas = h.getLastRow(), cols = h.getLastColumn();
       var vals = filas && cols ? h.getRange(1, 1, filas, cols).getValues() : [];
       d.clearContents();
@@ -3121,8 +3157,9 @@ function adminGuardarProducto(p) {
     precio === '' ? '' : Number(precio), stock === '' ? '' : Number(stock), p.visible ? 'SI' : 'NO', foto
   ];
   return conBloqueo_(function () {
-    var sh = hojaCatalogo_(p.tipo);
+    var sh = hojaCatalogo_(p.tipo), ant = p.fila ? sh.getRange(filaProducto_(sh, p.fila), 1, 1, 7).getValues()[0] : null;
     if (p.fila) sh.getRange(filaProducto_(sh, p.fila), 1, 1, 7).setValues([fila]); else sh.appendRow(fila);
+    registrarCambio_('Producto', nombre, ant ? ant.join(' | ') : '', fila.join(' | '));
     return adminResumen();
   });
 }
@@ -3146,8 +3183,9 @@ function adminCargarBase(tipo) {
 function adminEliminarProducto(fila, tipo) {
   exigirAdmin_();
   return conBloqueo_(function () {
-    var sh = hojaCatalogo_(tipo);
-    sh.deleteRow(filaProducto_(sh, fila));
+    var sh = hojaCatalogo_(tipo), fp = filaProducto_(sh, fila);
+    registrarCambio_('Producto eliminado', String(sh.getRange(fp, 2).getValue()), sh.getRange(fp, 1, 1, 7).getValues()[0].join(' | '), '');
+    sh.deleteRow(fp);
     return adminResumen();
   });
 }
@@ -4158,8 +4196,9 @@ function ponerConfig_(valores) {
   var sh = abrirBd_().getSheetByName(HOJAS.config), n = sh.getLastRow();
   var claves = n > 1 ? sh.getRange(2, 1, n - 1, 1).getValues().map(function (r) { return String(r[0]); }) : [];
   Object.keys(valores).forEach(function (k) {
-    var i = claves.indexOf(k);
+    var i = claves.indexOf(k), antes = i < 0 ? '' : sh.getRange(i + 2, 2).getValue();
     if (i < 0) { sh.appendRow([k, valores[k], '']); claves.push(k); } else sh.getRange(i + 2, 2).setValue(valores[k]);
+    if (String(antes) !== String(valores[k])) registrarCambio_('Ajuste', k, antes, valores[k]);
   });
   CacheService.getScriptCache().remove('cfgraw');
 }
@@ -4507,6 +4546,7 @@ function adminGuardarSitio(parte, valor) {
   if (txt.length > SITIO_MAX_CELDA) throw new Error('Es demasiado contenido para guardar de una vez. Quita algunas fotos o textos.');
   return conBloqueo_(function () {
     var sh = hojaSitio_(), f = sh.getLastRow() > 1 ? filaPorTexto_(sh, parte, 1) : 0;
+    registrarCambio_('Sitio · ' + parte, vacio ? 'Vuelto al contenido original' : 'Contenido editado', f ? sh.getRange(f, 2).getValue() : '', vacio ? '' : txt);
     if (vacio) { if (f) sh.deleteRow(f); }
     else if (f) sh.getRange(f, 2, 1, 2).setValues([[txt, fechaHora_(ahoraChile_().fecha, 0)]]);
     else sh.appendRow([parte, txt, fechaHora_(ahoraChile_().fecha, 0)]);
@@ -4521,6 +4561,7 @@ function adminSubirImagenSitio(p) {
   var bytes = decodificar_(p && p.b64, 1536 * 1024), t = tipoImagen_(bytes);
   if (!t) throw new Error('La foto debe ser PNG, JPG o WebP.');
   var id = guardarPublico_(carpetaDrive_(CARPETA_SITIO), 'sitio-' + limpiar_(p.nombre, 30).replace(/[^\w\- ]/g, '') + '-' + Date.now() + '.' + t[1], t[0], bytes);
+  registrarCambio_('Foto subida', limpiar_(p.nombre, 60), '', 'https://lh3.googleusercontent.com/d/' + id);
   return 'https://lh3.googleusercontent.com/d/' + id;
 }
 

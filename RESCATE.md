@@ -16,3 +16,9 @@ Las copias también están en tu Drive, carpeta «Rockerío · Respaldos».
 ## 3. Si el portal queda en blanco o cargando
 - Cierra todas las pestañas del portal y espera 10 minutos (se vacían solas las ejecuciones atascadas).
 - Si sigue igual: en Apps Script → editor → función **rescate** (crea una copia limpia de la hoja) y, si no ayuda, **rescateDeshacer**.
+
+## Tu contenido personal está protegido
+- Lo que cambias desde el portal (textos, fotos, precios, productos, ajustes) vive en tu Google Sheet y en tu Drive, **no** en el código del sitio. Los cambios de diseño o de funciones no lo tocan.
+- Cada cambio queda anotado en la hoja «Cambios» (Configuración → Respaldo → «Mis cambios recientes»), con el valor anterior.
+- Antes de algo grande: Configuración → Respaldo → «Guardar instantánea». Se restaura desde la misma lista.
+- Regla para quien modifique el código: nunca reemplazar ni borrar hojas, ni sobrescribir `data/*.json` con valores nuevos que pisen lo que ella editó; solo agregar.

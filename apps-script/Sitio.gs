@@ -154,6 +154,7 @@ function adminGuardarSitio(parte, valor) {
   if (txt.length > SITIO_MAX_CELDA) throw new Error('Es demasiado contenido para guardar de una vez. Quita algunas fotos o textos.');
   return conBloqueo_(function () {
     var sh = hojaSitio_(), f = sh.getLastRow() > 1 ? filaPorTexto_(sh, parte, 1) : 0;
+    registrarCambio_('Sitio · ' + parte, vacio ? 'Vuelto al contenido original' : 'Contenido editado', f ? sh.getRange(f, 2).getValue() : '', vacio ? '' : txt);
     if (vacio) { if (f) sh.deleteRow(f); }
     else if (f) sh.getRange(f, 2, 1, 2).setValues([[txt, fechaHora_(ahoraChile_().fecha, 0)]]);
     else sh.appendRow([parte, txt, fechaHora_(ahoraChile_().fecha, 0)]);
@@ -168,6 +169,7 @@ function adminSubirImagenSitio(p) {
   var bytes = decodificar_(p && p.b64, 1536 * 1024), t = tipoImagen_(bytes);
   if (!t) throw new Error('La foto debe ser PNG, JPG o WebP.');
   var id = guardarPublico_(carpetaDrive_(CARPETA_SITIO), 'sitio-' + limpiar_(p.nombre, 30).replace(/[^\w\- ]/g, '') + '-' + Date.now() + '.' + t[1], t[0], bytes);
+  registrarCambio_('Foto subida', limpiar_(p.nombre, 60), '', 'https://lh3.googleusercontent.com/d/' + id);
   return 'https://lh3.googleusercontent.com/d/' + id;
 }
 

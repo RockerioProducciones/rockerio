@@ -150,8 +150,9 @@ function ponerConfig_(valores) {
   var sh = abrirBd_().getSheetByName(HOJAS.config), n = sh.getLastRow();
   var claves = n > 1 ? sh.getRange(2, 1, n - 1, 1).getValues().map(function (r) { return String(r[0]); }) : [];
   Object.keys(valores).forEach(function (k) {
-    var i = claves.indexOf(k);
+    var i = claves.indexOf(k), antes = i < 0 ? '' : sh.getRange(i + 2, 2).getValue();
     if (i < 0) { sh.appendRow([k, valores[k], '']); claves.push(k); } else sh.getRange(i + 2, 2).setValue(valores[k]);
+    if (String(antes) !== String(valores[k])) registrarCambio_('Ajuste', k, antes, valores[k]);
   });
   CacheService.getScriptCache().remove('cfgraw');
 }

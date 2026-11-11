@@ -211,7 +211,7 @@ function respaldar() {
     var archivos = [], f = carpeta.getFiles();
     while (f.hasNext()) archivos.push(f.next());
     archivos.sort(function (a, b) { return b.getDateCreated() - a.getDateCreated(); });
-    archivos = archivos.filter(function (a) { return /^Respaldo /.test(a.getName()); });
+    archivos = archivos.filter(function (a) { return /^Respaldo /.test(a.getName()); }); // «Instantánea…» y «Previo…» no se borran solas
     archivos.slice(RESPALDOS_A_CONSERVAR).forEach(function (a) { a.setTrashed(true); });
     props.setProperty('ULTIMO_RESPALDO', hoy);
     return 'Respaldo creado: ' + copia.getName() + ' (se conservan ' + RESPALDOS_A_CONSERVAR + ').';
@@ -228,6 +228,42 @@ function respaldar() {
 function adminRespaldar() {
   exigirAdmin_();
   return respaldar();
+}
+
+/** Instantánea con nombre (la pones tú, antes de un cambio grande). No se borra sola. */
+function adminInstantanea(nombre) {
+  exigirAdmin_();
+  var n = String(nombre || '').replace(/[^\w\sáéíóúñÁÉÍÓÚÑ\-.,()]/g, '').trim().slice(0, 50) || 'sin nombre';
+  var copia = DriveApp.getFileById(PropertiesService.getScriptProperties().getProperty('SHEET_ID'))
+    .makeCopy('Instantánea ' + n + ' ' + ahoraChile_().fecha + ' ' + Utilities.formatDate(new Date(), Reglas.TZ, 'HH-mm') + ' · Rockerío', carpetaRespaldos_());
+  registrarCambio_('Instantánea', n, '', copia.getName());
+  return 'Instantánea guardada: «' + copia.getName() + '».';
+}
+
+/* ---------- Registro de tus cambios personales (hoja «Cambios») ---------- */
+
+var CAMBIOS_MAX = 1000;
+
+/** Anota quién/qué cambió y el valor anterior. Nunca interrumpe lo que estás guardando; las claves y tokens no se anotan. */
+function registrarCambio_(tipo, detalle, antes, ahora) {
+  try {
+    if (/token|clave|secret|password|contraseña/i.test(String(detalle))) return;
+    var ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty('SHEET_ID')), sh = ss.getSheetByName('Cambios');
+    if (!sh) { sh = ss.insertSheet('Cambios'); sh.getRange(1, 1, 1, 5).setValues([['Fecha', 'Tipo', 'Qué', 'Antes', 'Después']]).setFontWeight('bold'); sh.setFrozenRows(1); }
+    var rec = function (v) { return String(v === undefined || v === null ? '' : v).slice(0, 1500); };
+    sh.appendRow([Utilities.formatDate(new Date(), 'America/Santiago', 'yyyy-MM-dd HH:mm'), rec(tipo), rec(detalle), rec(antes), rec(ahora)]);
+    var n = sh.getLastRow();
+    if (n > CAMBIOS_MAX + 1) sh.deleteRows(2, n - CAMBIOS_MAX - 1);
+  } catch (err) { console.error('registrarCambio_: ' + err); }
+}
+
+function adminListarCambios() {
+  exigirAdmin_();
+  var sh = abrirBd_().getSheetByName('Cambios'), n = sh ? sh.getLastRow() : 0;
+  if (n < 2) return [];
+  return sh.getRange(Math.max(2, n - 99), 1, Math.min(100, n - 1), 5).getValues().reverse().map(function (r) {
+    return { fecha: String(r[0]), tipo: String(r[1]), que: String(r[2]), antes: String(r[3]).slice(0, 300), ahora: String(r[4]).slice(0, 300) };
+  });
 }
 
 function carpetaRespaldos_() {
@@ -268,7 +304,7 @@ function adminRestaurar(id) {
     var n = 0;
     origen.getSheets().forEach(function (h) {
       var d = destino.getSheetByName(h.getName());
-      if (!d) return;
+      if (!d || h.getName() === 'Cambios') return; // el registro de cambios no se retrocede
       var filas = h.getLastRow(), cols = h.getLastColumn();
       var vals = filas && cols ? h.getRange(1, 1, filas, cols).getValues() : [];
       d.clearContents();
