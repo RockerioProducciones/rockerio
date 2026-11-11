@@ -176,19 +176,19 @@
 <section id="nosotros" class="sec">
   <h2>Producción</h2>
   <div class="ficha-tabs prod-tabs" role="tablist" id="prod-tabs">
-    <button type="button" class="ficha-tab" role="tab" data-p="sobre" aria-selected="true"><span class="ft-ico">🎚️</span><span class="ft-tit">Sobre mí</span></button>
-    <button type="button" class="ficha-tab" role="tab" data-p="demo" aria-selected="false"><span class="ft-ico">🎧</span><span class="ft-tit">Demostración técnica</span></button>
+    <button type="button" class="ficha-tab" role="tab" data-p="sobre" aria-selected="false"><span class="ft-ico">🎚️</span><span class="ft-tit">Sobre mí</span></button>
+    <button type="button" class="ficha-tab" role="tab" data-p="demo" aria-selected="true"><span class="ft-ico">🎧</span><span class="ft-tit">Demostración técnica</span></button>
     <button type="button" class="ficha-tab" role="tab" data-p="metodo" aria-selected="false"><span class="ft-ico">🏭</span><span class="ft-tit">Estudio y método</span></button>
     <button type="button" class="ficha-tab" role="tab" data-p="trabajos" aria-selected="false"><span class="ft-ico">🎵</span><span class="ft-tit">Trabajos terminados</span></button>
   </div>
-  <div class="prod-panel" data-p="sobre">
+  <div class="prod-panel" data-p="sobre" hidden>
       <div class="caja intro-prod"><h3 id="nosotros-t"></h3><div id="nosotros-in" class="texto"></div></div>
   <div class="prod-bloque"><h3 data-ed="nos.enf.t" data-ed-l="Enfoque: título">Enfoque y pasión</h3>
     <p data-ed="nos.enf.p" data-ed-l="Enfoque: párrafo">Mi pasión y especialidad es el rock y sus géneros derivados, con una dedicación especial hacia las bandas instrumentales. Me apasiona acompañar la música en sus distintas etapas:</p>
     <ul class="reg-lista"><li data-ed="nos.enf.l1" data-ed-l="Enfoque: punto 1">Bandas de jóvenes que están partiendo y dando forma a sus primeros proyectos.</li><li data-ed="nos.enf.l2" data-ed-l="Enfoque: punto 2">Proyectos emergentes que ya están en ruta buscando consolidar su sonido.</li><li data-ed="nos.enf.l3" data-ed-l="Enfoque: punto 3">Músicos que vuelven a juntarse tras años de pausas para revivir sus canciones con la experiencia de hoy.</li></ul></div>
     <p class="firma"><b>Juan Carlos Retamal González</b><br><span>Técnico Superior en Informática e Ingeniero en Sonido</span></p>
   </div>
-  <div class="prod-panel" data-p="demo" hidden>
+  <div class="prod-panel" data-p="demo">
     <p class="sub demo-intro" data-ed="demo.intro" data-ed-l="Demostración técnica: introducción">Aquí escuchas lo que hago con la música que se graba: cada instrumento por separado y el paso de la toma en bruto a la mezcla y al master.</p>
     <div class="caja comp-ab mezclador" id="mezclador" hidden></div>
     <p class="nota prod-vacio" id="mezclador-vacio" hidden>Muy pronto: un mini mezclador para escuchar cada instrumento solo y comparar el sonido en bruto, mezclado y masterizado.</p>
@@ -281,7 +281,8 @@
 
 <section id="reglamento" class="sec"><h2>Reglamento interno</h2><div id="reglamento-in" class="reglamento"></div></section>
 
-<section id="galeria" class="sec"><h2>Galería</h2><div id="galeria-info"></div><div id="galeria-car" class="carr-caja"></div><div class="playlist caja" data-playlist hidden></div><div id="galeria-in" class="galeria"></div></section>
+<section id="galeria" class="sec"><h2>Galería</h2><div id="galeria-in" class="ficha-app"></div>
+  <div id="galeria-guarda" hidden><div class="playlist caja" id="gal-playlist" data-playlist hidden></div></div></section>
 
 <section id="tienda" class="sec">
   <h2>Tienda de música e insumos</h2>

@@ -325,16 +325,62 @@
     b.addEventListener('click', function () { var fr = el('iframe'); fr.src = emb; fr.allowFullscreen = true; fr.loading = 'lazy'; fr.referrerPolicy = 'no-referrer'; fr.title = f.alt || 'Video'; c.replaceChild(fr, b); });
     c.appendChild(b); return c;
   }
-  var seqG = 0, seqP = 0;
+  var seqG = 0, seqP = 0, galTab = 'todas';
+  var CATS_GAL = [
+    ['control', '🎛️', 'Control room', 'Donde se graba, mezcla y masteriza: consola, monitoreo y procesamiento.'],
+    ['sala', '🎸', 'Sala de ensayo', 'Acondicionada para ensayar y grabar en vivo, con backline listo.'],
+    ['equipos', '🎙️', 'Equipos', 'Baterías, amplificadores y micrófonos con los que trabajamos.'],
+    ['patio', '🌿', 'Patio', 'Un respiro entre toma y toma.']
+  ];
+  /** Categoría de una foto: la que eligió la dueña en el portal o, si no eligió, la que se deduce del título. */
+  function catFoto(f) {
+    if (f.categoria) return f.categoria;
+    var t = ((f.titulo || '') + ' ' + (f.alt || '')).toLowerCase();
+    if (/patio/.test(t)) return 'patio'; if (/control|consola|monitor/.test(t)) return 'control'; if (/sala/.test(t)) return 'sala'; if (/bater|amplific|micr[oó]fon|equipo/.test(t)) return 'equipos';
+    return 'otras';
+  }
   function pintarGaleria() {
     var n = ++seqG;
     dato('galeria', 'data/galeria.json').then(function (g) {
       if (n !== seqG) return;
-      var cont = $('galeria-in'); cont.textContent = '';
+      var cont = $('galeria-in'); cont.textContent = ''; cont.className = 'ficha-app';
       var fotos = g.filter(function (f) { return f.src; }), videos = g.filter(function (f) { return f.video; });
-      var info = $('galeria-info'); if (info) { info.textContent = ''; info.appendChild(infografia([['📸', String(fotos.length), 'fotos del estudio'], ['🎛️', '2', 'salas: ensayo y grabación'], ['🎙️', '17', 'micrófonos de estudio'], ['🎚️', '32', 'canales Midas M32']])); }
-      var cc = $('galeria-car'); if (cc) listaFotos(cc, fotos);
-      videos.forEach(function (f) { cont.appendChild(tarjetaVideo(f)); });
+      var secs = [];
+      if (fotos.length) secs.push({ id: 'todas', ico: '📸', tit: 'Todas', resumen: 'Un recorrido por el estudio: control room, sala de ensayo, equipos y patio.', fotos: fotos,
+        stats: [['📸', String(fotos.length), 'fotos del estudio'], ['🎛️', '2', 'salas: ensayo y grabación'], ['🎙️', '17', 'micrófonos de estudio'], ['🎚️', '32', 'canales Midas M32']] });
+      CATS_GAL.forEach(function (c) { var fs = fotos.filter(function (f) { return catFoto(f) === c[0]; }); if (fs.length && fs.length < fotos.length) secs.push({ id: c[0], ico: c[1], tit: c[2], resumen: c[3], fotos: fs, stats: [['📸', String(fs.length), fs.length === 1 ? 'foto' : 'fotos']] }); });
+      if (videos.length) secs.push({ id: 'videos', ico: '🎬', tit: 'Videos', resumen: 'Toca «Ver video» para reproducirlo sin salir de la página.', videos: videos, stats: [['🎬', String(videos.length), videos.length === 1 ? 'video' : 'videos']] });
+      secs.push({ id: 'musica', ico: '🎵', tit: 'Música', resumen: 'Trabajos terminados en nuestra playlist.', musica: true });
+      if (!secs.some(function (s) { return s.id === galTab; })) galTab = secs[0].id;
+      var guarda = $('galeria-guarda'), caja = $('gal-playlist');
+      var tabs = el('div', 'ficha-tabs'); tabs.setAttribute('role', 'tablist'); cont.appendChild(tabs);
+      var panel = el('div', 'ficha-panel'); cont.appendChild(panel);
+      function mostrar(id) {
+        galTab = id; guarda.appendChild(caja); panel.textContent = '';
+        [].forEach.call(tabs.children, function (b) { b.setAttribute('aria-selected', b.getAttribute('data-id') === id ? 'true' : 'false'); });
+        var s = secs.filter(function (x) { return x.id === id; })[0]; if (!s) return;
+        var fts = s.fotos || [], hero = el('div', 'ficha-hero' + (fts.length ? '' : ' sin-foto'));
+        if (fts.length) { hero.style.backgroundImage = 'url("' + fts[0].src.replace(/"/g, '') + '")'; hero.tabIndex = 0; hero.setAttribute('role', 'button'); hero.setAttribute('aria-label', 'Ampliar foto de ' + s.tit); hero.addEventListener('click', function (e) { if (e.target.closest('.info-stats')) return; visor(fts, 0); }); hero.addEventListener('keydown', function (e) { if (e.key === 'Enter') visor(fts, 0); }); }
+        var cab = el('div', 'ficha-cab'); cab.appendChild(el('span', 'ficha-ico', s.ico)); var tx = el('div'); tx.appendChild(el('h3', '', s.tit)); if (s.resumen) tx.appendChild(el('p', 'sub', s.resumen)); cab.appendChild(tx); hero.appendChild(cab);
+        if (s.stats && s.stats.length) hero.appendChild(infografia(s.stats));
+        panel.appendChild(hero);
+        if (fts.length > 1) {
+          var grid = el('div', 'gal-grid');
+          fts.forEach(function (f, k) {
+            if (!k) return;
+            var it = el('figure', 'gal-it'), im = el('img'); im.src = f.src; im.alt = f.alt || f.titulo || ''; im.loading = 'lazy'; im.decoding = 'async';
+            it.tabIndex = 0; it.setAttribute('role', 'button'); it.setAttribute('aria-label', 'Ampliar: ' + (f.titulo || f.alt || 'foto'));
+            it.addEventListener('click', function () { visor(fts, k); }); it.addEventListener('keydown', function (e) { if (e.key === 'Enter') visor(fts, k); });
+            var cap = el('figcaption'); cap.appendChild(el('b', '', f.titulo || f.alt || '')); if (f.descripcion) cap.appendChild(el('span', '', f.descripcion));
+            it.appendChild(im); it.appendChild(cap); grid.appendChild(it);
+          });
+          panel.appendChild(grid);
+        }
+        if (s.videos) { var gv = el('div', 'gal-videos'); s.videos.forEach(function (f) { gv.appendChild(tarjetaVideo(f)); }); panel.appendChild(gv); }
+        if (s.musica) { if (caja.hidden) panel.appendChild(el('p', 'nota prod-vacio', 'Muy pronto: aquí escucharás los trabajos terminados.')); else panel.appendChild(caja); }
+      }
+      secs.forEach(function (s) { var b = el('button', 'ficha-tab'); b.appendChild(el('span', 'ft-ico', s.ico)); b.appendChild(el('span', 'ft-tit', s.tit)); b.type = 'button'; b.setAttribute('role', 'tab'); b.setAttribute('data-id', s.id); b.addEventListener('click', function () { mostrar(s.id); }); tabs.appendChild(b); });
+      mostrar(galTab);
     }).catch(function () { $('galeria').hidden = true; });
   }
   /** Reproductor de tu playlist de YouTube Music (data/playlist.json) en Producción y Galería. */
@@ -351,6 +397,7 @@
         var b = el('a', 'btn chico', 'Abrir en YouTube Music'); b.href = d.url; b.target = '_blank'; b.rel = 'noopener'; c.appendChild(b);
         c.hidden = false; var vt = $('trabajos-vacio'); if (vt) vt.hidden = true;
       });
+      var tm = document.querySelector('#galeria-in .ficha-tab[data-id="musica"]'); if (tm && tm.getAttribute('aria-selected') === 'true') tm.click();
     }).catch(function () {});
   }
   function pintarTienda(items) {

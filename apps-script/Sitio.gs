@@ -48,8 +48,11 @@ function limpiarFotosSitio_(o) {
 function fotoItem_(f) {
   f = f || {};
   var src = urlImagenSitio_(f.src); if (!src) return null;
-  return { src: src, titulo: limpiar_(f.titulo, 80), descripcion: limpiar_(f.descripcion, 220), alt: limpiar_(f.alt || f.titulo, 120) };
+  var o = { src: src, titulo: limpiar_(f.titulo, 80), descripcion: limpiar_(f.descripcion, 220), alt: limpiar_(f.alt || f.titulo, 120) };
+  if (CATEGORIAS_GALERIA.indexOf(String(f.categoria || '')) >= 0 && f.categoria) o.categoria = String(f.categoria);
+  return o;
 }
+var CATEGORIAS_GALERIA = ['control', 'sala', 'equipos', 'patio'];
 
 function limpiarGaleriaSitio_(arr) {
   var out = [];

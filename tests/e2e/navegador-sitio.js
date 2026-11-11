@@ -53,7 +53,7 @@ const { sembrar } = require('./demo.js');
   // volver al inicio
   await p.click('.volver'); await p.waitForTimeout(300); ok(await p.locator('.menu').isVisible(), 'botón Inicio vuelve al menú');
   // otras vistas
-  for (const [id, sel] of [['ficha', '#ficha-in .card'], ['galeria', '#galeria-car .fo-it img'], ['tienda', '#tienda-in'], ['reglamento', '#reglamento-in'], ['planes', '#plan-cards'], ['cotizar', '#f-cot'], ['contacto', '#wsp']]) {
+  for (const [id, sel] of [['ficha', '#ficha-in .card'], ['galeria', '#galeria-in .gal-it img'], ['tienda', '#tienda-in'], ['reglamento', '#reglamento-in'], ['planes', '#plan-cards'], ['cotizar', '#f-cot'], ['contacto', '#wsp']]) {
     await p.goto('http://localhost:8099/#' + id); await p.waitForTimeout(500);
     ok(await p.locator(sel).first().isVisible(), 'vista ' + id); await p.screenshot({ path: 'v-' + id + '.png' });
   }
@@ -71,7 +71,7 @@ const { sembrar } = require('./demo.js');
   const ft = await p.evaluate(() => document.querySelector('[data-ed="nos.fil.p1"]').innerHTML);
   console.log(/<strong>Texto nuevo:<\/strong> editado desde el portal/.test(ft) ? '  ok  el texto editado y su negrita se ven en el sitio' : 'FALLA texto editado: ' + ft);
   await p.goto('http://localhost:8099/#galeria'); await p.reload(); await p.waitForFunction(() => window.RK && window.RK.conectado()); await p.waitForTimeout(700);
-  const nfotos = await p.locator('#galeria-car .fo-it img').count(); console.log(nfotos === 1 ? '  ok  la galería editada reemplaza a la original' : 'FALLA galería: ' + nfotos);
+  const nfotos = await p.locator('#galeria-in .gal-it').count(), heroBg = await p.locator('#galeria-in .ficha-hero').evaluate((e) => e.style.backgroundImage); console.log(nfotos === 0 && /sala-1\.jpg/.test(heroBg) ? '  ok  la galería editada reemplaza a la original' : 'FALLA galería: ' + nfotos + ' ' + heroBg);
   ['textos', 'galeria'].forEach((x) => g.admin('adminGuardarSitio', x, x === 'galeria' ? [] : {}));
   await p.goto('http://localhost:8099/#bandas'); await p.waitForTimeout(700);
   await p.goto('http://localhost:8099/#reservar'); await p.reload(); await p.waitForFunction(() => window.RK && window.RK.conectado()); await p.waitForTimeout(600);
@@ -93,15 +93,21 @@ const { sembrar } = require('./demo.js');
   ok(/Mac mini M4/.test(await p.textContent('.ficha-panel')) && /LUNA 3\.0/.test(await p.textContent('.ficha-panel')), 'estación de trabajo con Mac mini M4 y LUNA 3.0');
   await p.screenshot({ path: 'v-ficha-estacion.png', fullPage: true });
   await p.locator('.ficha-tab', { hasText: 'Microfonía' }).click(); await p.waitForTimeout(300);
-  ok(/Telefunken/.test(await p.textContent('.ficha-panel')) && await p.locator('.ficha-panel .mic-it').count() >= 8 && await p.locator('.ficha-panel .mic-it .mic-spec').count() >= 8 && await p.locator('.ficha-panel .mic-it .mic-m-tit').count() >= 8 && await p.locator('.ficha-panel .ficha-hero img, .ficha-panel .ficha-hero[style*=url]').count() === 0, 'micrófonos: marca/modelo, tipo, patrón, reseña y muestras en una sola tarjeta (sin foto repetida arriba)'); await p.locator('#mics').screenshot({ path: 'v-mics.png' });
+  ok(/Telefunken/.test(await p.textContent('.ficha-panel')) && await p.locator('.ficha-panel .mic-it').count() >= 8 && await p.locator('.ficha-panel .mic-it .mic-spec').count() >= 8 && await p.locator('.ficha-panel .mic-it .mic-m-tit').count() >= 8 && await p.locator('#ficha-in .ficha-panel .ficha-hero img, #ficha-in .ficha-panel .ficha-hero[style*=url]').count() === 0, 'micrófonos: marca/modelo, tipo, patrón, reseña y muestras en una sola tarjeta (sin foto repetida arriba)'); await p.locator('#mics').screenshot({ path: 'v-mics.png' });
     { const n = await p.locator('.ficha-panel .mic-it:visible').count(); await p.locator('.mic-chip').nth(1).click(); const m = await p.locator('.ficha-panel .mic-it:visible').count(); ok(await p.locator('.mic-chip').count() > 2 && m > 0 && m < n, 'filtro de micrófonos por uso'); await p.locator('.mic-chip').first().click(); }
   await p.locator('.ficha-tab', { hasText: 'Muestras' }).click(); await p.waitForTimeout(300);
   await p.locator('.ficha-tab', { hasText: 'Sala de control' }).click(); await p.waitForTimeout(300); await p.screenshot({ path: 'v-ficha-control.png' });
   await p.goto('http://localhost:8099/#reglamento'); await p.waitForTimeout(500);
   ok(/Protección de datos personales/.test(await p.textContent('#reglamento-in')) && /no vendemos/i.test(await p.textContent('#reglamento-in')), 'el reglamento incluye la protección de datos personales');
   await p.goto('http://localhost:8099/#galeria'); await p.waitForTimeout(700);
-  ok(await p.locator('#galeria-car .fo-it').count() >= 8 && (await p.locator('#galeria-car .fo-it img').first().boundingBox()).width < 140, 'galería: fotos pequeñas con texto');
-  await p.click('#galeria-car .fo-it img'); await p.waitForTimeout(300); ok(await p.locator('.visor img').count() === 1, 'al tocar una foto se abre en grande'); await p.keyboard.press('Escape'); await p.screenshot({ path: 'v-galeria.png' });
+  ok(await p.locator('#galeria-in .ficha-tab').count() >= 5 && await p.locator('#galeria-in .gal-it').count() >= 8, 'galería: pestañas por categoría y fotos en cuadrícula');
+  await p.locator('#galeria-in .ficha-tab', { hasText: 'Control room' }).click(); await p.waitForTimeout(250);
+  ok(await p.locator('#galeria-in .ficha-hero h3').textContent() === 'Control room' && await p.locator('#galeria-in .gal-it').count() === 3, 'la pestaña Control room muestra su portada y las otras 3 fotos');
+  await p.locator('#galeria-in .gal-it').first().click(); await p.waitForTimeout(250);
+  ok(await p.locator('.visor').count() === 1, 'al tocar una foto se abre el visor'); await p.keyboard.press('Escape');
+  await p.locator('#galeria-in .ficha-tab', { hasText: 'Música' }).click(); await p.waitForTimeout(250);
+  ok(await p.locator('#galeria-in .ficha-panel [data-playlist] iframe').count() === 1, 'la pestaña Música muestra la playlist');
+  await p.locator('#galeria-in .ficha-tab').first().click(); await p.click('#galeria-in .gal-it img'); await p.waitForTimeout(300); ok(await p.locator('.visor img').count() === 1, 'al tocar una foto se abre en grande'); await p.keyboard.press('Escape'); await p.screenshot({ path: 'v-galeria.png' });
   await p.goto('http://localhost:8099/#nosotros'); await p.waitForTimeout(500); await p.screenshot({ path: 'v-prod.png', fullPage: true });
 
   // Demostración técnica: mezclador de pistas (Web Audio) con audios reales subidos por el portal simulado
@@ -158,6 +164,7 @@ const { sembrar } = require('./demo.js');
   // secciones nuevas del sitio
   for (const [id, sel, txt] of [['nosotros', '#nosotros-in p', /Rocker/], ['proaudix', '#pa-texto', /ProAudix/], ['contacto', '#redes .enlace', /Instagram|Mi canal/], ['opiniones', '#resenas', null]]) {
     await p.goto('http://localhost:8099/#' + id); await p.waitForTimeout(600);
+    if (id === 'nosotros') await p.locator('#prod-tabs [data-p="sobre"]').click();
     ok(await p.locator(sel).first().isVisible() || id === 'contacto' || id === 'opiniones', 'sección ' + id + ' visible'); await p.screenshot({ path: 's-' + id + '.png' });
   }
   // temas
