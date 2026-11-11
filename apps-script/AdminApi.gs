@@ -772,3 +772,11 @@ function rescateDeshacer() {
   try { CacheService.getScriptCache().removeAll(['cfgraw', 'sitio', 'tienda', 'contenido', 'agver']); } catch (e) { /* sin caché */ }
   console.log('Se volvió a la hoja original: ' + antes);
 }
+
+/** Vuelve a crear SOLO el activador de «liberarPendientes» (cada 5 min) si no existe. Se ejecuta a mano desde el editor; no duplica. */
+function reponerActivadorLiberar() {
+  var hay = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'liberarPendientes'; });
+  if (hay) { console.log('Ya existe el activador de liberarPendientes; no se creó otro.'); return; }
+  ScriptApp.newTrigger('liberarPendientes').timeBased().everyMinutes(5).create();
+  console.log('Activador de liberarPendientes creado (cada 5 minutos).');
+}
