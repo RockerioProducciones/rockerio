@@ -278,7 +278,7 @@ function adminCotizacionCorreo(fila) {
   var r = sh.getRange(f, 1, 1, 9).getValues()[0];
   var o = { nombre: String(r[3]), tipo: String(r[2]), monto: r[7] === '' ? '' : Reglas.aNumero(r[7], ''), detalle: String(r[8] || '') };
   if (o.monto === '') throw new Error('Escribe el monto antes de enviar la cotización.');
-  MailApp.sendEmail({ to: String(r[5]), subject: 'Cotización · ' + o.tipo + ' · ' + cfg.nombreNegocio, body: textoCotizacion_(cfg, o) + '\n\n' + cfg.nombreNegocio + '\n' + cfg.direccion, name: cfg.nombreNegocio, replyTo: cfg.correoAdmin || '' });
+  enviarCorreoMarca_(cfg, { to: String(r[5]), subject: 'Cotización · ' + o.tipo + ' · ' + cfg.nombreNegocio, body: textoCotizacion_(cfg, o) + '\n\n' + cfg.nombreNegocio + '\n' + cfg.direccion, name: cfg.nombreNegocio, replyTo: cfg.correoAdmin || '' });
   if (String(r[1]) === 'NUEVA') sh.getRange(f, 2).setValue('COTIZADA');
   return adminResumen();
 }

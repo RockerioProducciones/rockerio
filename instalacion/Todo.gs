@@ -979,6 +979,17 @@ function registrarCliente_(d) {
   }
 }
 
+/** Correo para clientes: texto plano + versión con el logo arriba (si el correo no muestra imágenes, se lee igual). */
+function enviarCorreoMarca_(cfg, o) {
+  var base = String(cfg.sitioUrl || 'https://rockerioproducciones.cl').replace(/\/+$/, '');
+  var esc = String(o.body).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+  o.htmlBody = '<div style="max-width:560px;margin:0 auto;font-family:Arial,Helvetica,sans-serif;color:#222">' +
+    '<div style="background:#141312;padding:18px;text-align:center;border-radius:10px 10px 0 0;border-bottom:3px solid #FCC631">' +
+    '<img src="' + base + '/assets/logo-horizontal-dorado.png" alt="' + String(cfg.nombreNegocio || 'Rockerío Producciones').replace(/[<>"&]/g, '') + '" width="220" style="max-width:100%;height:auto"></div>' +
+    '<div style="padding:18px;line-height:1.5;font-size:15px;border:1px solid #e5e5e5;border-top:0;border-radius:0 0 10px 10px">' + esc + '</div></div>';
+  MailApp.sendEmail(o);
+}
+
 function notificar_(cfg, v, codigo) {
   var d = v.datos;
   var cuerpo = Reglas.resumenTexto(cfg, v, codigo).replace('Hola, quiero confirmar mi reserva', 'Nueva reserva pendiente de abono');
@@ -997,7 +1008,7 @@ function notificar_(cfg, v, codigo) {
         'Tu horario queda reservado ' + cfg.minutosReserva + ' minutos a la espera del abono de ' + Reglas.clp(v.calculo.abono) + '. Si por algún motivo no alcanzas a abonar en ese plazo, el horario vuelve a quedar disponible para otras bandas; y si necesitas más tiempo, escríbenos y vemos cómo ayudarte.\n' +
         cfg.instruccionesPago + ((cfg.pagoTransferencia && cfg.datosTransferencia) ? '\nTransferencia: ' + cfg.datosTransferencia : '') + ((cfg.pagoOnline && cfg.linkPago) ? '\nPuedes pagar aquí: ' + cfg.linkPago : '') + '\n\n' +
         'Si necesitas cambiar o anular, avísanos por WhatsApp con al menos ' + cfg.horasAnulacion + ' horas de anticipación: así podemos darle ese espacio a otra banda y mantener la agenda fluida para todos. ¡Gracias!\n' + cfg.direccion;
-      MailApp.sendEmail({ to: d.correo, subject: 'Tu reserva #' + codigo + ' en ' + cfg.nombreNegocio, body: texto, name: cfg.nombreNegocio, replyTo: cfg.correoAdmin || '' });
+      enviarCorreoMarca_(cfg, { to: d.correo, subject: 'Tu reserva #' + codigo + ' en ' + cfg.nombreNegocio, body: texto, name: cfg.nombreNegocio, replyTo: cfg.correoAdmin || '' });
     }
   } catch (err) { console.error('Correo al cliente: ' + err); }
 }
@@ -2646,7 +2657,7 @@ function adminCotizacionCorreo(fila) {
   var r = sh.getRange(f, 1, 1, 9).getValues()[0];
   var o = { nombre: String(r[3]), tipo: String(r[2]), monto: r[7] === '' ? '' : Reglas.aNumero(r[7], ''), detalle: String(r[8] || '') };
   if (o.monto === '') throw new Error('Escribe el monto antes de enviar la cotización.');
-  MailApp.sendEmail({ to: String(r[5]), subject: 'Cotización · ' + o.tipo + ' · ' + cfg.nombreNegocio, body: textoCotizacion_(cfg, o) + '\n\n' + cfg.nombreNegocio + '\n' + cfg.direccion, name: cfg.nombreNegocio, replyTo: cfg.correoAdmin || '' });
+  enviarCorreoMarca_(cfg, { to: String(r[5]), subject: 'Cotización · ' + o.tipo + ' · ' + cfg.nombreNegocio, body: textoCotizacion_(cfg, o) + '\n\n' + cfg.nombreNegocio + '\n' + cfg.direccion, name: cfg.nombreNegocio, replyTo: cfg.correoAdmin || '' });
   if (String(r[1]) === 'NUEVA') sh.getRange(f, 2).setValue('COTIZADA');
   return adminResumen();
 }
