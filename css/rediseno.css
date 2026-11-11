@@ -1,0 +1,86 @@
+/* ===== REDISEÑO «Noche de escenario» — SOLO ESTÉTICA =====
+   Se activa con la clase .rd en <html> (vista previa: añade ?rediseno=1 a la dirección; ?rediseno=0 la apaga).
+   No cambia textos, orden ni funcionamiento: solo colores, formas, tipografía y luces. */
+html.rd{
+  --bg:#000;--bg2:#070707;--panel:#0b0b0b;--panel-a:rgba(11,11,11,.92);--borde:rgba(255,255,255,.09);
+  --velo:rgba(0,0,0,.92);--top-a:rgba(0,0,0,.82);--txt:#f4efe6;--mut:#a89f93;
+  --rd-r:3px;--rd-linea:rgba(252,198,49,.35);--rd-glow:0 0 0 1px rgba(252,198,49,.28),0 12px 40px rgba(252,198,49,.08);
+}
+html.rd body{
+  background:radial-gradient(900px 420px at 50% -160px,rgba(252,198,49,.07),transparent 70%),#000; /* siempre sobre negro: el dorado solo acentúa */
+  background-attachment:fixed;
+}
+html.rd body::before{
+  background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.5'/></svg>");
+  opacity:.05;mix-blend-mode:overlay;pointer-events:none;
+}
+
+/* barra superior */
+html.rd .top{background:var(--top-a);border-bottom:1px solid var(--rd-linea);box-shadow:0 1px 0 rgba(0,0,0,.6)}
+html.rd .top nav a{font-size:.78rem;letter-spacing:.18em;color:var(--mut)}
+html.rd .top nav a:hover{color:var(--oro)}
+
+/* portada */
+html.rd .hero{border-radius:0 0 var(--rd-r) var(--rd-r);border:0;box-shadow:none;
+  background:linear-gradient(180deg,rgba(0,0,0,.4) 0%,rgba(0,0,0,.75) 55%,#000 100%),url(../assets/fotos/control-panoramica.jpg) center/cover}
+html.rd .hero h1{font-size:clamp(2.6rem,10vw,5.2rem);letter-spacing:.14em;font-weight:700;color:var(--txt);text-shadow:0 0 40px rgba(252,198,49,.25)}
+html.rd .hero h1::after{content:"";display:block;width:84px;height:4px;margin:.5em auto 0;background:linear-gradient(90deg,var(--oro),var(--rojo));}
+html.rd .hero p{letter-spacing:.22em;text-transform:uppercase;font-size:.85rem;color:var(--mut)}
+html.rd .hero-logo{border-radius:0;box-shadow:none;filter:drop-shadow(0 0 28px rgba(252,198,49,.28))}
+html.rd .hero .chips span{border-radius:0;border:0;border-left:2px solid var(--oro);background:rgba(255,255,255,.05);color:var(--txt);letter-spacing:.14em;font-size:.72rem;text-transform:uppercase}
+html.rd .franja-dir{border-radius:0;border:0;border-top:1px solid var(--rd-linea);border-bottom:1px solid var(--rd-linea);background:transparent;letter-spacing:.16em;font-size:.78rem}
+
+/* menú de inicio: como entradas de concierto */
+html.rd .menu{background:transparent;border:0;box-shadow:none;border-radius:0}
+html.rd .tarjeta{border-radius:var(--rd-r);background:linear-gradient(180deg,#0f0f0f,#060606);border:1px solid var(--borde);border-top:2px solid var(--oro);box-shadow:0 8px 22px rgba(0,0,0,.45)}
+html.rd .tarjeta:hover{border-color:var(--oro);box-shadow:var(--rd-glow);transform:translateY(-3px)}
+html.rd .tarjeta b{letter-spacing:.16em;font-weight:600}
+html.rd .tarjeta.principal{background:linear-gradient(135deg,#e0a912,var(--oro) 55%,#ffdf7a);border-color:transparent;color:#17130a}
+html.rd .tarjeta.principal b,html.rd .tarjeta.principal small,html.rd .tarjeta.principal span{color:#17130a}
+
+/* títulos */
+html.rd h2{font-size:clamp(1.6rem,5vw,2.3rem);letter-spacing:.14em;color:var(--txt);position:relative;padding-left:.9rem;border-left:4px solid var(--oro)}
+html.rd h2::after{background:none!important}
+html.rd h3,html.rd legend{letter-spacing:.14em}
+html.rd .sub,html.rd .nota{color:var(--mut)}
+
+/* paneles y tarjetas */
+html.rd .card,html.rd .caja,html.rd fieldset,html.rd .forma,html.rd .prod-bloque,html.rd .pa-bloque,html.rd .ex-card{
+  border-radius:var(--rd-r);background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.008));border:1px solid var(--borde);box-shadow:none;backdrop-filter:blur(2px)}
+html.rd .caja{border-left:3px solid var(--oro)}
+html.rd .resumen,html.rd .tu-reserva{border-radius:var(--rd-r);background:rgba(252,198,49,.06);border:1px solid var(--rd-linea);border-left:4px solid var(--oro)}
+html.rd .tr-monto{letter-spacing:.04em;text-shadow:0 0 24px rgba(252,198,49,.35)}
+html.rd .datos{border-radius:var(--rd-r)}
+
+/* botones y campos */
+html.rd .btn{border-radius:0;letter-spacing:.16em;font-weight:700;font-size:.95rem;box-shadow:none;
+  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);padding:.85rem 1.7rem;
+  background:linear-gradient(135deg,#e0a912,var(--oro) 60%,#ffdf7a);transition:filter .15s,transform .15s}
+html.rd .btn:hover{filter:brightness(1.12);transform:translateY(-1px)}
+html.rd .btn.chico{padding:.5rem 1rem}
+html.rd input,html.rd select,html.rd textarea{border-radius:var(--rd-r);background:#050505;border:1px solid rgba(255,255,255,.12)}
+html.rd input:focus,html.rd select:focus,html.rd textarea:focus{outline:0;border-color:var(--oro);box-shadow:0 0 0 3px rgba(252,198,49,.2)}
+html.rd .hora,html.rd .hbtn,html.rd .cal-dia,html.rd .opcion{border-radius:var(--rd-r);background:#050505}
+html.rd .hora[aria-pressed=true],html.rd .hbtn[aria-pressed=true],html.rd .cal-dia[aria-pressed=true]{background:linear-gradient(135deg,#e0a912,var(--oro));box-shadow:0 0 18px rgba(252,198,49,.3)}
+html.rd .opcion:has(input:checked){background:rgba(252,198,49,.08);box-shadow:0 0 0 1px var(--oro) inset}
+
+/* pestañas (ficha técnica, producción, galería): subrayado dorado */
+html.rd .ficha-tabs{background:rgba(0,0,0,.88);border:0;border-bottom:1px solid var(--borde);border-radius:0;box-shadow:none}
+html.rd .ficha-tab{border-radius:var(--rd-r);background:transparent;border:1px solid transparent;color:var(--mut);letter-spacing:.1em;box-shadow:none}
+html.rd .ficha-tab[aria-selected="true"]{background:rgba(252,198,49,.12);border-color:var(--oro);color:var(--oro);box-shadow:0 0 20px rgba(252,198,49,.15)}
+
+/* imágenes y reproductores */
+html.rd .galeria img,html.rd .prod-foto,html.rd figure img{border-radius:var(--rd-r);filter:saturate(1.05) contrast(1.04)}
+html.rd .muestra iframe,html.rd .pl-frame{border-radius:var(--rd-r)}
+
+/* pie */
+html.rd footer{border-top:1px solid var(--rd-linea);letter-spacing:.08em}
+html.rd .selector-tema{border-radius:var(--rd-r)}
+
+/* móvil: mismos tamaños legibles, menos adorno */
+@media(max-width:700px){
+  html.rd h2{letter-spacing:.08em}
+  html.rd .hero h1{letter-spacing:.08em}
+  html.rd .top nav a{letter-spacing:.1em}
+}
+@media(prefers-reduced-motion:reduce){html.rd *{animation:none!important;transition:none!important}}
