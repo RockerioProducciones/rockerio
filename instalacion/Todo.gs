@@ -2392,6 +2392,29 @@ function diagnostico() {
   console.log('Total: ' + (Date.now() - t0) + ' ms');
 }
 
+/**
+ * RESCATE (se ejecuta a mano desde el editor): crea una copia limpia de la hoja de datos con Drive y hace que el sistema use esa copia.
+ * No borra nada: la hoja original queda intacta y se puede volver a ella con «rescateDeshacer».
+ */
+function rescate() {
+  var props = PropertiesService.getScriptProperties(), viejo = props.getProperty('SHEET_ID');
+  if (!viejo) throw new Error('No hay hoja de datos configurada.');
+  var copia = DriveApp.getFileById(viejo).makeCopy('Rockerío · Base de datos (copia limpia ' + Utilities.formatDate(new Date(), 'America/Santiago', 'yyyy-MM-dd HH-mm') + ')');
+  props.setProperty('SHEET_ID_ANTERIOR', viejo);
+  props.setProperty('SHEET_ID', copia.getId());
+  try { CacheService.getScriptCache().removeAll(['cfgraw', 'sitio', 'tienda', 'contenido', 'agver']); } catch (e) { /* sin caché */ }
+  console.log('Listo. Ahora el sistema usa la copia: ' + copia.getName() + ' (' + copia.getId() + '). La original sigue intacta: ' + viejo);
+}
+
+/** Vuelve a usar la hoja original (la que había antes de «rescate»). */
+function rescateDeshacer() {
+  var props = PropertiesService.getScriptProperties(), antes = props.getProperty('SHEET_ID_ANTERIOR');
+  if (!antes) throw new Error('No hay un rescate previo que deshacer.');
+  props.setProperty('SHEET_ID', antes);
+  try { CacheService.getScriptCache().removeAll(['cfgraw', 'sitio', 'tienda', 'contenido', 'agver']); } catch (e) { /* sin caché */ }
+  console.log('Se volvió a la hoja original: ' + antes);
+}
+
 /* ===== Contenido ===== */
 /**
  * Contenido que alimenta el sitio: muestras de audio, cuadro de honor, reseñas y cotizaciones.
