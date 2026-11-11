@@ -349,7 +349,7 @@
         var fr = el('iframe', 'pl-frame'); fr.src = 'https://www.youtube-nocookie.com/embed/videoseries?list=' + m[1]; fr.title = 'Playlist de trabajos terminados'; fr.loading = 'lazy';
         fr.allow = 'accelerometer; encrypted-media; picture-in-picture'; fr.setAttribute('allowfullscreen', ''); c.appendChild(fr);
         var b = el('a', 'btn chico', 'Abrir en YouTube Music'); b.href = d.url; b.target = '_blank'; b.rel = 'noopener'; c.appendChild(b);
-        c.hidden = false;
+        c.hidden = false; var vt = $('trabajos-vacio'); if (vt) vt.hidden = true;
       });
     }).catch(function () {});
   }

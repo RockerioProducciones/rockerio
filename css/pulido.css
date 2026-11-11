@@ -347,5 +347,6 @@ body.con-vistas[data-vista]:not([data-vista="inicio"]) .menu .tarjeta{padding:.4
 .mz-nopista{display:none;position:absolute;inset:0;align-items:center;justify-content:center;font-size:.74rem;color:#6b7078;letter-spacing:.05em}
 .mz-pista.apagada canvas{opacity:.22}.mz-pista.apagada .mz-cab{opacity:.65}.mz-pista.sin-pista .mz-nopista{display:flex}
 .mz-pie{display:flex;gap:.7rem;align-items:center;flex-wrap:wrap;padding:.6rem .8rem;background:#15171a}.mz-estado{margin:.5rem 0 0}
+@media(max-width:600px){.prod-tabs{gap:.3rem!important;overflow-x:visible}.prod-tabs .ficha-tab{flex:1 1 0!important;min-width:0;padding:.6rem .15rem!important}.prod-tabs .ficha-tab .ft-ico{font-size:1.25rem}.prod-tabs .ficha-tab .ft-tit{font-size:.6rem;letter-spacing:.01em;overflow-wrap:normal;word-break:normal;hyphens:none;text-align:center}}
 @media(max-width:560px){.mz-pista{grid-template-columns:1fr;min-height:0}.mz-cab{flex-direction:row;align-items:center;justify-content:space-between;padding:.3rem .5rem}.mz-onda{height:58px}.mz-etapas{margin-left:0;width:100%}.mz-et{flex:1;justify-content:center}.mz-top{gap:.6rem}}
 @media(min-width:561px){.mz-onda{min-height:72px}}
