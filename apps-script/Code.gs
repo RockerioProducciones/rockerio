@@ -90,6 +90,8 @@ function doGet(e) {
         return json_({ ok: true, config: configPublica_(), tienda: tiendaPublica_(), sitio: sitioPublico_(), ahora: ahoraChile_() });
       case 'contenido':
         return json_({ ok: true, contenido: contenidoPublico_() });
+      case 'audiomix':
+        return json_(audioMezclador_(p.id));
       case 'agenda':
         return json_(agenda_(p.dias, p.plan === '1'));
       case 'disponibilidad':

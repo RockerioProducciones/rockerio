@@ -22,6 +22,7 @@
 <link rel="stylesheet" href="css/movil.css">
 <link rel="stylesheet" href="css/clasico.css">
 <link rel="stylesheet" href="css/pulido.css">
+<link rel="stylesheet" href="css/produccion.css">
 <link rel="stylesheet" href="css/legible.css">
 <script src="js/tema.js"></script><script src="js/teclado.js" defer></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;800&family=Nunito:wght@400;700&family=Space+Mono:wght@400;700&family=Archivo+Black&family=Bebas+Neue&family=Poppins:wght@400;600&display=swap"></head>
@@ -171,12 +172,25 @@
 
 <section id="nosotros" class="sec">
   <h2>Producción</h2>
+  <div class="ficha-tabs prod-tabs" role="tablist" id="prod-tabs">
+    <button type="button" class="ficha-tab" role="tab" data-p="sobre" aria-selected="true"><span class="ft-ico">🎚️</span><span class="ft-tit">Sobre mí</span></button>
+    <button type="button" class="ficha-tab" role="tab" data-p="demo" aria-selected="false"><span class="ft-ico">🎧</span><span class="ft-tit">Demostración técnica</span></button>
+    <button type="button" class="ficha-tab" role="tab" data-p="metodo" aria-selected="false"><span class="ft-ico">🏭</span><span class="ft-tit">Estudio y método</span></button>
+    <button type="button" class="ficha-tab" role="tab" data-p="trabajos" aria-selected="false"><span class="ft-ico">🎵</span><span class="ft-tit">Trabajos terminados</span></button>
+  </div>
+  <div class="prod-panel" data-p="sobre">
   <div class="caja intro-prod"><h3 id="nosotros-t"></h3><div id="nosotros-in" class="texto"></div></div>
-  <div class="caja comp-ab" id="comparador" hidden></div>
   <div class="prod-bloque"><h3 data-ed="nos.enf.t" data-ed-l="Enfoque: título">Enfoque y pasión</h3>
     <p data-ed="nos.enf.p" data-ed-l="Enfoque: párrafo">Mi pasión y especialidad es el rock y sus géneros derivados, con una dedicación especial hacia las bandas instrumentales. Me apasiona acompañar la música en sus distintas etapas:</p>
     <ul class="reg-lista"><li data-ed="nos.enf.l1" data-ed-l="Enfoque: punto 1">Bandas de jóvenes que están partiendo y dando forma a sus primeros proyectos.</li><li data-ed="nos.enf.l2" data-ed-l="Enfoque: punto 2">Proyectos emergentes que ya están en ruta buscando consolidar su sonido.</li><li data-ed="nos.enf.l3" data-ed-l="Enfoque: punto 3">Músicos que vuelven a juntarse tras años de pausas para revivir sus canciones con la experiencia de hoy.</li></ul></div>
-  <div class="playlist caja" data-playlist hidden></div>
+  </div>
+  <div class="prod-panel" data-p="demo" hidden>
+    <p class="sub demo-intro">Aquí escuchas lo que hago con la música que se graba: cada instrumento por separado y el paso del sonido en bruto a la mezcla y al master.</p>
+    <div class="caja comp-ab mezclador" id="mezclador" hidden></div>
+  <div class="caja comp-ab" id="comparador" hidden></div>
+    <p class="nota prod-vacio" id="mezclador-vacio">Muy pronto: un mini mezclador para escuchar cada instrumento solo y comparar el sonido en bruto, mezclado y masterizado.</p>
+  </div>
+  <div class="prod-panel" data-p="metodo" hidden>
   <div class="prod-bloque"><h3 data-ed="nos.fil.t" data-ed-l="Filosofía: título">Nuestra filosofía (sin rodeos ni humo)</h3>
     <p data-ed="nos.fil.p1" data-ed-l="Filosofía: punto 1"><strong>Honestidad técnica:</strong> no vendemos promesas mágicas. Trabajamos al máximo sobre la mejor interpretación que logremos registrar juntos. Buscamos el mejor sonido posible con las herramientas que tenemos.</p>
     <p data-ed="nos.fil.p2" data-ed-l="Filosofía: punto 2"><strong>Acompañamiento cercano:</strong> resolvemos dudas técnicas a lo largo de todo el camino. Aporto ideas musicales y soluciones técnico-artísticas para potenciar la visión de la banda.</p>
@@ -188,6 +202,11 @@
     <p data-ed="nos.inf.p2" data-ed-l="Infraestructura: punto 2"><strong>Flujo híbrido in the box / analógico:</strong> consola de suma SSL SiX y estación de trabajo Apple Mac Mini M4 corriendo Universal Audio LUNA, con plugins UAD Native, Solid State Logic, Soundtoys y Slate Digital.</p>
     <p data-ed="nos.inf.p3" data-ed-l="Infraestructura: punto 3"><strong>Respaldo automatizado:</strong> copias de seguridad nocturnas con FreeFileSync y RealTimeSync, resguardando cada proyecto en discos SSD.</p>
     <p class="firma"><b>Juan Carlos Retamal González</b><br><span>Técnico Superior en Informática e Ingeniero en Sonido</span></p></div></div>
+  </div>
+  <div class="prod-panel" data-p="trabajos" hidden>
+  <div class="playlist caja" data-playlist hidden></div>
+    <p class="nota prod-vacio" id="trabajos-vacio">Muy pronto: aquí escucharás los trabajos terminados.</p>
+  </div>
   <p><a class="btn" href="#ficha">Ver ficha técnica</a></p>
 </section>
 
@@ -297,6 +316,7 @@
 <script src="js/reglas.js"></script>
 <script src="js/app.js"></script>
 <script src="js/planes.js"></script>
+<script src="js/mezclador.js"></script>
 <script src="js/contenido.js"></script>
 <script src="js/pasos.js"></script>
 <script src="js/vistas.js"></script>

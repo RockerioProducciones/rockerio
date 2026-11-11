@@ -100,11 +100,26 @@
     });
   }
 
+  /* ---------- pestañas de Producción (mismo esquema que la ficha técnica) ---------- */
+  function pestanasProd(tabsId, seccion) {
+    var tabs = $(tabsId); if (!tabs) return;
+    var paneles = [].slice.call(document.querySelectorAll('#' + seccion + ' .prod-panel'));
+    function ir(id) {
+      if (RK.mezPausar) RK.mezPausar();
+      [].forEach.call(tabs.querySelectorAll('.ficha-tab'), function (b) { b.setAttribute('aria-selected', b.getAttribute('data-p') === id ? 'true' : 'false'); });
+      paneles.forEach(function (p) { p.hidden = p.getAttribute('data-p') !== id; });
+    }
+    [].forEach.call(tabs.querySelectorAll('.ficha-tab'), function (b) { b.addEventListener('click', function () { ir(b.getAttribute('data-p')); }); });
+  }
+  pestanasProd('prod-tabs', 'nosotros');
+  window.addEventListener('hashchange', function () { if (RK.mezPausar) RK.mezPausar(); });
+
   /* ---------- pintado ---------- */
   function pintar(c) {
     var mics = c.muestras.filter(function (g) { return g.tipo === 'Micrófono'; });
-    var otros = c.muestras.filter(function (g) { return g.tipo !== 'Micrófono' && g.tipo !== 'Comparador'; });
+    var otros = c.muestras.filter(function (g) { return g.tipo !== 'Micrófono' && g.tipo !== 'Comparador' && g.tipo !== 'Mezclador'; });
     comparador(c.muestras.filter(function (g) { return g.tipo === 'Comparador'; }));
+    if (RK.mezclador) RK.mezclador(c.muestras.filter(function (g) { return g.tipo === 'Mezclador'; }));
     $('escucha-box').hidden = !otros.length;
     RK.micsCatalogo().then(function (cat) { pintarMics(cat || [], mics); });
     otros.forEach(function (g) { $('escucha').appendChild(tarjeta(g)); });
