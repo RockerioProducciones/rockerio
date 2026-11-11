@@ -2374,23 +2374,30 @@ function adminAjustarRetencion(codigo, monto, nota) {
  * Solo LEE; no modifica nada.
  */
 function diagnostico() {
-  var t0 = Date.now();
-  function paso(n, fn) { var t = Date.now(); console.log('→ ' + n + ' …'); try { var r = fn(); console.log('✔ ' + n + ' (' + (Date.now() - t) + ' ms)' + (r === undefined ? '' : ' · ' + r)); } catch (e) { console.log('✖ ' + n + ': ' + (e && e.message || e)); } }
-  paso('propiedades', function () { return Object.keys(PropertiesService.getScriptProperties().getProperties()).length + ' claves'; });
+  var props = PropertiesService.getScriptProperties(), lineas = [], t0 = Date.now();
+  function anotar(t) { lineas.push(Utilities.formatDate(new Date(), 'America/Santiago', 'HH:mm:ss') + ' ' + t); props.setProperty('DIAG', lineas.join('\n')); }
+  function paso(n, fn) { var t = Date.now(); anotar('→ ' + n + ' …'); try { var r = fn(); anotar('✔ ' + n + ' (' + (Date.now() - t) + ' ms)' + (r === undefined ? '' : ' · ' + r)); } catch (e) { anotar('✖ ' + n + ': ' + (e && e.message || e)); } }
+  anotar('inicio');
   paso('caché', function () { CacheService.getScriptCache().get('prueba'); });
+  paso('Drive: hoja de datos', function () { return DriveApp.getFileById(props.getProperty('SHEET_ID')).getName(); });
   var ss = null;
-  paso('abrir la hoja de datos', function () { ss = abrirBd_(); return ss.getName(); });
+  paso('SpreadsheetApp.openById', function () { ss = SpreadsheetApp.openById(props.getProperty('SHEET_ID')); return ss.getName(); });
   if (!ss) return;
-  paso('lista de pestañas', function () { return ss.getSheets().map(function (s) { return s.getName() + ' ' + s.getLastRow() + '×' + s.getLastColumn(); }).join(' | '); });
+  paso('lista de pestañas', function () { return ss.getSheets().map(function (s) { return s.getName(); }).join(' | '); });
   ss.getSheets().forEach(function (s) {
-    paso('leer «' + s.getName() + '»', function () { var f = Math.min(s.getLastRow(), 3000), c = s.getLastColumn(); return f && c ? s.getRange(1, 1, f, c).getValues().length + ' filas' : 'vacía'; });
+    paso('tamaño «' + s.getName() + '»', function () { return s.getLastRow() + '×' + s.getLastColumn(); });
+  });
+  ss.getSheets().forEach(function (s) {
+    paso('leer «' + s.getName() + '»', function () { var f = Math.min(s.getLastRow(), 2000), c = s.getLastColumn(); return f && c ? s.getRange(1, 1, f, c).getValues().length + ' filas' : 'vacía'; });
   });
   paso('configuración (getCfg_)', function () { return Object.keys(getCfg_()).length + ' claves'; });
   paso('calendario', function () { return getCalendar_().getName(); });
-  paso('candado libre', function () { var l = LockService.getScriptLock(); var ok = l.tryLock(3000); if (ok) l.releaseLock(); return ok ? 'libre' : 'OCUPADO por otra ejecución'; });
-  paso('carpeta de respaldos', function () { return carpetaRespaldos_().getName(); });
-  console.log('Total: ' + (Date.now() - t0) + ' ms');
+  paso('candado', function () { var l = LockService.getScriptLock(); var ok = l.tryLock(3000); if (ok) l.releaseLock(); return ok ? 'libre' : 'OCUPADO por otra ejecución'; });
+  anotar('FIN en ' + (Date.now() - t0) + ' ms');
 }
+
+/** Muestra lo que alcanzó a anotar «diagnostico» (úsalo si se queda colgado: ejecuta esta aparte). */
+function verDiagnostico() { console.log(PropertiesService.getScriptProperties().getProperty('DIAG') || '(sin datos)'); }
 
 /**
  * RESCATE (se ejecuta a mano desde el editor): crea una copia limpia de la hoja de datos con Drive y hace que el sistema use esa copia.
