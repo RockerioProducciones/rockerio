@@ -384,7 +384,10 @@ section.tab-off{display:none!important}
 <div id="socs"></div>
 <div class="fila"><input id="sn" maxlength="40" placeholder="Nombre (ej. Jaime, o Familia)" style="flex:1;min-width:160px"><select id="sti"><option value="colega">Colega: agenda + ventas + resúmenes</option><option value="social">Social / familia: solo agenda (lectura)</option></select><button id="sg">Crear enlace</button></div></details>
 <h3 style="margin:.8em 0 .2em;font-size:15px">Disponibilidad pública (solo libre / ocupado)</h3><div id="pubag"></div></section>
-<section><h2>Respaldo</h2><div class="fila"><button id="resp">Respaldar ahora</button><span style="color:#b5afa6">Se hace solo cada noche en tu Drive (carpeta «Rockerío · Respaldos», últimas 30 copias).</span></div><div id="resp-lista" style="margin-top:.8rem"></div></section>
+<section><h2>Copias de seguridad y restauración</h2>
+<p style="color:#b5afa6;margin:.2em 0 .6em">Cada copia guarda TODO: reservas, clientes, ventas, ingresos, tienda y el contenido del sitio. Se hace una sola cada noche y, además, <b>automática justo antes de cambios grandes</b> (importar, eliminar, cerrar mes, guardar el sitio). Si algo sale mal, restaura la copia anterior; lo actual queda guardado antes, así que también se puede deshacer.</p>
+<div class="fila"><input id="resp-nota" maxlength="40" placeholder="Nota (ej. antes de cambiar precios)" style="flex:1;min-width:160px"><button id="resp">Guardar una copia ahora</button></div>
+<div id="resp-lista" style="margin-top:.8rem"></div></section>
 <section><h2>Bloqueos</h2><div class="fila">
 <input type="date" id="bf"><input type="number" id="bd" min="0" max="23" placeholder="Desde (h)" style="width:100px"><input type="number" id="bh" min="1" max="24" placeholder="Hasta (h)" style="width:100px"><input id="bm" maxlength="100" placeholder="Motivo" style="flex:1;min-width:140px"><button id="bloq">Bloquear</button></div>
 <p style="color:#b5afa6;margin:.4em 0">Sin horas = todo el día.</p><table><tbody id="blo"></tbody></table></section>
@@ -436,8 +439,8 @@ $('guardar').onclick=function(){ejecutar('adminConfigurar',$('activas').checked,
 $('bloq').onclick=function(){ejecutar('adminBloquear',$('bf').value,$('bd').value,$('bh').value,$('bm').value)};
 
 function btn(t,f,c){var b=document.createElement('button');b.textContent=t;if(c)b.className=c;b.onclick=f;return b}
-function pintarResp(){var c=$('resp-lista');c.textContent='Cargando copias…';google.script.run.withSuccessHandler(function(l){c.textContent='';if(!l.length){c.textContent='Aún no hay copias.';return}l.forEach(function(x){var f=el_('div','fila');var t=el_('span');t.textContent=x.nombre+' · '+x.creado;t.style.flex='1';f.appendChild(t);f.appendChild(btn('Restaurar',function(){confirmarSN('¿Restaurar TODA la información a como estaba en «'+x.nombre+'»? Lo actual se guarda antes como «Previo a restaurar», así que se puede deshacer.',function(){google.script.run.withSuccessHandler(function(m){aviso(m);pintarResp()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminRestaurar(x.id)},'Sí, restaurar')},'sec'));c.appendChild(f)})}).withFailureHandler(function(e){c.textContent=e.message||'Error'}).adminListarRespaldos()}
-$('resp').onclick=function(){google.script.run.withSuccessHandler(function(m){aviso(m);pintarResp()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminRespaldar()};pintarResp();
+function pintarResp(){var c=$('resp-lista');c.textContent='Cargando copias…';var ET={antes:'Automática antes de un cambio',previo:'Guardada al restaurar',copia:'Copia'};google.script.run.withSuccessHandler(function(l){c.textContent='';if(!l.length){c.textContent='Aún no hay copias.';return}l.forEach(function(x){var f=el_('div','fila');var t=el_('span');t.textContent=x.creado+' · '+x.nombre.replace(/^(Antes de|Previo a restaurar|Respaldo) ?/,function(m){return m.trim()==='Respaldo'?'':m})+' · '+(ET[x.tipo]||'Copia');t.style.flex='1';f.appendChild(t);f.appendChild(btn('Restaurar',function(){confirmarSN('¿Volver TODO a como estaba el '+x.creado+'? Lo actual se guarda antes como «Previo a restaurar», así que se puede deshacer.',function(){google.script.run.withSuccessHandler(function(m){aviso(m);pintarResp()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminRestaurar(x.id)},'Sí, restaurar')},'sec'));c.appendChild(f)})}).withFailureHandler(function(e){c.textContent=e.message||'Error'}).adminListarRespaldos()}
+$('resp').onclick=function(){var n=$('resp-nota');google.script.run.withSuccessHandler(function(m){aviso(m);n.value='';pintarResp()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminRespaldar(n.value)};pintarResp();
 
 
 function filaR(t,v,neg,nota){var tr=document.createElement('tr');tr.appendChild(td(t));tr.appendChild(td(clp(v),neg?'est':''));tr.appendChild(td(nota||''));tr.lastChild.style.color='#b5afa6';return tr}
@@ -1032,11 +1035,11 @@ var AREAS=[
  ['bebestibles','Bebestibles','Agua, jugos, bebidas y cervezas'],
  ['contenido','Sitio web','Textos, fotos, audios y videos de la web'],
  ['mensajes','WhatsApp','Mensajes y recordatorios'],
- ['config','Configuración','Precios, reglas, secciones y redes'],
+ ['config','Configuración','Precios, reglas, redes y copias de seguridad'],
  ['conta','Contabilidad','Costos, cierre de mes e impuestos'],
- ['socios','Socios y respaldo','Enlaces para compartir y copias']
+ ['socios','Socios y colegas','Enlaces para compartir']
 ];
-var DE={'Editor del sitio web':'contenido','Reservas y jornadas':'jornadas','Reservas':'jornadas','Bloqueos':'jornadas','Planes mensuales':'jornadas','Cotizaciones y solicitudes':'jornadas','Cuadro de honor':'jornadas','Reseñas':'jornadas','Agregar banda al cuadro de honor':'jornadas','Ventas del mes':'tienda','Presentación personal':'contenido','Reglamento interno':'contenido','Muestras de audio':'contenido','Mensajes de WhatsApp':'mensajes','Configuración':'config','Sitio':'config','Costos del mes y cierre':'conta','Contabilidad formal':'conta','Enlaces para compartir':'socios','Respaldo':'socios'};
+var DE={'Editor del sitio web':'contenido','Reservas y jornadas':'jornadas','Reservas':'jornadas','Bloqueos':'jornadas','Planes mensuales':'jornadas','Cotizaciones y solicitudes':'jornadas','Cuadro de honor':'jornadas','Reseñas':'jornadas','Agregar banda al cuadro de honor':'jornadas','Ventas del mes':'tienda','Presentación personal':'contenido','Reglamento interno':'contenido','Muestras de audio':'contenido','Mensajes de WhatsApp':'mensajes','Configuración':'config','Sitio':'config','Costos del mes y cierre':'conta','Contabilidad formal':'conta','Enlaces para compartir':'socios','Copias de seguridad y restauración':'config'};
 [].forEach.call(document.querySelectorAll('section'),function(s){var h=s.querySelector('h2'),p=s.id==='sec-musica'?'tienda':s.id==='sec-beb'?'bebestibles':(s.id==='sec-conta'||s.id==='sec-ct'||s.id==='sec-rc')?'conta':s.id==='sec-wa'?'mensajes':(h&&DE[h.textContent.trim()]);if(p)s.setAttribute('data-p',p)});
 var JT={'Reservas':'cob','Bloqueos':'cob','Planes mensuales':'cob','Cotizaciones y solicitudes':'sol','Cuadro de honor':'sol','Reseñas':'sol','Agregar banda al cuadro de honor':'sol'};
 [].forEach.call(document.querySelectorAll('section'),function(s){var h=s.querySelector('h2');if(h&&JT[h.textContent.trim()])s.setAttribute('data-jt',JT[h.textContent.trim()])});

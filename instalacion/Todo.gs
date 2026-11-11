@@ -1890,20 +1890,16 @@ var RESPALDOS_A_CONSERVAR = 30;
  * Copia diaria (3 AM) de toda la base de datos a la carpeta "Rockerío · Respaldos" de tu Google Drive.
  * Conserva las últimas 30 copias. Si falla, avisa por correo al administrador.
  */
-function respaldar() {
+function respaldar(nota) {
   try {
     var props = PropertiesService.getScriptProperties();
-    var it = DriveApp.getFoldersByName(CARPETA_RESPALDOS);
-    var carpeta = it.hasNext() ? it.next() : DriveApp.createFolder(CARPETA_RESPALDOS);
-    var hoy = ahoraChile_().fecha;
-    var copia = DriveApp.getFileById(props.getProperty('SHEET_ID')).makeCopy('Respaldo ' + hoy + ' · Rockerío', carpeta);
-    var archivos = [], f = carpeta.getFiles();
-    while (f.hasNext()) archivos.push(f.next());
-    archivos.sort(function (a, b) { return b.getDateCreated() - a.getDateCreated(); });
-    archivos = archivos.filter(function (a) { return /^Respaldo /.test(a.getName()); });
-    archivos.slice(RESPALDOS_A_CONSERVAR).forEach(function (a) { a.setTrashed(true); });
+    var carpeta = carpetaRespaldos_();
+    var hoy = ahoraChile_().fecha, nm = nota ? ' ' + limpiar_(nota, 40).replace(/[\\\/:*?"<>|]/g, '') : '';
+    var hora = Utilities.formatDate(new Date(), Reglas.TZ, 'HH-mm');
+    var copia = DriveApp.getFileById(props.getProperty('SHEET_ID')).makeCopy('Respaldo ' + hoy + (nota ? ' ' + hora + nm : '') + ' · Rockerío', carpeta);
+    podarRespaldos_(carpeta);
     props.setProperty('ULTIMO_RESPALDO', hoy);
-    return 'Respaldo creado: ' + copia.getName() + ' (se conservan ' + RESPALDOS_A_CONSERVAR + ').';
+    return 'Respaldo creado: ' + copia.getName() + '.';
   } catch (err) {
     console.error(err && err.stack || err);
     try {
@@ -1914,9 +1910,35 @@ function respaldar() {
   }
 }
 
-function adminRespaldar() {
+/** Cuántas copias se conservan de cada tipo (lo más nuevo primero). */
+var RESPALDOS_FAMILIAS = [[/^Respaldo /, 30], [/^Antes de /, 25], [/^Previo a restaurar /, 15]];
+function podarRespaldos_(carpeta) {
+  var archivos = [], f = carpeta.getFiles();
+  while (f.hasNext()) archivos.push(f.next());
+  archivos.sort(function (a, b) { return b.getDateCreated() - a.getDateCreated(); });
+  RESPALDOS_FAMILIAS.forEach(function (fam) {
+    archivos.filter(function (a) { return fam[0].test(a.getName()); }).slice(fam[1]).forEach(function (a) { a.setTrashed(true); });
+  });
+}
+
+/**
+ * Copia de seguridad automática ANTES de un cambio grande (importar, eliminar, cerrar mes, reemplazar contenido).
+ * Máximo una cada 10 minutos para no frenar el trabajo; si falla, nunca bloquea la acción.
+ */
+function respaldoAntes_(motivo) {
+  try {
+    var props = PropertiesService.getScriptProperties(), ahora = Date.now(), ult = Number(props.getProperty('ULTIMO_PREVIO') || 0);
+    if (ahora - ult < 10 * 60 * 1000) return;
+    props.setProperty('ULTIMO_PREVIO', String(ahora));
+    var carpeta = carpetaRespaldos_();
+    DriveApp.getFileById(props.getProperty('SHEET_ID')).makeCopy('Antes de ' + limpiar_(motivo, 40) + ' ' + ahoraChile_().fecha + ' ' + Utilities.formatDate(new Date(), Reglas.TZ, 'HH-mm') + ' · Rockerío', carpeta);
+    podarRespaldos_(carpeta);
+  } catch (err) { console.error('respaldoAntes_: ' + (err && err.message || err)); }
+}
+
+function adminRespaldar(nota) {
   exigirAdmin_();
-  return respaldar();
+  return respaldar(nota ? String(nota) : '');
 }
 
 function carpetaRespaldos_() {
@@ -1924,16 +1946,16 @@ function carpetaRespaldos_() {
   return it.hasNext() ? it.next() : DriveApp.createFolder(CARPETA_RESPALDOS);
 }
 
-/** Lista las copias disponibles (más nuevas primero). */
+/** Lista las copias disponibles (más nuevas primero) con su tipo: diaria/manual, automática antes de un cambio, o previa a restaurar. */
 function adminListarRespaldos() {
   exigirAdmin_();
   var out = [], f = carpetaRespaldos_().getFiles();
   while (f.hasNext()) {
-    var a = f.next();
-    out.push({ id: a.getId(), nombre: a.getName(), creado: Utilities.formatDate(a.getDateCreated(), 'America/Santiago', 'yyyy-MM-dd HH:mm'), t: a.getDateCreated().getTime() });
+    var a = f.next(), nm = a.getName();
+    out.push({ id: a.getId(), nombre: nm.replace(/ · Rockerío$/, ''), tipo: /^Antes de /.test(nm) ? 'antes' : /^Previo a restaurar/.test(nm) ? 'previo' : 'copia', creado: Utilities.formatDate(a.getDateCreated(), 'America/Santiago', 'yyyy-MM-dd HH:mm'), t: a.getDateCreated().getTime() });
   }
   out.sort(function (a, b) { return b.t - a.t; });
-  return out.slice(0, 60).map(function (x) { delete x.t; return x; });
+  return out.slice(0, 80).map(function (x) { delete x.t; return x; });
 }
 
 /**
@@ -1954,6 +1976,7 @@ function adminRestaurar(id) {
     });
     var previo = DriveApp.getFileById(PropertiesService.getScriptProperties().getProperty('SHEET_ID'))
       .makeCopy('Previo a restaurar ' + ahoraChile_().fecha + ' ' + Utilities.formatDate(new Date(), Reglas.TZ, 'HH-mm') + ' · Rockerío', carpeta);
+    try { podarRespaldos_(carpeta); } catch (e) { /* sin poda */ }
     var n = 0;
     origen.getSheets().forEach(function (h) {
       var d = destino.getSheetByName(h.getName());
@@ -2070,7 +2093,7 @@ function adminGuardarCliente(d) {
 
 /** Importa clientes en bloque. filas = [{nombre, apellido?, banda, telefono}]. Omite los que ya existen (por teléfono). Devuelve {agregados, omitidos:[texto]}. */
 function adminImportarClientes(filas) {
-  exigirAdmin_();
+  exigirAdmin_(); respaldoAntes_('importar clientes');
   if (!filas || !filas.length) throw new Error('No hay clientes para importar.');
   if (filas.length > 300) throw new Error('Máximo 300 clientes por vez.');
   return conBloqueo_(function () {
@@ -2093,7 +2116,7 @@ function adminImportarClientes(filas) {
 
 /** Quita el cliente de la base. Sus reservas pasadas se conservan en la hoja Reservas. */
 function adminEliminarCliente(clave) {
-  exigirAdmin_();
+  exigirAdmin_(); respaldoAntes_('eliminar cliente');
   return conBloqueo_(function () {
     var sh = abrirBd_().getSheetByName(HOJAS.clientes), n = sh.getLastRow(), fila = -1;
     if (n > 1) sh.getRange(2, 1, n - 1, 1).getValues().forEach(function (r, i) { if (String(r[0]) === String(clave)) fila = i + 2; });
@@ -2226,7 +2249,7 @@ function adminReservaManual(p) {
 
 /** Elimina una reserva (fila y evento del calendario). Para anular conservando el historial usa «Anulada». */
 function adminEliminarReserva(codigo) {
-  exigirAdmin_();
+  exigirAdmin_(); respaldoAntes_('eliminar reserva');
   return conBloqueo_(function () {
     var sh = abrirBd_().getSheetByName(HOJAS.reservas), celda = sh.getLastRow() > 1 ? sh.createTextFinder(String(codigo)).matchEntireCell(true).findNext() : null;
     if (!celda || celda.getColumn() !== RES.codigo) throw new Error('No se encontró la reserva.');
@@ -2915,7 +2938,7 @@ function adminAgregarHonor(d) {
   });
 }
 function adminEliminarHonor(fila) {
-  exigirAdmin_();
+  exigirAdmin_(); respaldoAntes_('eliminar honor');
   return conBloqueo_(function () {
     var sh = abrirBd_().getSheetByName(HOJAS.honor); sh.deleteRow(filaProducto_(sh, fila));
     limpiarCacheContenido_();
@@ -3216,7 +3239,7 @@ function adminCargarBase(tipo) {
 }
 
 function adminEliminarProducto(fila, tipo) {
-  exigirAdmin_();
+  exigirAdmin_(); respaldoAntes_('eliminar producto');
   return conBloqueo_(function () {
     var sh = hojaCatalogo_(tipo);
     sh.deleteRow(filaProducto_(sh, fila));
@@ -3378,7 +3401,7 @@ function adminCobrar(id, pago) {
 }
 /** Anula una venta (queda en el historial como «Anulada») y devuelve las unidades al stock. */
 function adminAnularVenta(id) {
-  exigirAdmin_();
+  exigirAdmin_(); respaldoAntes_('anular venta');
   return conBloqueo_(function () {
     var ss = abrirBd_(), sh = ss.getSheetByName(HOJAS.ventas), f = filaPorTexto_(sh, id, VT.id);
     if (!f) throw new Error('Venta no encontrada.');
@@ -3434,7 +3457,7 @@ function adminEditarVenta(id, d) {
 
 /** Elimina del todo una venta (por ejemplo, una duplicada). Si no estaba anulada, devuelve las unidades al stock. */
 function adminEliminarVenta(id) {
-  exigirAdmin_();
+  exigirAdmin_(); respaldoAntes_('eliminar venta');
   return conBloqueo_(function () {
     var sh = abrirBd_().getSheetByName(HOJAS.ventas), f = filaPorTexto_(sh, id, VT.id);
     if (!f) throw new Error('Venta no encontrada.');
@@ -3509,7 +3532,7 @@ function leerHistorial_() {
 }
 
 function adminCerrarMes(mes) {
-  exigirAdmin_();
+  exigirAdmin_(); respaldoAntes_('cerrar mes');
   return conBloqueo_(function () { cerrarMes_(mes); return adminResumen(); });
 }
 
@@ -3816,7 +3839,7 @@ function adminGuardarCompra(c) {
 }
 
 function adminEliminarCompra(fila) {
-  exigirAdmin_();
+  exigirAdmin_(); respaldoAntes_('eliminar compra');
   return conBloqueo_(function () {
     var sh = abrirBd_().getSheetByName(HOJAS.compras);
     fila = Number(fila);
@@ -3900,7 +3923,7 @@ function adminGuardarMovimiento(m) {
 }
 
 function adminEliminarMovimiento(id) {
-  exigirAdmin_();
+  exigirAdmin_(); respaldoAntes_('eliminar movimiento');
   return conBloqueo_(function () {
     var sh = abrirBd_().getSheetByName(HOJAS.movimientos), f = sh.getLastRow() > 1 ? filaPorTexto_(sh, id, 1) : 0;
     if (!f) throw new Error('Movimiento no encontrado.');
@@ -4606,7 +4629,7 @@ function sitioPublico_() {
 
 /** Guarda una parte. valor vacío ({} o []) = vuelve al contenido original del sitio. */
 function adminGuardarSitio(parte, valor) {
-  exigirAdmin_();
+  exigirAdmin_(); respaldoAntes_('guardar sitio');
   if (typeof valor === 'string') { try { valor = JSON.parse(valor); } catch (e) { throw new Error('No se pudo leer lo que enviaste.'); } }
   var limpio = validarParteSitio_(String(parte), valor), vacio = Array.isArray(limpio) ? !limpio.length : !Object.keys(limpio).length;
   var txt = JSON.stringify(limpio);

@@ -260,6 +260,11 @@ t('costos del mes y compra con factura (IVA 19%)', () => {
 t('cerrar el mes guarda una foto en el historial', () => {
   g.admin('adminCerrarMes', hoy.slice(0, 7)); assert.ok(g.hoja('HistorialBalance').length >= 2);
 });
+t('antes de un cambio grande se guarda una copia automática (una cada 10 min como máximo)', () => {
+  const antes = g.estado.copias.filter((c) => /^Antes de /.test(c.n));
+  assert.ok(antes.length >= 1, 'debe existir una copia «Antes de…»');
+  assert.strictEqual(antes.length, 1, 'no se repite dentro de 10 minutos');
+});
 t('respaldo crea una copia de la hoja y rota las antiguas', () => {
   const m = g.admin('adminRespaldar'); assert.ok(/Respaldo creado/.test(m)); assert.ok(g.estado.copias.length >= 1);
 });

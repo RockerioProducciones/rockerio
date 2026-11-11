@@ -156,7 +156,7 @@ function sitioPublico_() {
 
 /** Guarda una parte. valor vacío ({} o []) = vuelve al contenido original del sitio. */
 function adminGuardarSitio(parte, valor) {
-  exigirAdmin_();
+  exigirAdmin_(); respaldoAntes_('guardar sitio');
   if (typeof valor === 'string') { try { valor = JSON.parse(valor); } catch (e) { throw new Error('No se pudo leer lo que enviaste.'); } }
   var limpio = validarParteSitio_(String(parte), valor), vacio = Array.isArray(limpio) ? !limpio.length : !Object.keys(limpio).length;
   var txt = JSON.stringify(limpio);

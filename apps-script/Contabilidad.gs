@@ -113,7 +113,7 @@ function adminGuardarCompra(c) {
 }
 
 function adminEliminarCompra(fila) {
-  exigirAdmin_();
+  exigirAdmin_(); respaldoAntes_('eliminar compra');
   return conBloqueo_(function () {
     var sh = abrirBd_().getSheetByName(HOJAS.compras);
     fila = Number(fila);
@@ -197,7 +197,7 @@ function adminGuardarMovimiento(m) {
 }
 
 function adminEliminarMovimiento(id) {
-  exigirAdmin_();
+  exigirAdmin_(); respaldoAntes_('eliminar movimiento');
   return conBloqueo_(function () {
     var sh = abrirBd_().getSheetByName(HOJAS.movimientos), f = sh.getLastRow() > 1 ? filaPorTexto_(sh, id, 1) : 0;
     if (!f) throw new Error('Movimiento no encontrado.');

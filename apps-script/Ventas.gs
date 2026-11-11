@@ -84,7 +84,7 @@ function adminCargarBase(tipo) {
 }
 
 function adminEliminarProducto(fila, tipo) {
-  exigirAdmin_();
+  exigirAdmin_(); respaldoAntes_('eliminar producto');
   return conBloqueo_(function () {
     var sh = hojaCatalogo_(tipo);
     sh.deleteRow(filaProducto_(sh, fila));
@@ -246,7 +246,7 @@ function adminCobrar(id, pago) {
 }
 /** Anula una venta (queda en el historial como «Anulada») y devuelve las unidades al stock. */
 function adminAnularVenta(id) {
-  exigirAdmin_();
+  exigirAdmin_(); respaldoAntes_('anular venta');
   return conBloqueo_(function () {
     var ss = abrirBd_(), sh = ss.getSheetByName(HOJAS.ventas), f = filaPorTexto_(sh, id, VT.id);
     if (!f) throw new Error('Venta no encontrada.');
@@ -302,7 +302,7 @@ function adminEditarVenta(id, d) {
 
 /** Elimina del todo una venta (por ejemplo, una duplicada). Si no estaba anulada, devuelve las unidades al stock. */
 function adminEliminarVenta(id) {
-  exigirAdmin_();
+  exigirAdmin_(); respaldoAntes_('eliminar venta');
   return conBloqueo_(function () {
     var sh = abrirBd_().getSheetByName(HOJAS.ventas), f = filaPorTexto_(sh, id, VT.id);
     if (!f) throw new Error('Venta no encontrada.');
@@ -377,6 +377,6 @@ function leerHistorial_() {
 }
 
 function adminCerrarMes(mes) {
-  exigirAdmin_();
+  exigirAdmin_(); respaldoAntes_('cerrar mes');
   return conBloqueo_(function () { cerrarMes_(mes); return adminResumen(); });
 }

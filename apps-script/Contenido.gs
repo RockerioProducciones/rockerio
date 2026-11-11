@@ -504,7 +504,7 @@ function adminAgregarHonor(d) {
   });
 }
 function adminEliminarHonor(fila) {
-  exigirAdmin_();
+  exigirAdmin_(); respaldoAntes_('eliminar honor');
   return conBloqueo_(function () {
     var sh = abrirBd_().getSheetByName(HOJAS.honor); sh.deleteRow(filaProducto_(sh, fila));
     limpiarCacheContenido_();
