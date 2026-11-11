@@ -364,7 +364,7 @@ function cerrarMes_(mes) {
 
 /** Disparador del día 1 de cada mes: guarda el balance del mes que terminó. */
 function cerrarMesAnterior() {
-  cerrarMes_(Reglas.sumarDias(ahoraChile_().fecha.slice(0, 8) + '01', -1).slice(0, 7));
+  try { cerrarMes_(Reglas.sumarDias(ahoraChile_().fecha.slice(0, 8) + '01', -1).slice(0, 7)); } catch (e) { avisarFallo_('cierre mensual', e); throw e; }
 }
 
 function leerHistorial_() {

@@ -98,6 +98,9 @@ function adminProbarWhatsApp(telefono) {
  * Solo actúa si waAutoActivo = SI. Cada reserva se marca para no repetir el envío.
  */
 function enviarRecordatorios() {
+  try { enviarRecordatorios_(); } catch (e) { avisarFallo_('recordatorios de WhatsApp', e); throw e; }
+}
+function enviarRecordatorios_() {
   var cfg = getCfg_();
   if (!cfg.waAutoActivo) return;
   conBloqueo_(function () {

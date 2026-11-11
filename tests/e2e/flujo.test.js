@@ -493,6 +493,33 @@ t('mezclador: guarda pistas, entrega solo audios autorizados y valida', () => {
   assert.strictEqual(gx.get({ accion: 'contenido' }).contenido.muestras.filter((x) => x.tipo === 'Mezclador').length, 0);
   assert.strictEqual(gx.get({ accion: 'audiomix', id }).ok, false);
 });
+t('rendimiento: agenda y disponibilidad usan caché y se renuevan al reservar', () => {
+  const gx = require('./gas-sim').crear(); gx.instalar();
+  const dia = gx.get({ accion: 'agenda' }).dias, fecha = Object.keys(dia).filter((d) => d >= f3 && dia[d].libres.includes(19))[0];
+  assert.ok(fecha, 'hay un día con las 19 h libres');
+  const antes = gx.get({ accion: 'disponibilidad', fecha }), antesAg = gx.get({ accion: 'agenda' });
+  assert.ok(antes.libres.includes(19));
+  // segunda lectura sale de la caché (mismo contenido)
+  assert.deepStrictEqual(gx.get({ accion: 'disponibilidad', fecha }), antes);
+  const r = gx.post(Object.assign({ accion: 'reservar', servicio: 'ensayo', fecha, inicio: 19, horas: 1, extras: 0, video: false, raw: false }, banda));
+  assert.ok(r.ok, JSON.stringify(r));
+  const despues = gx.get({ accion: 'disponibilidad', fecha });
+  assert.ok(!despues.libres.includes(19), 'tras reservar la hora ya no aparece libre (caché renovada)');
+  assert.ok(!gx.get({ accion: 'agenda' }).dias[fecha].libres.includes(19), 'la agenda también');
+  void antesAg;
+  // un error no se guarda en caché
+  assert.strictEqual(gx.get({ accion: 'disponibilidad', fecha: 'mala' }).ok, false);
+});
+t('estabilidad: un fallo avisa al administrador una sola vez (sin llenarle el correo)', () => {
+  const gx = require('./gas-sim').crear(); gx.instalar();
+  const n0 = gx.estado.correos.length;
+  gx.ctx.avisarFallo_('prueba', new Error('algo se rompió'));
+  gx.ctx.avisarFallo_('prueba', new Error('otra vez'));
+  const nuevos = gx.estado.correos.slice(n0).filter((c) => /algo falló \(prueba\)/.test(c.subject));
+  assert.strictEqual(nuevos.length, 1); assert.ok(/algo se rompió/.test(nuevos[0].body));
+  gx.ctx.avisarFallo_('otra cosa', new Error('x'));
+  assert.strictEqual(gx.estado.correos.slice(n0).filter((c) => /algo falló/.test(c.subject)).length, 2, 'cada tipo avisa por separado');
+});
 t('postular al cuadro de honor con redes (máx. 3) y último trabajo', () => {
   const gx = require('./gas-sim').crear(); gx.instalar();
   const base = { accion: 'honor', banda: 'Los Redes', telefono: '+56 9 7777 6666', correo: 'lr@correo.cl', resena: 'Grabamos nuestro EP aquí', genero: 'Rock', ultimo: 'https://youtu.be/dQw4w9WgXcQ' };

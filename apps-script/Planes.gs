@@ -41,6 +41,7 @@ function reservarPlan_(sol) {
     registrarCliente_(v.datos);
   } finally {
     lock.releaseLock();
+    invalidarAgenda_();
   }
 
   var texto = textoPlan_(cfg, v, codigo);

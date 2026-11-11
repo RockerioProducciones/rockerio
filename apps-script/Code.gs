@@ -87,15 +87,15 @@ function doGet(e) {
   try {
     switch (p.accion) {
       case 'config':
-        return json_({ ok: true, config: configPublica_(), tienda: tiendaPublica_(), sitio: sitioPublico_(), ahora: ahoraChile_() });
+        return json_({ ok: true, config: configPublica_(), tienda: tiendaEnCache_(), sitio: sitioPublico_(), ahora: ahoraChile_() });
       case 'contenido':
         return json_({ ok: true, contenido: contenidoPublico_() });
       case 'audiomix':
         return json_(audioMezclador_(p.id));
       case 'agenda':
-        return json_(agenda_(p.dias, p.plan === '1'));
+        return jsonEnCache_('ag|' + String(p.dias || '') + '|' + (p.plan === '1' ? 1 : 0), function () { return agenda_(p.dias, p.plan === '1'); });
       case 'disponibilidad':
-        return json_(disponibilidad_(String(p.fecha || '')));
+        return jsonEnCache_('di|' + String(p.fecha || '').slice(0, 10), function () { return disponibilidad_(String(p.fecha || '')); });
       case 'socios':
         return json_(sociosDatos_(String(p.t || ''), String(p.mes || '')));
       default:
@@ -103,6 +103,7 @@ function doGet(e) {
     }
   } catch (err) {
     console.error(err && err.stack || err);
+    avisarFallo_('lectura del sitio', err);
     return json_({ ok: false, error: 'No pudimos cargar los datos. Intenta de nuevo.' });
   }
 }
@@ -130,8 +131,43 @@ function doPost(e) {
     }
   } catch (err) {
     console.error(err && err.stack || err);
+    avisarFallo_('envío de formularios', err);
     return json_({ ok: false, codigo: 'ERROR', error: 'No pudimos registrar tu reserva. Escríbenos por WhatsApp.' });
   }
+}
+
+/* ---------- velocidad: respuestas públicas con caché breve (se renuevan solas al cambiar la agenda) ---------- */
+var TTL_AGENDA_S = 30, TTL_TIENDA_S = 120;
+/** Cambia la «versión» de la agenda: lo guardado en caché deja de valer. Se llama después de cada escritura con bloqueo. */
+function invalidarAgenda_() {
+  try { var c = CacheService.getScriptCache(); c.put('agver', String(Date.now()), 21600); c.remove('tienda'); } catch (e) { /* sin caché */ }
+}
+/** Devuelve la respuesta guardada (misma versión de agenda, máx. 30 s) o la calcula y la guarda. Solo se guarda si salió bien. */
+function jsonEnCache_(clave, fn) {
+  var cache = null, k = '';
+  try { cache = CacheService.getScriptCache(); k = 'c|' + (cache.get('agver') || '0') + '|' + clave; var g = cache.get(k); if (g) return ContentService.createTextOutput(g).setMimeType(ContentService.MimeType.JSON); } catch (e) { cache = null; }
+  var r = fn(), txt = JSON.stringify(r);
+  if (cache && r && r.ok) { try { cache.put(k, txt, TTL_AGENDA_S); } catch (e) { /* demasiado grande */ } }
+  return ContentService.createTextOutput(txt).setMimeType(ContentService.MimeType.JSON);
+}
+function tiendaEnCache_() {
+  var cache = null;
+  try { cache = CacheService.getScriptCache(); var g = cache.get('tienda'); if (g) return JSON.parse(g); } catch (e) { cache = null; }
+  var t = tiendaPublica_();
+  if (cache) { try { cache.put('tienda', JSON.stringify(t), TTL_TIENDA_S); } catch (e) { /* demasiado grande */ } }
+  return t;
+}
+
+/* ---------- estabilidad: aviso por correo cuando algo falla (máx. 1 aviso por tipo cada 6 horas) ---------- */
+function avisarFallo_(donde, err) {
+  try {
+    var cache = CacheService.getScriptCache(), k = 'fallo_' + String(donde).replace(/[^\wáéíóúñ ]/gi, '').slice(0, 40);
+    if (cache.get(k)) return;
+    cache.put(k, '1', 21600);
+    var a = PropertiesService.getScriptProperties().getProperty('ADMIN_EMAIL'); if (!a) return;
+    MailApp.sendEmail({ to: a, subject: 'Rockerío: algo falló (' + donde + ')', body: 'Se registró un error en «' + donde + '».\n\nMensaje: ' + String(err && err.message || err).replace(/\s+/g, ' ').slice(0, 300) +
+      '\n\nPuedes verlo en Apps Script → Ejecuciones. Si se repite, no te avisaremos de nuevo por 6 horas.' });
+  } catch (e) { /* sin aviso */ }
 }
 
 function json_(obj) {
@@ -376,6 +412,7 @@ function reservar_(sol) {
     };
   } finally {
     lock.releaseLock();
+    invalidarAgenda_();
   }
 
   notificar_(cfg, v, codigo);
@@ -501,7 +538,7 @@ function notificar_(cfg, v, codigo) {
 /** Cada hora: libera las reservas pendientes que no recibieron abono a tiempo. */
 /** Disparador (cada 5 minutos): libera las reservas que no abonaron a tiempo. */
 function liberarPendientes() {
-  conBloqueo_(function () { liberarVencidas_(getCfg_()); });
+  try { conBloqueo_(function () { liberarVencidas_(getCfg_()); }); } catch (e) { avisarFallo_('liberar reservas vencidas', e); throw e; }
 }
 
 /** Anula las reservas «sin abono» cuyo plazo (minutosReserva) venció y libera su horario. Llamar con el bloqueo tomado. */
@@ -533,6 +570,7 @@ function liberarVencidas_(cfg) {
  *  - Si cambia el Estado de una reserva, actualiza (o elimina) su evento del calendario.
  */
 function alEditar(e) {
+  invalidarAgenda_();
   try {
     CacheService.getScriptCache().remove('cfgraw');
     if (!e || !e.range) return;

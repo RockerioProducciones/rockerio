@@ -190,7 +190,7 @@ function adminConfigurar(reservasActivas, avisoBanner, pagoOnline, pagoTransfere
 function conBloqueo_(fn) {
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(20000)) throw new Error('El sistema está ocupado. Intenta de nuevo.');
-  try { return fn(); } finally { lock.releaseLock(); }
+  try { return fn(); } finally { lock.releaseLock(); invalidarAgenda_(); }
 }
 
 function filaProducto_(sh, fila) {
