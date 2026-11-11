@@ -1,0 +1,15 @@
+/* ===== Celular: solo las tarjetas principales del menú (Reservar, Producción, Ficha técnica…) con letra más grande ===== */
+@media(max-width:699px){
+/* menú del inicio: 3 columnas con etiquetas grandes */
+body:not([data-vista]) .menu,body[data-vista="inicio"] .menu{grid-template-columns:repeat(3,1fr)!important;gap:.5rem!important}
+body:not([data-vista]) .menu>.tarjeta,body[data-vista="inicio"] .menu>.tarjeta{min-height:92px!important;padding:.65rem .15rem!important;gap:.35rem!important}
+body:not([data-vista]) .menu>.tarjeta b,body[data-vista="inicio"] .menu>.tarjeta b{font-size:clamp(.82rem,3.55vw,1rem)!important;letter-spacing:.015em!important;line-height:1.15!important;overflow-wrap:normal!important;word-break:normal!important;hyphens:none}
+.menu .tarjeta[data-vista]::before{width:28px!important;height:28px!important}
+/* franja de secciones dentro de una vista: se desliza de lado, con letra legible */
+body.con-vistas[data-vista]:not([data-vista="inicio"]) .menu{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;gap:.45rem;padding:8px!important;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+body.con-vistas[data-vista]:not([data-vista="inicio"]) .menu .tarjeta{flex:0 0 auto!important;min-width:86px;min-height:66px;padding:.5rem .6rem!important;scroll-snap-align:start}
+body.con-vistas[data-vista]:not([data-vista="inicio"]) .menu .tarjeta b{font-size:.95rem!important;letter-spacing:.04em!important;white-space:nowrap!important}
+body.con-vistas[data-vista]:not([data-vista="inicio"]) .menu .tarjeta::before{width:24px!important;height:24px!important}
+/* pestañas de ficha: quedan visibles bajo la barra fija, sin cortarse */
+.ficha-tabs{top:105px!important;padding-top:.5rem!important}
+}
