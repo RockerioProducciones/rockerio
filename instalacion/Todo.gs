@@ -2368,6 +2368,30 @@ function adminAjustarRetencion(codigo, monto, nota) {
   });
 }
 
+/**
+ * DIAGNÓSTICO (se ejecuta a mano desde el editor de Apps Script: elegir «diagnostico» y pulsar Ejecutar).
+ * Mide cada lectura por separado y deja el avance en el registro: si algo se cuelga, la última línea dice dónde.
+ * Solo LEE; no modifica nada.
+ */
+function diagnostico() {
+  var t0 = Date.now();
+  function paso(n, fn) { var t = Date.now(); console.log('→ ' + n + ' …'); try { var r = fn(); console.log('✔ ' + n + ' (' + (Date.now() - t) + ' ms)' + (r === undefined ? '' : ' · ' + r)); } catch (e) { console.log('✖ ' + n + ': ' + (e && e.message || e)); } }
+  paso('propiedades', function () { return Object.keys(PropertiesService.getScriptProperties().getProperties()).length + ' claves'; });
+  paso('caché', function () { CacheService.getScriptCache().get('prueba'); });
+  var ss = null;
+  paso('abrir la hoja de datos', function () { ss = abrirBd_(); return ss.getName(); });
+  if (!ss) return;
+  paso('lista de pestañas', function () { return ss.getSheets().map(function (s) { return s.getName() + ' ' + s.getLastRow() + '×' + s.getLastColumn(); }).join(' | '); });
+  ss.getSheets().forEach(function (s) {
+    paso('leer «' + s.getName() + '»', function () { var f = Math.min(s.getLastRow(), 3000), c = s.getLastColumn(); return f && c ? s.getRange(1, 1, f, c).getValues().length + ' filas' : 'vacía'; });
+  });
+  paso('configuración (getCfg_)', function () { return Object.keys(getCfg_()).length + ' claves'; });
+  paso('calendario', function () { return getCalendar_().getName(); });
+  paso('candado libre', function () { var l = LockService.getScriptLock(); var ok = l.tryLock(3000); if (ok) l.releaseLock(); return ok ? 'libre' : 'OCUPADO por otra ejecución'; });
+  paso('carpeta de respaldos', function () { return carpetaRespaldos_().getName(); });
+  console.log('Total: ' + (Date.now() - t0) + ' ms');
+}
+
 /* ===== Contenido ===== */
 /**
  * Contenido que alimenta el sitio: muestras de audio, cuadro de honor, reseñas y cotizaciones.
