@@ -6,7 +6,7 @@
 3. Pulsa **Run workflow**, escribe el nombre de la versión (por ejemplo `estable-2026-11-11-0118`) y pulsa el botón verde.
 4. Espera 2 minutos y recarga (Ctrl+F5). Nada se borra: la versión rota queda guardada en el historial.
 
-Las versiones que funcionaban se ven en https://github.com/RockerioProducciones/rockerio/tags (todas empiezan con `estable-`).
+Las versiones que funcionaban se ven en https://github.com/RockerioProducciones/rockerio/branches (las que empiezan con `estable-`).
 
 ## 2. Volver los DATOS (reservas, ventas, ingresos) a un día anterior
 Portal → **Configuración → Copias de seguridad** (si no la ves, está en «Socios y respaldo») → elige la fecha → **Restaurar**.

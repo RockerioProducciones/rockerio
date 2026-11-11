@@ -16,15 +16,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with: { fetch-depth: 0, fetch-tags: true }
+        with: { fetch-depth: 0 }
       - name: Restaurar archivos de esa versión
         env:
           V: ${{ inputs.version }}
         run: |
           case "$V" in estable-*) ;; *) echo "El nombre debe empezar con estable-"; exit 1;; esac
-          git rev-parse --verify "refs/tags/$V" >/dev/null || { echo "No existe la versión $V"; exit 1; }
+          git rev-parse --verify "refs/remotes/origin/$V" >/dev/null || { echo "No existe la versión $V"; exit 1; }
           git rm -rq --cached . >/dev/null
-          git checkout "refs/tags/$V" -- .
+          git checkout "refs/remotes/origin/$V" -- .
           git ls-files -o --exclude-standard -z | xargs -0 -r rm -f
           git add -A
           if git diff --cached --quiet; then echo "Ya estaba en esa versión; nada que cambiar."; exit 0; fi
