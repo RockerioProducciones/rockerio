@@ -46,6 +46,7 @@ const { sembrar } = require('./demo.js');
   }
   await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(200);
   await p.screenshot({ path: '7-resumen.png' });
+
   await p.check('#tyc'); await p.click('#enviar'); await p.waitForTimeout(1200);
   ok(await p.locator('#listo').isVisible(), 'reserva enviada y confirmación visible');
   await p.screenshot({ path: '8-listo.png' });
@@ -110,8 +111,8 @@ const { sembrar } = require('./demo.js');
   ok(!(await p.locator('#honor-form').isVisible()), 'formulario de honor oculto hasta tocar postular');
   await p.click('#honor-ir'); await p.waitForTimeout(300);
   ok(await p.locator('#honor-form').isVisible(), 'formulario de honor visible');
-  await p.selectOption('#honor-redes .red-fila select', 'TikTok'); await p.fill('#honor-redes .red-fila input', 'https://tiktok.com/@bandaprueba');
-  await p.click('#honor-red-mas'); ok(await p.locator('#honor-redes .red-fila').count() === 2, 'segunda red');
+  ok(await p.locator('#f-honor [name=rIg]').isVisible() && await p.locator('#f-honor [name=rYt]').isVisible() && await p.locator('#f-honor [name=rOtra]').isVisible(), 'formulario de honor: Instagram, YouTube y otra red a la vista');
+  await p.fill('#f-honor [name=rIg]', '@bandaprueba'); await p.fill('#f-honor [name=rYt]', 'youtube.com/@bandaprueba'); await p.fill('#f-honor [name=rOtra]', 'open.spotify.com/artist/xyz');
   await p.fill('#f-honor [name=ultimo]', 'https://youtu.be/dQw4w9WgXcQ'); await p.fill('#f-honor [name=genero]', 'Rock');
   await p.fill('#f-honor [name=banda]', 'Banda Prueba'); await p.fill('#f-honor [name=telefono]', '+56 9 7777 6666'); await p.fill('#f-honor [name=correo]', 'bp@correo.cl'); await p.fill('#f-honor [name=resena]', 'Grabamos nuestro EP en la sala');
   ok((await p.textContent('#honor-cont')).startsWith('30'), 'contador de caracteres');
@@ -120,6 +121,7 @@ const { sembrar } = require('./demo.js');
   ok(await p.locator('.honor-gracias').isVisible(), 'mensaje de gracias tras enviar');
   await p.goto('http://localhost:8099/'); await p.waitForTimeout(500);
   ok(await p.locator('#cta-honor').isVisible(), 'invitación al cuadro de honor en el inicio');
+  { const h = g.admin('adminResumen').honor.filter((x) => x.banda === 'Banda Prueba')[0]; ok(!!h && /instagram\.com\/bandaprueba/.test(h.redes) && /youtube\.com/.test(h.redes) && /spotify/i.test(h.redes) && /dQw4w9WgXcQ/.test(h.ultimo), 'las redes y el último trabajo del formulario llegan al portal'); }
   // secciones nuevas del sitio
   for (const [id, sel, txt] of [['nosotros', '#nosotros-in p', /Rocker/], ['proaudix', '#pa-texto', /ProAudix/], ['contacto', '#redes .enlace', /Instagram|Mi canal/], ['opiniones', '#resenas', null]]) {
     await p.goto('http://localhost:8099/#' + id); await p.waitForTimeout(600);

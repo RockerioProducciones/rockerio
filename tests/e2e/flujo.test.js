@@ -766,6 +766,15 @@ t('reagendar nunca va al pasado ni fuera del horario de atención (ni con la exc
   assert.throws(() => g.admin('adminReagendar', r.codigo, dia, 15, true), /FUERA_HORARIO/);
   g.admin('adminReagendar', r.codigo, dia, 11, true); // dentro de horario sí
 });
+t('cuadro de honor: las redes y el último trabajo llegan al portal y se pueden editar', () => {
+  const r = C.registrarHonor_({ banda: 'Los Probadores', telefono: '+56 9 5555 4321', correo: 'p@c.cl', resena: 'Grabamos nuestro primer single aquí.', redes: JSON.stringify([{ r: 'Instagram', u: '@losprobadores' }, { r: 'Spotify', u: 'https://open.spotify.com/artist/abc' }]), ultimo: 'https://youtu.be/abcdefghijk' });
+  assert.ok(r.ok, r.error);
+  let h = C.leerHonor_().filter((x) => x.banda === 'Los Probadores')[0];
+  assert.ok(h && /instagram\.com\/losprobadores/.test(h.redes) && /spotify/.test(h.redes) && /youtu\.be/.test(h.ultimo), 'redes y último trabajo guardados y legibles por el portal');
+  C.adminEditarHonor(h.fila, { banda: 'Los Probadores', resena: 'Grabamos nuestro primer single aquí.', redes: [{ r: 'TikTok', u: 'https://tiktok.com/@lp' }], ultimo: '' });
+  h = C.leerHonor_().filter((x) => x.banda === 'Los Probadores')[0];
+  assert.ok(/tiktok/.test(h.redes) && !/spotify/.test(h.redes) && h.ultimo === '', 'edición de redes desde el portal');
+});
 t('micrófonos: guarda hasta 2 fotos y 3 audios válidos por micrófono y descarta lo inválido', () => {
   const r = C.limpiarMicsSitio_([{ nombre: 'Shure SM57', foto: 'assets/x.jpg', foto2: 'javascript:alert(1)', uso: 'Cajas / Amp', descripcion: 'Dinámico cardioide', audios: [
     { etiqueta: 'Caja', enlace: 'https://drive.google.com/file/d/ABC123456789/view' }, { etiqueta: 'Amp', enlace: 'https://drive.google.com/file/d/DEF123456789/view' },

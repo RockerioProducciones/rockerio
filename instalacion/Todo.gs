@@ -2968,11 +2968,16 @@ function adminEditarHonor(fila, d) {
   if (String(d.enlace || '').trim() && !enlace) throw new Error('El enlace debe empezar con https://');
   if (String(d.youtube || '').trim() && !yt) throw new Error('El enlace de YouTube no es válido.');
   if (String(d.instagram || '').trim() && !ig) throw new Error('El Instagram no es válido.');
+  var rd = null, ultimo = null;
+  if (d.redes !== undefined) { rd = redesHonor_(d.redes); if (rd.error) throw new Error(rd.error); }
+  if (d.ultimo !== undefined) { ultimo = String(d.ultimo || '').trim() ? urlHttps_(d.ultimo) : ''; if (String(d.ultimo || '').trim() && !ultimo) throw new Error('El enlace del último trabajo debe empezar con https://'); }
   if (String(d.logoB64 || '').trim()) logo = guardarLogo_(d.logoB64, banda);
   return conBloqueo_(function () {
     var sh = abrirBd_().getSheetByName(HOJAS.honor), f = filaProducto_(sh, fila);
     sh.getRange(f, 3).setValue(textoSeguro_(banda));
     sh.getRange(f, 6, 1, 7).setValues([[logo, ig, enlace, yt, textoSeguro_(limpiar_(d.resena, 500)), textoSeguro_(limpiar_(d.genero, 60)), textoSeguro_(limpiar_(d.formacion, 120))]]);
+    if (rd) sh.getRange(f, 13).setValue(rd.lista.length ? JSON.stringify(rd.lista) : '');
+    if (ultimo !== null) sh.getRange(f, 14).setValue(ultimo);
     limpiarCacheContenido_();
     return adminResumen();
   });

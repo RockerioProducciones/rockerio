@@ -204,7 +204,7 @@
     f.addEventListener('submit', function (ev) {
       ev.preventDefault(); err.hidden = ok.hidden = true;
       var datos = { accion: accion }, archivo = null; new FormData(f).forEach(function (v, k) { if (v instanceof File) { if (v.size) archivo = v; } else datos[k] = v; });
-      if (formId === 'f-honor') datos.redes = JSON.stringify(leerRedes());
+      if (formId === 'f-honor') { datos.redes = JSON.stringify(leerRedes()); delete datos.rIg; delete datos.rYt; delete datos.rOtra; }
       btn.disabled = true;
       (archivo ? logoB64(archivo) : Promise.resolve('')).then(function (b64) {
         if (b64) datos.logoB64 = b64;
@@ -218,21 +218,18 @@
 
   /* ---------- formulario del cuadro de honor: hasta 3 redes a elección ---------- */
   var REDES = ['YouTube', 'Instagram', 'TikTok', 'Facebook', 'Spotify', 'Bandcamp', 'SoundCloud', 'X', 'Sitio web'];
+  function https(u) { return /^https:\/\//i.test(u) ? u : /^http:\/\//i.test(u) ? u.replace(/^http:/i, 'https:') : 'https://' + u; }
   function leerRedes() {
-    var out = []; [].forEach.call(document.querySelectorAll('#honor-redes .red-fila'), function (f) { var u = f.querySelector('input').value.trim(); if (u) out.push({ r: f.querySelector('select').value, u: u }); }); return out;
-  }
-  function filaRed() {
-    var cont = $('honor-redes'); if (cont.children.length >= 3) return;
-    var f = el('div', 'red-fila'), sl = document.createElement('select'), inp = document.createElement('input'), x = el('button', 'btn chico sec-b', '✕');
-    REDES.forEach(function (n) { var o = document.createElement('option'); o.textContent = n; sl.appendChild(o); });
-    inp.type = 'text'; inp.maxLength = 300; inp.placeholder = 'https://… o @usuario (Instagram)'; sl.setAttribute('aria-label', 'Red social'); inp.setAttribute('aria-label', 'Enlace de la red');
-    x.type = 'button'; x.setAttribute('aria-label', 'Quitar red'); x.addEventListener('click', function () { f.remove(); $('honor-red-mas').hidden = false; });
-    f.appendChild(sl); f.appendChild(inp); f.appendChild(x); cont.appendChild(f);
-    $('honor-red-mas').hidden = cont.children.length >= 3;
+    var f = $('f-honor'), v = function (n) { var i = f.querySelector('[name=' + n + ']'); return i ? i.value.trim() : ''; }, out = [];
+    if (v('rIg')) out.push({ r: 'Instagram', u: v('rIg') });
+    if (v('rYt')) out.push({ r: 'YouTube', u: https(v('rYt')) });
+    var o = v('rOtra');
+    if (o) { var h = /^(?:https?:\/\/)?(?:www\.|m\.|open\.)?([^\/?#]+)/i.exec(o), host = h ? h[1].toLowerCase() : '', mapa = [['spotify', 'Spotify'], ['tiktok', 'TikTok'], ['facebook', 'Facebook'], ['fb.com', 'Facebook'], ['bandcamp', 'Bandcamp'], ['soundcloud', 'SoundCloud'], ['instagram', 'Instagram'], ['youtu', 'YouTube'], ['twitter', 'X'], ['x.com', 'X']], r = 'Sitio web';
+      mapa.forEach(function (m) { if (r === 'Sitio web' && host.indexOf(m[0]) >= 0) r = m[1]; }); if (r !== 'Instagram') o = https(o); out.push({ r: r, u: o }); }
+    return out;
   }
   function honorUI() {
-    var mas = $('honor-red-mas'); if (!mas) return;
-    filaRed(); mas.addEventListener('click', filaRed);
+    if (!$('honor-ir')) return;
     $('honor-ir').addEventListener('click', function (e) { e.preventDefault(); var f = $('honor-form'); f.hidden = false; f.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     var h = $('honor'); if (!h.children.length) h.appendChild(el('p', 'nota honor-vacio', 'Pronto verás aquí a las bandas que han pasado por el estudio. ¡Sé la primera en postular!'));
   }

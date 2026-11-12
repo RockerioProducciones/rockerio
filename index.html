@@ -234,7 +234,10 @@
     <form id="f-honor" class="form" novalidate>
       <div class="fila"><label>Logo de tu banda<input name="logoArchivo" type="file" accept="image/png,image/jpeg,image/webp"></label><label>Nombre de la banda o proyecto *<input name="banda" maxlength="60" required placeholder="Ej. Black Sabbath"></label></div>
       <div class="fila"><label>Estilo musical<input name="genero" maxlength="60" placeholder="Ej. Rock progresivo y metal"></label><label>Formación (opcional)<input name="formacion" maxlength="120" placeholder="Ej. Guitarra, bajo, batería y voz"></label></div>
-      <fieldset class="honor-redes"><legend>Canal de YouTube o redes sociales (elige hasta 3)</legend><div id="honor-redes"></div><button type="button" class="btn chico sec-b" id="honor-red-mas">+ Agregar red</button></fieldset>
+      <fieldset class="honor-redes"><legend>Tus redes (opcional, pero ayudan a que te encuentren)</legend>
+        <div class="fila"><label>Instagram<input name="rIg" maxlength="300" placeholder="@tubanda" inputmode="url" autocapitalize="none" autocorrect="off"></label><label>YouTube<input name="rYt" maxlength="300" placeholder="Enlace de tu canal o video" inputmode="url" autocapitalize="none" autocorrect="off"></label></div>
+        <label>Otra red o plataforma<input name="rOtra" maxlength="300" placeholder="Spotify, TikTok, Facebook, Bandcamp… (pega el enlace)" inputmode="url" autocapitalize="none" autocorrect="off"></label>
+      </fieldset>
       <label>Link de tu último trabajo<input name="ultimo" type="url" maxlength="300" placeholder="https://youtu.be/… (video, single, disco)"></label>
       <label>Mini reseña de tu banda *<textarea name="resena" rows="3" maxlength="500" required placeholder="Quiénes son, qué grabaron o ensayaron aquí…"></textarea><small class="contador" id="honor-cont">0 / 500</small></label>
       <div class="fila"><label>WhatsApp de contacto *<input name="telefono" type="tel" required value="+569 " placeholder="+569 1234 5678"></label><label>Correo *<input name="correo" type="email" required placeholder="Ej. ozzy@gmail.com" autocomplete="email"></label></div>
