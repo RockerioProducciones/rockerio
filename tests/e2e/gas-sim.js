@@ -85,7 +85,7 @@ function crear() {
       estado.eventos.push(e); return e.api;
     },
     createAllDayEvent: (titulo, ini, fin) => { const e = cal.createEvent(titulo, ini, fin || new Date(ini.getTime() + 86400000)); estado.eventos[estado.eventos.length - 1].todo = true; return e; },
-    getEventById: (id) => { const e = estado.eventos.find((x) => x.id === id && !x.borrado); return e ? e.api : null; },
+    getEventById: (id) => { const e = estado.eventos.find((x) => x.id === id); return e ? e.api : null; }, // como Google: un evento borrado igual se devuelve por su código
   };
   /* --- servicios de Google --- */
   const props = { getProperty: (k) => (k in estado.props ? estado.props[k] : null), setProperty: (k, v) => { estado.props[k] = String(v); return props; }, setProperties: (o) => { Object.assign(estado.props, o); return props; }, deleteProperty: (k) => { delete estado.props[k]; return props; }, getProperties: () => Object.assign({}, estado.props) };

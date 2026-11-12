@@ -1063,17 +1063,32 @@ function alEditar(e) {
   } catch (err) { console.error(err && err.stack || err); }
 }
 
+/**
+ * El evento de la reserva solo cuenta si está de verdad en el calendario. Google devuelve por su código un evento ya borrado,
+ * y por eso una reserva anulada que se reactivaba quedaba «sin evento» y el horario aparecía libre.
+ */
+function eventoVivo_(cal, id, r) {
+  var ev = id ? obtenerEvento_(cal, id) : null;
+  if (!ev) return null;
+  var fecha = aFechaIso_(r[RES.fecha - 1]), ini = aHora_(r[RES.inicio - 1]), n = Number(r[RES.horas - 1]);
+  if (!fecha || ini === null || !(n > 0)) return ev;
+  var vivos = cal.getEvents(fechaHora_(fecha, ini), fechaHora_(fecha, ini + n));
+  for (var i = 0; i < vivos.length; i++) if (vivos[i].getId() === id) return ev;
+  return null;
+}
+
 function sincronizarEstado_(sh, f) {
   var r = sh.getRange(f, 1, 1, ENCABEZADO_RESERVAS.length).getValues()[0];
   var estado = estadoNorm_(r[RES.estado - 1]);
   if (!r[RES.codigo - 1]) return;
   var cal = getCalendar_();
   var servicio = String(r[RES.servicio - 1]) === ETIQUETA_SERVICIO.grabacion ? 'grabacion' : 'ensayo';
-  var evento = r[RES.evento - 1] ? obtenerEvento_(cal, r[RES.evento - 1]) : null;
+  var evento = eventoVivo_(cal, r[RES.evento - 1], r);
 
   liquidar_(sh, f, r, estado);
   if (estado === EST.ANULADA) {
     if (evento) evento.deleteEvent();
+    if (r[RES.evento - 1]) sh.getRange(f, RES.evento).setValue('');
     return;
   }
   if (ESTADOS_QUE_OCUPAN.indexOf(estado) < 0) return;
@@ -1302,7 +1317,7 @@ function instalar() {
 }
 
 /** Muestra el estado de la instalación en el registro. */
-function diagnostico() {
+function diagnosticoInstalacion() {
   var props = PropertiesService.getScriptProperties();
   var cfg = getCfg_();
   console.log(JSON.stringify({
@@ -1683,9 +1698,37 @@ function adminCambiarEstado(codigo, estado) {
   var sh = abrirBd_().getSheetByName(HOJAS.reservas);
   var celda = sh.getLastRow() > 1 ? sh.createTextFinder(String(codigo)).matchEntireCell(true).findNext() : null;
   if (!celda || celda.getColumn() !== RES.codigo) throw new Error('No se encontró la reserva.');
+  if (ESTADOS_QUE_OCUPAN.indexOf(estado) >= 0) { // reactivar una anulada: el horario no debe haberse ocupado mientras tanto
+    var rr = sh.getRange(celda.getRow(), 1, 1, ENCABEZADO_RESERVAS.length).getValues()[0];
+    if (!eventoVivo_(getCalendar_(), rr[RES.evento - 1], rr)) {
+      var fch = aFechaIso_(rr[RES.fecha - 1]), h0 = aHora_(rr[RES.inicio - 1]), nh = Number(rr[RES.horas - 1]);
+      if (fch && h0 !== null && nh > 0) {
+        var oc = ocupadasRango_(fch, 1)[fch] || [];
+        for (var h = h0; h < h0 + nh; h++) if (oc.indexOf(h) >= 0) throw new Error('Ese horario (' + fch + ' · ' + h0 + ':00 a ' + (h0 + nh) + ':00) ya lo ocupa otra reserva o un bloqueo. Reagenda esta reserva a otro horario o libera el actual.');
+      }
+    }
+  }
   sh.getRange(celda.getRow(), RES.estado).setValue(estado);
   sincronizarEstado_(sh, celda.getRow()); // el disparador de edición no se activa con cambios hechos por script
   return adminResumen();
+}
+
+/** Revisa las reservas futuras que deben ocupar horario y repone en el calendario las que no tienen su evento (sin pisar horarios ya tomados). */
+function adminRepararAgenda() {
+  exigirAdmin_();
+  var sh = abrirBd_().getSheetByName(HOJAS.reservas), n = sh.getLastRow(), hoy = ahoraChile_().fecha, cal = getCalendar_(), rep = [], choque = [];
+  if (n < 2) return 'No hay reservas.';
+  var datos = sh.getRange(2, 1, n - 1, ENCABEZADO_RESERVAS.length).getValues();
+  datos.forEach(function (r, i) {
+    var est = estadoNorm_(r[RES.estado - 1]), f = aFechaIso_(r[RES.fecha - 1]);
+    if (!r[RES.codigo - 1] || !f || f < hoy || [EST.SIN_ABONO, EST.CON_ABONO].indexOf(est) < 0) return;
+    if (eventoVivo_(cal, r[RES.evento - 1], r)) return;
+    var h0 = aHora_(r[RES.inicio - 1]), nh = Number(r[RES.horas - 1]), oc = ocupadasRango_(f, 1)[f] || [], libre = h0 !== null && nh > 0;
+    for (var h = h0; libre && h < h0 + nh; h++) if (oc.indexOf(h) >= 0) libre = false;
+    if (!libre) { choque.push(String(r[RES.codigo - 1])); return; }
+    sincronizarEstado_(sh, i + 2); rep.push(String(r[RES.codigo - 1]));
+  });
+  return (rep.length ? 'Repuestas en el calendario: ' + rep.join(', ') + '. ' : 'Todas las reservas vigentes están en el calendario. ') + (choque.length ? 'Sin reponer por choque de horario: ' + choque.join(', ') + '.' : '');
 }
 
 function adminBloquear(fecha, desde, hasta, motivo) {

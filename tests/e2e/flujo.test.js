@@ -737,4 +737,22 @@ t('Mercado Pago: pago aprobado confirma la reserva y anota la comisión como gas
   assert.ok(g.estado.correos.some((c) => /pagada por Mercado Pago/.test(c.subject)));
 });
 
+
+t('una reserva anulada que se reactiva con abono vuelve a ocupar el horario (y no se pisa si otro lo tomó)', () => {
+  const dia = sumar(f3, 16);
+  const r = g.post(sol({ fecha: dia, inicio: 21, horas: 2, telefono: '56955556666', banda: 'Reactivada', nombre: 'Diego B', correo: 'd@d.cl' })); assert.ok(r.ok, JSON.stringify(r));
+  g.admin('adminCambiarEstado', r.codigo, 'Anulada');
+  let libres = g.get({ accion: 'disponibilidad', fecha: dia }).libres;
+  assert.ok(libres.indexOf(21) >= 0 && libres.indexOf(22) >= 0, 'anulada: el horario queda libre');
+  g.admin('adminCambiarEstado', r.codigo, 'Reservado (con abono)');
+  libres = g.get({ accion: 'disponibilidad', fecha: dia }).libres;
+  assert.ok(libres.indexOf(21) < 0 && libres.indexOf(22) < 0, 'reactivada con abono: 21 y 22 deben quedar ocupados');
+  // anulada de nuevo y otra persona toma el horario: no se puede reactivar encima
+  g.admin('adminCambiarEstado', r.codigo, 'Anulada');
+  const o = g.post(sol({ fecha: dia, inicio: 21, horas: 1, telefono: '56966667777', banda: 'Otra', nombre: 'Ana P', correo: 'a@a.cl' })); assert.ok(o.ok, JSON.stringify(o));
+  assert.throws(() => g.admin('adminCambiarEstado', r.codigo, 'Reservado (con abono)'), /ya lo ocupa/);
+  assert.ok(/Todas las reservas|Repuestas/.test(g.admin('adminRepararAgenda')), 'la revisión de agenda responde');
+});
+
+
 console.log('\n' + ok + ' pasos correctos, ' + fallas + ' con falla.');

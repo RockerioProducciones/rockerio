@@ -517,17 +517,32 @@ function alEditar(e) {
   } catch (err) { console.error(err && err.stack || err); }
 }
 
+/**
+ * El evento de la reserva solo cuenta si está de verdad en el calendario. Google devuelve por su código un evento ya borrado,
+ * y por eso una reserva anulada que se reactivaba quedaba «sin evento» y el horario aparecía libre.
+ */
+function eventoVivo_(cal, id, r) {
+  var ev = id ? obtenerEvento_(cal, id) : null;
+  if (!ev) return null;
+  var fecha = aFechaIso_(r[RES.fecha - 1]), ini = aHora_(r[RES.inicio - 1]), n = Number(r[RES.horas - 1]);
+  if (!fecha || ini === null || !(n > 0)) return ev;
+  var vivos = cal.getEvents(fechaHora_(fecha, ini), fechaHora_(fecha, ini + n));
+  for (var i = 0; i < vivos.length; i++) if (vivos[i].getId() === id) return ev;
+  return null;
+}
+
 function sincronizarEstado_(sh, f) {
   var r = sh.getRange(f, 1, 1, ENCABEZADO_RESERVAS.length).getValues()[0];
   var estado = estadoNorm_(r[RES.estado - 1]);
   if (!r[RES.codigo - 1]) return;
   var cal = getCalendar_();
   var servicio = String(r[RES.servicio - 1]) === ETIQUETA_SERVICIO.grabacion ? 'grabacion' : 'ensayo';
-  var evento = r[RES.evento - 1] ? obtenerEvento_(cal, r[RES.evento - 1]) : null;
+  var evento = eventoVivo_(cal, r[RES.evento - 1], r);
 
   liquidar_(sh, f, r, estado);
   if (estado === EST.ANULADA) {
     if (evento) evento.deleteEvent();
+    if (r[RES.evento - 1]) sh.getRange(f, RES.evento).setValue('');
     return;
   }
   if (ESTADOS_QUE_OCUPAN.indexOf(estado) < 0) return;
@@ -756,7 +771,7 @@ function instalar() {
 }
 
 /** Muestra el estado de la instalación en el registro. */
-function diagnostico() {
+function diagnosticoInstalacion() {
   var props = PropertiesService.getScriptProperties();
   var cfg = getCfg_();
   console.log(JSON.stringify({
