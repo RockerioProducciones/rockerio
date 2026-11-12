@@ -39,6 +39,12 @@ const { sembrar } = require('./demo.js');
   await p.locator('#orient button[data-z="1"]').click(); ok(await p.locator('#zurdo').isChecked(), 'orientación zurdo');
   await p.screenshot({ path: '5-paso4.png', fullPage: true });
   ok(await p.locator('#paso-resumen').isVisible() && await p.locator('#tu-reserva').isVisible(), 'resumen al final');
+  for (const w of [390, 700, 967, 1280]) {
+    await p.setViewportSize({ width: w, height: 800 }); await p.waitForTimeout(200);
+    const sol = await p.evaluate(() => { const a = document.getElementById('tu-reserva').getBoundingClientRect(), t = document.querySelector('#paso-resumen label.chk').getBoundingClientRect(); return a.bottom <= t.top + 1; });
+    ok(sol, 'el casillero de condiciones no queda tapado por el resumen (' + w + ' px)');
+  }
+  await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(200);
   await p.screenshot({ path: '7-resumen.png' });
   await p.check('#tyc'); await p.click('#enviar'); await p.waitForTimeout(1200);
   ok(await p.locator('#listo').isVisible(), 'reserva enviada y confirmación visible');

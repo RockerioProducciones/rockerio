@@ -155,3 +155,5 @@ html.rd #tr-total{font-family:var(--f-t);letter-spacing:-.02em}
 html.rd .wiz-acc{background:linear-gradient(transparent,#000 45%)}
 html.rd .wiz-acc .btn,html.rd .wizard #enviar{min-height:56px;font-size:1.05rem;border-radius:999px}
 html.rd .btn.sec-b{background:rgba(255,255,255,.07);color:var(--txt);box-shadow:none;border:1px solid rgba(255,255,255,.14)}
+/* el resumen no se corre ni se pega: el casillero de condiciones siempre queda debajo y visible */
+html.rd .wizard .tu-reserva,html .wizard .tu-reserva{position:relative!important;top:auto!important;bottom:auto!important}
