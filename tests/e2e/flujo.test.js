@@ -738,6 +738,25 @@ t('Mercado Pago: pago aprobado confirma la reserva y anota la comisión como gas
 });
 
 
+t('la disponibilidad usa la hoja de Reservas: aunque falte el evento del calendario, el horario sigue ocupado', () => {
+  const dia = sumar(f3, 17);
+  const r = g.post(sol({ fecha: dia, inicio: 19, horas: 2, telefono: '56977778888', banda: 'SinEvento', nombre: 'Eva L', correo: 'e@e.cl' })); assert.ok(r.ok, JSON.stringify(r));
+  g.admin('adminCambiarEstado', r.codigo, 'Reservado (con abono)');
+  g.estado.eventos.forEach((e) => { if (/SinEvento/i.test(e.titulo)) e.borrado = true; }); // el evento desaparece del calendario
+  const libres = g.get({ accion: 'disponibilidad', fecha: dia }).libres;
+  assert.ok(libres.indexOf(19) < 0 && libres.indexOf(20) < 0, 'el horario debe seguir ocupado');
+  assert.ok(g.get({ accion: 'agenda' }).dias[dia].libres.indexOf(19) < 0, 'la agenda de la semana también');
+  const o = g.post(sol({ fecha: dia, inicio: 20, horas: 1, telefono: '56988889999', banda: 'Choca', nombre: 'Ana B', correo: 'a@a.cl' }));
+  assert.ok(!o.ok, 'no se puede reservar encima');
+});
+t('«Mantener 12 h»: el horario sin abono no vence antes de ese plazo', () => {
+  const dia = sumar(f3, 17);
+  const r = g.post(sol({ fecha: dia, inicio: 12, horas: 1, telefono: '56911112222', banda: 'Comprobante', nombre: 'Lalo R', correo: 'l@l.cl' })); assert.ok(r.ok, JSON.stringify(r));
+  g.admin('adminMantenerHorario', r.codigo);
+  const f = g.hoja('Reservas').find((x) => x[0] === r.codigo);
+  assert.strictEqual(String(f[C.RES.pago - 1]), 'COMPROBANTE');
+  assert.throws(() => g.admin('adminMantenerHorario', 'RP-NOEXISTE'), /No se encontró/);
+});
 t('una reserva anulada que se reactiva con abono vuelve a ocupar el horario (y no se pisa si otro lo tomó)', () => {
   const dia = sumar(f3, 16);
   const r = g.post(sol({ fecha: dia, inicio: 21, horas: 2, telefono: '56955556666', banda: 'Reactivada', nombre: 'Diego B', correo: 'd@d.cl' })); assert.ok(r.ok, JSON.stringify(r));

@@ -808,6 +808,16 @@ function ocupadasRango_(desde, dias) {
     }
   });
 
+  // La hoja de Reservas es la verdad: una reserva vigente ocupa su horario aunque su evento falte o se haya borrado del calendario.
+  var shR = abrirBd_().getSheetByName(HOJAS.reservas), nR = shR.getLastRow(), hasta = Reglas.sumarDias(desde, dias);
+  if (nR > 1) {
+    shR.getRange(2, 1, nR - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r) {
+      if (!r[RES.codigo - 1] || ESTADOS_QUE_OCUPAN.indexOf(estadoNorm_(r[RES.estado - 1])) < 0) return;
+      var f = aFechaIso_(r[RES.fecha - 1]), i0 = aHora_(r[RES.inicio - 1]), nh = Number(r[RES.horas - 1]) || 0;
+      if (!f || f < desde || f >= hasta || i0 === null) return;
+      for (var k = i0; k < i0 + nh && k < 24; k++) marca(f, k);
+    });
+  }
   var sh = abrirBd_().getSheetByName(HOJAS.bloqueos), n = sh.getLastRow();
   if (n > 1) {
     sh.getRange(2, 1, n - 1, 3).getValues().forEach(function (r) {
@@ -1710,6 +1720,19 @@ function adminCambiarEstado(codigo, estado) {
   }
   sh.getRange(celda.getRow(), RES.estado).setValue(estado);
   sincronizarEstado_(sh, celda.getRow()); // el disparador de edición no se activa con cambios hechos por script
+  return adminResumen();
+}
+
+/** Tengo el comprobante: el horario de una reserva «sin abono» se guarda HORAS_MAX_COMPROBANTE horas más (no vence sola antes). */
+function adminMantenerHorario(codigo) {
+  exigirAdmin_();
+  conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.reservas), celda = sh.getLastRow() > 1 ? sh.createTextFinder(String(codigo)).matchEntireCell(true).findNext() : null;
+    if (!celda || celda.getColumn() !== RES.codigo) throw new Error('No se encontró la reserva.');
+    var f = celda.getRow(), est = estadoNorm_(sh.getRange(f, RES.estado).getValue());
+    if (est !== EST.SIN_ABONO) throw new Error('Solo una reserva «sin abono» necesita mantener su horario.');
+    sh.getRange(f, RES.pago, 1, 2).setValues([[PAGO_COMPROBANTE, new Date()]]);
+  });
   return adminResumen();
 }
 

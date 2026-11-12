@@ -101,6 +101,19 @@ function adminCambiarEstado(codigo, estado) {
   return adminResumen();
 }
 
+/** Tengo el comprobante: el horario de una reserva «sin abono» se guarda HORAS_MAX_COMPROBANTE horas más (no vence sola antes). */
+function adminMantenerHorario(codigo) {
+  exigirAdmin_();
+  conBloqueo_(function () {
+    var sh = abrirBd_().getSheetByName(HOJAS.reservas), celda = sh.getLastRow() > 1 ? sh.createTextFinder(String(codigo)).matchEntireCell(true).findNext() : null;
+    if (!celda || celda.getColumn() !== RES.codigo) throw new Error('No se encontró la reserva.');
+    var f = celda.getRow(), est = estadoNorm_(sh.getRange(f, RES.estado).getValue());
+    if (est !== EST.SIN_ABONO) throw new Error('Solo una reserva «sin abono» necesita mantener su horario.');
+    sh.getRange(f, RES.pago, 1, 2).setValues([[PAGO_COMPROBANTE, new Date()]]);
+  });
+  return adminResumen();
+}
+
 /** Revisa las reservas futuras que deben ocupar horario y repone en el calendario las que no tienen su evento (sin pisar horarios ya tomados). */
 function adminRepararAgenda() {
   exigirAdmin_();

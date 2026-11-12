@@ -262,6 +262,16 @@ function ocupadasRango_(desde, dias) {
     }
   });
 
+  // La hoja de Reservas es la verdad: una reserva vigente ocupa su horario aunque su evento falte o se haya borrado del calendario.
+  var shR = abrirBd_().getSheetByName(HOJAS.reservas), nR = shR.getLastRow(), hasta = Reglas.sumarDias(desde, dias);
+  if (nR > 1) {
+    shR.getRange(2, 1, nR - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r) {
+      if (!r[RES.codigo - 1] || ESTADOS_QUE_OCUPAN.indexOf(estadoNorm_(r[RES.estado - 1])) < 0) return;
+      var f = aFechaIso_(r[RES.fecha - 1]), i0 = aHora_(r[RES.inicio - 1]), nh = Number(r[RES.horas - 1]) || 0;
+      if (!f || f < desde || f >= hasta || i0 === null) return;
+      for (var k = i0; k < i0 + nh && k < 24; k++) marca(f, k);
+    });
+  }
   var sh = abrirBd_().getSheetByName(HOJAS.bloqueos), n = sh.getLastRow();
   if (n > 1) {
     sh.getRange(2, 1, n - 1, 3).getValues().forEach(function (r) {

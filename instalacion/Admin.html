@@ -1193,6 +1193,7 @@ function diaJor(f){
     if(r.pago==='PAGO EN LÍNEA')k.appendChild(el_('div','ses-m','💳 Pagado en línea (Mercado Pago)'));
     var ac=el_('div','ses-ac');ac.appendChild(btn('Ver ficha',function(){fichaJor(r)},'sec'));
     if(r.pago==='COMPROBANTE'&&r.estado==='Reservado (sin abono)')ac.appendChild(btn('Confirmar abono',function(){confirmarSN('¿Confirmas que el abono de '+r.banda+' ya llegó?',function(){jrun('adminCambiarEstado',r.codigo,'Reservado (con abono)')},'Sí, confirmar')}));
+    if(r.estado==='Reservado (sin abono)'&&r.pago!=='COMPROBANTE')ac.appendChild(btn('Mantener 12 h',function(){confirmarSN('¿Ya tienes el comprobante de '+r.banda+'? El horario se guarda 12 horas más mientras confirmas el abono.',function(){jrun('adminMantenerHorario',r.codigo)},'Sí, mantener')},'sec'));
     ac.appendChild(btn('Editar',function(){editarDe(r)},'sec'));
     if(r.estado==='Reservado (sin abono)'||r.estado==='Reservado (con abono)'){ac.appendChild(btn('Finalizar',function(){formAjuste(r,true)}));ac.appendChild(btn('Reagendar',function(){formReag(r)},'sec'))}
     k.appendChild(ac);h.appendChild(k)});
