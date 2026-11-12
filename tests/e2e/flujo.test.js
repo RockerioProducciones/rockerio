@@ -766,6 +766,20 @@ t('reagendar nunca va al pasado ni fuera del horario de atención (ni con la exc
   assert.throws(() => g.admin('adminReagendar', r.codigo, dia, 15, true), /FUERA_HORARIO/);
   g.admin('adminReagendar', r.codigo, dia, 20, true); // dentro de horario sí
 });
+t('banda de la casa: su reserva sin abono no vence sola y reagenda sin tope; las demás sí vencen', () => {
+  let dia = sumar(f3, 11); while ([4, 6, 0].indexOf(new Date(dia + 'T12:00:00Z').getUTCDay()) >= 0) dia = sumar(dia, 1);
+  const casa = g.post(sol({ fecha: dia, inicio: 10, horas: 1, telefono: '56933330001', banda: 'Casa Semanal', nombre: 'Rex Z', correo: 'casa.sem@r.cl' })); assert.ok(casa.ok, JSON.stringify(casa));
+  const otra = g.post(sol({ fecha: dia, inicio: 12, horas: 1, telefono: '56933330002', banda: 'Una Vez', nombre: 'Tom Y', correo: 'unavez@t.cl' })); assert.ok(otra.ok, JSON.stringify(otra));
+  g.admin('adminGuardarCliente', { clave: '56933330001', nombre: 'Rex', apellido: 'Z', correo: 'casa.sem@r.cl', banda: 'Casa Semanal', casa: true });
+  g.hoja('Reservas'); const sh = g.estado.hojas['Reservas'];
+  sh.filas.forEach((f) => { if (f[0] === casa.codigo || f[0] === otra.codigo) f[C.RES.creada - 1] = new C.Date(Date.now() - 5 * 3600000); });
+  C.liberarPendientes();
+  const est = (c) => g.admin('adminJornadas').reservas.find((q) => q.codigo === c).estado;
+  assert.strictEqual(est(casa.codigo), 'Reservado (sin abono)', 'la banda de la casa no vence');
+  assert.strictEqual(est(otra.codigo), 'Anulada', 'la que reserva de vez en cuando vence');
+  for (let i = 0; i < 4; i++) g.admin('adminReagendar', casa.codigo, dia, i % 2 ? 10 : 11); // más de 2 reagendos
+  assert.ok(g.admin('adminJornadas').clientes.find((c) => c.telefono === '56933330001').casa, 'queda marcada como casa');
+});
 t('una reserva anulada que se reactiva con abono vuelve a ocupar el horario (y no se pisa si otro lo tomó)', () => {
   const dia = sumar(f3, 16);
   const r = g.post(sol({ fecha: dia, inicio: 21, horas: 2, telefono: '56955556666', banda: 'Reactivada', nombre: 'Diego B', correo: 'd@d.cl' })); assert.ok(r.ok, JSON.stringify(r));

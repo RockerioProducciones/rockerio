@@ -1283,7 +1283,7 @@ function pintarCliJor(){
 function listaCli(){
   var c=$('jcli');c.textContent='';var q=jbusca.trim().toLowerCase(),g=el_('div','tarjetas-c');
   (JOR.clientes||[]).filter(function(x){return!q||(x.banda+' '+x.contacto+' '+x.nombre+' '+x.apellido+' '+x.telefono+' '+x.correo+' '+(x.enlace||'')).toLowerCase().indexOf(q)>=0}).forEach(function(x){
-    var k=el_('div','cli');k.appendChild(el_('b','',x.banda||'(sin banda)'));k.appendChild(el_('small','',x.contacto));k.appendChild(el_('small','',/^MAN-/.test(x.telefono)?'Sin teléfono':'+'+x.telefono));if(x.correo)k.appendChild(el_('small','',x.correo));
+    var k=el_('div','cli');k.appendChild(el_('b','',(x.casa?'🏠 ':'')+(x.banda||'(sin banda)')));k.appendChild(el_('small','',x.contacto));k.appendChild(el_('small','',/^MAN-/.test(x.telefono)?'Sin teléfono':'+'+x.telefono));if(x.correo)k.appendChild(el_('small','',x.correo));
     var m=el_('div','mat');m.appendChild(el_('h5','','Material de banda (Drive)'));var f=el_('div','fila');
     function modoVer(){f.textContent='';
       if(x.enlace){var a=el_('a','sec','Abrir');a.href=x.enlace;a.target='_blank';a.rel='noopener';a.style.cssText='border:1px solid var(--borde);color:var(--oro)';f.appendChild(a);
@@ -1395,12 +1395,13 @@ function guardarRM(forzar){
 function formCli(x){
   x=x||{};var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);
   var f=el_('div','ficha-j');f.appendChild(el_('h3','',x.telefono?'Editar cliente':'Nuevo cliente'));
-  var fm=el_('div','rm-form'),v={nombre:x.nombre||'',apellido:x.apellido||'',correo:x.correo||'',banda:x.banda||'',telefono:/^MAN-/.test(x.telefono||'')?'':(x.telefono||''),enlace:x.enlace||''};
+  var fm=el_('div','rm-form'),v={nombre:x.nombre||'',apellido:x.apellido||'',correo:x.correo||'',banda:x.banda||'',telefono:/^MAN-/.test(x.telefono||'')?'':(x.telefono||''),enlace:x.enlace||'',casa:!!x.casa};
   function campo(k,et,tipo,full,ph,dis){var l=el_('label',full?'full':'');l.appendChild(document.createTextNode(et));var i=document.createElement('input');i.type=tipo||'text';i.value=v[k];if(ph)i.placeholder=ph;if(dis)i.disabled=true;i.oninput=function(){v[k]=i.value};l.appendChild(i);fm.appendChild(l)}
   campo('nombre','Nombre *');campo('apellido','Apellido');campo('correo','Correo','email');campo('telefono','Teléfono (WhatsApp)','tel',false,'+56 9 1234 5678',!!x.telefono&&!/^MAN-/.test(x.telefono));
-  campo('banda','Banda o proyecto *','text',true);campo('enlace','Enlace de Google Drive','url',true,'https://drive.google.com/…');f.appendChild(fm);
+  campo('banda','Banda o proyecto *','text',true);campo('enlace','Enlace de Google Drive','url',true,'https://drive.google.com/…');
+  var lc=el_('label','full chk');var ck=document.createElement('input');ck.type='checkbox';ck.checked=v.casa;ck.onchange=function(){v.casa=ck.checked};lc.appendChild(ck);lc.appendChild(document.createTextNode(' 🏠 Banda de la casa (reserva semanal): su horario no vence solo y puedes reagendar sin tope'));fm.appendChild(lc);f.appendChild(fm);
   var acc=el_('div','fila');acc.style.marginTop='10px';
-  acc.appendChild(btn('Guardar',function(){google.script.run.withSuccessHandler(function(){d.hidden=true;aviso('Cliente guardado');cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminGuardarCliente({clave:x.telefono||'',nombre:v.nombre,apellido:v.apellido,correo:v.correo,banda:v.banda,telefono:v.telefono,enlace:v.enlace})}));
+  acc.appendChild(btn('Guardar',function(){google.script.run.withSuccessHandler(function(){d.hidden=true;aviso('Cliente guardado');cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminGuardarCliente({clave:x.telefono||'',nombre:v.nombre,apellido:v.apellido,correo:v.correo,banda:v.banda,telefono:v.telefono,enlace:v.enlace,casa:v.casa})}));
   if(x.telefono)acc.appendChild(btnDel('Eliminar','¿Quitar a '+(x.banda||x.contacto)+' de la base de clientes? Sus reservas anteriores se conservan.',function(){google.script.run.withSuccessHandler(function(){d.hidden=true;aviso('Cliente eliminado');cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminEliminarCliente(x.telefono)}));
   acc.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
 }

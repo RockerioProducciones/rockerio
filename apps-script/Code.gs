@@ -489,6 +489,18 @@ function liberarPendientes() {
   conBloqueo_(function () { liberarVencidas_(getCfg_()); });
 }
 
+/** ¿Es banda de la casa? (reserva todas las semanas): por teléfono o por nombre de banda. Se usa para flexibilizar plazos y reagendos. */
+function esCasa_(telefono, banda) {
+  try {
+    var sh = abrirBd_().getSheetByName(HOJAS.clientes), n = sh.getLastRow();
+    if (n < 2 || sh.getLastColumn() < 11) return false;
+    var b = String(banda || '').trim().toLowerCase(), t = String(telefono || '');
+    return sh.getRange(2, 1, n - 1, 11).getValues().some(function (r) {
+      return String(r[10] || '').toUpperCase() === 'SI' && ((t && String(r[0]) === t) || (b && String(r[2] || '').trim().toLowerCase() === b));
+    });
+  } catch (e) { return false; } // ante cualquier duda, se aplica la regla normal
+}
+
 /** Anula las reservas «sin abono» cuyo plazo (minutosReserva) venció y libera su horario. Llamar con el bloqueo tomado. */
 function liberarVencidas_(cfg) {
   var sh = abrirBd_().getSheetByName(HOJAS.reservas);
@@ -501,6 +513,7 @@ function liberarVencidas_(cfg) {
     if (estadoNorm_(r[RES.estado - 1]) !== EST.SIN_ABONO) return;
     var creada = r[RES.creada - 1];
     if (!(creada instanceof Date) || creada.getTime() > limite) return;
+    if (esCasa_(String(r[RES.telefono - 1]), r[RES.banda - 1])) return; // banda de la casa: su horario semanal no vence solo; lo confirmas tú
     if (String(r[RES.pago - 1]) === PAGO_COMPROBANTE) {
       // El cliente dijo que ya pagó: el horario se guarda hasta que lo valides (con un tope, para que nadie lo retenga sin pagar).
       var desde = r[RES.pagoFecha - 1];

@@ -180,6 +180,7 @@ function adminReagendar(codigo, fecha, inicio, excepcion) {
     if (!abiertasR.length) throw new Error('FUERA_HORARIO: ese día no hay atención. Elige otro día (o bloquea/ingresa a mano si es una excepción).');
     for (var hh = inicio; hh < inicio + horas; hh++) if (abiertasR.indexOf(hh) < 0) throw new Error('FUERA_HORARIO: ' + hh + ':00 está fuera del horario de atención de ese día. Elige otro horario.');
     var hechos = Number(r[RES.reagendos - 1]) || 0, max = Number(cfg.reagendoCambios) || 2;
+    if (esCasa_(String(r[RES.telefono - 1]), r[RES.banda - 1])) excepcion = true; // banda de la casa: reagendos sin tope
     if (hechos >= max && !excepcion) throw new Error('LIMITE: esta reserva ya se reagendó ' + hechos + ' ' + (hechos === 1 ? 'vez' : 'veces') + ' (máximo ' + max + ').');
     reservasVigentesEn_(fecha, codigo).forEach(function (x) { if (x.ini < inicio + horas && x.fin > inicio) throw new Error('CHOQUE: ese horario quedaría sobre la reserva de ' + x.banda + ' (' + Reglas.horaTxt(x.ini) + ' a ' + Reglas.horaTxt(x.fin) + ').'); });
     var oc = ocupadasRango_(fecha, 1)[fecha] || [], propias = [];
@@ -373,11 +374,11 @@ function adminRestaurar(id) {
 function leerClientes_() {
   var sh = abrirBd_().getSheetByName(HOJAS.clientes), n = sh.getLastRow(), out = [];
   if (n < 2) return out;
-  sh.getRange(2, 1, n - 1, 10).getValues().forEach(function (r) {
+  sh.getRange(2, 1, n - 1, 11).getValues().forEach(function (r) {
     if (!r[0]) return;
     var nom = String(r[8] || ''), ape = String(r[9] || '');
     out.push({ telefono: String(r[0]), correo: String(r[1] || ''), banda: String(r[2] || ''), contacto: (nom || ape) ? (nom + ' ' + ape).trim() : String(r[3] || ''),
-      nombre: nom || String(r[3] || ''), apellido: ape, reservas: Number(r[4]) || 0, enlace: String(r[7] || '') });
+      nombre: nom || String(r[3] || ''), apellido: ape, reservas: Number(r[4]) || 0, enlace: String(r[7] || ''), casa: String(r[10] || '').toUpperCase() === 'SI' });
   });
   return out;
 }
@@ -458,6 +459,13 @@ function adminGuardarCliente(d) {
     todos.forEach(function (r, i) {
       if (i + 2 === f || (enlace && String(r[2] || '').trim().toLowerCase() === b)) sh.getRange(i + 2, 8).setValue(enlace);
     });
+    if (d.casa !== undefined) { // «Banda de la casa»: vale para toda la banda (todos los integrantes con el mismo nombre de banda)
+      if (!sh.getRange(1, 11).getValue()) sh.getRange(1, 11).setValue('Banda de la casa').setFontWeight('bold');
+      var marca = d.casa ? 'SI' : '';
+      sh.getRange(f, 11).setValue(marca);
+      todos.forEach(function (r, i) { if (String(r[2] || '').trim().toLowerCase() === b) sh.getRange(i + 2, 11).setValue(marca); });
+      registrarCambio_('Banda de la casa', banda, d.casa ? 'no' : 'sí', d.casa ? 'sí' : 'no');
+    }
     return { ok: true };
   });
 }
@@ -668,7 +676,7 @@ function adminJornadas() {
 
   var cl = leerClientes_(), porTel = {};
   reservas.forEach(function (r) { r.enlace = enlaceDe_(cl, r.telefono, r.banda); });
-  cl.forEach(function (c) { porTel[c.telefono] = { telefono: c.telefono, correo: c.correo, banda: c.banda, contacto: c.contacto, nombre: c.nombre, apellido: c.apellido, enlace: c.enlace, jornadas: 0, finalizadas: 0, gastado: 0, ultima: '', proxima: '' }; });
+  cl.forEach(function (c) { porTel[c.telefono] = { telefono: c.telefono, correo: c.correo, banda: c.banda, contacto: c.contacto, nombre: c.nombre, apellido: c.apellido, enlace: c.enlace, casa: c.casa, jornadas: 0, finalizadas: 0, gastado: 0, ultima: '', proxima: '' }; });
   reservas.forEach(function (r) {
     var c = porTel[r.telefono] || (porTel[r.telefono] = { telefono: r.telefono, correo: r.correo, banda: r.banda, contacto: r.contacto, enlace: '', jornadas: 0, finalizadas: 0, gastado: 0, ultima: '', proxima: '' });
     if (r.estado === EST.ANULADA) return;
