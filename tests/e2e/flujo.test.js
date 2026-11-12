@@ -764,7 +764,7 @@ t('reagendar nunca va al pasado ni fuera del horario de atención (ni con la exc
   assert.throws(() => g.admin('adminReagendar', r.codigo, sumar(hoy, -2), 18, true), /FECHA/);
   assert.throws(() => g.admin('adminReagendar', r.codigo, dia, 3, true), /FUERA_HORARIO/);
   assert.throws(() => g.admin('adminReagendar', r.codigo, dia, 15, true), /FUERA_HORARIO/);
-  g.admin('adminReagendar', r.codigo, dia, 20, true); // dentro de horario sí
+  g.admin('adminReagendar', r.codigo, dia, 11, true); // dentro de horario sí
 });
 t('banda de la casa: su reserva sin abono no vence sola y reagenda sin tope; las demás sí vencen', () => {
   let dia = sumar(f3, 11); while ([4, 6, 0].indexOf(new Date(dia + 'T12:00:00Z').getUTCDay()) >= 0) dia = sumar(dia, 1);

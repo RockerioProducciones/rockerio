@@ -350,6 +350,7 @@ section.tab-off{display:none!important}
 <section><h2>Configuración</h2><h3 style="margin:.2rem 0">Tema del sitio (lo que ven los clientes)</h3><div style="color:#b5afa6;font-size:13px;margin-bottom:6px">Cada tema cambia colores, tipografía y formas completas. Se aplica a la web pública en pocos minutos y reemplaza la elección anterior de los visitantes (ellos igual pueden cambiarlo con el selector de su pantalla).</div><div id="temas-sw" class="temas-sw"></div><h3 style="margin:.8rem 0 .2rem">Tema de este portal (administración)</h3><div style="color:#b5afa6;font-size:13px;margin-bottom:6px">Independiente del sitio: se aplica aquí al instante.</div><div id="temas-admin-sw" class="temas-sw"></div>
 <p style="color:#b5afa6;margin:0 0 .5em">Aquí cambias casi todo: precios, reglas de reserva, pagos, reparto entre socios y funciones. Cada campo tiene una ayuda debajo. Los cambios se aplican al sitio en un par de minutos.</p>
 <div id="ajustes"></div><div class="fila" style="margin-top:8px"><button id="ajg">Guardar configuración</button></div>
+<h3 style="margin:1.2em 0 .2em;font-size:15px">Fotos de los extras para arriendo</h3><p style="color:#b5afa6;margin:0 0 .5em">Son las fotos que ven los clientes al elegir equipos en la reserva. Cambia una foto y presiona «Guardar fotos»; se actualiza en el sitio en unos minutos. «Volver a la original» deja la foto que viene con el sitio.</p><div id="fx-box"></div>
 <h3 style="margin:1em 0 .2em;font-size:15px">Horarios de atención</h3>
 <p style="color:#b5afa6;margin:0 0 .4em">Escribe cada bloque como 09:00-14:00. Deja vacío el segundo bloque si el día es corrido, o ambos si no atiendes.</p>
 <div id="horas"></div><div class="fila" style="margin-top:8px"><button id="hog">Guardar horarios</button></div>
@@ -485,7 +486,7 @@ function pintarTemas(d){var aj={};(d.ajustes||[]).forEach(function(a){aj[a.clave
     TEMAS_SW.forEach(function(t){var b=document.createElement('button');b.type='button';b.className='tsw'+(t[0]===act?' on':'');b.style.background=t[2];b.style.borderColor=t[3];var p=document.createElement('i');p.style.background=t[3];b.appendChild(p);var n=document.createElement('span');n.textContent=t[1];n.style.color=t[3];b.appendChild(n);
       b.onclick=function(){var o={};o[z[1]]=t[0];if(z[1]==='temaAdmin')document.documentElement.setAttribute('data-tema',t[0]);ejecutar('adminGuardarAjustes',o);aviso('Tema «'+t[1]+'» guardado ✔')};c.appendChild(b)})});
   var ta=aj.temaAdmin||'rockerio';if(document.documentElement.getAttribute('data-tema')!==ta)document.documentElement.setAttribute('data-tema',ta)}
-function pintarAjustes(d){pintarTemas(d);
+function pintarAjustes(d){pintarTemas(d);pintarFotosExtras();
   var cont=$('ajustes'),abiertos={};[].forEach.call(cont.querySelectorAll('details[open] > summary'),function(x){abiertos[x.textContent]=1});cont.textContent='';var grupo='',det=null;
   (d.ajustes||[]).forEach(function(a){
     if(SITIO_GRUPOS.indexOf(a.grupo)>=0&&!/^ver/.test(a.clave))return;
@@ -928,6 +929,17 @@ function sBase(){return(ST.datos&&ST.datos.base)||''}
 function sUrl(u){return /^assets\//.test(u||'')?sBase()+'/'+u:u}
 function mdDe(e){var o='';[].forEach.call(e.childNodes,function(n){o+=n.nodeName==='STRONG'?'**'+n.textContent+'**':n.textContent});return o.replace(/\s+/g,' ').trim()}
 function redimFoto(file){return new Promise(function(ok,mal){if(!/^image\/(png|jpeg|webp)$/.test(file.type)){mal(new Error('La foto debe ser PNG, JPG o WebP.'));return}var im=new Image(),u=URL.createObjectURL(file);im.onload=function(){var k=Math.min(1,1600/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);var q=.86,p=c.toDataURL('image/jpeg',q);while(p.length>1900000&&q>.4){q-=.1;p=c.toDataURL('image/jpeg',q)}if(p.length>1900000)mal(new Error('La foto es muy pesada aun reducida.'));else ok(p)};im.onerror=function(){mal(new Error('No pudimos leer esa imagen.'))};im.src=u})}
+
+/* Fotos de los extras (arriendos) */
+var FX=[['platos','Set de platos Kingdo SN8'],['bajo','Bajo eléctrico Epiphone Thunderbird'],['squier','Guitarra eléctrica Squier Stratocaster'],['takamine','Guitarra electroacústica Takamine'],['pedalera-bajo','Pedalera multiefecto para bajo'],['pedalera-guitarra','Pedalera multiefecto para guitarra']],FX_OK=false;
+function pintarFotosExtras(){if(FX_OK)return;var box=$('fx-box');if(!box)return;FX_OK=true;box.textContent='Cargando fotos…';
+  google.script.run.withSuccessHandler(function(d){var base=(d&&d.base)||'',fotos=Object.assign({},(d&&d.sitio&&d.sitio.fotos)||{}),cur={};box.textContent='';
+    FX.forEach(function(x){var k='extra-'+x[0],row=el_('div','sitio-foto'),im=el_('img');im.alt='';cur[k]=fotos[k]||'';im.src=cur[k]||base+'/assets/extras/'+x[0]+'.jpg';row.appendChild(im);
+      var col=el_('div','sitio-foto-c');col.appendChild(el_('b','',x[1]));
+      var lab=el_('label','sitio-subir','📷 Cambiar foto');var fl=el_('input');fl.type='file';fl.accept='image/png,image/jpeg,image/webp';fl.onchange=function(){if(fl.files[0])subirFoto(fl.files[0],k,function(u){cur[k]=u;im.src=u})};lab.appendChild(fl);col.appendChild(lab);
+      col.appendChild(btn('Volver a la original',function(){cur[k]='';im.src=base+'/assets/extras/'+x[0]+'.jpg'},'sec'));row.appendChild(col);box.appendChild(row)});
+    box.appendChild(btn('Guardar fotos',function(){var o=Object.assign({},fotos);FX.forEach(function(x){var k='extra-'+x[0];if(cur[k])o[k]=cur[k];else delete o[k]});aviso('Guardando fotos…');
+      google.script.run.withSuccessHandler(function(){aviso('Fotos guardadas ✔');FX_OK=false;pintarFotosExtras()}).withFailureHandler(function(e){aviso(e.message||'No se pudo guardar')}).adminGuardarSitio('fotos',JSON.stringify(o))}))}).withFailureHandler(function(e){FX_OK=false;box.textContent='No se pudieron cargar las fotos: '+(e.message||'error')}).adminSitioDatos()}
 function subirFoto(file,nombre,fin){aviso('Subiendo foto…');redimFoto(file).then(function(b64){google.script.run.withSuccessHandler(function(u){aviso('Foto subida ✔ (recuerda «Guardar cambios»)');fin(u)}).withFailureHandler(function(e){aviso(e.message||'No se pudo subir')}).adminSubirImagenSitio({b64:b64,nombre:nombre})}).catch(function(er){aviso(er.message)})}
 /* Registra una parte para guardarla con el botón general */
 function tarea(fn){ST.tareas.push(fn)}

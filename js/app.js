@@ -28,6 +28,7 @@
   function aplicarSitio() {
     var tx = sitio.textos || {}, ft = sitio.fotos || {};
     [].forEach.call(document.querySelectorAll('[data-ed]'), function (e) { var v = tx[e.getAttribute('data-ed')]; if (typeof v === 'string' && v) conNegritas(e, v); });
+    try { if (typeof pintarArriendos === 'function' && $('arriendo-lista')) pintarArriendos(); } catch (e) { /* las fotos originales siguen */ }
     [].forEach.call(document.querySelectorAll('[data-ed-foto]'), function (e) { var v = ft[e.getAttribute('data-ed-foto')]; if (typeof v === 'string' && /^(https:\/\/|assets\/)/.test(v)) e.src = v; });
     if (sitio.ficha && sitio.ficha.length) { fichaDatos = { secciones: sitio.ficha }; pintarFicha(); }
     if (sitio.galeria && sitio.galeria.length) pintarGaleria();
@@ -449,7 +450,7 @@
     ARRIENDOS.forEach(function (n, k) {
       var l = el('label', 'ex-fila-ck'), i = el('input'); i.type = 'checkbox'; i.checked = !!arrSel[k];
       i.addEventListener('change', function () { arrSel[k] = i.checked; $('extras').value = arriendosElegidos().length; resumen(); });
-      var im = el('img', 'ex-img'); im.src = 'assets/extras/' + FOTOS_ARR[k] + '.jpg'; im.alt = ''; im.loading = 'lazy'; im.decoding = 'async';
+      var im = el('img', 'ex-img'); var fx = (sitio.fotos || {})['extra-' + FOTOS_ARR[k]]; im.src = (typeof fx === 'string' && /^https:\/\//.test(fx)) ? fx : 'assets/extras/' + FOTOS_ARR[k] + '.jpg'; im.alt = ''; im.loading = 'lazy'; im.decoding = 'async';
       l.classList.add('ex-foto'); l.classList.toggle('sel', i.checked);
       i.addEventListener('change', function () { l.classList.toggle('sel', i.checked); });
       l.appendChild(im); l.appendChild(i); l.appendChild(el('span', 'ex-nom', n)); c.appendChild(l);
