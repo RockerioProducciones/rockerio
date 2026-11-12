@@ -152,3 +152,13 @@ body.con-vistas[data-vista]:not([data-vista="inicio"]) .tarjeta[aria-current=pag
 .wiz-atras{min-height:44px;padding:.4rem 1rem}
 .wiz-volver{display:block;width:100%;margin-top:.6rem;min-height:48px;border-radius:999px;border:1px solid var(--borde,#333);background:transparent;color:inherit;font-weight:600;font-size:1rem;cursor:pointer}
 .wiz-volver[hidden]{display:none}
+
+/* extras más visibles antes del resumen */
+.plegable .ex-toggle{display:flex;align-items:center;gap:.8rem;border:1.5px solid var(--oro,#FCC631);background:color-mix(in srgb,var(--oro,#FCC631) 10%,transparent);box-shadow:0 0 0 4px color-mix(in srgb,var(--oro,#FCC631) 8%,transparent)}
+.plegable .ex-mas{flex:none;width:34px;height:34px;border-radius:50%;background:var(--oro,#FCC631);color:#000;display:grid;place-items:center;font-size:1.3rem;font-weight:800;line-height:1}
+.plegable .ex-tx{flex:1;display:flex;flex-direction:column;gap:.15rem}
+.plegable .ex-tx b{font-size:1.02rem}
+.plegable .ex-tx small{font-weight:400;opacity:.75;font-size:.85rem}
+.plegable .ex-flecha{flex:none;font-size:1.6rem;color:var(--oro,#FCC631);transition:transform .2s}
+.plegable.abierto .ex-flecha{transform:rotate(90deg)}
+.plegable.abierto .ex-mas{transform:rotate(45deg)}
