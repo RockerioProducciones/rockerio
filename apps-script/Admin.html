@@ -342,8 +342,8 @@ section.tab-off{display:none!important}
 <div id="sitio-guarda" hidden></div><div id="sitio-top"></div><div class="tabs" id="sitio-tabs"></div><div id="sitio-panel"></div>
 <div class="fila" style="margin-top:10px"><button type="button" class="sec" id="sitio-recargar">Volver a leer el sitio</button></div></section>
 <section><h2>Reglamento interno</h2>
-<p style="color:#b5afa6;margin:0 0 .5em">Es el texto que ven los clientes en el sitio. Usa «## » para los títulos de sección y «- » para las viñetas. {horasAnulacion}, {retencionPorHora}, {reagendoSemanas}, {reagendoCambios} y {minutosReserva} se reemplazan solos con los valores de Configuración. Vacío = vuelve al texto original.</p>
-<textarea id="rgt" rows="14" maxlength="6000" style="width:100%"></textarea><div style="margin-top:6px"><button id="rgg">Guardar reglamento</button></div></section>
+<p style="color:#b5afa6;margin:0 0 .5em">Es el texto que ven los clientes en el sitio. Usa «## » para los títulos de sección y «- » para las viñetas. Estas palabras entre llaves se reemplazan solas con los valores de Configuración, así que si cambias un valor el reglamento se actualiza: {abonoPorHora}, {retencionPorHora}, {noAsisteCobroPorHora}, {horasAnulacion}, {reagendoCambios}, {reagendoSemanas}, {minutosReserva}, {horasComprobante}, {anticipacionMinHoras}, {anticipacionMaxDias}. Vacío = vuelve al texto original.</p>
+<textarea id="rgt" rows="14" maxlength="8000" style="width:100%"></textarea><div class="fila" style="margin-top:6px"><button id="rgg">Guardar reglamento</button><button type="button" class="sec" id="rgr">Cargar texto recomendado</button></div><p style="color:#b5afa6;margin:.4em 0 0;font-size:.85rem">«Cargar texto recomendado» solo lo pone en el cuadro para que lo revises; no cambia nada hasta que presiones «Guardar reglamento».</p></section>
 <section><h2>Presentación personal</h2><div class="fila" style="flex-direction:column;align-items:stretch">
 <input id="prt" placeholder="Título (ej. Mi enfoque)" maxlength="80"><textarea id="prx" rows="8" maxlength="3000" placeholder="Tu visión y enfoque técnico y artístico. Separa los párrafos con una línea en blanco. Vacío = la sección no se muestra en el sitio."></textarea>
 <div><button id="prg">Guardar presentación</button></div></div></section>
@@ -507,6 +507,7 @@ $('ajg').onclick=function(){var o={};[].forEach.call(document.querySelectorAll('
 $('hog').onclick=function(){var f=[];for(var k=0;k<7;k++)f.push({b1:document.querySelector('[data-h="'+k+'b1"]').value,b2:document.querySelector('[data-h="'+k+'b2"]').value});ejecutar('adminGuardarHorarios',f);aviso('Guardando…')};
 $('ing').onclick=function(){ejecutar('adminGuardarIngresos',[].map.call(document.querySelectorAll('#ingr input'),function(c){return c.checked}));aviso('Guardando…')};
 
+$('rgr').onclick=function(){confirmarSN('¿Reemplazar lo que ves en el cuadro por el texto recomendado? No se guarda hasta que presiones «Guardar reglamento».',function(){google.script.run.withSuccessHandler(function(t){$('rgt').value=t;aviso('Texto cargado: revísalo y guarda')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminReglamentoRecomendado()},'Sí, cargar')};
 $('rgg').onclick=function(){ejecutar('adminGuardarReglamento',$('rgt').value);aviso('Reglamento guardado')};
 function pintarWA(d){
   var box=$('wam');if(!box.firstChild||document.activeElement.tagName!=='TEXTAREA'){box.textContent='';WATIPOS.forEach(function(x){var l=document.createElement('label');l.textContent=x[1];l.style.cssText='display:block;font-weight:600;margin-top:8px';var a=document.createElement('textarea');a.rows=3;a.maxLength=1000;a.style.width='100%';a.value=d.wa.plantillas[x[0]];a.setAttribute('data-msg',x[0]);box.appendChild(l);box.appendChild(a)})}

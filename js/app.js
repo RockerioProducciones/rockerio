@@ -155,7 +155,7 @@
       var a = el('a', '', 'Escríbenos por WhatsApp'); a.href = wspUrl('Hola 👋 Me gustaría reservar, ¿me ayudan a ver los horarios disponibles?'); pausa.appendChild(a);
     }
     /* reglamento: «## » = título, «- » = viñeta, otra línea = párrafo; los {valores} salen de la configuración */
-    var valores = { negocio: cfg.nombreNegocio, abonoPorHora: R.clp(cfg.abonoPorHora), devolucionPorHora: R.clp(cfg.abonoPorHora - cfg.retencionPorHora), horasAnulacion: cfg.horasAnulacion, retencionPorHora: R.clp(cfg.retencionPorHora), noAsisteCobroPorHora: R.clp(cfg.noAsisteCobroPorHora || 5000), reagendoSemanas: cfg.reagendoSemanas, reagendoCambios: cfg.reagendoCambios, minutosReserva: cfg.minutosReserva };
+    var valores = { negocio: cfg.nombreNegocio, abonoPorHora: R.clp(cfg.abonoPorHora), devolucionPorHora: R.clp(cfg.abonoPorHora - cfg.retencionPorHora), horasAnulacion: cfg.horasAnulacion, retencionPorHora: R.clp(cfg.retencionPorHora), noAsisteCobroPorHora: R.clp(cfg.noAsisteCobroPorHora || 5000), reagendoSemanas: cfg.reagendoSemanas, reagendoCambios: cfg.reagendoCambios, minutosReserva: cfg.minutosReserva, horasComprobante: cfg.horasComprobante || 12, anticipacionMinHoras: cfg.anticipacionMinHoras, anticipacionMaxDias: cfg.anticipacionMaxDias };
     var rg = $('reglamento-in'); rg.textContent = ''; var lista = null;
     (String(cfg.reglamento || '') + (/datos personales/i.test(String(cfg.reglamento || '')) || !cfg.reglamento ? '' : '\n\n' + R.CLAUSULA_DATOS)).split(/\r?\n/).forEach(function (l) {
       l = l.trim().replace(/\{(\w+)\}/g, function (m, k) { return valores[k] !== undefined ? valores[k] : m; });

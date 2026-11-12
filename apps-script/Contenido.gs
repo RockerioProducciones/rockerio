@@ -341,9 +341,12 @@ function adminEliminarMuestra(fila) {
 /** Guarda el reglamento (texto con varias líneas: ## título, - viñeta). Vacío = vuelve al texto por defecto. */
 function adminGuardarReglamento(texto) {
   exigirAdmin_();
-  var v = textoSeguro_(String(texto || '').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '').slice(0, 6000));
-  return conBloqueo_(function () { ponerConfig_({ reglamento: v }); return adminResumen(); });
+  var v = textoSeguro_(String(texto || '').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '').slice(0, 8000));
+  return conBloqueo_(function () { var antes = String(leerConfigCruda_().reglamento || ''); ponerConfig_({ reglamento: v }); if (antes !== v) registrarCambio_('Reglamento', 'texto', antes.slice(0, 200), v.slice(0, 200)); return adminResumen(); });
 }
+
+/** Texto recomendado del reglamento (para que la dueña lo cargue en el editor y lo revise antes de guardar). */
+function adminReglamentoRecomendado() { exigirAdmin_(); return String(Reglas.CONFIG_POR_DEFECTO.reglamento); }
 
 function adminGuardarPresentacion(titulo, texto) {
   exigirAdmin_();
