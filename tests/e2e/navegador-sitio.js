@@ -10,6 +10,7 @@ const { sembrar } = require('./demo.js');
   await p.screenshot({ path: '1-inicio.png' });
   ok(await p.locator('.tarjeta:visible').count() >= 8, 'inicio muestra tarjetas');
   ok(!(await p.locator('#planes').isVisible()), 'las otras secciones no se ven en el inicio');
+  g.ctx.ponerConfig_({ pagoTransferencia: 'SI', datosTransferencia: 'DATOS DE TRANSFERENCIA MERCADOPAGO ======================= Juan Carlos Retamal González RUT: 165925513 Mercado Pago Cuenta Vista Número de cuenta: 1031162619 rockerioestudio@gmail.com' });
   await p.click('.tarjeta.principal'); await p.waitForTimeout(300);
   ok(await p.locator('#paso-servicio').isVisible() && !(await p.locator('#paso-fecha').isVisible()), 'paso 1 visible y nada más');
   await p.screenshot({ path: '2-paso1.png' });
@@ -42,6 +43,9 @@ const { sembrar } = require('./demo.js');
   await p.check('#tyc'); await p.click('#enviar'); await p.waitForTimeout(1200);
   ok(await p.locator('#listo').isVisible(), 'reserva enviada y confirmación visible');
   await p.screenshot({ path: '8-listo.png' });
+  await p.locator('.ro-osc').first().click(); await p.waitForTimeout(200);
+  ok(await p.locator('.tf-fila').count() === 6 && /16\.592\.551-3/.test(await p.textContent('.tf-lista')), 'datos de transferencia ordenados en filas');
+  await p.screenshot({ path: '8b-transferencia.png', fullPage: true });
   const fila = g.hoja('Reservas').find((r) => r[10] === '56977771234' || String(r[C()]) === '56977771234'); function C() { return g.ctx.RES.telefono - 1; }
   ok(!!g.hoja('Reservas').find((r) => String(r[C()]) === '56977771234'), 'la reserva quedó en la hoja');
   ok(g.estado.eventos.some((e) => /Banda E2E/.test(e.titulo)), 'y en el calendario');

@@ -448,7 +448,15 @@ function registrarCliente_(d) {
 /** Correo para clientes: texto plano + versión con el logo arriba (si el correo no muestra imágenes, se lee igual). */
 function enviarCorreoMarca_(cfg, o) {
   var base = String(cfg.sitioUrl || 'https://rockerioproducciones.cl').replace(/\/+$/, '');
+  var filas = o.transf && o.transf.filas, tabla = '';
+  if (filas) {
+    tabla = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e5e5;border-radius:8px;border-collapse:separate;margin:6px 0"><tr><td colspan="2" style="background:#141312;color:#FCC631;font-weight:bold;padding:9px 12px;border-radius:8px 8px 0 0">🏦 Datos para transferir</td></tr>' +
+      filas.map(function (f) { return '<tr><td style="padding:8px 12px;color:#777;font-size:13px;border-top:1px solid #eee;width:38%">' + String(f[0]).replace(/[<>&]/g, '') + '</td><td style="padding:8px 12px;font-weight:bold;border-top:1px solid #eee">' + String(f[1]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</td></tr>'; }).join('') + '</table>';
+    o.body = String(o.body).replace('[[TRANSF]]', 'DATOS PARA TRANSFERIR\n' + filas.map(function (f) { return f[0] + ': ' + f[1]; }).join('\n'));
+  }
   var esc = String(o.body).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+  if (tabla) esc = esc.replace(new RegExp('DATOS PARA TRANSFERIR<br>(?:[^<]*<br>){' + (filas.length - 1) + '}[^<]*'), function () { return tabla; });
+  delete o.transf;
   o.htmlBody = '<div style="max-width:560px;margin:0 auto;font-family:Arial,Helvetica,sans-serif;color:#222">' +
     '<div style="background:#141312;padding:18px;text-align:center;border-radius:10px 10px 0 0;border-bottom:3px solid #FCC631">' +
     '<img src="' + base + '/assets/logo-horizontal-dorado.png" alt="' + String(cfg.nombreNegocio || 'Rockerío Producciones').replace(/[<>"&]/g, '') + '" width="220" style="max-width:100%;height:auto"></div>' +
@@ -472,9 +480,9 @@ function notificar_(cfg, v, codigo) {
       var texto = 'Hola ' + d.nombre + ',\n\nRecibimos tu solicitud en ' + cfg.nombreNegocio + '. Tu código es #' + codigo + '.\n\n' +
         Reglas.resumenTexto(cfg, v, '').split('\n').slice(1).join('\n') + '\n\n' +
         'Tu horario queda reservado ' + cfg.minutosReserva + ' minutos a la espera del abono de ' + Reglas.clp(v.calculo.abono) + '. Si por algún motivo no alcanzas a abonar en ese plazo, el horario vuelve a quedar disponible para otras bandas; y si necesitas más tiempo, escríbenos y vemos cómo ayudarte.\n' +
-        cfg.instruccionesPago + ((cfg.pagoTransferencia && cfg.datosTransferencia) ? '\nTransferencia: ' + cfg.datosTransferencia : '') + ((cfg.pagoOnline && cfg.linkPago) ? '\nPuedes pagar aquí: ' + cfg.linkPago : '') + '\n\n' +
+        cfg.instruccionesPago + ((cfg.pagoTransferencia && cfg.datosTransferencia) ? '\n\n' + (Reglas.datosTransf(cfg.datosTransferencia) ? '[[TRANSF]]' : 'Transferencia: ' + cfg.datosTransferencia) : '') + ((cfg.pagoOnline && cfg.linkPago) ? '\nPuedes pagar aquí: ' + cfg.linkPago : '') + '\n\n' +
         'Si necesitas cambiar o anular, avísanos por WhatsApp con al menos ' + cfg.horasAnulacion + ' horas de anticipación: así podemos darle ese espacio a otra banda y mantener la agenda fluida para todos. ¡Gracias!\n' + cfg.direccion;
-      enviarCorreoMarca_(cfg, { to: d.correo, subject: 'Tu reserva #' + codigo + ' en ' + cfg.nombreNegocio, body: texto, name: cfg.nombreNegocio, replyTo: cfg.correoAdmin || '' });
+      enviarCorreoMarca_(cfg, { to: d.correo, subject: 'Tu reserva #' + codigo + ' en ' + cfg.nombreNegocio, body: texto, transf: Reglas.datosTransf(cfg.datosTransferencia || ''), name: cfg.nombreNegocio, replyTo: cfg.correoAdmin || '' });
     }
   } catch (err) { console.error('Correo al cliente: ' + err); }
 }

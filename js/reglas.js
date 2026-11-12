@@ -525,9 +525,25 @@ var Reglas = (function () {
     return { fecha: o.year + '-' + o.month + '-' + o.day, hora: (+o.hour) + (+o.minute) / 60 };
   }
 
+  /* Lee el texto de «Datos de transferencia» (aunque venga en una sola línea) y lo separa en campos. Si no lo reconoce, devuelve null. */
+  function datosTransf(t) {
+    var c = String(t || '').replace(/\s+/g, ' ').trim();
+    var m = /=+\s*(.*?)\s*RUT:?\s*([0-9.]+\s*-?\s*[0-9kK])\b(.*)$/i.exec(c); if (!m) return null;
+    var nombre = m[1].trim(), rut = m[2].replace(/[^0-9kK]/g, '').toUpperCase(), resto = m[3];
+    var cu = /n[uú]mero de cuenta:?\s*([0-9]+)/i.exec(resto), em = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/.exec(resto), tp = /cuenta\s+(vista|corriente|ahorro|rut|chequera electr[oó]nica)/i.exec(resto);
+    if (!nombre || rut.length < 7 || !cu) return null;
+    var banco = resto.slice(0, tp ? tp.index : cu.index).replace(/^[\s:,-]+|[\s:,-]+$/g, '');
+    var cuerpo = rut.slice(0, -1), dv = rut.slice(-1);
+    return {
+      filas: [['Titular', nombre, nombre], ['RUT', cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + '-' + dv, cuerpo + '-' + dv], banco ? ['Banco', banco, banco] : null,
+        tp ? ['Tipo de cuenta', 'Cuenta ' + tp[1].charAt(0).toUpperCase() + tp[1].slice(1).toLowerCase(), 'Cuenta ' + tp[1].charAt(0).toUpperCase() + tp[1].slice(1).toLowerCase()] : null,
+        ['N.º de cuenta', cu[1], cu[1]], em ? ['Correo', em[0], em[0]] : null].filter(Boolean)
+    };
+  }
+
   var CLAUSULA_DATOS = "## 🔒 Protección de datos personales\n- Qué datos pedimos: nombre, nombre de la banda, teléfono o WhatsApp, correo electrónico y, si quieres, un comentario. Los usamos solo para gestionar tu reserva, avisarte de cambios, recordarte tu sesión, cobrar o devolver abonos y, si lo pides, entregarte tu material.\n- Qué no hacemos: no vendemos ni cedemos tus datos a terceros, ni los usamos para publicidad. Tampoco te escribimos con ofertas que no pediste.\n- Con quién se comparten: solo con los servicios que hacen posible la reserva (por ejemplo almacenamiento y correo de Google, WhatsApp y, si usas el pago en línea, Mercado Pago), que los tratan únicamente para ese fin. El pago con tarjeta lo procesa Mercado Pago: nosotros nunca vemos ni guardamos los datos de tu tarjeta.\n- Quién puede verlos: solo el equipo de {negocio}. Tu teléfono y correo no se muestran en el sitio ni a otras bandas.\n- Cuánto tiempo: los conservamos mientras sean necesarios para atender tu reserva y cumplir obligaciones administrativas y tributarias; después los eliminamos o anonimizamos.\n- Publicaciones: reseñas, Cuadro de Honor, fotos, videos o audios de tu sesión se publican solo con tu autorización y puedes pedir que los retiremos cuando quieras.\n- Tus derechos: puedes pedir acceso, corrección, eliminación u oposición al uso de tus datos, o retirar tu consentimiento, escribiéndonos por WhatsApp o al correo de contacto de este sitio. Respondemos a la brevedad.\n- Seguridad: usamos cuentas protegidas, acceso restringido al administrador y conexiones cifradas. Si ocurriera un incidente que afecte tus datos, te informaremos.\n- Este sitio no usa cookies de publicidad ni de seguimiento. Actuamos conforme a la normativa chilena de protección de datos personales (Ley N° 19.628 y su actualización, Ley N° 21.719).";
   return {
-    CLAUSULA_DATOS: CLAUSULA_DATOS, TZ: TZ, SERVICIOS: SERVICIOS, DIAS: DIAS, CONFIG_POR_DEFECTO: CONFIG_POR_DEFECTO,
+    CLAUSULA_DATOS: CLAUSULA_DATOS, TZ: TZ, SERVICIOS: SERVICIOS, DIAS: DIAS, CONFIG_POR_DEFECTO: CONFIG_POR_DEFECTO, datosTransf: datosTransf,
     aNumero: aNumero, aBool: aBool, clp: clp, horaTxt: horaTxt, fechaValida: fechaValida, diaSemana: diaSemana,
     diasEntre: diasEntre, sumarDias: sumarDias, fechaLarga: fechaLarga, parseBloque: parseBloque, parseEscala: parseEscala,
     normalizarConfig: normalizarConfig, limitesHoras: limitesHoras, addonsPermitidos: addonsPermitidos,

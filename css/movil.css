@@ -173,3 +173,14 @@ body.con-vistas[data-vista]:not([data-vista="inicio"]) .tarjeta[aria-current=pag
 .ex-foto.sel .ex-img{filter:saturate(1.1) brightness(.95);transform:scale(1.04)}
 .ex-foto.sel::before{background:linear-gradient(90deg,rgba(0,0,0,.8) 0%,rgba(0,0,0,.4) 55%,rgba(0,0,0,0) 100%)}
 .ex-foto.sel .ex-nom{color:var(--oro,#FCC631)}
+
+/* datos de transferencia ordenados */
+.tf-lista{display:flex;flex-direction:column;gap:.5rem;margin-bottom:.8rem}
+.tf-fila{display:flex;align-items:center;gap:.8rem;padding:.7rem .9rem;border:1px solid var(--borde,#333);border-radius:14px;background:rgba(255,255,255,.03)}
+.tf-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:.15rem}
+.tf-l{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;opacity:.65}
+.tf-v{font-size:1.05rem;font-weight:700;word-break:break-word;-webkit-user-select:all;user-select:all;-webkit-touch-callout:default}
+.tf-cp{flex:none;min-height:40px;padding:.4rem .9rem;border-radius:999px;border:1px solid var(--oro,#FCC631);background:transparent;color:var(--oro,#FCC631);font-weight:700;font-size:.9rem;cursor:pointer}
+.tf-cp.copiado,.tf-todo.copiado{background:#1f7a3d;border-color:#1f7a3d;color:#fff}
+.tf-todo{width:100%;min-height:50px}
+.tf-nota{margin:.6rem 0 0;font-size:.8rem}

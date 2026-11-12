@@ -500,9 +500,13 @@
   function mostrarError(m) { var e = $('error'); e.hidden = !m; e.textContent = m || ''; if (m) e.scrollIntoView({ block: 'center' }); }
 
   /* ---------- pantalla de pago (reserva y planes) ---------- */
-  function copiar(texto, boton) {
-    var listo = function () { boton.textContent = '¡Copiado!'; setTimeout(function () { boton.textContent = 'Copiar datos'; }, 2500); };
-    try { navigator.clipboard.writeText(texto).then(listo, function () {}); } catch (e) { /* sin portapapeles */ }
+  function copiar(texto, boton, etiqueta) {
+    var original = etiqueta || boton.textContent;
+    var listo = function () { boton.textContent = '¡Copiado!'; boton.classList.add('copiado'); setTimeout(function () { boton.textContent = original; boton.classList.remove('copiado'); }, 2200); };
+    var respaldo = function () {
+      try { var t = document.createElement('textarea'); t.value = texto; t.setAttribute('readonly', ''); t.style.cssText = 'position:fixed;top:0;left:0;opacity:0;font-size:16px'; document.body.appendChild(t); t.focus(); t.select(); t.setSelectionRange(0, texto.length); var ok = document.execCommand('copy'); t.remove(); if (ok) listo(); } catch (e) { /* sin portapapeles */ }
+    };
+    try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texto).then(listo, respaldo); else respaldo(); } catch (e) { respaldo(); }
   }
   /** o = { box, titulo, lineas: [], monto, pago: {transferencia, link, instrucciones, minutosReserva, segundos}, whatsapp } */
   function mostrarPago(o) {
@@ -528,7 +532,19 @@
     var tr = el('div', 'ro-trans');
     var bt = el('button', 'ro-b ro-osc', '🏦 Ver datos de transferencia bancaria'); bt.type = 'button';
     var dt = el('div', 'ro-datos'); dt.hidden = true;
-    if (o.pago.transferencia) { dt.appendChild(el('pre', '', o.pago.transferencia)); var cb = el('button', 'btn chico', 'Copiar datos'); cb.type = 'button'; cb.addEventListener('click', function () { copiar(o.pago.transferencia, cb); }); dt.appendChild(cb); }
+    var ds = o.pago.transferencia ? R.datosTransf(o.pago.transferencia) : null;
+    if (ds) {
+      var tb = el('div', 'tf-lista');
+      ds.filas.forEach(function (f) {
+        var fl = el('div', 'tf-fila'), tx = el('div', 'tf-tx'), v = el('span', 'tf-v', f[1]); v.setAttribute('translate', 'no');
+        tx.appendChild(el('small', 'tf-l', f[0])); tx.appendChild(v); fl.appendChild(tx);
+        var b1 = el('button', 'tf-cp', 'Copiar'); b1.type = 'button'; b1.setAttribute('aria-label', 'Copiar ' + f[0]); b1.addEventListener('click', function () { copiar(f[2], b1, 'Copiar'); }); fl.appendChild(b1); tb.appendChild(fl);
+      });
+      dt.appendChild(tb);
+      var todo = ds.filas.map(function (f) { return f[0] + ': ' + f[2]; }).join('\n');
+      var cb = el('button', 'btn chico tf-todo', 'Copiar todos los datos'); cb.type = 'button'; cb.addEventListener('click', function () { copiar(todo, cb, 'Copiar todos los datos'); }); dt.appendChild(cb);
+      dt.appendChild(el('p', 'nota tf-nota', 'El RUT y el número de cuenta se copian listos para pegar en la app de tu banco.'));
+    } else if (o.pago.transferencia) { dt.appendChild(el('pre', '', o.pago.transferencia)); var cb2 = el('button', 'btn chico', 'Copiar datos'); cb2.type = 'button'; cb2.addEventListener('click', function () { copiar(o.pago.transferencia, cb2, 'Copiar datos'); }); dt.appendChild(cb2); }
     else dt.appendChild(el('p', 'nota', 'Te enviaremos los datos de transferencia por WhatsApp.'));
     bt.addEventListener('click', function () { dt.hidden = !dt.hidden; }); tr.appendChild(bt); tr.appendChild(dt); bts.appendChild(tr);
     var w = el('a', 'ro-b ro-wsp', '📲 Enviar comprobante por WhatsApp'); w.href = wspUrl(o.whatsapp + '\nTe adjunto el comprobante del abono de ' + R.clp(o.monto) + '. ¡Gracias!'); w.target = '_blank'; w.rel = 'noopener'; bts.appendChild(w);
