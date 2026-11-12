@@ -76,7 +76,7 @@
   function pintarMics(cat, grupos) {
     var norm = function (t) { return String(t || '').toLowerCase().replace(/\s+/g, ' ').trim(); }, porNombre = {}, usados = {};
     grupos.forEach(function (g) { porNombre[norm(g.grupo)] = g; });
-    var lista = cat.map(function (m) { var g = porNombre[norm(m.nombre)]; if (g) usados[norm(m.nombre)] = 1; return { nombre: m.nombre, foto: m.foto, uso: m.uso, descripcion: m.descripcion || (g && g.descripcion) || '', items: g ? g.items : [] }; });
+    var lista = cat.map(function (m) { var g = porNombre[norm(m.nombre)]; if (g) usados[norm(m.nombre)] = 1; return { nombre: m.nombre, foto: m.foto, foto2: m.foto2, uso: m.uso, descripcion: m.descripcion || (g && g.descripcion) || '', items: (Array.isArray(m.audios) ? m.audios.filter(function (a) { return a && a.enlace; }) : []).concat(g ? g.items : []) }; });
     grupos.forEach(function (g) { if (!usados[norm(g.grupo)]) lista.push({ nombre: g.grupo, foto: '', uso: '', descripcion: g.descripcion || '', items: g.items }); });
     var cont = $('mics'); cont.textContent = ''; $('mics-box').hidden = !lista.length;
     var etiquetas = [], vistas = {};
@@ -89,14 +89,32 @@
       var botones = [''].concat(etiquetas).map(function (t) { var b = el('button', 'mic-chip', t || 'Todos'); b.type = 'button'; b.setAttribute('aria-pressed', t ? 'false' : 'true'); b.addEventListener('click', function () { activo = t.toLowerCase(); botones.forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); tarjetas.forEach(function (c) { c.el.hidden = !!activo && c.tags.indexOf(activo) < 0; }); }); filtro.appendChild(b); return b; });
       cont.parentNode.insertBefore(filtro, cont);
     }
+    var abierta = null;
+    function cerrar(c) { c.it.classList.remove('abierto'); c.cab.setAttribute('aria-expanded', 'false'); c.det.hidden = true; }
     lista.forEach(function (m) {
-      var it = el('div', 'mic-it'), f = el('div', 'mic-foto'); tarjetas.push({ el: it, tags: m.tags.map(function (t) { return t.toLowerCase(); }) });
-      if (/^(https:\/\/|assets\/)/.test(m.foto || '')) { var im = el('img'); im.src = m.foto; im.alt = m.nombre; im.loading = 'lazy'; f.appendChild(im); } else f.appendChild(el('span', '', '🎙️'));
-      var tx = el('div', 'mic-tx'); tx.appendChild(el('b', '', m.nombre));
-      if (m.uso) { var u = el('p', 'mic-uso'); u.appendChild(el('strong', '', 'Uso: ')); u.appendChild(document.createTextNode(m.uso)); tx.appendChild(u); }
-      if (m.descripcion) tx.appendChild(el('p', 'mic-desc', m.descripcion));
-      if (m.items.length) { var mu = el('div', 'mic-muestras'); m.items.forEach(function (i) { mu.appendChild(muestra(i)); }); tx.appendChild(mu); } else tx.appendChild(el('small', 'nota', 'Muestra de audio próximamente.'));
-      it.appendChild(f); it.appendChild(tx); cont.appendChild(it);
+      var fotos = [m.foto, m.foto2].filter(function (u) { return /^(https:\/\/|assets\/)/.test(u || ''); });
+      var it = el('div', 'mic-it'), cab = el('button', 'mic-cab'), det = el('div', 'mic-det'); cab.type = 'button'; cab.setAttribute('aria-expanded', 'false'); det.hidden = true;
+      var c = { it: it, cab: cab, det: det }; tarjetas.push({ el: it, tags: m.tags.map(function (t) { return t.toLowerCase(); }) });
+      var f = el('span', 'mic-foto');
+      if (fotos.length) { var im = el('img'); im.src = fotos[0]; im.alt = ''; im.loading = 'lazy'; f.appendChild(im); } else f.appendChild(el('span', '', '🎙️'));
+      var tx = el('span', 'mic-tx'); tx.appendChild(el('b', '', m.nombre));
+      if (m.uso) tx.appendChild(el('span', 'mic-uso-c', m.uso));
+      cab.appendChild(f); cab.appendChild(tx);
+      var nAud = m.items.length; cab.appendChild(el('span', 'mic-meta', (nAud ? '🎧 ' + nAud : '') + ' ›'));
+      cab.addEventListener('click', function () {
+        var abre = det.hidden; if (abierta && abierta !== c) cerrar(abierta);
+        det.hidden = !abre; it.classList.toggle('abierto', abre); cab.setAttribute('aria-expanded', abre ? 'true' : 'false'); abierta = abre ? c : null;
+        if (abre && it.scrollIntoView) setTimeout(function () { var r = it.getBoundingClientRect(); if (r.top < 70) window.scrollBy({ top: r.top - 80, behavior: 'smooth' }); }, 30);
+      });
+      if (fotos.length) {
+        var gf = el('div', 'mic-fotos n' + fotos.length), lf = fotos.map(function (u) { return { src: u, alt: m.nombre }; });
+        fotos.forEach(function (u, k) { var bt = el('button', 'mic-fz'); bt.type = 'button'; bt.setAttribute('aria-label', 'Ampliar foto de ' + m.nombre); var i2 = el('img'); i2.src = u; i2.alt = m.nombre; i2.loading = 'lazy'; bt.appendChild(i2); bt.addEventListener('click', function () { if (RK.visor) RK.visor(lf, k); }); gf.appendChild(bt); });
+        det.appendChild(gf);
+      }
+      if (m.uso) { var u = el('p', 'mic-uso'); u.appendChild(el('strong', '', 'Uso: ')); u.appendChild(document.createTextNode(m.uso)); det.appendChild(u); }
+      if (m.descripcion) det.appendChild(el('p', 'mic-desc', m.descripcion));
+      if (nAud) { var mu = el('div', 'mic-muestras'); mu.appendChild(el('small', 'mic-sub', '🎧 Así suena')); m.items.forEach(function (i) { mu.appendChild(muestra(i)); }); det.appendChild(mu); } else det.appendChild(el('small', 'nota', 'Muestra de audio próximamente.'));
+      it.appendChild(cab); it.appendChild(det); cont.appendChild(it);
     });
   }
 
