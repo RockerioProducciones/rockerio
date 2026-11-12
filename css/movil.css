@@ -137,3 +137,14 @@ body.con-vistas[data-vista]:not([data-vista="inicio"]) .tarjeta[aria-current=pag
 .hora.ocupado{text-decoration:none;opacity:.55}
 .wiz-prog i.hecho,.wiz-prog i.actual{background:none!important}
 .wiz-prog i.actual em{color:var(--oro)}
+
+/* adicionales plegables en la pantalla final */
+.plegable .ex-toggle{display:block;width:100%;text-align:left;min-height:52px;padding:.8rem 1rem;border-radius:16px;border:1px dashed var(--borde,#333);background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer}
+.plegable .ex-toggle small{font-weight:400;opacity:.7}
+.plegable:not(.abierto)>*:not(.ex-toggle):not(legend){display:none}
+.plegable.abierto .ex-toggle{margin-bottom:.6rem}
+.plegable legend{display:none}
+.wizard fieldset.plegable.activo{padding:0;background:none!important;border:0!important;box-shadow:none!important;margin-top:12px}
+.wizard fieldset.plegable.abierto.activo{padding:.6rem 0}
+.wizard #paso-fecha.activo+#paso-hora.activo{margin-top:12px}
+.plegable[hidden]{display:none!important}

@@ -5,14 +5,14 @@
   var $ = function (id) { return document.getElementById(id); }, form = $('form'), R = window.Reglas, RK = window.RK;
   if (!form || !R || !RK) return;
   var PASOS = [
-    { id: 'paso-servicio', t: '¿Qué necesitas?' }, { id: 'paso-fecha', t: 'Elige el día' }, { id: 'paso-hora', t: 'Elige tu horario' },
-    { id: 'adicionales', t: 'Adicionales' }, { id: 'paso-datos', t: 'Tus datos' }, { id: 'paso-resumen', t: 'Revisa y confirma' }
+    { id: 'paso-servicio', t: '¿Qué necesitas?', g: ['paso-servicio'] }, { id: 'paso-fecha', t: 'Elige día y horario', g: ['paso-fecha', 'paso-hora'] },
+    { id: 'paso-datos', t: 'Tus datos', g: ['paso-datos'] }, { id: 'paso-resumen', t: 'Revisa y confirma', g: ['adicionales', 'paso-resumen'] }
   ];
   var actual = 'paso-servicio', aviso = '';
 
-  function lista() { return PASOS.filter(function (p) { return !$(p.id).hidden; }); }
+  function lista() { return PASOS; }
   function indice() { var l = lista(), i = 0; l.forEach(function (p, k) { if (p.id === actual) i = k; }); return i; }
-  function listo(id) { var S = RK.estado(); if (id === 'paso-fecha') return !!S.fecha; if (id === 'paso-hora') return S.inicio !== null; return true; }
+  function listo(id) { var S = RK.estado(); if (id === 'paso-fecha') return !!S.fecha && S.inicio !== null; return true; }
 
   function ir(id, mover) {
     actual = id; dibujar();
@@ -35,14 +35,14 @@
 
   function dibujar() {
     var l = lista(), i = indice(), p = l[i];
-    PASOS.forEach(function (x) { $(x.id).classList.toggle('activo', x.id === actual); });
+    PASOS.forEach(function (x) { x.g.forEach(function (g) { $(g).classList.toggle('activo', x.id === actual); }); });
     $('wiz-titulo').textContent = p.t; $('wiz-titulo').setAttribute('data-n', i + 1); $('wiz-n').textContent = (i + 1) + ' de ' + l.length;
     var pr = $('wiz-prog'); pr.textContent = '';
     l.forEach(function (x, k) { var d = document.createElement('i'); d.className = k < i ? 'hecho' : k === i ? 'actual' : ''; var c = document.createElement('u'); c.textContent = k < i ? '✓' : String(k + 1); d.appendChild(c); var t = document.createElement('em'); t.textContent = x.t; d.appendChild(t); pr.appendChild(d); });
     $('wiz-atras').hidden = i === 0;
     var ultimo = i === l.length - 1, s = $('wiz-sig');
     $('wiz-acc').hidden = ultimo; s.disabled = !listo(actual);
-    s.textContent = actual === 'paso-servicio' ? 'Elegir el día ›' : actual === 'paso-datos' ? 'Revisar mi reserva ›' : actual === 'adicionales' ? 'Continuar ›' : 'Siguiente ›';
+    s.textContent = actual === 'paso-servicio' ? 'Elegir el día ›' : actual === 'paso-datos' ? 'Revisar mi reserva ›' : 'Siguiente ›';
     var av = $('wiz-aviso'); if (!av) { av = document.createElement('div'); av.id = 'wiz-aviso'; av.className = 'wiz-aviso'; $('wiz-barra').appendChild(av); }
     av.hidden = !aviso; av.textContent = aviso;
     chip();
@@ -86,16 +86,19 @@
     aviso = ''; sig();
   });
   $('wiz-atras').addEventListener('click', atras);
-  // elegir un día o un horario libre avanza solo
-  $('cal').addEventListener('click', function (ev) { var b = ev.target.closest && ev.target.closest('.cal-dia'); if (b && !b.disabled && actual === 'paso-fecha') setTimeout(function () { aviso = ''; sig(); }, 160); });
-  $('horarios').addEventListener('click', function (ev) { var b = ev.target.closest && ev.target.closest('.hora'); if (b && !b.disabled && !b.classList.contains('ocupado') && actual === 'paso-hora') setTimeout(function () { aviso = ''; sig(); }, 160); });
+  // al elegir el día, los horarios aparecen debajo: bajamos hasta ellos; al elegir una hora libre avanza solo
+  $('cal').addEventListener('click', function (ev) { var b = ev.target.closest && ev.target.closest('.cal-dia'); if (b && !b.disabled && actual === 'paso-fecha') setTimeout(function () { var h = $('paso-hora'); if (h && h.scrollIntoView) h.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 120); });
+  $('horarios').addEventListener('click', function (ev) { var b = ev.target.closest && ev.target.closest('.hora'); if (b && !b.disabled && !b.classList.contains('ocupado') && actual === 'paso-fecha') setTimeout(function () { aviso = ''; sig(); }, 160); });
+  // adicionales: plegados hasta que el cliente los pida
+  var ext = $('adicionales'), tg = $('ex-toggle');
+  if (tg) tg.addEventListener('click', function () { var ab = ext.classList.toggle('abierto'); tg.setAttribute('aria-expanded', ab ? 'true' : 'false'); });
 
   // si lo elegido deja de ser válido (cambió la duración o alguien tomó el horario), volvemos al paso que corresponde
   RK.alCambiar = function () {
     var S = RK.estado(), l = lista().map(function (p) { return p.id; });
     if (l.indexOf(actual) < 0) actual = l[0];
     if (!S.fecha && l.indexOf(actual) > l.indexOf('paso-fecha')) { actual = 'paso-fecha'; }
-    else if (S.inicio === null && l.indexOf(actual) > l.indexOf('paso-hora')) { aviso = 'Ese horario ya no está disponible. Elige otro.'; actual = 'paso-hora'; }
+    else if (S.inicio === null && l.indexOf(actual) > l.indexOf('paso-fecha')) { aviso = 'Ese horario ya no está disponible. Elige otro.'; actual = 'paso-fecha'; }
     dibujar();
   };
   dibujar();

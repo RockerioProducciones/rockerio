@@ -4,7 +4,7 @@ function sembrar() {
   const g = crear(), C = g.ctx, R = C.Reglas; g.instalar();
   const hoy = C.ahoraChile_().fecha, dia = (n) => { let f = R.sumarDias(hoy, n); while ([0, 6].indexOf(new Date(f + 'T12:00:00Z').getUTCDay()) >= 0) f = R.sumarDias(f, 1); return f; };
   const B = [['Los Ensayos', 'Ana Pérez', '56912345678', 'ana@correo.cl'], ['Nuevos Aires', 'Carla Rojas', '56944443333', 'c@c.cl'], ['Mañaneros', 'Dani Vega', '56922221111', 'd@d.cl'], ['Hierro Fino', 'Beto Soto', '56998887777', 'b@b.cl']];
-  const cods = B.map((b, i) => g.post({ accion: 'reservar', servicio: i === 3 ? 'grabacion' : 'ensayo', fecha: i === 2 ? R.sumarDias(hoy, 1) : dia(2 + i), inicio: 17 + (i % 2), horas: i === 3 ? 3 : 2, extras: 0, video: false, raw: false, banda: b[0], nombre: b[1], telefono: b[2], correo: b[3], tyc: true }).codigo);
+  const cods = B.map((b, i) => g.post({ accion: 'reservar', servicio: i === 3 ? 'grabacion' : 'ensayo', fecha: i === 2 ? R.sumarDias(hoy, 1) : i === 3 ? dia(9) : dia(2 + i), inicio: 17 + (i % 2), horas: i === 3 ? 3 : 2, extras: 0, video: false, raw: false, banda: b[0], nombre: b[1], telefono: b[2], correo: b[3], tyc: true }).codigo);
   g.admin('adminCambiarEstado', cods[1], 'Reservado (con abono)'); g.admin('adminCambiarEstado', cods[2], 'Reservado (con abono)'); g.admin('adminCambiarEstado', cods[3], 'Reservado (con abono)');
   g.admin('adminCambiarEstado', cods[2], 'Finalizada');
   g.post({ accion: 'resena', codigo: cods[2], telefono: '56922221111', nombre: 'Dani', estrellas: 5, comentario: 'Excelente sala, muy buen sonido' });

@@ -89,29 +89,18 @@
         <div><span class="lbl">¿Cuántas horas?</span><div class="segm" id="horas-btns" role="group" aria-label="Cantidad de horas"></div></div>
       </fieldset>
       <fieldset id="paso-fecha" class="paso off">
-        <legend>2 · Elige el día</legend>
+        <legend>2 · Elige día y horario</legend>
         <div id="cal" class="cal" aria-live="polite"></div>
         <p class="leyenda"><span class="ley libre">Disponible</span><span class="ley ocupado">Sin cupo</span></p>
         <p class="nota">Desde hoy hasta <span id="max-dias">21</span> días adelante. Los días apagados no tienen cupo para esa cantidad de horas.</p>
       </fieldset>
       <fieldset id="paso-hora" class="paso off">
-        <legend>3 · Elige tu horario</legend>
+        <legend>Elige tu horario</legend>
         <p class="leyenda"><span class="ley libre">Disponible</span><span class="ley ocupado">Ocupado</span></p>
         <div id="horarios" class="horarios" aria-live="polite"><p class="nota">Primero elige un día.</p></div>
       </fieldset>
-      <fieldset id="adicionales" class="paso off">
-        <legend>4 · Adicionales (opcional)</legend>
-        <p class="ex-tit">⚡ Extras simplificados y opcionales</p>
-        <div class="ex-card"><div class="ex-cab"><b>1. Arriendos de equipos y accesorios</b><span id="p-extra"></span></div>
-          <div id="arriendo-lista" class="ex-lista"></div><input type="hidden" id="extras" value="0"></div>
-        <label class="ex-card ex-chk chk"><input type="checkbox" id="video"><span><b>2. Grabación en video GoPro Hero 13 <em id="p-video"></em></b><small>Registro audiovisual de la sesión de sala.</small></span></label>
-        <label class="ex-card ex-chk chk"><input type="checkbox" id="raw"><span><b>3. Material en bruto multitrack <em id="p-raw"></em></b><small>Entrega directa de pistas crudas multicanal por enlace en la nube (opcional).</small></span></label>
-        <div class="ex-card ex-rider"><div class="ex-cab"><b>🥁 Rider express de sala (opcional)</b></div>
-          <div class="ex-fila"><div><span class="lbl">Orientación de batería</span><div class="segm ex-segm" id="orient" role="group"><button type="button" class="on" data-z="0">Diestro</button><button type="button" data-z="1">Zurdo</button></div><input type="checkbox" id="zurdo" hidden></div>
-          <label>Micrófonos vocales<select id="voces"><option value="0">Sin micrófonos vocales</option><option value="1">1 micrófono vocal</option><option value="2" selected>2 micrófonos vocales</option><option value="3">3 micrófonos vocales</option><option value="4">4 micrófonos vocales</option></select></label></div></div>
-      </fieldset>
       <fieldset id="paso-datos" class="paso off">
-        <legend>5 · Tus datos</legend>
+        <legend>3 · Tus datos</legend>
         <div class="fila">
           <label>Banda o proyecto<input id="banda" maxlength="60" required placeholder="Ej. Black Sabbath"></label>
           <label>Tu nombre<input id="nombre" maxlength="60" required autocomplete="name" placeholder="Ej. Ozzy Osbourne"></label>
@@ -123,8 +112,20 @@
         <label>Comentarios (opcional)<textarea id="comentario" maxlength="300" rows="2"></textarea></label>
         <input type="text" id="web" name="web" tabindex="-1" autocomplete="off" aria-hidden="true" class="trampa">
       </fieldset>
+      <fieldset id="adicionales" class="paso off plegable">
+        <legend>Adicionales (opcional)</legend>
+        <button type="button" id="ex-toggle" class="ex-toggle" aria-expanded="false">＋ Agregar equipos, video o material en bruto <small>(opcional)</small></button>
+        <p class="ex-tit">⚡ Extras simplificados y opcionales</p>
+        <div class="ex-card"><div class="ex-cab"><b>1. Arriendos de equipos y accesorios</b><span id="p-extra"></span></div>
+          <div id="arriendo-lista" class="ex-lista"></div><input type="hidden" id="extras" value="0"></div>
+        <label class="ex-card ex-chk chk"><input type="checkbox" id="video"><span><b>2. Grabación en video GoPro Hero 13 <em id="p-video"></em></b><small>Registro audiovisual de la sesión de sala.</small></span></label>
+        <label class="ex-card ex-chk chk"><input type="checkbox" id="raw"><span><b>3. Material en bruto multitrack <em id="p-raw"></em></b><small>Entrega directa de pistas crudas multicanal por enlace en la nube (opcional).</small></span></label>
+        <div class="ex-card ex-rider"><div class="ex-cab"><b>🥁 Rider express de sala (opcional)</b></div>
+          <div class="ex-fila"><div><span class="lbl">Orientación de batería</span><div class="segm ex-segm" id="orient" role="group"><button type="button" class="on" data-z="0">Diestro</button><button type="button" data-z="1">Zurdo</button></div><input type="checkbox" id="zurdo" hidden></div>
+          <label>Micrófonos vocales<select id="voces"><option value="0">Sin micrófonos vocales</option><option value="1">1 micrófono vocal</option><option value="2" selected>2 micrófonos vocales</option><option value="3">3 micrófonos vocales</option><option value="4">4 micrófonos vocales</option></select></label></div></div>
+      </fieldset>
       <fieldset id="paso-resumen" class="paso">
-        <legend>6 · Revisa y confirma</legend>
+        <legend>4 · Revisa y confirma</legend>
         <aside id="tu-reserva" class="tu-reserva resumen-of" aria-live="polite">
           <div class="ro-cab"><b>✔ Resumen oficial de la sesión</b><span id="ro-badge" class="ro-badge"></span></div>
           <div id="ro-titulo" class="ro-titulo"></div>
