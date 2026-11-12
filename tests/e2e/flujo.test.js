@@ -510,7 +510,8 @@ t('reagendar: máximo 2 cambios, excepción del admin, sin pisar otras reservas 
   assert.throws(() => gx.admin('adminReagendar', b.codigo, dia(6), 19), /CHOQUE/, 'no puede quedar sobre otra reserva');
   assert.throws(() => gx.admin('adminBloquear', dia(6), '19', '21', 'Prueba'), /sobre la reserva/, 'un bloqueo no puede quedar sobre una reserva');
   gx.admin('adminBloquear', dia(6), '6', '8', 'Personal fuera de horario'); // fuera del horario oficial: permitido
-  assert.throws(() => gx.admin('adminReagendar', b.codigo, dia(6), 7), /CHOQUE|bloqueado/, 'tampoco sobre un bloqueo');
+  gx.admin('adminBloquear', dia(6), '11', '13', 'Bloqueo dentro del horario');
+  assert.throws(() => gx.admin('adminReagendar', b.codigo, dia(6), 11), /CHOQUE|bloqueado/, 'tampoco sobre un bloqueo');
 });
 t('editar y eliminar ventas ajusta el stock y el total', () => {
   const gx = require('./gas-sim').crear(); gx.instalar();
@@ -756,6 +757,14 @@ t('«Mantener 12 h»: el horario sin abono no vence antes de ese plazo', () => {
   const f = g.hoja('Reservas').find((x) => x[0] === r.codigo);
   assert.strictEqual(String(f[C.RES.pago - 1]), 'COMPROBANTE');
   assert.throws(() => g.admin('adminMantenerHorario', 'RP-NOEXISTE'), /No se encontró/);
+});
+t('reagendar nunca va al pasado ni fuera del horario de atención (ni con la excepción del límite)', () => {
+  let dia = sumar(f3, 9); while ([4, 6, 0].indexOf(new Date(dia + 'T12:00:00Z').getUTCDay()) >= 0) dia = sumar(dia, 1);
+  const r = g.post(sol({ fecha: dia, inicio: 21, horas: 1, telefono: '56922223333', banda: 'Mueve', nombre: 'Tito R', correo: 't@t.cl' })); assert.ok(r.ok, JSON.stringify(r));
+  assert.throws(() => g.admin('adminReagendar', r.codigo, sumar(hoy, -2), 18, true), /FECHA/);
+  assert.throws(() => g.admin('adminReagendar', r.codigo, dia, 3, true), /FUERA_HORARIO/);
+  assert.throws(() => g.admin('adminReagendar', r.codigo, dia, 15, true), /FUERA_HORARIO/);
+  g.admin('adminReagendar', r.codigo, dia, 20, true); // dentro de horario sí
 });
 t('una reserva anulada que se reactiva con abono vuelve a ocupar el horario (y no se pisa si otro lo tomó)', () => {
   const dia = sumar(f3, 16);

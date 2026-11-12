@@ -173,6 +173,12 @@ function adminReagendar(codigo, fecha, inicio, excepcion) {
     if ([EST.SIN_ABONO, EST.CON_ABONO].indexOf(estado) < 0) throw new Error('Solo se pueden reagendar reservas vigentes (no finalizadas, anuladas ni inasistencias).');
     var horas = Number(r[RES.horas - 1]) || 1;
     if (inicio + horas > 24) throw new Error('La sesión terminaría después de medianoche.');
+    // Nunca al pasado ni fuera del horario de atención de ese día (la «excepción» solo salta el límite de reagendos).
+    var ahoraR = ahoraChile_();
+    if (fecha < ahoraR.fecha || (fecha === ahoraR.fecha && inicio <= ahoraR.hora)) throw new Error('FECHA: ese horario ya pasó. Elige uno futuro.');
+    var abiertasR = Reglas.horasAbiertas(cfg, fecha);
+    if (!abiertasR.length) throw new Error('FUERA_HORARIO: ese día no hay atención. Elige otro día (o bloquea/ingresa a mano si es una excepción).');
+    for (var hh = inicio; hh < inicio + horas; hh++) if (abiertasR.indexOf(hh) < 0) throw new Error('FUERA_HORARIO: ' + hh + ':00 está fuera del horario de atención de ese día. Elige otro horario.');
     var hechos = Number(r[RES.reagendos - 1]) || 0, max = Number(cfg.reagendoCambios) || 2;
     if (hechos >= max && !excepcion) throw new Error('LIMITE: esta reserva ya se reagendó ' + hechos + ' ' + (hechos === 1 ? 'vez' : 'veces') + ' (máximo ' + max + ').');
     reservasVigentesEn_(fecha, codigo).forEach(function (x) { if (x.ini < inicio + horas && x.fin > inicio) throw new Error('CHOQUE: ese horario quedaría sobre la reserva de ' + x.banda + ' (' + Reglas.horaTxt(x.ini) + ' a ' + Reglas.horaTxt(x.fin) + ').'); });
