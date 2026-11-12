@@ -40,6 +40,7 @@
     var pr = $('wiz-prog'); pr.textContent = '';
     l.forEach(function (x, k) { var d = document.createElement('i'); d.className = k < i ? 'hecho' : k === i ? 'actual' : ''; var c = document.createElement('u'); c.textContent = k < i ? '✓' : String(k + 1); d.appendChild(c); var t = document.createElement('em'); t.textContent = x.t; d.appendChild(t); pr.appendChild(d); });
     $('wiz-atras').hidden = i === 0;
+    [].forEach.call(document.querySelectorAll('.wiz-volver'), function (b) { b.hidden = i === 0; });
     var ultimo = i === l.length - 1, s = $('wiz-sig');
     $('wiz-acc').hidden = ultimo; s.disabled = !listo(actual);
     s.textContent = actual === 'paso-servicio' ? 'Elegir el día ›' : actual === 'paso-datos' ? 'Revisar mi reserva ›' : 'Siguiente ›';
@@ -86,6 +87,7 @@
     aviso = ''; sig();
   });
   $('wiz-atras').addEventListener('click', atras);
+  [].forEach.call(document.querySelectorAll('.wiz-volver'), function (b) { b.addEventListener('click', atras); });
   // al elegir el día, los horarios aparecen debajo: bajamos hasta ellos; al elegir una hora libre avanza solo
   $('cal').addEventListener('click', function (ev) { var b = ev.target.closest && ev.target.closest('.cal-dia'); if (b && !b.disabled && actual === 'paso-fecha') setTimeout(function () { var h = $('paso-hora'); if (h && h.scrollIntoView) h.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 120); });
   $('horarios').addEventListener('click', function (ev) { var b = ev.target.closest && ev.target.closest('.hora'); if (b && !b.disabled && !b.classList.contains('ocupado') && actual === 'paso-fecha') setTimeout(function () { aviso = ''; sig(); }, 160); });

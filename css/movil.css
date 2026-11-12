@@ -148,3 +148,7 @@ body.con-vistas[data-vista]:not([data-vista="inicio"]) .tarjeta[aria-current=pag
 .wizard fieldset.plegable.abierto.activo{padding:.6rem 0}
 .wizard #paso-fecha.activo+#paso-hora.activo{margin-top:12px}
 .plegable[hidden]{display:none!important}
+
+.wiz-atras{min-height:44px;padding:.4rem 1rem}
+.wiz-volver{display:block;width:100%;margin-top:.6rem;min-height:48px;border-radius:999px;border:1px solid var(--borde,#333);background:transparent;color:inherit;font-weight:600;font-size:1rem;cursor:pointer}
+.wiz-volver[hidden]{display:none}
