@@ -162,3 +162,14 @@ body.con-vistas[data-vista]:not([data-vista="inicio"]) .tarjeta[aria-current=pag
 .plegable .ex-flecha{flex:none;font-size:1.6rem;color:var(--oro,#FCC631);transition:transform .2s}
 .plegable.abierto .ex-flecha{transform:rotate(90deg)}
 .plegable.abierto .ex-mas{transform:rotate(45deg)}
+
+/* arriendos con foto de fondo */
+.ex-fila-ck.ex-foto{position:relative;overflow:hidden;min-height:104px;padding:.9rem 1rem;border-radius:18px;align-items:flex-end;isolation:isolate;border:1.5px solid var(--borde,#333);background:#000;transition:border-color .2s,box-shadow .2s}
+.ex-foto .ex-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;filter:saturate(.85) brightness(.75);transition:transform .35s,filter .25s}
+.ex-foto::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(0,0,0,.88) 0%,rgba(0,0,0,.55) 55%,rgba(0,0,0,.15) 100%)}
+.ex-foto .ex-nom{font-weight:700;font-size:.95rem;line-height:1.25;color:#fff;max-width:78%;text-shadow:0 1px 6px #000}
+.ex-foto input{position:absolute;top:.7rem;right:.8rem;width:26px;height:26px;margin:0;z-index:2}
+.ex-foto.sel{border-color:var(--oro,#FCC631);box-shadow:0 0 0 3px color-mix(in srgb,var(--oro,#FCC631) 25%,transparent)}
+.ex-foto.sel .ex-img{filter:saturate(1.1) brightness(.95);transform:scale(1.04)}
+.ex-foto.sel::before{background:linear-gradient(90deg,rgba(0,0,0,.8) 0%,rgba(0,0,0,.4) 55%,rgba(0,0,0,0) 100%)}
+.ex-foto.sel .ex-nom{color:var(--oro,#FCC631)}

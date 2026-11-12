@@ -442,13 +442,17 @@
   var ARRIENDOS = ['Set de platos Kingdo SN8 (B8): Hi-Hat 14” / Crash 16” / Crash 18” / Ride 20”', 'Bajo eléctrico Epiphone Thunderbird Pro IV', 'Guitarra eléctrica Squier Stratocaster Vintage Modified ’70', 'Guitarra electroacústica Takamine', 'Pedalera multiefecto para bajo', 'Pedalera multiefecto para guitarra'];
   var arrSel = {};
   function arriendosElegidos() { return ARRIENDOS.filter(function (n, k) { return arrSel[k]; }); }
+  var FOTOS_ARR = ['platos', 'bajo', 'squier', 'takamine', 'pedalera-bajo', 'pedalera-guitarra'];
   function pintarArriendos() {
     var c = $('arriendo-lista'); if (!c) return; c.textContent = '';
     $('p-extra').textContent = R.clp(cfg.precioExtraEquipo) + (cfg.extraModo === 'hora' ? '/hr c/u' : ' c/u');
     ARRIENDOS.forEach(function (n, k) {
       var l = el('label', 'ex-fila-ck'), i = el('input'); i.type = 'checkbox'; i.checked = !!arrSel[k];
       i.addEventListener('change', function () { arrSel[k] = i.checked; $('extras').value = arriendosElegidos().length; resumen(); });
-      l.appendChild(i); l.appendChild(el('span', '', n)); c.appendChild(l);
+      var im = el('img', 'ex-img'); im.src = 'assets/extras/' + FOTOS_ARR[k] + '.jpg'; im.alt = ''; im.loading = 'lazy'; im.decoding = 'async';
+      l.classList.add('ex-foto'); l.classList.toggle('sel', i.checked);
+      i.addEventListener('change', function () { l.classList.toggle('sel', i.checked); });
+      l.appendChild(im); l.appendChild(i); l.appendChild(el('span', 'ex-nom', n)); c.appendChild(l);
     });
     $('extras').value = arriendosElegidos().length;
   }
