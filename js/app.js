@@ -470,7 +470,7 @@
     var dl = $('tr-lista'), tot = $('tr-total'), its = $('ro-items'), falta = [];
     dl.textContent = ''; tot.textContent = ''; its.textContent = '';
     var ens = S.servicio === 'ensayo', hrs = S.horas + (S.horas === 1 ? ' hr' : ' hrs');
-    txt($('ro-fee'), R.clp(Number(cfg.noAsisteCobroPorHora) || 5000));
+    if ($('ro-fee')) txt($('ro-fee'), R.clp(Number(cfg.noAsisteCobroPorHora) || 5000));
     $('ro-titulo').textContent = (ens ? '🎸 Sala de ensayo' : '🎛️ Estudio de grabación') + ' · ' + hrs;
     if (S.fecha) fila(dl, '📅 Día', R.fechaLarga(S.fecha)); else falta.push('el día');
     if (S.inicio !== null) fila(dl, '🕒 Horario', R.horaTxt(S.inicio) + ' a ' + R.horaTxt(S.inicio + S.horas)); else if (S.fecha) falta.push('tu horario');
