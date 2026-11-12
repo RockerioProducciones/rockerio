@@ -139,7 +139,14 @@
     comparador(c.muestras.filter(function (g) { return g.tipo === 'Comparador'; }));
     if (RK.mezclador) RK.mezclador(c.muestras.filter(function (g) { return g.tipo === 'Mezclador'; }));
     $('escucha-box').hidden = !otros.length;
-    RK.micsCatalogo().then(function (cat) { pintarMics(cat || [], mics); });
+    RK.micsCatalogo().then(function (cat) {
+      // si el catálogo guardado no trae foto o descripción de un micrófono, se completa con el catálogo original del sitio
+      return fetch('data/microfonos.json').then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }).then(function (orig) {
+        var k = function (t) { return String(t || '').toLowerCase().replace(/\s+/g, ' ').trim(); }, por = {}; orig.forEach(function (o) { por[k(o.nombre)] = o; });
+        (cat || []).forEach(function (m) { var o = por[k(m.nombre)]; if (!o) return; if (!m.foto) { m.foto = o.foto; if (!m.foto2) m.foto2 = o.foto2; } if (!m.descripcion) m.descripcion = o.descripcion; if (!m.uso) m.uso = o.uso; });
+        pintarMics(cat || [], mics);
+      });
+    });
     otros.forEach(function (g) { $('escucha').appendChild(tarjeta(g)); });
 
     var K = window.RK.cfg(); $('bandas').hidden = !K.verHonor; $('nav-bandas').hidden = !K.verHonor; var ch = $('cta-honor'); if (ch) ch.hidden = !K.verHonor; var cr = $('cta-resena'); if (cr) cr.hidden = !K.verEvaluaciones;

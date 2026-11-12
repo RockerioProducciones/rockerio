@@ -275,6 +275,12 @@
       fichaTab = id; ['mics-box', 'escucha-box'].forEach(function (k) { var n = document.getElementById(k); if (n) guarda.appendChild(n); }); panel.textContent = '';
       [].forEach.call(tabs.children, function (b) { b.setAttribute('aria-selected', b.getAttribute('data-id') === id ? 'true' : 'false'); });
       var s = secs.filter(function (x) { return x.id === id; })[0]; if (!s) return;
+      if (s.mics) { // Microfonía: portada baja y el catálogo enseguida (sin textos, datos ni carrusel aparte)
+        var pf = (s.fotos || []).filter(function (f) { return f && f.src; })[0], por = el('div', 'mic-portada' + (pf ? '' : ' sin-foto'));
+        if (pf) por.style.backgroundImage = 'url("' + pf.src.replace(/"/g, '') + '")';
+        var pt = el('div', 'mic-portada-tx'); pt.appendChild(el('span', 'ficha-ico', s.icono || '🎙️')); var pb = el('div'); pb.appendChild(el('h3', '', s.titulo));
+        if (s.stats && s.stats[0]) pb.appendChild(el('p', 'sub', s.stats[0][1] + ' ' + s.stats[0][2])); pt.appendChild(pb); por.appendChild(pt); panel.appendChild(por); panel.appendChild($('mics-box')); return;
+      }
       var fts = (s.fotos || []).filter(function (f) { return f && f.src; }), hero = el('div', 'ficha-hero' + (fts.length ? '' : ' sin-foto'));
       if (fts.length) { hero.style.backgroundImage = 'url("' + fts[0].src.replace(/"/g, '') + '")'; hero.tabIndex = 0; hero.setAttribute('role', 'button'); hero.setAttribute('aria-label', 'Ampliar foto de ' + s.titulo); hero.addEventListener('click', function (e) { if (e.target.closest('.info-stats')) return; visor(fts, 0); }); hero.addEventListener('keydown', function (e) { if (e.key === 'Enter') visor(fts, 0); }); }
       var cab = el('div', 'ficha-cab'); cab.appendChild(el('span', 'ficha-ico', s.icono || '')); var tx = el('div'); tx.appendChild(el('h3', '', s.titulo)); if (s.resumen) tx.appendChild(el('p', 'sub', s.resumen)); cab.appendChild(tx); hero.appendChild(cab);

@@ -206,3 +206,10 @@ body.con-vistas[data-vista]:not([data-vista="inicio"]) .tarjeta[aria-current=pag
 .mic-filtro{flex-wrap:nowrap!important;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:.3rem;margin-bottom:.6rem!important}
 .mic-filtro::-webkit-scrollbar{display:none}
 .mic-chip{flex:none;white-space:nowrap}
+
+/* Microfonía: portada baja y catálogo inmediato */
+.mic-portada{position:relative;height:120px;border-radius:18px;overflow:hidden;background:#111 center/cover no-repeat;margin:0 0 .9rem;display:flex;align-items:flex-end}
+.mic-portada::before{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.85),rgba(0,0,0,.35))}
+.mic-portada-tx{position:relative;display:flex;align-items:center;gap:.7rem;padding:.8rem 1rem}
+.mic-portada-tx h3{margin:0;font-size:1.25rem}.mic-portada-tx .sub{margin:.1rem 0 0;font-size:.85rem;opacity:.85}
+#mics-box>h3,#mics-box>.sub{display:none}
