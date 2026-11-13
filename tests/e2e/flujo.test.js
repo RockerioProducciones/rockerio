@@ -370,6 +370,16 @@ t('Rockerío en vivo finalizado se contabiliza en la sala (no en el estudio) y c
   assert.strictEqual(c.estudio.total, antes.estudio.total, 'no toca el estudio');
   assert.ok(!c.descuadres.some((q) => q.codigo === r.codigo), 'sin descuadres');
 });
+t('Configuración: valida horarios cruzados y guardar un ajuste no toca los demás', () => {
+  assert.throws(() => g.admin('adminGuardarAjustes', { vivoDesde: '21', vivoHasta: '20' }), /posterior/i);
+  assert.throws(() => g.admin('adminGuardarAjustes', { convenienteDesde: '15', convenienteHasta: '10' }), /franja conveniente/i);
+  g.admin('adminGuardarAjustes', { verVivo: 'SI', vivoPrecio: '95000' });
+  const a0 = g.admin('adminResumen').ajustes, v = (k) => a0.find((x) => x.clave === k).valor;
+  g.admin('adminGuardarAjustes', { minutosReserva: '45' });
+  const a1 = g.admin('adminResumen').ajustes, w = (k) => a1.find((x) => x.clave === k).valor;
+  assert.strictEqual(String(w('minutosReserva')), '45'); assert.strictEqual(w('verVivo'), v('verVivo')); assert.strictEqual(String(w('vivoPrecio')), '95000');
+  g.admin('adminGuardarAjustes', { verVivo: 'NO', vivoPrecio: '90000', minutosReserva: String(v('minutosReserva')) });
+});
 t('reserva manual: equipos extra con ticket y desglose detallado', () => {
   const dia = sumar(dom, 7), eq = ['Bajo eléctrico Epiphone Thunderbird Pro IV', 'Guitarra electroacústica Takamine'];
   const c = g.admin('adminCalcularReserva', { servicio: 'ensayo', fecha: dia, inicio: 12, horas: 2, extras: 2, video: false, raw: false });

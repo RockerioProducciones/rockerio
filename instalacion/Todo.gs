@@ -4420,6 +4420,8 @@ function adminGuardarAjustes(datos) {
   if (get('repartoSalaJC') + get('repartoSalaJaime') !== 100) throw new Error('En la sala, los porcentajes de Juan Carlos y Jaime deben sumar 100.');
   if (get('repartoEstudioJC') + get('repartoEstudioEstudio') !== 100) throw new Error('En el estudio, los porcentajes de Juan Carlos y de Gabriela deben sumar 100.');
   if (get('ensayoMinHoras') > get('ensayoMaxHoras') || get('grabacionMinHoras') > get('grabacionMaxHoras')) throw new Error('El mínimo de horas no puede ser mayor que el máximo.');
+  if (get('convenienteDesde') >= get('convenienteHasta')) throw new Error('La franja conveniente debe terminar después de la hora en que empieza.');
+  if (get('vivoDesde') >= get('vivoHasta')) throw new Error('Rockerío en vivo: la hora de término debe ser posterior a la de inicio.');
   if (get('minutosReserva') < 5 || get('minutosReserva') > 180) throw new Error('Los minutos que se guarda el horario deben estar entre 5 y 180.');
   return conBloqueo_(function () { ponerConfig_(salida); return adminResumen(); });
 }
