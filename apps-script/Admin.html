@@ -1032,8 +1032,8 @@ function editorFicha(){var c=sCaja('Ficha técnica','Cada pestaña de la ficha: 
   pint();var f=el_('div','fila');f.style.marginTop='8px';f.appendChild(btn('+ Pestaña nueva',function(){datos.push({id:'sec'+(datos.length+1),icono:'🎵',titulo:'Nueva pestaña',resumen:'',stats:[],fotos:[],bloques:[]});pint();d2(datos.length-1)},'sec'));
   f.appendChild(btnDel('Volver al original','¿Volver la ficha técnica a como estaba originalmente? Se pierden tus cambios.',function(){ST.tareas=[];tareaParte('ficha',function(){return[]});guardarSeccion();setTimeout(function(){pintarSitioPanel()},900)}));c.appendChild(f);tareaParte('ficha',function(){return datos});return c}
 
-/* --- catálogo de micrófonos: todo en una sola ficha por micrófono (hasta 2 fotos, descripción técnica y hasta 3 audios) --- */
-function editorMics(){var c=sCaja('Micrófonos (fotos, descripción y audios)','Cada micrófono es una sola ficha: hasta 2 fotos, marca y modelo, para qué se usa, una descripción técnica breve y hasta 3 audios para que el cliente escuche cómo suena (por ejemplo en caja y en ampli de guitarra).');
+/* --- catálogo de micrófonos: todo en una sola ficha por micrófono (hasta 3 fotos, descripción técnica y hasta 3 audios) --- */
+function editorMics(){var c=sCaja('Micrófonos (fotos, descripción y audios)','Cada micrófono es una sola ficha: hasta 3 fotos, marca y modelo, para qué se usa, una descripción técnica breve y hasta 3 audios para que el cliente escuche cómo suena (por ejemplo en caja y en ampli de guitarra).');
   var sv=ST.datos.sitio.microfonos,datos=JSON.parse(JSON.stringify(sv&&sv.length?sv:(ST.datos.microfonos||[]))),lista=el_('div');c.appendChild(lista);
   function fotoSlot(m,i,k,rot){var w=el_('div','mic-ed-foto'),im=el_('img');im.alt='';if(m[k])im.src=sUrl(m[k]);else im.style.visibility='hidden';w.appendChild(im);
     var lab=el_('label','sitio-subir','📷 '+(m[k]?'Cambiar '+rot:'Subir '+rot));var fl=el_('input');fl.type='file';fl.accept='image/png,image/jpeg,image/webp';fl.onchange=function(){if(fl.files[0])subirFoto(fl.files[0],'mic-'+i+'-'+k,function(u){m[k]=u;pint()})};lab.appendChild(fl);w.appendChild(lab);
@@ -1041,7 +1041,7 @@ function editorMics(){var c=sCaja('Micrófonos (fotos, descripción y audios)','
   function pint(){lista.textContent='';datos.forEach(function(m,i){m.audios=m.audios||[];var r=el_('div','sitio-caja'),col=el_('div');
     col.appendChild(inp(m.nombre,'Marca y modelo (ej. Shure SM57)','100%',function(v){m.nombre=v}));col.appendChild(inp(m.uso,'Uso (ej. Baterías / Guitarra amp / Cajas)','100%',function(v){m.uso=v}));
     var d=document.createElement('textarea');d.value=m.descripcion||'';d.placeholder='Descripción técnica breve (tipo, patrón polar, para qué sirve, cuántos tenemos)';d.maxLength=400;d.rows=3;d.style.width='100%';d.oninput=function(){m.descripcion=d.value};col.appendChild(d);
-    var fr=el_('div','fila');fr.appendChild(fotoSlot(m,i,'foto','foto 1'));fr.appendChild(fotoSlot(m,i,'foto2','foto 2'));col.appendChild(fr);
+    var fr=el_('div','fila');fr.appendChild(fotoSlot(m,i,'foto','foto 1'));fr.appendChild(fotoSlot(m,i,'foto2','foto 2'));fr.appendChild(fotoSlot(m,i,'foto3','foto 3'));col.appendChild(fr);
     col.appendChild(el_('div','sub','🎧 Audios (hasta 3)'));
     m.audios.forEach(function(a,j){var ar=el_('div','fila');ar.appendChild(inp(a.etiqueta,'Fuente (ej. Caja, Ampli guitarra)','40%',function(v){a.etiqueta=v}));
       var st=el_('span','',a.enlace?'✔ audio cargado':'sin audio');st.style.color='#b5afa6';
@@ -1050,7 +1050,7 @@ function editorMics(){var c=sCaja('Micrófonos (fotos, descripción y audios)','
       ar.appendChild(lab);ar.appendChild(st);ar.appendChild(btn('Quitar',function(){m.audios.splice(j,1);pint()},'sec'));col.appendChild(ar)});
     if(m.audios.length<3)col.appendChild(btn('+ Audio',function(){m.audios.push({etiqueta:'',enlace:''});pint()},'sec'));
     var b=el_('div','fila');b.style.marginTop='8px';b.appendChild(btn('↑',function(){mover(datos,i,-1);pint()},'sec'));b.appendChild(btn('↓',function(){mover(datos,i,1);pint()},'sec'));b.appendChild(btn('Quitar micrófono',function(){datos.splice(i,1);pint()},'sec'));col.appendChild(b);r.appendChild(col);lista.appendChild(r)})}
-  pint();var f=el_('div','fila');f.style.marginTop='8px';f.appendChild(btn('+ Micrófono',function(){datos.push({nombre:'',foto:'',foto2:'',uso:'',descripcion:'',audios:[]});pint()},'sec'));
+  pint();var f=el_('div','fila');f.style.marginTop='8px';f.appendChild(btn('+ Micrófono',function(){datos.push({nombre:'',foto:'',foto2:'',foto3:'',uso:'',descripcion:'',audios:[]});pint()},'sec'));
   f.appendChild(btnDel('Volver al original','¿Volver el catálogo de micrófonos al original? Se pierden tus cambios.',function(){ST.tareas=[];tareaParte('microfonos',function(){return[]});guardarSeccion();setTimeout(function(){pintarSitioPanel()},900)}));c.appendChild(f);
   var dl=document.getElementById('mic-nombres');if(!dl){dl=document.createElement('datalist');dl.id='mic-nombres';document.body.appendChild(dl)}dl.textContent='';datos.forEach(function(m){var o=document.createElement('option');o.value=m.nombre;dl.appendChild(o)});var mg=document.getElementById('mg');if(mg)mg.setAttribute('list','mic-nombres');
   tareaParte('microfonos',function(){return datos.filter(function(m){return m.nombre&&m.nombre.trim()})});return c}

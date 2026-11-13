@@ -776,10 +776,10 @@ t('cuadro de honor: las redes y el último trabajo llegan al portal y se pueden 
   assert.ok(/tiktok/.test(h.redes) && !/spotify/.test(h.redes) && h.ultimo === '', 'edición de redes desde el portal');
 });
 t('micrófonos: guarda hasta 2 fotos y 3 audios válidos por micrófono y descarta lo inválido', () => {
-  const r = C.limpiarMicsSitio_([{ nombre: 'Shure SM57', foto: 'assets/x.jpg', foto2: 'javascript:alert(1)', uso: 'Cajas / Amp', descripcion: 'Dinámico cardioide', audios: [
+  const r = C.limpiarMicsSitio_([{ nombre: 'Shure SM57', foto: 'assets/x.jpg', foto2: 'javascript:alert(1)', foto3: 'javascript:alert(2)', uso: 'Cajas / Amp', descripcion: 'Dinámico cardioide', audios: [
     { etiqueta: 'Caja', enlace: 'https://drive.google.com/file/d/ABC123456789/view' }, { etiqueta: 'Amp', enlace: 'https://drive.google.com/file/d/DEF123456789/view' },
     { etiqueta: 'Malo', enlace: 'javascript:alert(1)' }, { etiqueta: 'Tom', enlace: 'https://drive.google.com/file/d/GHI123456789/view' }, { etiqueta: 'Sobra', enlace: 'https://drive.google.com/file/d/JKL123456789/view' }] }]);
-  assert.strictEqual(r.length, 1); assert.strictEqual(r[0].foto2, ''); assert.ok(r[0].audios.length >= 2 && r[0].audios.length <= 3, 'máximo 3 audios'); assert.ok(r[0].audios.every((a) => /^https:\/\//.test(a.enlace)), 'solo enlaces válidos');
+  assert.strictEqual(r.length, 1); assert.strictEqual(r[0].foto2, ''); assert.strictEqual(r[0].foto3, ''); assert.ok(r[0].audios.length >= 2 && r[0].audios.length <= 3, 'máximo 3 audios'); assert.ok(r[0].audios.every((a) => /^https:\/\//.test(a.enlace)), 'solo enlaces válidos');
 });
 t('banda de la casa: su reserva sin abono no vence sola y reagenda sin tope; las demás sí vencen', () => {
   let dia = sumar(f3, 11); while ([4, 6, 0].indexOf(new Date(dia + 'T12:00:00Z').getUTCDay()) >= 0) dia = sumar(dia, 1);

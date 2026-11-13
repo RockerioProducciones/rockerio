@@ -186,8 +186,6 @@ body.con-vistas[data-vista]:not([data-vista="inicio"]) .tarjeta[aria-current=pag
 .tf-nota{margin:.6rem 0 0;font-size:.8rem}
 
 /* micrófonos compactos: una fila por micrófono que se abre al tocar */
-.mic-lista{display:flex!important;flex-direction:column;gap:.55rem}
-.mic-it{display:block!important;padding:0!important;overflow:hidden}
 .mic-cab{display:flex;align-items:center;gap:.8rem;width:100%;padding:.6rem .8rem;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;min-height:68px}
 .mic-cab .mic-foto{width:52px;height:52px;border-radius:12px;font-size:1.5rem;flex:none}
 .mic-cab .mic-tx{display:flex;flex-direction:column;gap:.15rem;flex:1;min-width:0}
@@ -217,3 +215,29 @@ body.con-vistas[data-vista]:not([data-vista="inicio"]) .tarjeta[aria-current=pag
 /* sin desplazamiento lateral accidental; en pantallas bajas la barra de pasos no se queda pegada (deja más espacio a los campos) */
 html,body{overflow-x:clip}
 @media (max-height:700px){.wiz-barra{position:static}}
+
+/* catálogo de micrófonos en cuadrícula compacta: fotos chicas, descripción corta y botones ▶ por fuente */
+.mic-lista{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.8rem}
+.mic-it{display:flex!important;flex-direction:column;gap:.45rem;padding:.55rem!important;overflow:hidden;border-radius:16px}
+.mic-gal{display:flex;flex-direction:column;gap:.3rem}
+.mic-main{display:block;width:100%;aspect-ratio:16/10;max-height:150px;padding:0;border:0;border-radius:12px;overflow:hidden;background:#111;cursor:zoom-in;display:grid;place-items:center}
+.mic-main img{width:100%;height:100%;object-fit:cover;display:block}
+.mic-main:disabled{cursor:default}.mic-ico{font-size:2rem;opacity:.6}
+.mic-th{display:flex;gap:.3rem}
+.mic-t{flex:1;max-width:56px;aspect-ratio:1;padding:0;border:2px solid transparent;border-radius:8px;overflow:hidden;background:#111;cursor:pointer;opacity:.7}
+.mic-t.on{border-color:var(--oro);opacity:1}.mic-t img{width:100%;height:100%;object-fit:cover;display:block}
+.mic-tx{display:flex;flex-direction:column;gap:.15rem;min-width:0}
+.mic-nom{color:var(--oro);font-size:1rem;line-height:1.2}
+.mic-uso-c{font-size:.78rem;opacity:.75}
+.mic-desc{margin:.1rem 0 0;font-size:.82rem;line-height:1.35;opacity:.9;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer}
+.mic-desc.abierta{display:block;-webkit-line-clamp:unset}
+.mic-btns{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:auto}
+.mic-play{min-height:36px;padding:.3rem .7rem;border-radius:999px;border:1px solid var(--oro);background:transparent;color:var(--oro);font-weight:700;font-size:.8rem;cursor:pointer}
+.mic-play.on{background:var(--oro);color:#000}
+.mic-player audio,.mic-player iframe{width:100%;margin-top:.3rem;border-radius:10px}
+.mic-player iframe{height:80px;border:0}
+.mic-sinaudio{opacity:.6;font-size:.78rem;margin-top:auto}
+@media (max-width:600px){.mic-lista{grid-template-columns:1fr 1fr;gap:.55rem}.mic-it{padding:.45rem!important}.mic-nom{font-size:.92rem}.mic-main{max-height:110px}.mic-play{font-size:.74rem;padding:.25rem .55rem}}
+.mic-it{align-items:stretch!important}.mic-gal{width:100%}
+@media (max-width:600px){.mic-lista{grid-template-columns:1fr 1fr!important}}
+@media (min-width:601px){.mic-lista{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))!important}}

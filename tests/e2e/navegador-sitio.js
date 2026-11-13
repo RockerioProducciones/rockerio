@@ -97,7 +97,7 @@ const { sembrar } = require('./demo.js');
   ok(/Mac mini M4/.test(await p.textContent('.ficha-panel')) && /LUNA 3\.0/.test(await p.textContent('.ficha-panel')), 'estación de trabajo con Mac mini M4 y LUNA 3.0');
   await p.screenshot({ path: 'v-ficha-estacion.png', fullPage: true });
   await p.locator('.ficha-tab', { hasText: 'Microfonía' }).click(); await p.waitForTimeout(300);
-  ok(/Telefunken/.test(await p.textContent('.ficha-panel')) && await p.locator('.ficha-panel .mic-it').count() >= 8 && /Uso:/.test(await p.textContent('.ficha-panel .mic-it')), 'micrófonos: foto, marca/modelo, uso y muestra en una sola tarjeta'); await p.locator('#mics').screenshot({ path: 'v-mics.png' });
+  ok(/Telefunken/.test(await p.textContent('.ficha-panel')) && await p.locator('.ficha-panel .mic-it').count() >= 8 && await p.locator(".ficha-panel .mic-it .mic-uso-c").count() >= 8 && await p.locator(".ficha-panel .mic-it img").count() >= 8, 'micrófonos: foto, marca/modelo, uso y muestra en una sola tarjeta'); await p.locator('#mics').screenshot({ path: 'v-mics.png' });
     { const n = await p.locator('.ficha-panel .mic-it:visible').count(); await p.locator('.mic-chip').nth(1).click(); const m = await p.locator('.ficha-panel .mic-it:visible').count(); ok(await p.locator('.mic-chip').count() > 2 && m > 0 && m < n, 'filtro de micrófonos por uso'); await p.locator('.mic-chip').first().click(); }
   ok(await p.locator('.ficha-tab', { hasText: 'Muestras' }).count() === 0, 'la ficha técnica ya no tiene la pestaña Muestras');
   await p.locator('.ficha-tab', { hasText: 'Sala de control' }).click(); await p.waitForTimeout(300); await p.screenshot({ path: 'v-ficha-control.png' });

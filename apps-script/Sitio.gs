@@ -100,9 +100,9 @@ function limpiarMicsSitio_(arr) {
     m = m || {};
     var nombre = limpiar_(m.nombre, 80); if (!nombre) return;
     var foto = String(m.foto || '').trim() ? urlImagenSitio_(m.foto) : '';
-    var foto2 = String(m.foto2 || '').trim() ? urlImagenSitio_(m.foto2) : '', audios = [];
+    var foto2 = String(m.foto2 || '').trim() ? urlImagenSitio_(m.foto2) : '', foto3 = String(m.foto3 || '').trim() ? urlImagenSitio_(m.foto3) : '', audios = [];
     (Array.isArray(m.audios) ? m.audios : []).slice(0, 3).forEach(function (a) { a = a || {}; var en = String(a.enlace || '').trim(); if (enlaceAudioValido_(en)) audios.push({ etiqueta: limpiar_(a.etiqueta, 40), enlace: en }); });
-    out.push({ nombre: nombre, foto: foto || '', foto2: foto2 || '', uso: limpiar_(m.uso, 120), descripcion: limpiar_(m.descripcion, 400), audios: audios });
+    out.push({ nombre: nombre, foto: foto || '', foto2: foto2 || '', foto3: foto3 || '', uso: limpiar_(m.uso, 120), descripcion: limpiar_(m.descripcion, 400), audios: audios });
   });
   return out;
 }
