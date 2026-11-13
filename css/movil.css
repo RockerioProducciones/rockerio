@@ -248,3 +248,7 @@ html,body{overflow-x:clip}
 .mic-pts{display:flex;justify-content:center;gap:.35rem}
 .mic-pt{width:9px;height:9px;padding:0;border:0;border-radius:50%;background:#555;cursor:pointer}.mic-pt.on{background:var(--oro)}
 #vivo-info{display:flex;flex-wrap:wrap;gap:.5rem;margin:.8rem 0}#vivo-info span{font-size:.9rem;border-radius:999px;border:1px solid #22c55e;color:#22c55e;padding:.35rem .9rem}
+.mic-main{display:block!important;overflow:hidden}
+.mic-main>img{position:absolute!important;inset:0;width:100%!important;height:100%!important;max-width:none!important;object-fit:cover;display:block}
+.mic-main>.mic-ico{position:absolute;inset:0;display:grid;place-items:center}
+.mic-fl{z-index:2}
