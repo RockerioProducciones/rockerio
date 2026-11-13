@@ -12,3 +12,6 @@ dup=$(grep -ho "^function [A-Za-z0-9_]*" instalacion/Todo.gs | sort | uniq -d)
 [ -z "$dup" ] || { echo "ERROR funciones repetidas:"; echo "$dup"; exit 1; }
 node --check instalacion/Todo.gs 2>/dev/null || { cp instalacion/Todo.gs /tmp/_todo.js && node --check /tmp/_todo.js; } || exit 1
 echo "ok  instalacion/Todo.gs generado"
+# Versión de los archivos del sitio: evita que el celular siga mostrando CSS/JS antiguos guardados en caché
+v=$(date +%Y%m%d%H%M)
+sed -i -E "s#((href|src)=\"(css|js)/[A-Za-z0-9._-]+\.(css|js))(\?v=[0-9]+)?\"#\1?v=$v\"#g" index.html
