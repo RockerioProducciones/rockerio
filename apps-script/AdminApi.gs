@@ -545,7 +545,8 @@ function adminAgregarAdicional(codigo, d) {
 function adminCalcularReserva(p) {
   exigirAdmin_();
   p = p || {};
-  var cfg = getCfg_(), servicio = p.servicio === 'grabacion' ? 'grabacion' : 'ensayo', horas = Math.max(1, Math.min(24, Number(p.horas) || 1));
+  var cfg = getCfg_(), servicio = p.servicio === 'grabacion' ? 'grabacion' : (p.servicio === 'vivo' ? 'vivo' : 'ensayo'), horas = Math.max(1, Math.min(24, Number(p.horas) || 1));
+  if (servicio === 'vivo') horas = cfg.vivoHasta - cfg.vivoDesde;
   var n = servicio === 'ensayo' ? Math.max(0, Math.min(6, Number(p.extras) || 0)) : 0;
   var c = Reglas.calcularPrecio(cfg, { servicio: servicio, fecha: String(p.fecha || ''), inicio: Number(p.inicio) || 0, horas: horas, extras: n, video: !!p.video, raw: !!p.raw });
   c.unidadExtra = cfg.precioExtraEquipo * (cfg.extraModo === 'hora' ? horas : 1); c.precioVideo = cfg.precioVideo; c.precioRaw = cfg.precioRaw; c.addons = !!Reglas.addonsPermitidos(cfg, servicio, horas);
@@ -557,8 +558,12 @@ function adminReservaManual(p) {
   exigirAdmin_();
   p = p || {};
   var cfg = getCfg_();
-  var servicio = p.servicio === 'grabacion' ? 'grabacion' : 'ensayo';
+  var servicio = p.servicio === 'grabacion' ? 'grabacion' : (p.servicio === 'vivo' ? 'vivo' : 'ensayo');
   var fecha = String(p.fecha || ''), inicio = Number(p.inicio), horas = Number(p.horas);
+  if (servicio === 'vivo') {
+    inicio = cfg.vivoDesde; horas = cfg.vivoHasta - cfg.vivoDesde;
+    if (!Reglas.vivoDiaValido(cfg, fecha)) throw new Error('Rockerío en vivo solo se agenda en: ' + cfg.vivoDias.toLowerCase() + '. Puedes cambiar los días en Configuración.');
+  }
   if (!Reglas.fechaValida(fecha)) throw new Error('Elige una fecha válida.');
   if (!(inicio >= 0 && inicio <= 23 && inicio === Math.floor(inicio))) throw new Error('Elige la hora de inicio.');
   if (!(horas >= 1 && horas <= 24 && horas === Math.floor(horas)) || inicio + horas > 24) throw new Error('La duración debe ser de 1 a 24 horas y terminar antes de medianoche.');
@@ -686,7 +691,7 @@ function adminJornadas() {
     if (r.fecha && r.fecha >= hoy && (!c.proxima || r.fecha < c.proxima)) c.proxima = r.fecha;
   });
   var clientes = Object.keys(porTel).map(function (t) { return porTel[t]; }).sort(function (a, b) { return b.jornadas - a.jornadas || (a.banda < b.banda ? -1 : 1); });
-  return { hoy: hoy, reservas: reservas, bloqueos: bloqueos, inhabiles: inhabiles, clientes: clientes, estados: ESTADOS, wa: waDatos_(), maxReag: getCfg_().reagendoCambios, precios: { raw: getCfg_().precioRaw, video: getCfg_().precioVideo } };
+  return { hoy: hoy, reservas: reservas, bloqueos: bloqueos, inhabiles: inhabiles, clientes: clientes, estados: ESTADOS, wa: waDatos_(), maxReag: getCfg_().reagendoCambios, vivo: { dias: (Reglas.VIVO_DIAS[getCfg_().vivoDias] || [5, 6]), diasTxt: getCfg_().vivoDias, desde: getCfg_().vivoDesde, hasta: getCfg_().vivoHasta, precio: getCfg_().vivoPrecio }, precios: { raw: getCfg_().precioRaw, video: getCfg_().precioVideo } };
 }
 
 

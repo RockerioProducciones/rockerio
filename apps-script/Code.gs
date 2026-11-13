@@ -70,7 +70,7 @@ function estadoNorm_(v) {
   for (var i = 0; i < ESTADOS.length; i++) if (ESTADOS[i].toLowerCase() === s) return ESTADOS[i];
   return '';
 }
-var ETIQUETA_SERVICIO = { ensayo: 'Ensayo', grabacion: 'Grabación' };
+var ETIQUETA_SERVICIO = { ensayo: 'Ensayo', grabacion: 'Grabación', vivo: 'Rockerío en vivo' };
 var PAGO_COMPROBANTE = 'COMPROBANTE';
 var PAGO_ONLINE = 'PAGO EN LÍNEA';
 var HORAS_MAX_COMPROBANTE = 12;
@@ -567,7 +567,7 @@ function sincronizarEstado_(sh, f) {
   var estado = estadoNorm_(r[RES.estado - 1]);
   if (!r[RES.codigo - 1]) return;
   var cal = getCalendar_();
-  var servicio = String(r[RES.servicio - 1]) === ETIQUETA_SERVICIO.grabacion ? 'grabacion' : 'ensayo';
+  var etqS = String(r[RES.servicio - 1]), servicio = etqS === ETIQUETA_SERVICIO.grabacion ? 'grabacion' : (etqS === ETIQUETA_SERVICIO.vivo ? 'vivo' : 'ensayo');
   var evento = eventoVivo_(cal, r[RES.evento - 1], r);
 
   liquidar_(sh, f, r, estado);

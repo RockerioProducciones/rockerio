@@ -16,7 +16,8 @@ var Reglas = (function () {
   'use strict';
 
   var TZ = 'America/Santiago';
-  var SERVICIOS = { ensayo: 'Sala de ensayo', grabacion: 'Estudio de grabación' };
+  var SERVICIOS = { ensayo: 'Sala de ensayo', grabacion: 'Estudio de grabación', vivo: 'Rockerío en vivo' };
+  var VIVO_DIAS = { 'Viernes y sábado': [5, 6], 'Solo viernes': [5], 'Solo sábado': [6], 'Jueves a sábado': [4, 5, 6], 'Viernes a domingo': [5, 6, 0] };
   var DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
   /* Valores iniciales. En producción mandan los de la hoja "Configuracion". */
@@ -65,7 +66,9 @@ var Reglas = (function () {
     presentacion: '',             // vacío = la sección Producción muestra un texto base
     // Textos de la portada y secciones visibles del sitio
     heroTitulo: 'Tu banda suena aquí', heroTexto: 'Sala de ensayo y estudio de grabación en Quinta Normal, Santiago.',
-    verProduccion: true, verFicha: true, verPlanes: true, verGaleria: true, verEvaluaciones: true, verProaudix: true, verContacto: true, verTienda: true, verHonor: true, verCotizar: true, verReglamento: true,
+    verProduccion: true, verFicha: true, verPlanes: true, verGaleria: true, verEvaluaciones: true, verProaudix: true, verContacto: true, verTienda: true, verHonor: true, verCotizar: true, verReglamento: true, verVivo: false,
+    // Rockerío en vivo: presentaciones de bloque fijo (días y horario configurables) con cobro fijo
+    vivoPrecio: 90000, vivoDias: 'Viernes y sábado', vivoDesde: 19, vivoHasta: 23,
     // Contacto y redes (enlaces https://; vacío = no se muestra)
     sitioWeb: '', redInstagram: 'https://instagram.com/rockerio_producciones', redFacebook: '', redYoutube: '', redTiktok: '', redSpotify: '', redYoutubeMusic: 'https://music.youtube.com/playlist?list=PLVvxu7INRfmo', redTwitch: '', redLinktree: '', correoContacto: 'rockerioestudio@gmail.com', mapsUrl: '',
     enlacesExtra: '',             // una línea por enlace: «Texto | https://…»
@@ -227,7 +230,11 @@ var Reglas = (function () {
     c.presentacion = aTexto(raw.presentacion, d.presentacion);
     ['sitioWeb', 'redInstagram', 'redFacebook', 'redYoutube', 'redTiktok', 'redSpotify', 'redYoutubeMusic', 'redTwitch', 'redLinktree', 'correoContacto', 'mapsUrl', 'enlacesExtra', 'proaudixWeb', 'proaudixInstagram', 'proaudixFacebook', 'proaudixYoutube', 'proaudixEnlaces'].forEach(function (k) { c[k] = aTexto(raw[k], d[k]); });
     c.heroTitulo = aTexto(raw.heroTitulo, d.heroTitulo) || d.heroTitulo; c.heroTexto = aTexto(raw.heroTexto, d.heroTexto) || d.heroTexto;
-    ['verProduccion', 'verFicha', 'verPlanes', 'verGaleria', 'verEvaluaciones', 'verProaudix', 'verContacto', 'verTienda', 'verHonor', 'verCotizar', 'verReglamento'].forEach(function (k) { c[k] = aBool(raw[k], d[k]); });
+    ['verProduccion', 'verFicha', 'verPlanes', 'verGaleria', 'verEvaluaciones', 'verProaudix', 'verContacto', 'verTienda', 'verHonor', 'verCotizar', 'verReglamento', 'verVivo'].forEach(function (k) { c[k] = aBool(raw[k], d[k]); });
+    c.vivoDias = VIVO_DIAS[aTexto(raw.vivoDias, d.vivoDias)] ? aTexto(raw.vivoDias, d.vivoDias) : d.vivoDias;
+    c.vivoPrecio = Math.max(0, Math.round(aNumero(raw.vivoPrecio, d.vivoPrecio)));
+    c.vivoDesde = Math.max(0, Math.min(22, Math.round(aNumero(raw.vivoDesde, d.vivoDesde))));
+    c.vivoHasta = Math.max(c.vivoDesde + 1, Math.min(24, Math.round(aNumero(raw.vivoHasta, d.vivoHasta))));
     c.proaudixTexto = aTexto(raw.proaudixTexto, d.proaudixTexto) || d.proaudixTexto;
     c.proaudixWhatsapp = String(aTexto(raw.proaudixWhatsapp, d.proaudixWhatsapp)).replace(/\D/g, '');
     ['precioEnsayoHora', 'precioGrabacionHora', 'precioExtraEquipo', 'precioVideo', 'precioRaw', 'abonoPorHora',
@@ -290,8 +297,16 @@ var Reglas = (function () {
     return res;
   }
 
+  /** ¿La fecha cae en uno de los días de Rockerío en vivo configurados? */
+  function vivoDiaValido(cfg, fecha) {
+    var f = String(fecha || ''); if (!/^\d{4}-\d{2}-\d{2}$/.test(f)) return false;
+    var dow = new Date(f + 'T12:00:00Z').getUTCDay();
+    return (VIVO_DIAS[cfg.vivoDias] || VIVO_DIAS['Viernes y sábado']).indexOf(dow) >= 0;
+  }
+
   function calcularPrecio(cfg, p) {
     var horas = +p.horas || 0;
+    if (p.servicio === 'vivo') { var tv = cfg.vivoPrecio, av = Math.min(tv, cfg.abonoPorHora * horas); return { base: tv, extras: 0, video: 0, raw: 0, total: tv, abono: av, saldo: tv - av, horasConveniente: 0, ahorro: 0 }; }
     var porHora = p.servicio === 'grabacion' ? cfg.precioGrabacionHora : cfg.precioEnsayoHora;
     var tc = tarifaConveniente(cfg, p.servicio, p.fecha, p.inicio, horas);
     var base = porHora * (horas - tc.horas) + tc.precio * tc.horas;
@@ -546,7 +561,7 @@ var Reglas = (function () {
 
   var CLAUSULA_DATOS = "## 🔒 Protección de datos personales\n- Qué datos pedimos: nombre, nombre de la banda, teléfono o WhatsApp, correo electrónico y, si quieres, un comentario. Los usamos solo para gestionar tu reserva, avisarte de cambios, recordarte tu sesión, cobrar o devolver abonos y, si lo pides, entregarte tu material.\n- Qué no hacemos: no vendemos ni cedemos tus datos a terceros, ni los usamos para publicidad. Tampoco te escribimos con ofertas que no pediste.\n- Con quién se comparten: solo con los servicios que hacen posible la reserva (por ejemplo almacenamiento y correo de Google, WhatsApp y, si usas el pago en línea, Mercado Pago), que los tratan únicamente para ese fin. El pago con tarjeta lo procesa Mercado Pago: nosotros nunca vemos ni guardamos los datos de tu tarjeta.\n- Quién puede verlos: solo el equipo de {negocio}. Tu teléfono y correo no se muestran en el sitio ni a otras bandas.\n- Cuánto tiempo: los conservamos mientras sean necesarios para atender tu reserva y cumplir obligaciones administrativas y tributarias; después los eliminamos o anonimizamos.\n- Publicaciones: reseñas, Cuadro de Honor, fotos, videos o audios de tu sesión se publican solo con tu autorización y puedes pedir que los retiremos cuando quieras.\n- Tus derechos: puedes pedir acceso, corrección, eliminación u oposición al uso de tus datos, o retirar tu consentimiento, escribiéndonos por WhatsApp o al correo de contacto de este sitio. Respondemos a la brevedad.\n- Seguridad: usamos cuentas protegidas, acceso restringido al administrador y conexiones cifradas. Si ocurriera un incidente que afecte tus datos, te informaremos.\n- Este sitio no usa cookies de publicidad ni de seguimiento. Actuamos conforme a la normativa chilena de protección de datos personales (Ley N° 19.628 y su actualización, Ley N° 21.719).";
   return {
-    CLAUSULA_DATOS: CLAUSULA_DATOS, TZ: TZ, SERVICIOS: SERVICIOS, DIAS: DIAS, CONFIG_POR_DEFECTO: CONFIG_POR_DEFECTO, datosTransf: datosTransf,
+    CLAUSULA_DATOS: CLAUSULA_DATOS, TZ: TZ, SERVICIOS: SERVICIOS, VIVO_DIAS: VIVO_DIAS, vivoDiaValido: vivoDiaValido, DIAS: DIAS, CONFIG_POR_DEFECTO: CONFIG_POR_DEFECTO, datosTransf: datosTransf,
     aNumero: aNumero, aBool: aBool, clp: clp, horaTxt: horaTxt, fechaValida: fechaValida, diaSemana: diaSemana,
     diasEntre: diasEntre, sumarDias: sumarDias, fechaLarga: fechaLarga, parseBloque: parseBloque, parseEscala: parseEscala,
     normalizarConfig: normalizarConfig, limitesHoras: limitesHoras, addonsPermitidos: addonsPermitidos,
@@ -632,7 +647,7 @@ function estadoNorm_(v) {
   for (var i = 0; i < ESTADOS.length; i++) if (ESTADOS[i].toLowerCase() === s) return ESTADOS[i];
   return '';
 }
-var ETIQUETA_SERVICIO = { ensayo: 'Ensayo', grabacion: 'Grabación' };
+var ETIQUETA_SERVICIO = { ensayo: 'Ensayo', grabacion: 'Grabación', vivo: 'Rockerío en vivo' };
 var PAGO_COMPROBANTE = 'COMPROBANTE';
 var PAGO_ONLINE = 'PAGO EN LÍNEA';
 var HORAS_MAX_COMPROBANTE = 12;
@@ -1129,7 +1144,7 @@ function sincronizarEstado_(sh, f) {
   var estado = estadoNorm_(r[RES.estado - 1]);
   if (!r[RES.codigo - 1]) return;
   var cal = getCalendar_();
-  var servicio = String(r[RES.servicio - 1]) === ETIQUETA_SERVICIO.grabacion ? 'grabacion' : 'ensayo';
+  var etqS = String(r[RES.servicio - 1]), servicio = etqS === ETIQUETA_SERVICIO.grabacion ? 'grabacion' : (etqS === ETIQUETA_SERVICIO.vivo ? 'vivo' : 'ensayo');
   var evento = eventoVivo_(cal, r[RES.evento - 1], r);
 
   liquidar_(sh, f, r, estado);
@@ -2204,7 +2219,8 @@ function adminAgregarAdicional(codigo, d) {
 function adminCalcularReserva(p) {
   exigirAdmin_();
   p = p || {};
-  var cfg = getCfg_(), servicio = p.servicio === 'grabacion' ? 'grabacion' : 'ensayo', horas = Math.max(1, Math.min(24, Number(p.horas) || 1));
+  var cfg = getCfg_(), servicio = p.servicio === 'grabacion' ? 'grabacion' : (p.servicio === 'vivo' ? 'vivo' : 'ensayo'), horas = Math.max(1, Math.min(24, Number(p.horas) || 1));
+  if (servicio === 'vivo') horas = cfg.vivoHasta - cfg.vivoDesde;
   var n = servicio === 'ensayo' ? Math.max(0, Math.min(6, Number(p.extras) || 0)) : 0;
   var c = Reglas.calcularPrecio(cfg, { servicio: servicio, fecha: String(p.fecha || ''), inicio: Number(p.inicio) || 0, horas: horas, extras: n, video: !!p.video, raw: !!p.raw });
   c.unidadExtra = cfg.precioExtraEquipo * (cfg.extraModo === 'hora' ? horas : 1); c.precioVideo = cfg.precioVideo; c.precioRaw = cfg.precioRaw; c.addons = !!Reglas.addonsPermitidos(cfg, servicio, horas);
@@ -2216,8 +2232,12 @@ function adminReservaManual(p) {
   exigirAdmin_();
   p = p || {};
   var cfg = getCfg_();
-  var servicio = p.servicio === 'grabacion' ? 'grabacion' : 'ensayo';
+  var servicio = p.servicio === 'grabacion' ? 'grabacion' : (p.servicio === 'vivo' ? 'vivo' : 'ensayo');
   var fecha = String(p.fecha || ''), inicio = Number(p.inicio), horas = Number(p.horas);
+  if (servicio === 'vivo') {
+    inicio = cfg.vivoDesde; horas = cfg.vivoHasta - cfg.vivoDesde;
+    if (!Reglas.vivoDiaValido(cfg, fecha)) throw new Error('Rockerío en vivo solo se agenda en: ' + cfg.vivoDias.toLowerCase() + '. Puedes cambiar los días en Configuración.');
+  }
   if (!Reglas.fechaValida(fecha)) throw new Error('Elige una fecha válida.');
   if (!(inicio >= 0 && inicio <= 23 && inicio === Math.floor(inicio))) throw new Error('Elige la hora de inicio.');
   if (!(horas >= 1 && horas <= 24 && horas === Math.floor(horas)) || inicio + horas > 24) throw new Error('La duración debe ser de 1 a 24 horas y terminar antes de medianoche.');
@@ -2345,7 +2365,7 @@ function adminJornadas() {
     if (r.fecha && r.fecha >= hoy && (!c.proxima || r.fecha < c.proxima)) c.proxima = r.fecha;
   });
   var clientes = Object.keys(porTel).map(function (t) { return porTel[t]; }).sort(function (a, b) { return b.jornadas - a.jornadas || (a.banda < b.banda ? -1 : 1); });
-  return { hoy: hoy, reservas: reservas, bloqueos: bloqueos, inhabiles: inhabiles, clientes: clientes, estados: ESTADOS, wa: waDatos_(), maxReag: getCfg_().reagendoCambios, precios: { raw: getCfg_().precioRaw, video: getCfg_().precioVideo } };
+  return { hoy: hoy, reservas: reservas, bloqueos: bloqueos, inhabiles: inhabiles, clientes: clientes, estados: ESTADOS, wa: waDatos_(), maxReag: getCfg_().reagendoCambios, vivo: { dias: (Reglas.VIVO_DIAS[getCfg_().vivoDias] || [5, 6]), diasTxt: getCfg_().vivoDias, desde: getCfg_().vivoDesde, hasta: getCfg_().vivoHasta, precio: getCfg_().vivoPrecio }, precios: { raw: getCfg_().precioRaw, video: getCfg_().precioVideo } };
 }
 
 
@@ -4302,6 +4322,11 @@ var ESQUEMA = [
   ['verHonor', 'Mostrar «Cuadro de honor»', 'sino', 'Portada y secciones', 'Bandas destacadas.'],
   ['verCotizar', 'Mostrar «Cotizar»', 'sino', 'Portada y secciones', 'Formulario de cotización.'],
   ['verReglamento', 'Mostrar «Reglamento»', 'sino', 'Portada y secciones', 'Reglamento interno.'],
+  ['verVivo', 'Mostrar «Rockerío en vivo»', 'sino', 'Rockerío en vivo', 'Pestaña pública con las presentaciones en vivo. Apagada hasta que la actives.'],
+  ['vivoPrecio', 'Rockerío en vivo: precio de la presentación', 'pesos', 'Rockerío en vivo', 'Cobro fijo por presentación (entre $80.000 y $100.000 según lo acordado).'],
+  ['vivoDias', 'Rockerío en vivo: días', 'lista', 'Rockerío en vivo', 'Días en que se pueden agendar presentaciones.', ['Viernes y sábado', 'Solo viernes', 'Solo sábado', 'Jueves a sábado', 'Viernes a domingo']],
+  ['vivoDesde', 'Rockerío en vivo: hora de inicio', 'num', 'Rockerío en vivo', 'Por ejemplo 19.', 22],
+  ['vivoHasta', 'Rockerío en vivo: hora de término', 'num', 'Rockerío en vivo', 'Por ejemplo 23. Debe ser posterior al inicio.', 24],
   ['sitioWeb', 'Sitio web', 'url', 'Contacto y redes', 'Tu página web, si tienes.'],
   ['redInstagram', 'Instagram', 'url', 'Contacto y redes', 'Enlace completo, por ejemplo https://instagram.com/rockerio.'],
   ['redFacebook', 'Facebook', 'url', 'Contacto y redes', 'Enlace completo.'],

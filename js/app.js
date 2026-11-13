@@ -189,8 +189,9 @@
     if (cfg.proaudixWhatsapp) pl.unshift(['WhatsApp', 'https://wa.me/' + cfg.proaudixWhatsapp]);
     enlaces($('pa-links'), pl.concat(pares(cfg.proaudixEnlaces)));
     txt($('hero-t'), cfg.heroTitulo); txt($('hero-p'), cfg.heroTexto);
-    [['nosotros', 'verProduccion'], ['ficha', 'verFicha'], ['planes', 'verPlanes'], ['galeria', 'verGaleria'], ['opiniones', 'verEvaluaciones'], ['proaudix', 'verProaudix'], ['contacto', 'verContacto'], ['bandas', 'verHonor'], ['tienda', 'verTienda'], ['cotizar', 'verCotizar'], ['reglamento', 'verReglamento']].forEach(function (x) { if (!cfg[x[1]]) $(x[0]).hidden = true; else if (x[0] !== 'reglamento' && x[0] !== 'tienda' && x[0] !== 'galeria') $(x[0]).hidden = false; });
+    [['nosotros', 'verProduccion'], ['ficha', 'verFicha'], ['planes', 'verPlanes'], ['galeria', 'verGaleria'], ['opiniones', 'verEvaluaciones'], ['proaudix', 'verProaudix'], ['contacto', 'verContacto'], ['bandas', 'verHonor'], ['tienda', 'verTienda'], ['cotizar', 'verCotizar'], ['reglamento', 'verReglamento'], ['vivo', 'verVivo']].forEach(function (x) { if (!cfg[x[1]]) $(x[0]).hidden = true; else if (x[0] !== 'reglamento' && x[0] !== 'tienda' && x[0] !== 'galeria') $(x[0]).hidden = false; });
     if (!cfg.verHonor) $('bandas').hidden = true;
+    if (cfg.verVivo && $('vivo-info')) { var vi = $('vivo-info'); vi.textContent = ''; [['📅 ' + cfg.vivoDias], ['🕖 ' + R.horaTxt(cfg.vivoDesde) + ' a ' + R.horaTxt(cfg.vivoHasta) + ' (' + (cfg.vivoHasta - cfg.vivoDesde) + ' horas)'], ['💵 ' + R.clp(cfg.vivoPrecio) + ' por presentación']].forEach(function (x) { vi.appendChild(el('span', 'chip', x[0])); }); $('vivo-wsp').href = wspUrl('Hola, quiero consultar por una presentación en Rockerío en vivo.'); }
     pintarHoras(); refrescarAgenda(); if (fichaDatos) pintarFicha();
   }
 

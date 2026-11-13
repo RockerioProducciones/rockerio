@@ -348,6 +348,16 @@ t('reserva manual: domingo a las 02:00 (fuera de horario) y 3 horas', () => {
   assert.strictEqual(x.inicio, '02:00'); assert.strictEqual(x.horas, 3); assert.strictEqual(x.estado, 'Reservado (con abono)'); assert.ok(x.total > 0);
   const lib = g.get({ accion: 'disponibilidad', fecha: dom }); assert.ok(JSON.stringify(lib).indexOf('"2"') < 0 || true);
 });
+t('Rockerío en vivo: bloque fijo 19–23 en viernes/sábado, cobro fijo y bloquea la agenda', () => {
+  let vie = sumar(dom, 14); while (new Date(vie + 'T12:00:00Z').getUTCDay() !== 5) vie = sumar(vie, 1);
+  assert.throws(() => g.admin('adminReservaManual', { servicio: 'vivo', fecha: dom, banda: 'Show', nombre: 'Ana', telefono: '+56 9 4444 0001' }), /solo se agenda/i);
+  const r = g.admin('adminReservaManual', { servicio: 'vivo', fecha: vie, inicio: 3, horas: 1, banda: 'Show Band', nombre: 'Ana', telefono: '+56 9 4444 0001', pago: 'ninguno' });
+  assert.ok(r.ok && r.codigo);
+  const x = g.admin('adminJornadas').reservas.find((y) => y.codigo === r.codigo);
+  assert.strictEqual(x.inicio, '19:00'); assert.strictEqual(x.fin, '23:00'); assert.strictEqual(x.total, 90000); assert.ok(/en vivo/i.test(x.servicio));
+  assert.throws(() => g.admin('adminReservaManual', { servicio: 'ensayo', fecha: vie, inicio: 20, horas: 1, banda: 'Choque', nombre: 'Beto', telefono: '+56 9 4444 0002' }), /CHOQUE/);
+  const J = g.admin('adminJornadas'); assert.strictEqual(J.vivo.desde, 19); assert.strictEqual(J.vivo.hasta, 23);
+});
 t('reserva manual: equipos extra con ticket y desglose detallado', () => {
   const dia = sumar(dom, 7), eq = ['Bajo eléctrico Epiphone Thunderbird Pro IV', 'Guitarra electroacústica Takamine'];
   const c = g.admin('adminCalcularReserva', { servicio: 'ensayo', fecha: dia, inicio: 12, horas: 2, extras: 2, video: false, raw: false });
