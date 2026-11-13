@@ -252,3 +252,7 @@ html,body{overflow-x:clip}
 .mic-main>img{position:absolute!important;inset:0;width:100%!important;height:100%!important;max-width:none!important;object-fit:cover;display:block}
 .mic-main>.mic-ico{position:absolute;inset:0;display:grid;place-items:center}
 .mic-fl{z-index:2}
+/* La foto se ve completa (sin recortar el micrófono) en un recuadro 4:3 */
+.mic-main{height:auto!important;max-height:none!important;aspect-ratio:4/3!important;background:#0d0d0d!important}
+@media (max-width:600px){.mic-main{height:auto!important;max-height:none!important}}
+.mic-main>img{object-fit:contain!important}
