@@ -1010,8 +1010,12 @@ function prepararBalance_(ss) {
   var sh = hoja_(ss, HOJAS.balance);
   var mes = '$B$2&"-01"';
   var fechas = 'Reservas!$E:$E,">="&DATEVALUE(' + mes + '),Reservas!$E:$E,"<"&EDATE(DATEVALUE(' + mes + '),1)';
-  var sf = function (col, servicio, estado) {
+  var sf1 = function (col, servicio, estado) {
     return 'SUMIFS(Reservas!$' + col + ':$' + col + (servicio ? ',Reservas!$D:$D,"' + servicio + '"' : '') + ',Reservas!$C:$C,"' + estado + '",' + fechas + ')';
+  };
+  // «Rockerío en vivo» se contabiliza dentro de la sala (mismo reparto que el ensayo)
+  var sf = function (col, servicio, estado) {
+    return servicio === 'Ensayo' ? '(' + sf1(col, 'Ensayo', estado) + '+' + sf1(col, ETIQUETA_SERVICIO.vivo, estado) + ')' : sf1(col, servicio, estado);
   };
   var ventasMes = function (colFecha, colCobro, cond) {
     var rango = colFecha + ',">="&DATEVALUE(' + mes + '),' + colFecha + ',"<"&EDATE(DATEVALUE(' + mes + '),1),' + colCobro + ',' + cond;

@@ -358,6 +358,18 @@ t('Rockerío en vivo: bloque fijo 19–23 en viernes/sábado, cobro fijo y bloqu
   assert.throws(() => g.admin('adminReservaManual', { servicio: 'ensayo', fecha: vie, inicio: 20, horas: 1, banda: 'Choque', nombre: 'Beto', telefono: '+56 9 4444 0002' }), /CHOQUE/);
   const J = g.admin('adminJornadas'); assert.strictEqual(J.vivo.desde, 19); assert.strictEqual(J.vivo.hasta, 23);
 });
+t('Rockerío en vivo finalizado se contabiliza en la sala (no en el estudio) y cuadra con las reservas', () => {
+  let vie = sumar(dom, 35); while (new Date(vie + 'T12:00:00Z').getUTCDay() !== 5) vie = sumar(vie, 1);
+  const mes = vie.slice(0, 7), antes = g.admin('adminResumenContable', 'mes', mes);
+  const r = g.admin('adminReservaManual', { servicio: 'vivo', fecha: vie, banda: 'Show Contable', nombre: 'Ana', telefono: '+56 9 4444 0003', pago: 'ninguno' });
+  g.admin('adminCambiarEstado', r.codigo, 'Reservado (con abono)');
+  g.admin('adminAjustarReserva', r.codigo, { finalizar: true });
+  const c = g.admin('adminResumenContable', 'mes', mes), d = c.detalle.find((q) => q.codigo === r.codigo);
+  assert.ok(d && /en vivo/i.test(d.servicio) && d.total === 90000, JSON.stringify(d));
+  assert.strictEqual(c.sala.total - antes.sala.total, 90000, 'suma a la sala');
+  assert.strictEqual(c.estudio.total, antes.estudio.total, 'no toca el estudio');
+  assert.ok(!c.descuadres.some((q) => q.codigo === r.codigo), 'sin descuadres');
+});
 t('reserva manual: equipos extra con ticket y desglose detallado', () => {
   const dia = sumar(dom, 7), eq = ['Bajo eléctrico Epiphone Thunderbird Pro IV', 'Guitarra electroacústica Takamine'];
   const c = g.admin('adminCalcularReserva', { servicio: 'ensayo', fecha: dia, inicio: 12, horas: 2, extras: 2, video: false, raw: false });

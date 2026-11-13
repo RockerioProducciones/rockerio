@@ -1587,8 +1587,12 @@ function prepararBalance_(ss) {
   var sh = hoja_(ss, HOJAS.balance);
   var mes = '$B$2&"-01"';
   var fechas = 'Reservas!$E:$E,">="&DATEVALUE(' + mes + '),Reservas!$E:$E,"<"&EDATE(DATEVALUE(' + mes + '),1)';
-  var sf = function (col, servicio, estado) {
+  var sf1 = function (col, servicio, estado) {
     return 'SUMIFS(Reservas!$' + col + ':$' + col + (servicio ? ',Reservas!$D:$D,"' + servicio + '"' : '') + ',Reservas!$C:$C,"' + estado + '",' + fechas + ')';
+  };
+  // «Rockerío en vivo» se contabiliza dentro de la sala (mismo reparto que el ensayo)
+  var sf = function (col, servicio, estado) {
+    return servicio === 'Ensayo' ? '(' + sf1(col, 'Ensayo', estado) + '+' + sf1(col, ETIQUETA_SERVICIO.vivo, estado) + ')' : sf1(col, servicio, estado);
   };
   var ventasMes = function (colFecha, colCobro, cond) {
     var rango = colFecha + ',">="&DATEVALUE(' + mes + '),' + colFecha + ',"<"&EDATE(DATEVALUE(' + mes + '),1),' + colCobro + ',' + cond;
@@ -4156,11 +4160,11 @@ function adminResumenContable(periodo, ref) {
       deudas.push({ fecha: f, codigo: String(r[RES.codigo - 1]), banda: String(r[RES.banda - 1]), cliente: String(r[RES.contacto - 1]), telefono: String(r[RES.telefono - 1]), estado: estadoNorm_(r[RES.estado - 1]), saldo: Math.max(0, (Number(r[RES.total - 1]) || 0) - (Number(r[RES.abono - 1]) || 0)) });
     }
     if (!f || f < R.desde || f > R.hasta) return;
-    var estado = estadoNorm_(r[RES.estado - 1]), ens = /ensayo/i.test(String(r[RES.servicio - 1]));
+    var estado = estadoNorm_(r[RES.estado - 1]), vivoS = /en vivo/i.test(String(r[RES.servicio - 1])), ens = vivoS || /ensayo/i.test(String(r[RES.servicio - 1]));
     var h = Number(r[RES.horas - 1]) || 0, base = Number(r[RES.base - 1]) || 0, ex = Number(r[RES.extrasM - 1]) || 0, vi = Number(r[RES.videoM - 1]) || 0, rw = Number(r[RES.rawM - 1]) || 0;
     var ret = Number(r[RES.retenido - 1]) || 0, dev = Number(r[RES.devolver - 1]) || 0, abono = Number(r[RES.abono - 1]) || 0;
     var recibido = String(r[RES.abonoRecibido - 1]).toUpperCase() === 'SI';
-    var fila = { fecha: f, codigo: String(r[RES.codigo - 1]), banda: String(r[RES.banda - 1]), cliente: String(r[RES.contacto - 1]), servicio: ens ? 'Ensayo' : 'Grabación', horas: h, estado: estado, base: base, extras: ex, video: vi, raw: rw, total: 0, retenido: ret };
+    var fila = { fecha: f, codigo: String(r[RES.codigo - 1]), banda: String(r[RES.banda - 1]), cliente: String(r[RES.contacto - 1]), servicio: vivoS ? 'Rockerío en vivo' : (ens ? 'Ensayo' : 'Grabación'), horas: h, estado: estado, base: base, extras: ex, video: vi, raw: rw, total: 0, retenido: ret };
     if (estado === EST.FINALIZADA) {
       var o = ens ? sala : estudio;
       o.sesiones++; o.horas += h; o.base += base;
