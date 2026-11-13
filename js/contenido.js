@@ -93,10 +93,19 @@
       var fotos = [m.foto, m.foto2, m.foto3].filter(function (u) { return /^(https:\/\/|assets\/)/.test(u || ''); }).slice(0, 3);
       var it = el('div', 'mic-it'); tarjetas.push({ el: it, tags: m.tags.map(function (t) { return t.toLowerCase(); }) });
       var lf = fotos.map(function (u) { return { src: u, alt: m.nombre }; }), pos = 0;
-      var gal = el('div', 'mic-gal'), mb = el('button', 'mic-main'); mb.type = 'button'; mb.setAttribute('aria-label', 'Ampliar foto de ' + m.nombre);
-      var mi = el('img'); mi.alt = m.nombre; mi.loading = 'lazy'; if (fotos.length) { mi.src = fotos[0]; mb.appendChild(mi); mb.addEventListener('click', function () { if (RK.visor) RK.visor(lf, pos); }); } else { mb.disabled = true; mb.appendChild(el('span', 'mic-ico', '🎙️')); }
+      var gal = el('div', 'mic-gal'), mb = el('div', 'mic-main');
+      var mi = el('img'); mi.alt = m.nombre; mi.loading = 'lazy';
+      if (fotos.length) { mi.src = fotos[0]; mb.appendChild(mi); } else { mb.appendChild(el('span', 'mic-ico', '🎙️')); }
       gal.appendChild(mb);
-      if (fotos.length > 1) { var th = el('div', 'mic-th'); fotos.forEach(function (u, k) { var t = el('button', 'mic-t' + (k === 0 ? ' on' : '')); t.type = 'button'; t.setAttribute('aria-label', 'Foto ' + (k + 1)); var ti = el('img'); ti.src = u; ti.alt = ''; ti.loading = 'lazy'; t.appendChild(ti); t.addEventListener('click', function () { pos = k; mi.src = u; [].forEach.call(th.children, function (x, j) { x.classList.toggle('on', j === k); }); }); th.appendChild(t); }); gal.appendChild(th); }
+      if (fotos.length > 1) {
+        var pts = el('div', 'mic-pts');
+        var ir = function (k) { pos = (k + fotos.length) % fotos.length; mi.src = fotos[pos]; [].forEach.call(pts.children, function (x, j) { x.classList.toggle('on', j === pos); }); };
+        fotos.forEach(function (u, k) { var t = el('button', 'mic-pt' + (k === 0 ? ' on' : '')); t.type = 'button'; t.setAttribute('aria-label', 'Foto ' + (k + 1)); t.addEventListener('click', function () { ir(k); }); pts.appendChild(t); });
+        [['‹', -1, 'mic-fl mic-fl-i', 'Foto anterior'], ['›', 1, 'mic-fl mic-fl-d', 'Foto siguiente']].forEach(function (f) { var bt = el('button', f[2], f[0]); bt.type = 'button'; bt.setAttribute('aria-label', f[3]); bt.addEventListener('click', function () { ir(pos + f[1]); }); mb.appendChild(bt); });
+        var x0 = null; mb.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+        mb.addEventListener('touchend', function (e) { if (x0 === null) return; var dx = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(dx) > 30) ir(pos + (dx < 0 ? 1 : -1)); }, { passive: true });
+        gal.appendChild(pts);
+      }
       it.appendChild(gal);
       var tx = el('div', 'mic-tx'); tx.appendChild(el('b', 'mic-nom', m.nombre)); if (m.uso) tx.appendChild(el('span', 'mic-uso-c', m.uso));
       if (m.descripcion) { var d = el('p', 'mic-desc', m.descripcion); d.title = 'Toca para ver más'; d.addEventListener('click', function () { d.classList.toggle('abierta'); }); tx.appendChild(d); }

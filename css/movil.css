@@ -241,3 +241,9 @@ html,body{overflow-x:clip}
 .mic-it{align-items:stretch!important}.mic-gal{width:100%}
 @media (max-width:600px){.mic-lista{grid-template-columns:1fr 1fr!important}}
 @media (min-width:601px){.mic-lista{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))!important}}
+.mic-main{position:relative;aspect-ratio:auto!important;height:120px!important;max-height:120px!important;cursor:default!important}
+@media (max-width:600px){.mic-main{height:96px!important;max-height:96px!important}}
+.mic-fl{position:absolute;top:50%;transform:translateY(-50%);width:26px;height:26px;border:0;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:1.1rem;line-height:1;padding:0;cursor:pointer}
+.mic-fl-i{left:4px}.mic-fl-d{right:4px}
+.mic-pts{display:flex;justify-content:center;gap:.35rem}
+.mic-pt{width:9px;height:9px;padding:0;border:0;border-radius:50%;background:#555;cursor:pointer}.mic-pt.on{background:var(--oro)}
