@@ -256,3 +256,5 @@ html,body{overflow-x:clip}
 .mic-main{height:auto!important;max-height:none!important;aspect-ratio:4/3!important;background:#0d0d0d!important}
 @media (max-width:600px){.mic-main{height:auto!important;max-height:none!important}}
 .mic-main>img{object-fit:contain!important}
+/* Título de portada: letra angular y condensada, más cercana a la del logo ROCKERÍO PRODUCCIONES */
+html .hero h1,html.rd body .hero h1{font-family:'Big Shoulders Display','Bebas Neue',Impact,'Arial Narrow',sans-serif!important;font-weight:900!important;text-transform:uppercase;letter-spacing:.025em!important;line-height:.95!important;font-size:clamp(3.2rem,13vw,6.6rem)}
