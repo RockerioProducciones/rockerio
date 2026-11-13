@@ -380,6 +380,13 @@ t('Configuración: valida horarios cruzados y guardar un ajuste no toca los dem�
   assert.strictEqual(String(w('minutosReserva')), '45'); assert.strictEqual(w('verVivo'), v('verVivo')); assert.strictEqual(String(w('vivoPrecio')), '95000');
   g.admin('adminGuardarAjustes', { verVivo: 'NO', vivoPrecio: '90000', minutosReserva: String(v('minutosReserva')) });
 });
+t('una reserva ingresada por ti sin pago NO se libera sola; las de clientes sí', () => {
+  let dia = sumar(dom, 49); while (new Date(dia + 'T12:00:00Z').getUTCDay() === 0) dia = sumar(dia, 1);
+  const m = g.admin('adminReservaManual', { servicio: 'ensayo', fecha: dia, inicio: 10, horas: 2, banda: 'Banda Manual', nombre: 'Ana', telefono: '+56 9 4444 0010', pago: 'ninguno' });
+  g.avanzar(5 * 3600000); C.liberarPendientes();
+  const est = (cod) => g.admin('adminJornadas').reservas.find((y) => y.codigo === cod).estado;
+  assert.ok(/sin abono/i.test(est(m.codigo)), 'la manual sigue vigente: ' + est(m.codigo));
+});
 t('reserva manual: equipos extra con ticket y desglose detallado', () => {
   const dia = sumar(dom, 7), eq = ['Bajo eléctrico Epiphone Thunderbird Pro IV', 'Guitarra electroacústica Takamine'];
   const c = g.admin('adminCalcularReserva', { servicio: 'ensayo', fecha: dia, inicio: 12, horas: 2, extras: 2, video: false, raw: false });

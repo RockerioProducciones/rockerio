@@ -621,6 +621,7 @@ function adminReservaManual(p) {
     var mm = { b: c.base, e: c.extras, v: c.video, r: c.raw }, dManual = c.total - total;
     if (dManual !== 0) { mm = repartirDescuento_({ b: c.base, e: c.extras, v: c.video, r: c.raw }, dManual); fila[RES.ajuste - 1] = dManual; fila[RES.notaAjuste - 1] = 'Total ingresado a mano'; fila[RES.original - 1] = JSON.stringify({ b: c.base, e: c.extras, v: c.video, r: c.raw, t: c.total }); }
     fila[RES.base - 1] = mm.b; fila[RES.extrasM - 1] = mm.e; fila[RES.videoM - 1] = mm.v; fila[RES.rawM - 1] = mm.r; fila[RES.abonoRecibido - 1] = 'NO';
+    if (pago === 'ninguno') fila[RES.pago - 1] = PAGO_MANUAL;
     sh.appendRow(fila);
     var f = sh.getLastRow();
     sh.getRange(f, RES.telefono).setNumberFormat('@').setValue(tel);

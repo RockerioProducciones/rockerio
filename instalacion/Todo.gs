@@ -649,6 +649,7 @@ function estadoNorm_(v) {
 }
 var ETIQUETA_SERVICIO = { ensayo: 'Ensayo', grabacion: 'Grabación', vivo: 'Rockerío en vivo' };
 var PAGO_COMPROBANTE = 'COMPROBANTE';
+var PAGO_MANUAL = 'MANUAL'; // reserva ingresada por la administración sin pago: no se libera sola
 var PAGO_ONLINE = 'PAGO EN LÍNEA';
 var HORAS_MAX_COMPROBANTE = 12;
 var MAX_PENDIENTES_POR_TELEFONO = 3;
@@ -1099,6 +1100,7 @@ function liberarVencidas_(cfg) {
     var creada = r[RES.creada - 1];
     if (!(creada instanceof Date) || creada.getTime() > limite) return;
     if (esCasa_(String(r[RES.telefono - 1]), r[RES.banda - 1])) return; // banda de la casa: su horario semanal no vence solo; lo confirmas tú
+    if (String(r[RES.pago - 1]) === PAGO_MANUAL || /^Reserva manual/.test(String(r[RES.comentarios - 1]))) return; // la ingresaste tú: nunca se anula sola
     if (String(r[RES.pago - 1]) === PAGO_COMPROBANTE) {
       // El cliente dijo que ya pagó: el horario se guarda hasta que lo valides (con un tope, para que nadie lo retenga sin pagar).
       var desde = r[RES.pagoFecha - 1];
@@ -1107,6 +1109,7 @@ function liberarVencidas_(cfg) {
     }
     sh.getRange(i + 2, RES.estado).setValue(EST.ANULADA);
     borrarEvento_(cal, r[RES.evento - 1]);
+    registrarCambio_('Reserva liberada sola', String(r[RES.codigo - 1]) + ' · ' + String(r[RES.banda - 1]) + ' · ' + aFechaIso_(r[RES.fecha - 1]) + ' (sin abono, venció el plazo)', '', 'Anulada');
   });
 }
 
@@ -2299,6 +2302,7 @@ function adminReservaManual(p) {
     var mm = { b: c.base, e: c.extras, v: c.video, r: c.raw }, dManual = c.total - total;
     if (dManual !== 0) { mm = repartirDescuento_({ b: c.base, e: c.extras, v: c.video, r: c.raw }, dManual); fila[RES.ajuste - 1] = dManual; fila[RES.notaAjuste - 1] = 'Total ingresado a mano'; fila[RES.original - 1] = JSON.stringify({ b: c.base, e: c.extras, v: c.video, r: c.raw, t: c.total }); }
     fila[RES.base - 1] = mm.b; fila[RES.extrasM - 1] = mm.e; fila[RES.videoM - 1] = mm.v; fila[RES.rawM - 1] = mm.r; fila[RES.abonoRecibido - 1] = 'NO';
+    if (pago === 'ninguno') fila[RES.pago - 1] = PAGO_MANUAL;
     sh.appendRow(fila);
     var f = sh.getLastRow();
     sh.getRange(f, RES.telefono).setNumberFormat('@').setValue(tel);

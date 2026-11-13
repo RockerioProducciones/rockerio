@@ -1247,10 +1247,11 @@ function diaJor(f){
     var top=el_('div','ses-top');top.appendChild(el_('b','ses-b',r.inicio+' - '+r.fin+' / '+String(r.banda||'').toUpperCase()+' / '+String(r.contacto||'').toUpperCase()));top.appendChild(el_('span','ses-e',r.estado));k.appendChild(top);
     k.appendChild(el_('div','ses-m',r.servicio+(r.plan?' · Plan '+r.plan:'')+' · '+(r.estado==='No asiste'?'cerrada · retención '+clp(r.retenido):clp(r.total)+(r.ajuste?' (con ajuste de '+clp(r.ajuste)+')':''))+(r.reag?' · reagendada '+r.reag+'/'+(JOR.maxReag||2):'')));
     if(r.pago==='COMPROBANTE'&&r.estado==='Reservado (sin abono)')k.appendChild(el_('div','ses-m','💬 El cliente dice que ya envió el comprobante: revísalo en WhatsApp y confirma el abono.'));
+    if(r.estado==='Reservado (sin abono)'&&(r.pago==='MANUAL'||/^Reserva manual/.test(r.comentarios||'')))k.appendChild(el_('div','ses-m','📌 La ingresaste tú sin pago: el horario queda guardado hasta que lo confirmes o lo anules (no se libera solo).'));
     if(r.pago==='PAGO EN LÍNEA')k.appendChild(el_('div','ses-m','💳 Pagado en línea (Mercado Pago)'));
     var ac=el_('div','ses-ac');ac.appendChild(btn('Ver ficha',function(){fichaJor(r)},'sec'));
     if(r.pago==='COMPROBANTE'&&r.estado==='Reservado (sin abono)')ac.appendChild(btn('Confirmar abono',function(){confirmarSN('¿Confirmas que el abono de '+r.banda+' ya llegó?',function(){jrun('adminCambiarEstado',r.codigo,'Reservado (con abono)')},'Sí, confirmar')}));
-    if(r.estado==='Reservado (sin abono)'&&r.pago!=='COMPROBANTE')ac.appendChild(btn('Mantener 12 h',function(){confirmarSN('¿Ya tienes el comprobante de '+r.banda+'? El horario se guarda 12 horas más mientras confirmas el abono.',function(){jrun('adminMantenerHorario',r.codigo)},'Sí, mantener')},'sec'));
+    if(r.estado==='Reservado (sin abono)'&&r.pago!=='COMPROBANTE'&&r.pago!=='MANUAL'&&!/^Reserva manual/.test(r.comentarios||''))ac.appendChild(btn('Mantener 12 h',function(){confirmarSN('¿Ya tienes el comprobante de '+r.banda+'? El horario se guarda 12 horas más mientras confirmas el abono.',function(){jrun('adminMantenerHorario',r.codigo)},'Sí, mantener')},'sec'));
     if(r.estado==='Reservado (sin abono)'||r.estado==='Reservado (con abono)')ac.appendChild(btn('Finalizar',function(){formAjuste(r,true)}));
     k.appendChild(ac);h.appendChild(k)};
    mezclaDia(rs,bq).forEach(function(i){if(i.b)fb(i.b);else fr(i.r)});
