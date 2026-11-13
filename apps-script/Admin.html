@@ -1428,9 +1428,10 @@ function pintarRM(){
     bl.appendChild(bu);bl.appendChild(dl);fm.appendChild(bl);
     campo('banda','Banda o proyecto *');campo('nombre','Nombre del contacto *');campo('telefono','Teléfono (WhatsApp) *','tel',false,'+56 9 1234 5678');campo('correo','Correo (opcional)','email');
     if(RM.codigo){var le=el_('label');le.appendChild(document.createTextNode('Estado'));var se=selEstado(JOR.estados,RM.estado,function(v){RM.estado=v});le.appendChild(se);fm.appendChild(le)}
-    else{var lp=el_('label');lp.appendChild(document.createTextNode('¿Cómo está el pago?'));var sp=document.createElement('select');[['completo','✔ Pagada completa'],['abono','Con abono (falta el saldo)'],['ninguno','⏳ Pendiente de pago']].forEach(function(x){var o=document.createElement('option');o.value=x[0];o.textContent=x[1];sp.appendChild(o)});sp.value=RM.pago;lp.appendChild(sp);fm.appendChild(lp);
+    else{var lp=el_('label');lp.appendChild(document.createTextNode('¿Cómo está el pago?'));var sp=document.createElement('select');[['completo','✔ Pagada completa'],['abono','Con abono (falta el saldo)'],['ninguno','🤝 Sin abono (banda amiga / pago después)']].forEach(function(x){var o=document.createElement('option');o.value=x[0];o.textContent=x[1];sp.appendChild(o)});sp.value=RM.pago;lp.appendChild(sp);fm.appendChild(lp);
       var lm=el_('label');lm.appendChild(document.createTextNode('Medio de pago'));var sm=document.createElement('select');MEDIOS.forEach(function(m){var o=document.createElement('option');o.value=m;o.textContent=m;sm.appendChild(o)});sm.value=RM.medio;lm.appendChild(sm);lm.hidden=RM.pago!=='completo';fm.appendChild(lm);
-      sp.onchange=function(){RM.pago=sp.value;lm.hidden=RM.pago!=='completo'};sm.onchange=function(){RM.medio=sm.value}}
+      RM.abono=RM.abono||'';var la=campo('abono','Abono acordado en $ (vacío = el habitual · 0 = sin abono)','text',false,'Ej. 10000');la=la.parentNode;la.hidden=RM.pago==='completo';
+      sp.onchange=function(){RM.pago=sp.value;lm.hidden=RM.pago!=='completo';la.hidden=RM.pago==='completo'};sm.onchange=function(){RM.medio=sm.value}}
     campo('total','Total en $ (vacío = cálculo automático)','text',false,'Ej. 30000');
     var ex=el_('div','full rm-extras');ex.appendChild(el_('b','','Extras (marca los que se cobran)'));var exl=el_('div','');ex.appendChild(exl);var det=el_('div','full rm-det');
     function ticket(txt,ck0,fn,id){var l=el_('label','ex-fila-ck');var ck=document.createElement('input');ck.type='checkbox';ck.checked=ck0;ck.onchange=function(){fn(ck.checked);pedirCalc()};l.appendChild(ck);l.appendChild(el_('span','',txt));if(id)l.id=id;return l}
@@ -1447,8 +1448,8 @@ function pintarRM(){
   f.appendChild(acc);d.appendChild(f);
 }
 function guardarRM(forzar){
-  var p={servicio:RM.servicio,fecha:RM.fecha,inicio:RM.inicio,horas:RM.horas,banda:RM.banda,nombre:RM.nombre,telefono:RM.telefono,correo:RM.correo,estado:RM.estado,total:RM.total,pago:RM.codigo?'':RM.pago,medio:RM.medio,extras:RM.extras,equipos:RM.equipos,video:RM.video,raw:RM.raw,comentario:RM.comentario,forzar:!!forzar,codigoEditar:RM.codigo||''};
-  google.script.run.withSuccessHandler(function(r){$('jdet').hidden=true;aviso('Reserva '+r.codigo+(RM.codigo?' actualizada':' guardada'));jsel=RM.fecha;jmes=RM.fecha.slice(0,7);cargarJor()}).withFailureHandler(function(e){
+  var p={servicio:RM.servicio,fecha:RM.fecha,inicio:RM.inicio,horas:RM.horas,banda:RM.banda,nombre:RM.nombre,telefono:RM.telefono,correo:RM.correo,estado:RM.estado,total:RM.total,pago:RM.codigo?'':RM.pago,abono:RM.codigo?'':RM.abono,medio:RM.medio,extras:RM.extras,equipos:RM.equipos,video:RM.video,raw:RM.raw,comentario:RM.comentario,forzar:!!forzar,codigoEditar:RM.codigo||''};
+  google.script.run.withSuccessHandler(function(r){$('jdet').hidden=true;aviso('Reserva '+r.codigo+(RM.codigo?' actualizada':' guardada')+(r.desplazadas&&r.desplazadas.length?' · Se liberó el horario de una reserva sin abono: '+r.desplazadas.join(', ')+'. Avísales por WhatsApp.':''));jsel=RM.fecha;jmes=RM.fecha.slice(0,7);cargarJor()}).withFailureHandler(function(e){
     var m=e.message||'Error';if(/CHOQUE/.test(m)){if(confirm(m.replace(/^.*CHOQUE:\s*/,'')+'\n\n¿Guardar igual?'))guardarRM(true)}else aviso(m)}).adminReservaManual(p);
 }
 /* ---------- Ficha manual de cliente ---------- */

@@ -387,6 +387,24 @@ t('una reserva ingresada por ti sin pago NO se libera sola; las de clientes sí'
   const est = (cod) => g.admin('adminJornadas').reservas.find((y) => y.codigo === cod).estado;
   assert.ok(/sin abono/i.test(est(m.codigo)), 'la manual sigue vigente: ' + est(m.codigo));
 });
+t('ingreso manual: abono flexible (banda amiga) y prioridad sobre reservas de clientes sin abono', () => {
+  let dia = sumar(f3, 18); while ([4, 6, 0].indexOf(new Date(dia + 'T12:00:00Z').getUTCDay()) >= 0) dia = sumar(dia, 1);
+  const J = () => g.admin('adminJornadas').reservas;
+  // 1) abono acordado a mano
+  const a = g.admin('adminReservaManual', { servicio: 'ensayo', fecha: dia, inicio: 9, horas: 1, banda: 'Amigos', nombre: 'Lu', telefono: '+56 9 4444 0020', pago: 'abono', abono: '5000', total: '20000' });
+  const ra = J().find((y) => y.codigo === a.codigo); assert.strictEqual(ra.abono, 5000); assert.strictEqual(ra.saldo, 15000);
+  // 2) abono 0 = sin abono, queda vigente
+  const b = g.admin('adminReservaManual', { servicio: 'ensayo', fecha: dia, inicio: 11, horas: 1, banda: 'Amigos 2', nombre: 'Lu', telefono: '+56 9 4444 0021', pago: 'abono', abono: '0', total: '20000' });
+  assert.ok(/sin abono/i.test(J().find((y) => y.codigo === b.codigo).estado));
+  // 3) un cliente reserva sin abonar y el ingreso manual toma ese horario
+  const c = g.post(sol({ fecha: dia, inicio: 18, horas: 2, telefono: '56944447777', banda: 'Cliente Pendiente', nombre: 'Pedro', correo: 'p@p.cl' })); assert.ok(c.ok, JSON.stringify(c));
+  const m = g.admin('adminReservaManual', { servicio: 'ensayo', fecha: dia, inicio: 19, horas: 2, banda: 'Banda Amiga', nombre: 'Lu', telefono: '+56 9 4444 0022', pago: 'ninguno' });
+  assert.ok(m.ok && m.desplazadas.length === 1, JSON.stringify(m));
+  assert.ok(/anulada/i.test(J().find((y) => y.codigo === c.codigo).estado));
+  // 4) una reserva con abono NO se desplaza
+  g.admin('adminReservaManual', { servicio: 'ensayo', fecha: dia, inicio: 21, horas: 1, banda: 'Pagada', nombre: 'Lu', telefono: '+56 9 4444 0023', pago: 'completo', medio: 'Efectivo' });
+  assert.throws(() => g.admin('adminReservaManual', { servicio: 'ensayo', fecha: dia, inicio: 21, horas: 1, banda: 'Otra', nombre: 'Lu', telefono: '+56 9 4444 0024', pago: 'ninguno' }), /CHOQUE/);
+});
 t('reserva manual: equipos extra con ticket y desglose detallado', () => {
   const dia = sumar(dom, 7), eq = ['Bajo eléctrico Epiphone Thunderbird Pro IV', 'Guitarra electroacústica Takamine'];
   const c = g.admin('adminCalcularReserva', { servicio: 'ensayo', fecha: dia, inicio: 12, horas: 2, extras: 2, video: false, raw: false });

@@ -2267,6 +2267,14 @@ function adminReservaManual(p) {
     if (isNaN(total)) throw new Error('Revisa el total.');
     abono = Math.min(total, abono);
   }
+  // Abono flexible (ej. banda amiga): monto acordado a mano; 0 = sin abono
+  if (!p.codigoEditar && p.abono !== undefined && p.abono !== null && String(p.abono).trim() !== '' && pago !== 'completo') {
+    var ab = Number(String(p.abono).replace(/[^\d]/g, ''));
+    if (isNaN(ab)) throw new Error('Revisa el abono.');
+    abono = Math.min(total, ab);
+    if (abono === 0) { pago = 'ninguno'; estado = EST.SIN_ABONO; }
+  }
+  var desplazadas = [];
   return conBloqueo_(function () {
     var codigo = null, creada = new Date(), propias = [];
     if (p.codigoEditar) { // edición: se reemplaza la reserva existente conservando su código
@@ -2280,7 +2288,25 @@ function adminReservaManual(p) {
     if (!p.forzar) {
       var oc = ocupadasRango_(fecha, 1)[fecha] || [], choca = [];
       for (var h = inicio; h < inicio + horas; h++) if (oc.indexOf(h) >= 0 && propias.indexOf(h) < 0) choca.push(h + ':00');
-      if (choca.length) throw new Error('CHOQUE: ese horario ya está ocupado o bloqueado (' + choca.join(', ') + ').');
+      if (choca.length) {
+        // Prioridad de tus ingresos: si lo que choca son SOLO reservas de clientes que aún no abonan, se liberan y la tuya queda
+        var shD = abrirBd_().getSheetByName(HOJAS.reservas), nD = shD.getLastRow(), cubiertas = [], aAnular = [];
+        if (nD > 1) shD.getRange(2, 1, nD - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (rd, iD) {
+          if (estadoNorm_(rd[RES.estado - 1]) !== EST.SIN_ABONO || aFechaIso_(rd[RES.fecha - 1]) !== fecha) return;
+          if (String(rd[RES.pago - 1]) === PAGO_COMPROBANTE || String(rd[RES.pago - 1]) === PAGO_MANUAL || /^Reserva manual/.test(String(rd[RES.comentarios - 1])) || esCasa_(String(rd[RES.telefono - 1]), rd[RES.banda - 1])) return;
+          var i1 = aHora_(rd[RES.inicio - 1]), n1 = Number(rd[RES.horas - 1]) || 0, hs = [];
+          for (var q1 = i1; i1 !== null && q1 < i1 + n1; q1++) if (q1 >= inicio && q1 < inicio + horas) hs.push(q1);
+          if (hs.length) { cubiertas = cubiertas.concat(hs); aAnular.push({ fila: iD + 2, rd: rd }); }
+        });
+        var libres = choca.every(function (t) { return cubiertas.indexOf(parseInt(t, 10)) >= 0; });
+        if (!libres || !aAnular.length) throw new Error('CHOQUE: ese horario ya está ocupado o bloqueado (' + choca.join(', ') + ').');
+        var calD = getCalendar_();
+        aAnular.forEach(function (x) {
+          shD.getRange(x.fila, RES.estado).setValue(EST.ANULADA); borrarEvento_(calD, x.rd[RES.evento - 1]);
+          desplazadas.push(String(x.rd[RES.banda - 1]) + ' (' + String(x.rd[RES.codigo - 1]) + ')');
+          registrarCambio_('Reserva sin abono desplazada por ingreso manual', String(x.rd[RES.codigo - 1]) + ' · ' + String(x.rd[RES.banda - 1]) + ' · ' + fecha, 'Reservado (sin abono)', 'Anulada');
+        });
+      }
     }
     if (p.codigoEditar) {
       var shB = abrirBd_().getSheetByName(HOJAS.reservas), cB = shB.createTextFinder(String(p.codigoEditar)).matchEntireCell(true).findNext(), evV = shB.getRange(cB.getRow(), RES.evento).getValue();
@@ -2309,7 +2335,7 @@ function adminReservaManual(p) {
     if (estado !== EST.SIN_ABONO) sincronizarEstado_(sh, f);
     if (pago === 'completo' && !p.codigoEditar) { sh.getRange(f, RES.cobro, 1, 2).setValues([['', medioPago]]); sh.getRange(f, RES.fechaPago).setValue(fechaHora_(ahoraChile_().fecha, 0)); }
     registrarCliente_({ telefono: tel, correo: correo, banda: banda, nombre: nombre });
-    return { ok: true, codigo: codigo };
+    return { ok: true, codigo: codigo, desplazadas: desplazadas };
   });
 }
 
