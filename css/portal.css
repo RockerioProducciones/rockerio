@@ -64,3 +64,7 @@ body{background:var(--bg2)}
 .login-clave{display:flex;flex-direction:column;gap:10px;max-width:360px;margin:1.2rem auto;padding:1.2rem;border:1px solid var(--borde);border-radius:16px;background:var(--panel)}
 .login-clave input{font-size:1.2rem;padding:.7rem;border-radius:10px;border:1px solid var(--borde);background:var(--bg2);color:var(--txt)}
 .login-clave small{color:var(--mut)}
+/* marcas de estado en la agenda: ✔ cobrada, $ con saldo, ✕ no asistió */
+.ag-ev .mk,.ag-pts i.mk,.ag-it .mk{display:inline-block;min-width:15px;height:15px;border-radius:50%;font:800 .62rem/15px Inter,sans-serif;text-align:center;color:#fff;font-style:normal;box-shadow:0 0 0 1px rgba(0,0,0,.5)}
+.ag-ev .mk{position:absolute;right:3px;top:50%;transform:translateY(-50%)}
+.mk.ok{background:#16a34a}.mk.pc{background:#f59e0b;color:#111}.mk.no{background:#ec4899}
