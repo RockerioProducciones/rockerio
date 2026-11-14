@@ -1,0 +1,37 @@
+/* Disponibilidad pública: calendario de solo lectura */
+body{background:radial-gradient(1000px 500px at 50% -10%,rgba(252,198,49,.08),transparent 60%),var(--bg)}
+.pg.disp{max-width:760px!important;width:100%;margin:0 auto;padding-bottom:4.5rem}
+.disp .marca{display:flex;justify-content:center;margin:.3rem 0 .2rem}.disp .marca img{height:48px}
+.disp h1{text-align:center;font-family:Oswald,sans-serif;text-transform:uppercase;letter-spacing:.06em;margin:.2em 0 .1em}
+.disp .sub{text-align:center;color:var(--mut);max-width:46ch;margin:.2rem auto 1rem}
+.dp-ley{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem .9rem;font-size:.78rem;color:var(--mut);margin:0 0 .9rem}
+.dp-ley span::before{content:"";display:inline-block;width:11px;height:11px;border-radius:4px;margin-right:.4rem;vertical-align:-1px;background:var(--c)}
+.dp-cal{background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.01));border:1px solid var(--borde);border-radius:18px;padding:.7rem;box-shadow:0 18px 50px rgba(0,0,0,.4)}
+.dp-sem,.dp-fila{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.dp-sem{margin-bottom:5px}.dp-sem b{text-align:center;font:600 .7rem Inter,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);padding:.2rem 0}
+.dp-fila{margin-bottom:5px}
+.dp-d{position:relative;min-height:84px;border-radius:12px;border:1px solid var(--borde);background:rgba(0,0,0,.28);color:var(--txt);font:inherit;padding:.35rem .25rem;display:flex;flex-direction:column;align-items:center;justify-content:space-between;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s}
+.dp-d .n{font:700 1.05rem Oswald,sans-serif;line-height:1}
+.dp-d .m{font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);line-height:1}
+.dp-d .t{font-size:.62rem;font-weight:600;line-height:1.1;text-align:center}
+.dp-d .bar{width:78%;height:5px;border-radius:9px;background:rgba(255,255,255,.1);overflow:hidden}.dp-d .bar i{display:block;height:100%;background:var(--c);border-radius:9px}
+.dp-d.libre{--c:#3ddc84;border-color:rgba(61,220,132,.45);background:linear-gradient(180deg,rgba(61,220,132,.14),rgba(0,0,0,.25))}
+.dp-d.poco{--c:#FCC631;border-color:rgba(252,198,49,.5);background:linear-gradient(180deg,rgba(252,198,49,.14),rgba(0,0,0,.25))}
+.dp-d.lleno{--c:#8a8581;opacity:.62}.dp-d.cerrado{--c:#555;opacity:.38;cursor:default}
+.dp-d.libre .t{color:#7dffb0}.dp-d.poco .t{color:var(--oro)}
+.dp-d.fuera{visibility:hidden;pointer-events:none}
+.dp-d.hoy::after{content:"HOY";position:absolute;top:-7px;right:4px;font:700 .5rem Inter,sans-serif;letter-spacing:.12em;background:var(--oro);color:#1c1b1a;border-radius:99px;padding:1px 6px}
+.dp-d.sel{transform:translateY(-2px);box-shadow:0 0 0 2px var(--oro),0 8px 20px rgba(0,0,0,.5)}
+.dp-d:not(.cerrado):not(.fuera):hover{transform:translateY(-2px)}
+.dp-d:focus-visible{outline:2px solid var(--oro);outline-offset:2px}
+.dp-det{margin-top:1rem;border:1px solid var(--borde);border-radius:18px;padding:1rem 1.1rem;background:linear-gradient(180deg,rgba(252,198,49,.07),rgba(0,0,0,.3))}
+.dp-det h2{margin:0 0 .15rem;font:700 1.35rem Oswald,sans-serif;text-transform:none;color:var(--oro)}.dp-det h2::first-letter{text-transform:uppercase}
+.dp-det .res{margin:0 0 .8rem;color:var(--mut);font-size:.9rem}
+.dp-hs{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:7px}
+.dp-h{text-align:center;padding:.55rem .2rem;border-radius:10px;font-weight:700;font-size:.95rem;border:1px solid var(--borde)}
+.dp-h.libre{border-color:rgba(61,220,132,.6);color:#7dffb0;background:rgba(61,220,132,.1)}
+.dp-h.ocupada{color:var(--mut);text-decoration:line-through;opacity:.55;background:rgba(0,0,0,.25)}
+.dp-cta{display:inline-block;margin-top:1rem;background:var(--oro);color:#1c1b1a;font-weight:800;text-decoration:none;border-radius:12px;padding:.8rem 1.2rem;min-height:44px;box-sizing:border-box}
+.dp-nota{text-align:center;color:var(--mut);font-size:.78rem;margin-top:.9rem}
+@media(max-width:480px){.dp-d{min-height:66px;border-radius:10px}.dp-d .n{font-size:.95rem}.dp-d .t{font-size:.55rem}.dp-sem,.dp-fila{gap:3px}.dp-cal{padding:.5rem}}
+@media(prefers-reduced-motion:reduce){.dp-d{transition:none}}
