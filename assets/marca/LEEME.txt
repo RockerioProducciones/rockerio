@@ -1,0 +1,11 @@
+Biblioteca de marca · Rockerío Producciones (versiones optimizadas para web)
+
+logo-horizontal-{negro,blanco,dorado,rojo}.png   1400 px de ancho, fondo transparente
+logo-vertical-{negro,blanco,dorado,rojo}.png      900 px de ancho, fondo transparente
+calavera-sola-negra.png                           solo la calavera, fondo transparente
+fondo-logo-{blanco-piedra,blanco,dorado,rojo}.jpg 1920x1080, fondo negro / piedra (pantallas y redes)
+textura-fondo.jpg                                 textura de piedra oscura (fondo del sitio)
+compartir-og.jpg                                  1200x630, imagen al compartir el enlace (también assets/og.jpg)
+
+Uso: negro para fondos claros; blanco, dorado y rojo para fondos oscuros.
+Los originales en alta resolución quedan en tu computador (no se suben al sitio).

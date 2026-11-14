@@ -1,7 +1,7 @@
 :root{--velo:rgba(20,20,19,.95);--panel-a:rgba(29,28,27,.92);--top-a:rgba(14,14,13,.95);--bg:#141413;--bg2:#0e0e0d;--panel:#1d1c1b;--borde:#32302e;--oro:#FCC631;--rojo:#D81D23;--txt:#f3efe8;--mut:#b5afa6;--ok:#4ade80}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:70px}
-body{margin:0;background:var(--bg) url(../assets/hero-textura.jpg) center/cover fixed;color:var(--txt);font:16px/1.55 Inter,system-ui,sans-serif}
+body{margin:0;background:var(--bg) url(../assets/marca/textura-fondo.jpg) center/cover fixed;color:var(--txt);font:16px/1.55 Inter,system-ui,sans-serif}
 body::before{content:"";position:fixed;inset:0;background:var(--velo);z-index:-1}
 h1,h2,legend,.btn,nav a{font-family:Oswald,Impact,sans-serif;text-transform:uppercase;letter-spacing:.04em}
 a{color:var(--oro)}
