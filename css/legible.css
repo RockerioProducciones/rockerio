@@ -38,3 +38,9 @@ body.con-vistas[data-vista]:not([data-vista="inicio"]) .menu .tarjeta::before{wi
 .wizard #servicios .opcion:has(input[value=grabacion]:checked){box-shadow:0 0 26px rgba(239,68,68,.38)!important}
 .wizard #servicios .opcion:not(:has(input:checked)){opacity:.82}
 .wizard .hbtn[aria-pressed=true]{color:var(--srv-t)!important}
+
+/* Brillo «holograma» al pasar el mouse (igual que las tarjetas de planes mensuales) en el resto de las tarjetas */
+.wizard #servicios .opcion,#vivo .vv-fase,#vivo .vv-grid .caja,#vivo .vv-org{position:relative;overflow:hidden}
+.prod-card,.card:not(.plan-card){position:relative}
+.wizard #servicios .opcion::after,#vivo .vv-fase::after,#vivo .vv-grid .caja::after,#vivo .vv-org::after,.prod-card::after,.card:not(.plan-card)::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.08) 50%,transparent 65%);background-size:250% 100%;background-position:-150% 0;border-radius:inherit;pointer-events:none}
+.wizard #servicios .opcion:hover::after,#vivo .vv-fase:hover::after,#vivo .vv-grid .caja:hover::after,#vivo .vv-org:hover::after,.prod-card:hover::after,.card:not(.plan-card):hover::after{animation:rk-brillo 1.1s ease}
