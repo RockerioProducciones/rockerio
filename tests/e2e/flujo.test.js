@@ -98,7 +98,7 @@ t('confirmar abono cambia el estado y el color del evento del calendario', () =>
 });
 t('bloquear un día lo cierra en la disponibilidad pública y desbloquear lo reabre', () => {
   const dia = sumar(f3, 2); g.admin('adminBloquear', dia, '', '', 'Mantención');
-  const a = JSON.stringify(g.get({ accion: 'disponibilidad', fecha: dia })); const rr = g.post(sol({ fecha: dia, telefono: '56933332222' })); assert.strictEqual(rr.ok, false, 'reservó en día bloqueado');
+  const a = JSON.stringify(g.get({ accion: 'disponibilidad', fecha: dia })); const rr = g.post(sol({ fecha: dia, telefono: '56961612222' })); assert.strictEqual(rr.ok, false, 'reservó en día bloqueado');
   const r2 = g.admin('adminResumen'); g.admin('adminDesbloquear', r2.bloqueos[0].fila);
 });
 t('cambiar precios desde Configuración se refleja en el sitio y en nuevas reservas', () => {
@@ -342,7 +342,7 @@ t('el cliente manual aparece enlazado cuando reserva con su teléfono', () => {
 });
 const dom = (() => { let f = sumar(f3, 28); while (new Date(f + 'T12:00:00Z').getUTCDay() !== 0) f = sumar(f, 1); return f; })();
 t('reserva manual: domingo a las 02:00 (fuera de horario) y 3 horas', () => {
-  const r = g.admin('adminReservaManual', { servicio: 'ensayo', fecha: dom, inicio: 2, horas: 3, banda: 'Los Nocturnos', nombre: 'Rolo', telefono: '+56 9 3333 2222', estado: 'Reservado (con abono)' });
+  const r = g.admin('adminReservaManual', { servicio: 'ensayo', fecha: dom, inicio: 2, horas: 3, banda: 'Los Nocturnos', nombre: 'Rolo', telefono: '+56 9 6161 2222', estado: 'Reservado (con abono)' });
   assert.ok(r.ok && r.codigo);
   const x = g.admin('adminJornadas').reservas.find((y) => y.codigo === r.codigo);
   assert.strictEqual(x.inicio, '02:00'); assert.strictEqual(x.horas, 3); assert.strictEqual(x.estado, 'Reservado (con abono)'); assert.ok(x.total > 0);
@@ -880,6 +880,21 @@ t('adicionales con un clic: agregar y quitar bajo/video/material ajusta total y 
   x = ver(); assert.strictEqual(x.total, t0, 'quitar todo restaura el total'); assert.strictEqual(x.saldo, s0);
   g.admin('adminCambiarEstado', r.codigo, 'Anulada');
   assert.throws(() => g.admin('adminCambiarAdicionales', r.codigo, { video: true }));
+});
+
+t('clientes repetidos: se detectan, avisan al crear y se fusionan pasando sus reservas', () => {
+  g.admin('adminGuardarCliente', { clave: '', nombre: 'Sandra', apellido: 'Rios', banda: 'Banda Sismo', telefono: '+56 9 7171 1111' });
+  assert.throws(() => g.admin('adminGuardarCliente', { clave: '', nombre: 'Sandra', banda: 'sismo', telefono: '+56 9 7171 2222' }), /SIMILAR/);
+  g.admin('adminGuardarCliente', { clave: '', nombre: 'Sandra R', banda: 'sismo', telefono: '+56 9 7171 2222', forzar: true });
+  let j = g.admin('adminJornadas');
+  const gr = j.similares.find((x) => x.claves.indexOf('56971711111') >= 0); assert.ok(gr && gr.claves.indexOf('56971712222') >= 0, 'detecta Banda Sismo ≈ sismo');
+  const r = g.admin('adminReservaManual', { servicio: 'ensayo', fecha: sumar(f3, 15), inicio: 15, horas: 2, banda: 'sismo', nombre: 'Sandra R', telefono: '+56 9 7171 2222', estado: 'Reservado (con abono)' }); assert.ok(r.ok || r.codigo, JSON.stringify(r));
+  g.admin('adminFusionarClientes', '56971711111', ['56971712222']);
+  j = g.admin('adminJornadas');
+  assert.ok(!j.clientes.find((c) => c.telefono === '56971712222'), 'el repetido desaparece');
+  const cc = j.clientes.find((c) => c.telefono === '56971711111'); assert.ok(cc.jornadas >= 1, 'las reservas pasaron al cliente que queda');
+  assert.ok(j.reservas.filter((x) => x.telefono === '56971712222').length === 0, 'ninguna reserva queda con el telefono repetido: ' + JSON.stringify(j.reservas.filter((x) => x.telefono === '56971712222').map((x) => [x.codigo, x.banda])));
+  assert.throws(() => g.admin('adminFusionarClientes', '56961611111', []));
 });
 
 

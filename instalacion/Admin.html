@@ -1416,6 +1416,39 @@ function listaCli(){
     var det=btn('Ver jornadas',function(){fichaCli(x)},'sec');det.style.marginTop='.4rem';k.appendChild(det);var ed=btn('Editar',function(){formCli(x)},'sec');ed.style.margin='.4rem 0 0 .3rem';k.appendChild(ed);var nr=btn('+ Reserva',function(){abrirRM({banda:x.banda,nombre:x.contacto,telefono:/^MAN-/.test(x.telefono)?'':x.telefono,correo:x.correo})},'sec');nr.style.margin='.4rem 0 0 .3rem';k.appendChild(nr);
     g.appendChild(k)});
   c.appendChild(g);if(!g.firstChild)c.appendChild(par('Sin clientes todavía.','color:#b5afa6'));
+  avisoDuplicados(c);
+}
+
+/* ---------- Fusionar clientes repetidos ---------- */
+var FUS_IGN={};
+function cliPor(t){return(JOR.clientes||[]).filter(function(c){return c.telefono===t})[0]}
+function modalFusion(claves,motivo){
+  var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);
+  var cs=claves.map(cliPor).filter(Boolean).sort(function(a,b){return b.jornadas-a.jornadas}),keep=cs[0].telefono;
+  var f=el_('div','ficha-j');f.appendChild(el_('h3','','Fusionar clientes'));f.appendChild(par((motivo?motivo+'. ':'')+'Elige cuál se conserva. Las reservas de los demás pasan a ese cliente y los otros se quitan de la base.','color:#b5afa6;font-size:.85rem;margin-bottom:.5rem'));
+  var lista=el_('div');
+  cs.forEach(function(c){var l=el_('label','pend-c');l.style.cursor='pointer';var r=document.createElement('input');r.type='radio';r.name='fus';r.checked=c.telefono===keep;r.onchange=function(){keep=c.telefono};l.appendChild(r);
+    var i=el_('div','pi');i.appendChild(el_('b','',(c.banda||'(sin banda)')));i.appendChild(el_('small','',c.contacto+' · '+(/^MAN-/.test(c.telefono)?'sin teléfono':'+'+c.telefono)+(c.correo?' · '+c.correo:'')+' · '+c.jornadas+' reservas'));l.appendChild(i);lista.appendChild(l)});
+  f.appendChild(lista);
+  var acc=el_('div','fila');acc.style.marginTop='10px';
+  acc.appendChild(btn('Fusionar',function(){var o=cs.map(function(c){return c.telefono}).filter(function(t){return t!==keep});var k=cliPor(keep);
+    confirmarSN('¿Fusionar '+o.length+' cliente'+(o.length>1?'s':'')+' en «'+(k.banda||k.contacto)+'»? Sus reservas pasan a ese cliente. No se puede deshacer.',function(){jrun('adminFusionarClientes',keep,o);d.hidden=true;aviso('Clientes fusionados ✔')},'Sí, fusionar')}));
+  if(motivo)acc.appendChild(btn('No son iguales',function(){FUS_IGN[claves.slice().sort().join('|')]=1;d.hidden=true;pintarCliJor()},'sec'));
+  acc.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
+}
+function elegirFusion(x){
+  var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);
+  var f=el_('div','ficha-j');f.appendChild(el_('h3','','Fusionar «'+(x.banda||x.contacto)+'» con…'));
+  var q=document.createElement('input');q.placeholder='Buscar cliente o banda';q.style.cssText='width:100%;margin:.4rem 0';f.appendChild(q);var l=el_('div');f.appendChild(l);
+  function pintaL(){l.textContent='';var t=q.value.trim().toLowerCase();(JOR.clientes||[]).filter(function(c){return c.telefono!==x.telefono&&(!t||(c.banda+' '+c.contacto+' '+c.telefono).toLowerCase().indexOf(t)>=0)}).slice(0,30).forEach(function(c){var b=el_('div','pend-c');b.style.cursor='pointer';var i=el_('div','pi');i.appendChild(el_('b','',c.banda||'(sin banda)'));i.appendChild(el_('small','',c.contacto+' · '+c.jornadas+' reservas'));b.appendChild(i);b.onclick=function(){modalFusion([x.telefono,c.telefono],'')};l.appendChild(b)})}
+  q.oninput=pintaL;pintaL();f.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));d.appendChild(f);
+}
+function avisoDuplicados(c){
+  var gs=(JOR.similares||[]).filter(function(g){return!FUS_IGN[g.claves.slice().sort().join('|')]&&g.claves.every(function(t){return cliPor(t)})});
+  if(!gs.length)return;
+  var b=el_('div','pend-ok');b.style.cssText='background:rgba(252,198,49,.12);color:#FCC631;margin:.2rem 0 .6rem';b.appendChild(el_('b','','🧩 '+gs.length+(gs.length===1?' posible cliente repetido':' posibles clientes repetidos')));
+  gs.forEach(function(g){var r=el_('div','fila');r.style.marginTop='.4rem';var nom=g.claves.map(function(t){var k=cliPor(t);return k.banda||k.contacto}).join('  ≈  ');r.appendChild(el_('span','',nom+' · '+g.motivo));r.lastChild.style.cssText='flex:1;font-weight:400;color:#ddd';r.appendChild(btn('Revisar',function(){modalFusion(g.claves,g.motivo)},'sec'));b.appendChild(r)});
+  c.insertBefore(b,c.firstChild);
 }
 function fichaCli(x){
   var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);
@@ -1521,8 +1554,9 @@ function formCli(x){
   campo('banda','Banda o proyecto *','text',true);campo('enlace','Enlace de Google Drive','url',true,'https://drive.google.com/…');
   var lc=el_('label','full chk');var ck=document.createElement('input');ck.type='checkbox';ck.checked=v.casa;ck.onchange=function(){v.casa=ck.checked};lc.appendChild(ck);lc.appendChild(document.createTextNode(' 🏠 Banda de la casa (reserva semanal): su horario no vence solo y puedes reagendar sin tope'));fm.appendChild(lc);f.appendChild(fm);
   var acc=el_('div','fila');acc.style.marginTop='10px';
-  acc.appendChild(btn('Guardar',function(){google.script.run.withSuccessHandler(function(){d.hidden=true;aviso('Cliente guardado');cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminGuardarCliente({clave:x.telefono||'',nombre:v.nombre,apellido:v.apellido,correo:v.correo,banda:v.banda,telefono:v.telefono,enlace:v.enlace,casa:v.casa})}));
+  acc.appendChild(btn('Guardar',function guardarCli(forzar){if(typeof forzar!=='boolean')forzar=false;google.script.run.withSuccessHandler(function(){d.hidden=true;aviso('Cliente guardado');cargarJor()}).withFailureHandler(function(e){var m=e.message||'Error';if(/SIMILAR:/.test(m)){confirmarSN(m.replace(/^.*SIMILAR: ?/,'')+' Si es el mismo, mejor cancela y usa «Fusionar»; si es otro, guarda igual.',function(){guardarCli(true)},'Es otro, guardar')}else aviso(m)}).adminGuardarCliente({forzar:forzar,clave:x.telefono||'',nombre:v.nombre,apellido:v.apellido,correo:v.correo,banda:v.banda,telefono:v.telefono,enlace:v.enlace,casa:v.casa})}));
   if(x.telefono)acc.appendChild(btnDel('Eliminar','¿Quitar a '+(x.banda||x.contacto)+' de la base de clientes? Sus reservas anteriores se conservan.',function(){google.script.run.withSuccessHandler(function(){d.hidden=true;aviso('Cliente eliminado');cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminEliminarCliente(x.telefono)}));
+  if(x.telefono)acc.appendChild(btn('🧩 Fusionar con otro…',function(){elegirFusion(x)},'sec'));
   acc.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
 }
 var LISTA_INICIAL='Agustin Caceres;Banda;+56990830392\nAlejandro Hernandez;Don Carpo - Homenaje Papp;+56940261434\nAlfonso Oneto;La Gran America JR;+56965353500\nAlvaro Vasquez;Retro Cumbia;+56991452739\nAlvaro Zavala;LIES;+56959797928\nByron Malvino;Skaro Vivir;+56947423849\nCarlos Higuera;Los Bufones de la Corte;+56999495693\nCatalina Aldana;Minainus;+56961136048\nCesar Vidal;Malditos Calavera;+56984585703\nClaudio Godoy;Magnecio;+56945170332\nClaudio Maulen;Grupo Karay;+56977439882\nCristian Toro;Seventh Son (Iron Maiden);+56935055408\nDaniel Tobar;La Mafia;+56929754935\nDiego Candia;Tiempos de Perro;+56967853155\nDiego Rioseco;Jackmosis;+56978734568\nFelipe Huerta;Funky Marranos (Chancho e;+56954284803\nFelipe Montero;Saeskin;+56952065140\nGabriel Villagran;Las Bandoleras y sus Band;+56959741569\nIgnacio Flores;Un Whisky por Charly;+56973983639\nJaime Garcia;CDM;+56966300794\nJean Gardy Inocent;Melody Band;+56938773394\nJob Eulices;V2Nird;+56973178921\nJorge Puchi;NERCON;+56975667320\nJose Luis Villagran;MIG-21;+56933202000\nJuan Ordoñes;CDM;+56995276030\nLuis Tapia;Katary;+56971418262\nMathias Arroyo;Los Amigos de tu Mamá;+56922265382\nMauricio Salinas;Los Reggaeseros;+56942613361\nOsvaldo Lizama;Sismo;+56984332396\nPedro Maldonado;V.H.S.;+56997902146\nPhilipe Llulle;Full Revolt;+56953192992\nRoberto Alegria;Post Bruma;+56985197647\nSergio Chamorro;J Matt y su Banda;+56997775054\nVicente Espinoza;Mapochossippi;+56997294715\nVictor Cuminao;Los Costeros del Sur;+56954706687\nYonny Montecinos;Jackmosis;+56987507782';

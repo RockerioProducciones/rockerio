@@ -25,7 +25,7 @@ function paginaAdmin_() {
 
 /** Cuando es true, adminResumen() no arma el resumen completo (lo usan las acciones rápidas de «Reservas y jornadas»). */
 var LIGERO_ = false;
-var RAPIDAS_ = ['adminCambiarAdicionales', 'adminAgregarAdicional','adminCambiarEstado', 'adminReagendar', 'adminAjustarReserva', 'adminMarcarCobro', 'adminMarcarCortesia', 'adminAjustarRetencion', 'adminGuardarEnlace', 'adminEliminarReserva', 'adminCuadrarReservas', 'adminDesbloquear'];
+var RAPIDAS_ = ['adminFusionarClientes', 'adminCambiarAdicionales', 'adminAgregarAdicional','adminCambiarEstado', 'adminReagendar', 'adminAjustarReserva', 'adminMarcarCobro', 'adminMarcarCortesia', 'adminAjustarRetencion', 'adminGuardarEnlace', 'adminEliminarReserva', 'adminCuadrarReservas', 'adminDesbloquear'];
 /** Ejecuta una acción sobre reservas y devuelve solo «Reservas y jornadas» (una llamada en vez de dos: se nota mucho menos la espera). */
 function adminRapido(nombre, args) {
   exigirAdmin_();
@@ -439,6 +439,11 @@ function adminGuardarCliente(d) {
     });
     if (clave && fila < 0) throw new Error('Cliente no encontrado.');
     if (dup >= 0) throw new Error('Ya existe un cliente con ese ' + (tel && String(datos[dup][0]) === tel ? 'teléfono' : 'correo') + ' (' + (datos[dup][2] || 'sin banda') + ').');
+    if (fila < 0 && !d.forzar) { // aviso antes de crear un cliente que parece repetido
+      var nbN = normBanda_(banda), par = null;
+      datos.forEach(function (r) { var nb = normBanda_(r[2]); if (!par && ((nbN && nb === nbN) || (nbN.length >= 5 && nb.length >= 5 && distancia1_(nbN, nb)))) par = r; });
+      if (par) throw new Error('SIMILAR: Ya existe «' + (par[2] || 'sin banda') + '» (parece la misma banda). ¿Es otro cliente distinto?');
+    }
     var f;
     if (fila < 0) {
       var llave = tel || ('MAN-' + Utilities.formatDate(new Date(), 'America/Santiago', 'yyMMddHHmmss') + Math.floor(Math.random() * 90 + 10));
@@ -494,6 +499,93 @@ function adminImportarClientes(filas) {
 }
 
 /** Quita el cliente de la base. Sus reservas pasadas se conservan en la hoja Reservas. */
+/* ---------- Clientes repetidos: detectar y fusionar ---------- */
+
+/** Nombre de banda comparable: sin mayúsculas, tildes, signos ni palabras de relleno («Banda Sismo» = «sismo»). */
+function normBanda_(v) {
+  var t = String(v || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, ' ');
+  var w = t.split(/\s+/).filter(function (x) { return x && ['banda', 'la', 'el', 'los', 'las', 'grupo', 'proyecto', 'de', 'the'].indexOf(x) < 0; });
+  return w.join('');
+}
+function distancia1_(a, b) { // ¿difieren en a lo más una letra? (typos)
+  if (Math.abs(a.length - b.length) > 1) return false;
+  var i = 0, j = 0, d = 0;
+  while (i < a.length && j < b.length) {
+    if (a.charAt(i) === b.charAt(j)) { i++; j++; continue; }
+    if (++d > 1) return false;
+    if (a.length === b.length) { i++; j++; } else if (a.length > b.length) i++; else j++;
+  }
+  return d + (a.length - i) + (b.length - j) <= 1;
+}
+/** Grupos de clientes que parecen ser la misma persona o banda: mismo correo, mismo teléfono (últimos 8 dígitos) o banda igual/casi igual. */
+function agruparSimilares_(cl) {
+  var n = cl.length, padre = [], motivo = {};
+  for (var i = 0; i < n; i++) padre[i] = i;
+  function raiz(x) { while (padre[x] !== x) { padre[x] = padre[padre[x]]; x = padre[x]; } return x; }
+  function unir(a, b, m) { var ra = raiz(a), rb = raiz(b); if (ra !== rb) { padre[rb] = ra; } motivo[raiz(a)] = (motivo[raiz(a)] || m); }
+  var nb = cl.map(function (c) { return normBanda_(c.banda); }), tel = cl.map(function (c) { return /^MAN-/.test(c.telefono) ? '' : String(c.telefono).replace(/\D/g, '').slice(-8); });
+  for (var a = 0; a < n; a++) for (var b = a + 1; b < n; b++) {
+    if (cl[a].casa !== cl[b].casa && false) continue;
+    if (tel[a] && tel[a] === tel[b]) unir(a, b, 'Mismo teléfono');
+    else if (cl[a].correo && cl[a].correo.toLowerCase() === cl[b].correo.toLowerCase()) unir(a, b, 'Mismo correo');
+    else if (nb[a] && nb[a] === nb[b]) unir(a, b, 'Misma banda');
+    else if (nb[a].length >= 5 && nb[b].length >= 5 && distancia1_(nb[a], nb[b])) unir(a, b, 'Banda casi igual (posible error de tipeo)');
+  }
+  var grupos = {};
+  for (var k = 0; k < n; k++) { var r = raiz(k); (grupos[r] = grupos[r] || []).push(k); }
+  return Object.keys(grupos).filter(function (r) { return grupos[r].length > 1; }).map(function (r) {
+    return { motivo: motivo[r] || 'Parecidos', claves: grupos[r].map(function (i) { return cl[i].telefono; }) };
+  });
+}
+
+/** Fusiona clientes repetidos en uno solo: las reservas (y planes) de los repetidos pasan al cliente que se conserva, y los repetidos se quitan de la base.
+ *  destino: clave (teléfono) del cliente que queda; origenes: claves de los que se fusionan. Datos vacíos del que queda se completan con los de los otros. */
+function adminFusionarClientes(destino, origenes) {
+  exigirAdmin_();
+  destino = String(destino || ''); origenes = (origenes || []).map(String).filter(function (o) { return o && o !== destino; });
+  if (!destino || !origenes.length) throw new Error('Elige el cliente que se conserva y al menos uno para fusionar.');
+  return conBloqueo_(function () {
+    var ss = abrirBd_(), sc = ss.getSheetByName(HOJAS.clientes), n = sc.getLastRow();
+    var datos = n > 1 ? sc.getRange(2, 1, n - 1, 11).getValues() : [], idx = {};
+    datos.forEach(function (r, i) { idx[String(r[0])] = i; });
+    if (idx[destino] === undefined) throw new Error('El cliente que se conserva no está en la base.');
+    var fd = idx[destino] + 2, D = datos[idx[destino]], telReal = /^MAN-/.test(destino) ? '' : destino;
+    var reservas = 0, filasBorrar = [];
+    origenes.forEach(function (o) {
+      if (idx[o] === undefined) return;
+      var O = datos[idx[o]];
+      // completa lo que le falte al que se conserva
+      if (!D[1] && O[1]) { D[1] = O[1]; sc.getRange(fd, 2).setValue(O[1]); }
+      if (!D[7] && O[7]) { D[7] = O[7]; sc.getRange(fd, 8).setValue(O[7]); }
+      if (!telReal && !/^MAN-/.test(o)) telReal = o;
+      if (String(O[10] || '').toUpperCase() === 'SI' && String(D[10] || '').toUpperCase() !== 'SI') { D[10] = 'SI'; sc.getRange(fd, 11).setValue('SI'); }
+      D[4] = (Number(D[4]) || 0) + (Number(O[4]) || 0); sc.getRange(fd, 5).setValue(D[4]);
+      filasBorrar.push(idx[o] + 2);
+    });
+    // si el que queda no tenía teléfono real y un repetido sí, pasa a ser su clave
+    var claveFinal = destino;
+    if (/^MAN-/.test(destino) && telReal) { claveFinal = telReal; sc.getRange(fd, 1).setNumberFormat('@').setValue(telReal); }
+    var banda = String(sc.getRange(fd, 3).getValue() || ''), nombre = String(sc.getRange(fd, 4).getValue() || ''), correo = String(sc.getRange(fd, 2).getValue() || '');
+    // reservas y planes de los repetidos pasan al cliente que se conserva
+    var sr = ss.getSheetByName(HOJAS.reservas), nr = sr.getLastRow();
+    if (nr > 1) {
+      var tr = sr.getRange(2, RES.telefono, nr - 1, 1).getValues(), cambia = {};
+      tr.forEach(function (r, i) { var t = String(r[0]); if (origenes.indexOf(t) >= 0 || (t === destino && claveFinal !== destino)) cambia[i + 2] = true; });
+      Object.keys(cambia).forEach(function (f) {
+        sr.getRange(Number(f), RES.banda).setValue(textoSeguro_(banda)); sr.getRange(Number(f), RES.contacto).setValue(textoSeguro_(nombre));
+        sr.getRange(Number(f), RES.telefono).setNumberFormat('@').setValue(claveFinal); if (correo) sr.getRange(Number(f), RES.correo).setValue(textoSeguro_(correo)); reservas++;
+      });
+    }
+    var sp = ss.getSheetByName(HOJAS.planes), np = sp ? sp.getLastRow() : 0;
+    if (np > 1) sp.getRange(2, 1, np - 1, 8).getValues().forEach(function (r, i) {
+      var t = String(r[6]); if (origenes.indexOf(t) >= 0 || (t === destino && claveFinal !== destino)) { sp.getRange(i + 2, 5, 1, 3).setValues([[textoSeguro_(banda), textoSeguro_(nombre), claveFinal]]); sp.getRange(i + 2, 7).setNumberFormat('@'); }
+    });
+    filasBorrar.sort(function (a, b) { return b - a; }).forEach(function (f) { sc.deleteRow(f); });
+    registrarCambio_('Fusión de clientes', banda, origenes.join(', '), 'fusionados en ' + claveFinal + ' (' + reservas + ' reservas)');
+    return { ok: true, reservas: reservas };
+  });
+}
+
 function adminEliminarCliente(clave) {
   exigirAdmin_();
   return conBloqueo_(function () {
@@ -773,7 +865,7 @@ function adminJornadas() {
     if (r.fecha && r.fecha >= hoy && (!c.proxima || r.fecha < c.proxima)) c.proxima = r.fecha;
   });
   var clientes = Object.keys(porTel).map(function (t) { return porTel[t]; }).sort(function (a, b) { return b.jornadas - a.jornadas || (a.banda < b.banda ? -1 : 1); });
-  return { hoy: hoy, reservas: reservas, bloqueos: bloqueos, inhabiles: inhabiles, clientes: clientes, estados: ESTADOS, wa: waDatos_(), maxReag: getCfg_().reagendoCambios, vivo: { dias: (Reglas.VIVO_DIAS[getCfg_().vivoDias] || [5, 6]), diasTxt: getCfg_().vivoDias, desde: getCfg_().vivoDesde, hasta: getCfg_().vivoHasta, precio: getCfg_().vivoPrecio }, precios: { raw: getCfg_().precioRaw, video: getCfg_().precioVideo, equipo: getCfg_().precioExtraEquipo, equipoModo: getCfg_().extraModo } };
+  return { hoy: hoy, reservas: reservas, bloqueos: bloqueos, inhabiles: inhabiles, clientes: clientes, similares: agruparSimilares_(cl), estados: ESTADOS, wa: waDatos_(), maxReag: getCfg_().reagendoCambios, vivo: { dias: (Reglas.VIVO_DIAS[getCfg_().vivoDias] || [5, 6]), diasTxt: getCfg_().vivoDias, desde: getCfg_().vivoDesde, hasta: getCfg_().vivoHasta, precio: getCfg_().vivoPrecio }, precios: { raw: getCfg_().precioRaw, video: getCfg_().precioVideo, equipo: getCfg_().precioExtraEquipo, equipoModo: getCfg_().extraModo } };
 }
 
 
