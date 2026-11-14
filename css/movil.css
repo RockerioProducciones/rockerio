@@ -271,3 +271,11 @@ html .hero h1,html.rd body .hero h1{font-family:'Big Shoulders Display','Bebas N
 #vivo .vv-org{margin:0}#vivo .vv-cta{margin-top:1.2rem;display:flex;flex-wrap:wrap;gap:.6rem}
 @media(max-width:720px){#vivo .vv-linea{grid-template-columns:1fr}}
 #vivo .vv-grid .caja,#vivo .vv-org{border-color:rgba(6,182,212,.45);background:linear-gradient(160deg,rgba(6,182,212,.07),var(--panel,#141312))}
+
+/* Rockerío en vivo: mismo estilo «holográfico» de los planes mensuales, en cian */
+#vivo .vv-badge{background:rgba(6,182,212,.2);color:#67e8f9;margin:.2rem 0 .4rem}
+#vivo .vv-fase,#vivo .vv-grid .caja,#vivo .vv-org{border:2px solid #06b6d4!important;background:linear-gradient(150deg,rgba(6,182,212,.17),rgba(99,102,241,.08) 62%,rgba(20,19,18,.9))!important}
+#vivo .vv-show{background:linear-gradient(150deg,rgba(6,182,212,.30),rgba(99,102,241,.18) 70%,rgba(20,19,18,.9))!important;box-shadow:0 0 26px rgba(6,182,212,.35)}
+#vivo .vv-grid .caja b{color:#67e8f9}
+#vivo .vv-cta .btn{background:linear-gradient(135deg,#22d3ee,#06b6d4 55%,#6366f1);color:#04161b;border:0;box-shadow:0 8px 22px rgba(6,182,212,.35)}
+#vivo .vv-cta .btn.sec{background:transparent;color:#67e8f9;border:2px solid #06b6d4;box-shadow:none}
