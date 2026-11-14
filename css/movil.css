@@ -247,7 +247,7 @@ html,body{overflow-x:clip}
 .mic-fl-i{left:4px}.mic-fl-d{right:4px}
 .mic-pts{display:flex;justify-content:center;gap:.35rem}
 .mic-pt{width:9px;height:9px;padding:0;border:0;border-radius:50%;background:#555;cursor:pointer}.mic-pt.on{background:var(--oro)}
-#vivo-info{display:flex;flex-wrap:wrap;gap:.5rem;margin:.8rem 0}#vivo-info span{font-size:.9rem;border-radius:999px;border:1px solid #22c55e;color:#22c55e;padding:.35rem .9rem}
+#vivo-info{display:flex;flex-wrap:wrap;gap:.5rem;margin:.8rem 0}#vivo-info span{font-size:.9rem;border-radius:999px;border:1px solid #06b6d4;color:#06b6d4;padding:.35rem .9rem}
 .mic-main{display:block!important;overflow:hidden}
 .mic-main>img{position:absolute!important;inset:0;width:100%!important;height:100%!important;max-width:none!important;object-fit:cover;display:block}
 .mic-main>.mic-ico{position:absolute;inset:0;display:grid;place-items:center}
@@ -264,9 +264,10 @@ html .hero h1,html.rd body .hero h1{font-family:'Big Shoulders Display','Bebas N
 #vivo .vv-fase{border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:.9rem 1rem;background:rgba(255,255,255,.03);display:flex;flex-direction:column;gap:.3rem}
 #vivo .vv-fase .vv-h{font:700 .8rem Inter,sans-serif;color:#9a948b;letter-spacing:.06em}
 #vivo .vv-fase b{font-size:1.05rem}#vivo .vv-fase small{color:#b5afa6;line-height:1.4}
-#vivo .vv-show{border-color:var(--oro,#e39a2d);background:rgba(227,154,45,.12)}#vivo .vv-show .vv-h,#vivo .vv-show b{color:var(--oro,#e39a2d)}
-#vivo .vv-t{margin:1.4rem 0 .6rem;color:var(--oro,#e39a2d);text-transform:uppercase;font-size:.95rem;letter-spacing:.06em}
+#vivo .vv-show{border-color:#06b6d4;background:rgba(6,182,212,.12)}#vivo .vv-show .vv-h,#vivo .vv-show b{color:#06b6d4}
+#vivo .vv-t{margin:1.4rem 0 .6rem;color:#06b6d4;text-transform:uppercase;font-size:.95rem;letter-spacing:.06em}
 #vivo .vv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.7rem}
 #vivo .vv-grid .caja{margin:0}#vivo .vv-grid .caja b{display:block;margin-bottom:.3rem}#vivo .vv-grid .caja p{margin:0;color:#d6d0c7;line-height:1.45;font-size:.95rem}
 #vivo .vv-org{margin:0}#vivo .vv-cta{margin-top:1.2rem;display:flex;flex-wrap:wrap;gap:.6rem}
 @media(max-width:720px){#vivo .vv-linea{grid-template-columns:1fr}}
+#vivo .vv-grid .caja,#vivo .vv-org{border-color:rgba(6,182,212,.45);background:linear-gradient(160deg,rgba(6,182,212,.07),var(--panel,#141312))}
