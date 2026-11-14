@@ -25,7 +25,7 @@ function paginaAdmin_() {
 
 /** Cuando es true, adminResumen() no arma el resumen completo (lo usan las acciones rápidas de «Reservas y jornadas»). */
 var LIGERO_ = false;
-var RAPIDAS_ = ['adminAgregarAdicional','adminCambiarEstado', 'adminReagendar', 'adminAjustarReserva', 'adminMarcarCobro', 'adminMarcarCortesia', 'adminAjustarRetencion', 'adminGuardarEnlace', 'adminEliminarReserva', 'adminCuadrarReservas', 'adminDesbloquear'];
+var RAPIDAS_ = ['adminCambiarAdicionales', 'adminAgregarAdicional','adminCambiarEstado', 'adminReagendar', 'adminAjustarReserva', 'adminMarcarCobro', 'adminMarcarCortesia', 'adminAjustarRetencion', 'adminGuardarEnlace', 'adminEliminarReserva', 'adminCuadrarReservas', 'adminDesbloquear'];
 /** Ejecuta una acción sobre reservas y devuelve solo «Reservas y jornadas» (una llamada en vez de dos: se nota mucho menos la espera). */
 function adminRapido(nombre, args) {
   exigirAdmin_();
@@ -514,6 +514,61 @@ function adminEliminarCliente(clave) {
  * Suma a una reserva ya creada el material en bruto o el video (con su precio de la configuración).
  * Con «pagado» el monto entra como pagado: sube el total y el abono, y el saldo queda igual.
  */
+var EQUIPOS_ARRIENDO_ = ['Set de platos Kingdo SN8 (B8)', 'Bajo eléctrico Epiphone Thunderbird Pro IV', 'Guitarra eléctrica Squier Stratocaster Vintage Modified ’70', 'Guitarra electroacústica Takamine', 'Pedalera multiefecto para bajo', 'Pedalera multiefecto para guitarra'];
+
+/**
+ * Agregar o quitar adicionales de una reserva con un clic (equipos de arriendo, video, material en bruto).
+ * d = { equipos: [nombres], video: bool, raw: bool } con el estado FINAL deseado. Ajusta total y saldo (el abono no cambia).
+ */
+function adminCambiarAdicionales(codigo, d) {
+  exigirAdmin_();
+  d = d || {};
+  return conBloqueo_(function () {
+    var cfg = getCfg_(), rf = ajustarFilaBase_(codigo), sh = rf.sh, f = rf.f, r = sh.getRange(f, 1, 1, ENCABEZADO_RESERVAS.length).getValues()[0];
+    var est = estadoNorm_(r[RES.estado - 1]);
+    if (est === EST.NO_ASISTE || est === EST.ANULADA) throw new Error('Esta reserva está cerrada: no admite cambios de adicionales.');
+    if (r[RES.cortesia - 1] === 'SI') throw new Error('Es una cortesía: no admite cambios de adicionales.');
+    var horas = Number(r[RES.horas - 1]) || 1, esEnsayo = String(r[RES.servicio - 1]) === ETIQUETA_SERVICIO.ensayo;
+    var delta = 0, partes = [];
+    // equipos de arriendo (solo sala de ensayo)
+    if (d.equipos !== undefined) {
+      if (!esEnsayo) throw new Error('Los equipos de arriendo son solo para la sala de ensayo.');
+      var nuevos = [];
+      (d.equipos || []).forEach(function (n) { n = String(n); if (EQUIPOS_ARRIENDO_.indexOf(n) >= 0 && nuevos.indexOf(n) < 0) nuevos.push(n); });
+      var antes = Number(r[RES.extras - 1]) || 0, unidad = cfg.precioExtraEquipo * (cfg.extraModo === 'hora' ? horas : 1), dEq = (nuevos.length - antes) * unidad;
+      {
+        var com = String(r[RES.comentarios - 1] || '').replace(/\s*\[Arriendos:[^\]]*\]/g, '').replace(/\s*·?\s*Equipos: [^·\[]*/g, '').trim();
+        sh.getRange(f, RES.comentarios).setValue(textoSeguro_((com + (nuevos.length ? ' · Equipos: ' + nuevos.join(', ') : '')).replace(/^\s*·\s*/, '').slice(0, 500)));
+        sh.getRange(f, RES.extras).setValue(nuevos.length);
+        sh.getRange(f, RES.extrasM).setValue(Math.max(0, (Number(r[RES.extrasM - 1]) || 0) + dEq));
+        delta += dEq; r[RES.extrasM - 1] = Math.max(0, (Number(r[RES.extrasM - 1]) || 0) + dEq);
+        if (nuevos.length !== antes) partes.push('equipos ' + antes + ' → ' + nuevos.length);
+      }
+    }
+    var orig = null; try { orig = JSON.parse(String(r[RES.original - 1] || '')); } catch (e) { orig = null; }
+    var dEquipo = delta, dV = 0, dR = 0;
+    [['video', RES.video, RES.videoM, cfg.precioVideo, 'v'], ['raw', RES.raw, RES.rawM, cfg.precioRaw, 'r']].forEach(function (x) {
+      if (d[x[0]] === undefined) return;
+      var quiere = !!d[x[0]], tiene = String(r[x[1] - 1]) === 'SI';
+      if (quiere === tiene) return;
+      var monto = quiere ? (Math.round(Number(x[3])) || 0) : (Number(r[x[2] - 1]) || Math.round(Number(x[3])) || 0), signo = quiere ? 1 : -1;
+      sh.getRange(f, x[1]).setValue(quiere ? 'SI' : 'NO'); sh.getRange(f, x[2]).setValue(quiere ? (Number(r[x[2] - 1]) || 0) + monto : 0);
+      delta += signo * monto; if (x[4] === 'v') dV = signo * monto; else dR = signo * monto;
+      partes.push((quiere ? '+ ' : '− ') + (x[0] === 'video' ? 'video' : 'material en bruto'));
+    });
+    if (!delta && !partes.length && d.equipos === undefined) return { ok: true };
+    var total = Math.max(0, (Number(r[RES.total - 1]) || 0) + delta), abono = Number(r[RES.abono - 1]) || 0;
+    sh.getRange(f, RES.total).setValue(total); sh.getRange(f, RES.saldo).setValue(Math.max(0, total - abono));
+    if (orig && typeof orig.t === 'number') {
+      orig.t += delta; orig.e = (Number(orig.e) || 0) + dEquipo; orig.v = (Number(orig.v) || 0) + dV; orig.r = (Number(orig.r) || 0) + dR;
+      sh.getRange(f, RES.original).setValue(JSON.stringify(orig));
+      if (Number(r[RES.ajuste - 1]) || 0) ajustarFila_(codigo, { descuento: Number(r[RES.ajuste - 1]), nota: String(r[RES.notaAjuste - 1] || '') });
+    }
+    registrarCambio_('Adicionales de la reserva', String(codigo) + ' · ' + String(r[RES.banda - 1]) + ' · ' + (partes.join(', ') || 'equipos') + ' · total ' + Reglas.clp(total), '', '');
+    return { ok: true };
+  });
+}
+
 function adminAgregarAdicional(codigo, d) {
   exigirAdmin_();
   d = d || {};
@@ -718,7 +773,7 @@ function adminJornadas() {
     if (r.fecha && r.fecha >= hoy && (!c.proxima || r.fecha < c.proxima)) c.proxima = r.fecha;
   });
   var clientes = Object.keys(porTel).map(function (t) { return porTel[t]; }).sort(function (a, b) { return b.jornadas - a.jornadas || (a.banda < b.banda ? -1 : 1); });
-  return { hoy: hoy, reservas: reservas, bloqueos: bloqueos, inhabiles: inhabiles, clientes: clientes, estados: ESTADOS, wa: waDatos_(), maxReag: getCfg_().reagendoCambios, vivo: { dias: (Reglas.VIVO_DIAS[getCfg_().vivoDias] || [5, 6]), diasTxt: getCfg_().vivoDias, desde: getCfg_().vivoDesde, hasta: getCfg_().vivoHasta, precio: getCfg_().vivoPrecio }, precios: { raw: getCfg_().precioRaw, video: getCfg_().precioVideo } };
+  return { hoy: hoy, reservas: reservas, bloqueos: bloqueos, inhabiles: inhabiles, clientes: clientes, estados: ESTADOS, wa: waDatos_(), maxReag: getCfg_().reagendoCambios, vivo: { dias: (Reglas.VIVO_DIAS[getCfg_().vivoDias] || [5, 6]), diasTxt: getCfg_().vivoDias, desde: getCfg_().vivoDesde, hasta: getCfg_().vivoHasta, precio: getCfg_().vivoPrecio }, precios: { raw: getCfg_().precioRaw, video: getCfg_().precioVideo, equipo: getCfg_().precioExtraEquipo, equipoModo: getCfg_().extraModo } };
 }
 
 
@@ -797,6 +852,9 @@ function ajustarFila_(codigo, d) {
     sh.getRange(f, RES.base, 1, 4).setValues([[b, e, v, rw]]);
     sh.getRange(f, RES.ajuste, 1, 3).setValues([[desc, textoSeguro_(String(d.nota || '').slice(0, 200)), JSON.stringify(orig)]]);
     if (d.finalizar && estado !== EST.FINALIZADA) { sh.getRange(f, RES.estado).setValue(EST.FINALIZADA); sincronizarEstado_(sh, f); }
+    if (d.finalizar && d.medio && MEDIOS_PAGO.indexOf(String(d.medio)) >= 0 && r[RES.cortesia - 1] !== 'SI') { // el saldo se cobró al finalizar: queda registrado el medio de pago
+      sh.getRange(f, RES.cobro, 1, 2).setValues([['', String(d.medio)]]); sh.getRange(f, RES.fechaPago).setValue(fechaHora_(ahoraChile_().fecha, 0));
+    }
     return { sh: sh, f: f };
 }
 

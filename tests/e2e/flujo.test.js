@@ -868,5 +868,19 @@ t('una reserva anulada que se reactiva con abono vuelve a ocupar el horario (y n
   assert.ok(/Todas las reservas|Repuestas/.test(g.admin('adminRepararAgenda')), 'la revisión de agenda responde');
 });
 
+t('adicionales con un clic: agregar y quitar bajo/video/material ajusta total y saldo y vuelve al original', () => {
+  const r = g.post(sol({ fecha: sumar(f3, 10), inicio: 11, horas: 2, telefono: '56977776666', banda: 'Solo platos', nombre: 'Pablo Rey', correo: 'p@p.cl' })); assert.ok(r.ok, JSON.stringify(r));
+  const ver = () => g.admin('adminJornadas').reservas.find((q) => q.codigo === r.codigo);
+  const t0 = ver().total, s0 = ver().saldo;
+  g.admin('adminCambiarAdicionales', r.codigo, { equipos: ['Bajo eléctrico Epiphone Thunderbird Pro IV'] });
+  let x = ver(); assert.ok(x.total > t0, 'el bajo suma al total'); assert.strictEqual(x.saldo - s0, x.total - t0);
+  g.admin('adminCambiarAdicionales', r.codigo, { video: true, raw: true });
+  x = ver(); assert.ok(x.video && x.raw && x.total > t0);
+  g.admin('adminCambiarAdicionales', r.codigo, { equipos: [], video: false, raw: false });
+  x = ver(); assert.strictEqual(x.total, t0, 'quitar todo restaura el total'); assert.strictEqual(x.saldo, s0);
+  g.admin('adminCambiarEstado', r.codigo, 'Anulada');
+  assert.throws(() => g.admin('adminCambiarAdicionales', r.codigo, { video: true }));
+});
+
 
 console.log('\n' + ok + ' pasos correctos, ' + fallas + ' con falla.');

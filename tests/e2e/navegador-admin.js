@@ -69,7 +69,10 @@ const { sembrar } = require('./demo.js');
       await p.screenshot({ path: 'j-calendario.png', fullPage: true });
       await p.locator('.cuad .ev:not(.bloq)').first().click(); await p.waitForSelector('.ficha-j');
       const ft = await p.locator('.ficha-j').innerText(); ok(/WhatsApp/.test(ft) && /Saldo/.test(ft) && /@/.test(ft), 'la ficha de la jornada muestra contacto, correo y montos');
-      ok(/Cobro del saldo/.test(ft) && /Cortesía/.test(ft), 'la ficha tiene cobro del saldo y cortesía'); ok(await p.locator('.ficha-j .wa-btns button').count() >= 6, 'hay un botón por cada mensaje de WhatsApp');
+      ok(await p.locator('.ficha-j .pasos-pago .pp').count() === 3, 'estado de pago en tres pasos'); ok(await p.locator('.ficha-j .ad-chips .ad').count() >= 2, 'adicionales con un clic');
+      await p.screenshot({ path: 'j-ficha-nueva.png' }); await p.evaluate(() => document.querySelectorAll('.ficha-j details').forEach((d) => { d.open = true; }));
+      const ft2 = await p.locator('.ficha-j').innerText();
+      ok(/Cobro del saldo/.test(ft2) && /Cortesía/.test(ft2), 'la ficha tiene cobro del saldo y cortesía'); ok(await p.locator('.ficha-j .wa-btns button').count() >= 6, 'hay un botón por cada mensaje de WhatsApp');
       await p.screenshot({ path: 'j-ficha.png' }); await p.keyboard.press('Escape');
       // bloqueo personal desde el día
       const diaConEv = p.locator('.cuad .dia', { has: p.locator('.ev.con, .ev.sin') }).first(); await diaConEv.click(); await p.waitForSelector('#jdia .ses');
