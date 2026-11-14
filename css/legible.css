@@ -13,3 +13,19 @@ body.con-vistas[data-vista]:not([data-vista="inicio"]) .menu .tarjeta::before{wi
 /* pestañas de ficha: quedan visibles bajo la barra fija, sin cortarse */
 .ficha-tabs{top:105px!important;padding-top:.5rem!important}
 }
+
+/* Código de colores por servicio en el portal de reservas: sala de ensayo = amarillo, estudio de grabación = rojo (como en el calendario del portal) */
+.wizard{--srv:#f5b400;--srv-t:#1a1204}
+.wizard:has(input[name=servicio][value=grabacion]:checked){--srv:#ef4444;--srv-t:#fff}
+.wizard{--oro:var(--srv)}
+.wizard .btn,.wizard #enviar{background:linear-gradient(180deg,color-mix(in srgb,var(--srv) 86%,#fff),var(--srv))!important;color:var(--srv-t)!important;box-shadow:0 4px 18px color-mix(in srgb,var(--srv) 35%,transparent)!important}
+.wizard #servicios .opcion:has(input[value=ensayo]){border-left:5px solid #f5b400}
+.wizard #servicios .opcion:has(input[value=grabacion]){border-left:5px solid #ef4444}
+.wizard #servicios .opcion:has(input[value=ensayo]) b,.wizard #servicios .opcion:has(input[value=ensayo]) small{color:#f5b400}
+.wizard #servicios .opcion:has(input[value=grabacion]) b,.wizard #servicios .opcion:has(input[value=grabacion]) small{color:#ef4444}
+.wizard #servicios .opcion:has(input[value=ensayo]:checked){border-color:#f5b400;background:rgba(245,180,0,.10);box-shadow:0 0 0 1px #f5b400 inset}
+.wizard #servicios .opcion:has(input[value=grabacion]:checked){border-color:#ef4444;background:rgba(239,68,68,.10);box-shadow:0 0 0 1px #ef4444 inset}
+
+/* Rockerío en vivo: títulos en el amarillo del sitio */
+#vivo .vv-fase b,#vivo .vv-show b,#vivo .vv-grid .caja b{color:var(--oro,#FCC631)}
+.wizard button.on,.wizard .segm button.on{color:var(--srv-t)!important}
