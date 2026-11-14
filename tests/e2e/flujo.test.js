@@ -187,6 +187,7 @@ t('admin sube un audio de micrófono: queda en Drive y visible en la ficha; rech
   assert.throws(() => g.admin('adminSubirAudio', { grupo: 'X', tipo: 'Otro', etiqueta: 'y', b64: Buffer.from('MZ.exe binario').toString('base64') }), /audio/);
 });
 t('honor rechaza enlaces no https y datos inválidos', () => {
+  assert.strictEqual(g.post({ accion: 'honor', banda: 'Canal Yt', telefono: '56911119999', correo: 'y@y.cl', resena: 'Texto largo suficiente aquí', youtube: 'https://www.youtube.com/@lugozyrockandroll' }).ok, true);
   assert.strictEqual(g.post({ accion: 'honor', banda: 'X', telefono: '56922221111', correo: 'd@d.cl', resena: 'texto largo suficiente', logo: 'javascript:alert(1)' }).ok, false);
 });
 t('cotización: se registra, se responde con monto y se envía por correo', () => {

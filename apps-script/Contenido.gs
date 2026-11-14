@@ -21,7 +21,10 @@ function urlHttps_(v) {
 function ytUrl_(v) {
   var s = String(v || '').trim();
   var m = /^https:\/\/(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?(?:[^#\s]*&)?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})(?:[?&#]\S*)?$/.exec(s);
-  return m ? 'https://www.youtube.com/watch?v=' + m[1] : '';
+  if (m) return 'https://www.youtube.com/watch?v=' + m[1];
+  /* También se aceptan canales y listas: youtube.com/@usuario, /channel/…, /c/…, /user/…, /playlist?list=… */
+  var c = /^https:\/\/(?:www\.|m\.)?youtube\.com\/(?:@[\w.\-%]{2,60}|(?:channel|c|user)\/[\w.\-%]{2,80}|playlist\?list=[\w-]{10,60})(?:[\/?#][^\s<>"'\\]*)?$/.exec(s);
+  return c ? s : '';
 }
 function instagram_(v) {
   var s = String(v || '').trim();

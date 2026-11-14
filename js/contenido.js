@@ -217,7 +217,7 @@
       var t = el('div'); t.appendChild(el('h3', '', h.banda)); if (h.genero) t.appendChild(el('span', 'chip-genero', h.genero)); cab.appendChild(t); k.appendChild(cab);
       if (h.formacion) { var fo = el('p', 'nota'); fo.appendChild(document.createTextNode('Formación: ')); fo.appendChild(el('strong', '', h.formacion)); k.appendChild(fo); }
       k.appendChild(el('p', '', h.resena));
-      var r = el('p', 'redes'), redes = (h.redes && h.redes.length) ? h.redes : [['Instagram', h.instagram], [etiq(h.enlace), h.enlace], ['YouTube', /^https:\/\/(?:www\.)?youtube\.com\/channel|\/@/.test(h.youtube || '') ? h.youtube : '']].map(function (x) { return { r: x[0], u: x[1] }; });
+      var r = el('p', 'redes'), redes = (h.redes && h.redes.length) ? h.redes : [['Instagram', h.instagram], [etiq(h.enlace), h.enlace], ['YouTube', /^https:\/\/(?:www\.|m\.)?youtube\.com\/(?:channel|c|user|playlist|@)/.test(h.youtube || '') ? h.youtube : '']].map(function (x) { return { r: x[0], u: x[1] }; });
       redes.forEach(function (x) { if (/^https:\/\//.test(x.u)) { var a = el('a', 'chip-red', x.r); a.href = x.u; a.target = '_blank'; a.rel = 'noopener nofollow'; r.appendChild(a); } });
       if (r.firstChild) k.appendChild(r);
       var vid = /^https:\/\/(?:www\.|m\.)?(?:youtube\.com\/watch\?(?:\S*&)?v=|youtu\.be\/)([\w-]{11})/.exec(h.ultimo || '') || /v=([\w-]{11})$/.exec(h.youtube || '');
