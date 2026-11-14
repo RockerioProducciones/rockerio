@@ -517,14 +517,14 @@ function adminEliminarMezclador(titulo) {
     return adminResumen();
   });
 }
-/** Entrega el audio de una pista (en base64) para que el navegador lo mezcle. Solo sirve archivos que estén en una fila visible de tipo Mezclador. */
+/** Entrega el audio de una pista (en base64) para que el navegador lo mezcle. Solo sirve archivos que estén en una fila visible de tipo Mezclador o Comparador. */
 function audioMezclador_(id) {
   id = String(id || '');
   if (!/^[\w-]{4,80}$/.test(id)) return { ok: false, error: 'Audio no válido.' };
   if (limiteGlobal_('audiomix', 1500)) return { ok: false, codigo: 'TASA', error: 'Hay muchas solicitudes ahora. Intenta más tarde.' };
   var sh = abrirBd_().getSheetByName(HOJAS.muestras), permitido = false;
   if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 6).getValues().forEach(function (r) {
-    if (String(r[1]) === 'Mezclador' && Reglas.aBool(r[5], false) && String(r[3]).indexOf('/d/' + id + '/') >= 0) permitido = true;
+    if ((String(r[1]) === 'Mezclador' || String(r[1]) === 'Comparador') && Reglas.aBool(r[5], false) && String(r[3]).indexOf('/d/' + id + '/') >= 0) permitido = true;
   });
   if (!permitido) return { ok: false, error: 'Audio no disponible.' };
   var bytes = DriveApp.getFileById(id).getBlob().getBytes(), t = tipoAudio_(bytes);

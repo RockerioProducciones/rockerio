@@ -44,24 +44,75 @@
     cont.appendChild(el('h3', 'comp-tit', 'Comparador A/B/C: Raw → Mix → Master'));
     cont.appendChild(el('p', 'comp-sub', 'Toca cualquiera de las 3 etapas para escuchar la evolución sonora de una misma canción en Rockerío Producciones: desde la captura en bruto de sala, la apertura estéreo y el balance de mezcla, hasta el punch comercial con compresión de bus analógica SSL.'));
     var sel = el('div', 'comp-canciones'), cuerpo = el('div'); cont.appendChild(sel); cont.appendChild(cuerpo);
+    var parar = null; // detiene el motor de la canción anterior
     function mostrar(g, btnSel) {
+      if (parar) { parar(); parar = null; }
       [].forEach.call(sel.children, function (b) { b.setAttribute('aria-pressed', b === btnSel ? 'true' : 'false'); });
       cuerpo.textContent = '';
       if (g.descripcion) cuerpo.appendChild(el('p', 'nota', g.descripcion));
-      var fila = el('div', 'comp-etapas'), play = el('div', 'comp-play'), actual = null, tiempo = 0;
+      var fila = el('div', 'comp-etapas'), play = el('div', 'comp-play'), tiempo = 0;
+      var items = ETAPAS.map(function (e) { return g.items.filter(function (x) { return x.etiqueta === e[3]; })[0] || null; });
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      var drive = function (u) { var m = /^https:\/\/drive\.google\.com\/file\/d\/([\w-]+)/.exec(u || ''); return m ? m[1] : ''; };
+      var sincro = !!Ctx && items.every(function (it) { return it && drive(it.enlace); }); // las 3 versiones deben ser audios de Drive
+      var M = null, cargando = false, pendiente = -1, botones = [];
+      function marcar(i) { botones.forEach(function (x, k) { if (x) x.setAttribute('aria-pressed', k === i ? 'true' : 'false'); }); }
+      /* Respaldo: reproductor incrustado (no sincroniza, pero sigue la posición aproximada) */
+      function viejo(i) {
+        var it = items[i], a0 = play.querySelector('audio'); if (a0) tiempo = a0.currentTime;
+        play.textContent = ''; var p = reproductor(it.enlace); play.appendChild(p);
+        if (p.tagName === 'AUDIO') { p.addEventListener('loadedmetadata', function () { try { p.currentTime = tiempo; } catch (x) { /* sin posición */ } p.play().catch(function () {}); }); p.preload = 'metadata'; }
+      }
+      /* Motor sincronizado: las 3 versiones suenan a la vez y solo se sube el volumen de la elegida */
+      function bajar(id) {
+        return RK.pedir(API + '?accion=audiomix&id=' + id).then(function (d) {
+          if (!d || !d.ok) throw new Error('audio'); var bin = atob(d.b64), n = bin.length, u = new Uint8Array(n); for (var k = 0; k < n; k++) u[k] = bin.charCodeAt(k); return u.buffer;
+        });
+      }
+      function decodificar(ctx, ab) { return new Promise(function (ok, mal) { var r = ctx.decodeAudioData(ab, ok, mal); if (r && r.then) r.then(ok, mal); }); }
+      function armar(ctx, bufs) {
+        var dur = Math.min.apply(null, bufs.map(function (b) { return b.duration; })), gains = bufs.map(function () { var gn = ctx.createGain(); gn.gain.value = 0; gn.connect(ctx.destination); return gn; });
+        var m = { ctx: ctx, dur: dur, gains: gains, fuentes: [], etapa: 0, sonando: false, desde: 0, t0: 0, raf: 0 };
+        var ui = el('div', 'comp-ctl');
+        var bp = el('button', 'mz-play', '▶'); bp.type = 'button'; bp.setAttribute('aria-label', 'Reproducir');
+        var rg = document.createElement('input'); rg.type = 'range'; rg.min = '0'; rg.max = '1000'; rg.value = '0'; rg.setAttribute('aria-label', 'Posición de la canción'); rg.className = 'comp-rg';
+        var tx = el('span', 'comp-tm', '0:00 / 0:00');
+        function fmt(t) { var mm = Math.floor(t / 60), ss = Math.floor(t % 60); return mm + ':' + (ss < 10 ? '0' : '') + ss; }
+        m.pos = function () { return m.sonando ? ((ctx.currentTime - m.t0) % dur) : m.desde; };
+        function pintar() { var p = m.pos(); tx.textContent = fmt(p) + ' / ' + fmt(dur); if (!m.arrastra) rg.value = String(Math.round(p / dur * 1000)); if (m.sonando) m.raf = requestAnimationFrame(pintar); }
+        m.detener = function () { m.fuentes.forEach(function (s) { try { s.stop(); } catch (x) { /* ya detenida */ } try { s.disconnect(); } catch (x) { /* sin conexión */ } }); m.fuentes = []; };
+        m.iniciar = function (off) { m.detener(); m.desde = off; m.t0 = ctx.currentTime - off; bufs.forEach(function (b, k) { var src = ctx.createBufferSource(); src.buffer = b; src.loop = true; src.loopStart = 0; src.loopEnd = dur; src.connect(gains[k]); src.start(0, off); m.fuentes.push(src); }); };
+        m.reproducir = function () { ctx.resume(); m.iniciar(m.desde); m.sonando = true; bp.textContent = '⏸'; bp.setAttribute('aria-label', 'Pausa'); cancelAnimationFrame(m.raf); pintar(); };
+        m.pausar = function () { if (!m.sonando) return; m.desde = m.pos(); m.sonando = false; m.detener(); bp.textContent = '▶'; bp.setAttribute('aria-label', 'Reproducir'); cancelAnimationFrame(m.raf); pintar(); };
+        m.elegir = function (i) { m.etapa = i; gains.forEach(function (gn, k) { gn.gain.setTargetAtTime(k === i ? 1 : 0, ctx.currentTime, 0.01); }); };
+        bp.addEventListener('click', function () { if (m.sonando) m.pausar(); else m.reproducir(); });
+        rg.addEventListener('input', function () { m.arrastra = true; var off = Number(rg.value) / 1000 * dur; tx.textContent = fmt(off) + ' / ' + fmt(dur); });
+        rg.addEventListener('change', function () { m.arrastra = false; var off = Math.min(dur - 0.05, Number(rg.value) / 1000 * dur); m.desde = off; if (m.sonando) m.iniciar(off); pintar(); });
+        ui.appendChild(bp); ui.appendChild(rg); ui.appendChild(tx); play.textContent = ''; play.appendChild(ui); pintar();
+        m.cerrar = function () { m.pausar(); try { ctx.close(); } catch (x) { /* ya cerrado */ } };
+        return m;
+      }
+      function cargar() {
+        cargando = true; var ctx = new Ctx(); try { ctx.resume(); } catch (x) { /* se reanuda al tocar */ }
+        play.textContent = ''; play.appendChild(el('p', 'nota', 'Cargando las 3 versiones para que suenen sincronizadas…'));
+        Promise.all(items.map(function (it) { return bajar(drive(it.enlace)).then(function (ab) { return decodificar(ctx, ab); }); })).then(function (bufs) {
+          M = armar(ctx, bufs); cargando = false; parar = M.cerrar; var i = pendiente >= 0 ? pendiente : 0; M.elegir(i); M.reproducir();
+        }).catch(function () {
+          cargando = false; sincro = false; try { ctx.close(); } catch (x) { /* sin contexto */ } if (pendiente >= 0) viejo(pendiente);
+        });
+      }
       ETAPAS.forEach(function (e, i) {
-        var it = g.items.filter(function (x) { return x.etiqueta === e[3]; })[0]; if (!it) return;
+        var it = items[i]; if (!it) { botones.push(null); return; }
         var b = el('button', 'comp-et'); b.type = 'button'; b.setAttribute('aria-pressed', 'false');
         b.appendChild(el('span', 'comp-n', e[0])); b.appendChild(el('span', 'comp-pl', '▶'));
         b.appendChild(el('b', '', e[1])); b.appendChild(el('small', '', e[2]));
         b.addEventListener('click', function () {
-          var a0 = play.querySelector('audio'); if (a0) tiempo = a0.currentTime;
-          [].forEach.call(fila.children, function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
-          play.textContent = ''; var p = reproductor(it.enlace); play.appendChild(p);
-          if (p.tagName === 'AUDIO') { p.addEventListener('loadedmetadata', function () { try { p.currentTime = tiempo; } catch (x) { /* sin posición */ } p.play().catch(function () {}); }); p.preload = 'metadata'; }
-          actual = i;
+          marcar(i); pendiente = i;
+          if (!sincro) { viejo(i); return; }
+          if (M) { M.elegir(i); if (!M.sonando) M.reproducir(); return; }
+          if (!cargando) cargar();
         });
-        fila.appendChild(b);
+        botones.push(b); fila.appendChild(b);
       });
       cuerpo.appendChild(fila); cuerpo.appendChild(play);
     }
