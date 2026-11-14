@@ -146,6 +146,10 @@ body{background:var(--bg)}
 .cab-acc a,.cab-acc button{background:transparent;color:var(--txt);border:1px solid var(--borde);border-radius:8px;padding:.4rem .75rem;font:600 .78rem Inter,sans-serif;text-transform:none;letter-spacing:0;text-decoration:none;cursor:pointer;min-height:0}
 .cab-acc a:hover,.cab-acc button:hover{border-color:var(--oro);color:var(--oro)}
 #campana-menu{position:absolute;top:calc(100% + 6px);right:0;z-index:60;min-width:250px;max-width:92vw;background:#1a1a1a;border:1px solid #f5b400;border-radius:12px;padding:.4rem;box-shadow:0 12px 30px rgba(0,0,0,.6)}#campana-menu button{display:block;width:100%;text-align:left;background:none;border:0;color:#fff;padding:.65rem .7rem;border-radius:8px;font:600 .92rem Inter,sans-serif;cursor:pointer}#campana-menu button:hover{background:#2a2a2a}#campana-menu p{margin:.5rem;color:#b5afa6}
+#jstats[hidden],#jbarra[hidden]{display:none!important}
+.pend-t{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin:.9rem 0 .4rem}.pend-t b{font:800 1rem Inter,sans-serif}.pend-t span{color:#b5afa6;font-size:.85rem}
+.pend-c{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;padding:.7rem .8rem;margin:.35rem 0;border-radius:12px;background:#1c1c1c;border:1px solid #333;border-left:4px solid var(--c,#FCC631)}.pend-c .pi{flex:1;min-width:170px;cursor:pointer}.pend-c .pi b{display:block}.pend-c .pi small{color:#b5afa6}.pend-c select{padding:.45rem}.pend-c button{padding:.55rem .8rem}
+.pend-ok{padding:.9rem;border-radius:12px;background:rgba(74,222,128,.1);color:#4ade80;font-weight:700;margin:.4rem 0}
 .pasos-pago{display:flex;gap:.4rem;margin:.2rem 0 .6rem}.pasos-pago .pp{flex:1;padding:.7rem .4rem;border-radius:12px;border:1px solid #3a3a3a;background:#1c1c1c;color:#ddd;font:700 .9rem Inter,sans-serif;cursor:pointer}.pasos-pago .pp.on{background:#f5b400;border-color:#f5b400;color:#111}
 .ad-chips{display:flex;flex-wrap:wrap;gap:.4rem;margin:.2rem 0 .7rem}.ad-chips .ad{padding:.5rem .8rem;border-radius:999px;border:1px solid #3a3a3a;background:#1c1c1c;color:#ddd;font:600 .85rem Inter,sans-serif;cursor:pointer}.ad-chips .ad.on{background:rgba(74,222,128,.15);border-color:#4ade80;color:#4ade80}
 #campana{position:relative}#campana i{position:absolute;top:-7px;right:-7px;min-width:18px;height:18px;border-radius:9px;background:var(--rojo);color:#fff;font:700 .68rem/18px Inter,sans-serif;text-align:center;font-style:normal;padding:0 4px}
@@ -292,7 +296,7 @@ section.tab-off{display:none!important}
 <div class="menu-a" id="menu-a"></div>
 <section id="resumen-p"><h2>Pendientes</h2><div id="cuentas" class="fila"></div></section>
 <section id="sec-jor" data-p="jornadas"><h2>Reservas y jornadas</h2>
-<div class="tabs" id="jtabs" role="tablist"><button type="button" data-v="cal" class="on">Calendario</button><button type="button" data-v="his">Historial</button><button type="button" data-v="cli">Clientes</button><button type="button" data-v="cob">Cobros y planes <i id="jt-cob" hidden></i></button><button type="button" data-v="sol">Solicitudes <i id="jt-sol" hidden></i></button></div>
+<div class="tabs" id="jtabs" role="tablist"><button type="button" data-v="cal" class="on">Calendario</button><button type="button" data-v="his">Historial</button><button type="button" data-v="cli">Clientes</button><button type="button" data-v="cob">Pendientes <i id="jt-cob" hidden></i></button><button type="button" data-v="sol">Solicitudes <i id="jt-sol" hidden></i></button></div>
 <div id="jstats" class="jstats"></div>
 <div class="nuevo-bar" id="nuevo-bar"><button type="button" id="rm-nueva">+ Reserva manual</button><button type="button" id="cli-nuevo" class="sec">+ Nuevo cliente</button><button type="button" id="cli-import" class="sec">Importar lista de clientes</button></div>
 <div id="jbarra" class="jbarra"></div>
@@ -301,6 +305,7 @@ section.tab-off{display:none!important}
 <div id="jcli" hidden></div>
 </section>
 
+<section><h2>Reservas</h2><div id="pend"></div></section>
 <section><h2>Planes mensuales</h2>
 <p style="color:#b5afa6;margin:0 0 .5em">Un plan son 4 sesiones. Si el cliente lo compra en el sitio, sus 4 sesiones llegan solas. Si lo vendes tú, créalo aquí («0 de 4») y ve agregando las fechas.</p>
 <div class="fila"><select id="plt"><option value="plan8">Plan 8 horas (4 × 2 h)</option><option value="plan12">Plan 12 horas (4 × 3 h)</option></select>
@@ -370,7 +375,7 @@ section.tab-off{display:none!important}
 <select id="tema"></select><input id="surl" placeholder="Dirección del sitio https://…" maxlength="150" style="flex:1;min-width:200px">
 <button id="guardar">Guardar</button></div>
 <p style="margin:.6em 0 0"><a id="hoja" target="_blank" rel="noopener" style="color:#FCC631">Abrir la hoja de datos y el Balance mensual</a></p></section>
-<section><h2>Reservas</h2><table><thead><tr><th>Código</th><th>Fecha</th><th>Banda / contacto</th><th>Monto</th><th>Estado</th></tr></thead><tbody id="res"></tbody></table><p id="sinres"></p></section>
+<section style="display:none!important"><h2>Reservas (tabla)</h2><table><thead><tr><th>Código</th><th>Fecha</th><th>Banda / contacto</th><th>Monto</th><th>Estado</th></tr></thead><tbody id="res"></tbody></table><p id="sinres"></p></section>
 
 <section id="sec-musica"></section>
 <section id="sec-beb"></section>
@@ -894,7 +899,7 @@ function pintarPlanes(ps){var c=$('pls');c.textContent='';$('sinpl').textContent
     d.appendChild(f);c.appendChild(d)})}
 $('plg').onclick=function(){ejecutar('adminCrearPlan',{tipo:$('plt').value,banda:$('plb').value,contacto:$('plc').value,telefono:$('plf').value,correo:$('ple').value,pagado:$('plp').checked});['plb','plc','plf','ple'].forEach(function(i){$(i).value=''});$('plp').checked=false};
 function pintarExtra(d){
-  pintarPlanes(d.planes||[]);
+  pintarPlanes(d.planes||[]);pintarPend();
   pintarCuentas(d.cuenta);pintarSolicitudes(d.solicitudes);pintarMuestras(d.muestras);
   pintarMod(d.honor,'hon','sinhon','honor',function(x,e){
     var cab=document.createElement('div');cab.style.cssText='display:flex;gap:10px;align-items:center';
@@ -1137,6 +1142,32 @@ function pintarMenu(d){
   if(!document.body.getAttribute('data-panel'))abrirArea('jornadas');
 }
 
+
+/* ---------- Pendientes: lo que falta por hacer o cobrar ---------- */
+function pintarPend(){
+  var c=$('pend');if(!c)return;if(!JOR){c.textContent='Cargando…';return}c.textContent='';
+  var hoy=JOR.hoy,h=new Date().getHours(),rs=(JOR.reservas||[]).filter(function(r){return r.estado!=='Anulada'});
+  var pasadas=rs.filter(function(r){return(r.estado==='Reservado (con abono)'||r.estado==='Reservado (sin abono)')&&(r.fecha<hoy||(r.fecha===hoy&&parseInt(r.fin,10)<=h))}).sort(function(a,b){return a.fecha<b.fecha?-1:1});
+  var cobrar=rs.filter(function(r){return r.cobro&&!r.cortesia&&r.estado!=='No asiste'&&r.saldo>0}).sort(function(a,b){return a.fecha<b.fecha?-1:1});
+  var sinAb=rs.filter(function(r){return r.estado==='Reservado (sin abono)'&&r.fecha>=hoy&&pasadas.indexOf(r)<0}).sort(function(a,b){return a.fecha<b.fecha?-1:1});
+  var planes=((ultimo&&ultimo.planes)||[]).filter(function(x){return !x.pagado});
+  var porCobrar=cobrar.reduce(function(t,r){return t+(r.saldo||0)},0)+pasadas.filter(function(r){return !r.cobro}).reduce(function(t,r){return t+(r.saldo||0)},0);
+  function titulo(t,n,sub){var d=el_('div','pend-t');d.appendChild(el_('b','',t+' ('+n+')'));if(sub)d.appendChild(el_('span','',sub));c.appendChild(d)}
+  function tarj(r,color,extra){var d=el_('div','pend-c');d.style.setProperty('--c',color);var i=el_('div','pi');i.appendChild(el_('b','',r.banda));i.appendChild(el_('small','',r.fechaTxt+' · '+r.inicio+'–'+r.fin+' · '+r.servicio+' · '+(r.saldo?'saldo '+clp(r.saldo):'sin saldo')));i.onclick=function(){fichaJor(r)};d.appendChild(i);extra(d);c.appendChild(d)}
+  function selMedio(d,r){var s=el_('select');MEDIOS.forEach(function(m){var o=el_('option','',m);o.value=m;s.appendChild(o)});s.value=r.medio||'Efectivo';d.appendChild(s);return s}
+  if(!pasadas.length&&!cobrar.length&&!sinAb.length&&!planes.length){c.appendChild(el_('div','pend-ok','✔ Todo al día: no hay sesiones sin cerrar ni cobros pendientes.'));return}
+  if(porCobrar>0||planes.length)c.appendChild(el_('div','pend-ok','Por cobrar en total: '+clp(porCobrar)+(planes.length?' · más '+planes.length+(planes.length===1?' plan':' planes')+' sin pagar':'')));
+  if(pasadas.length){titulo('⏰ Sesiones que ya pasaron y no marcaste',pasadas.length,'Si el cliente ya pagó, ciérrala con un clic');
+    pasadas.forEach(function(r){tarj(r,'#ff5a5f',function(d){var m=selMedio(d,r);
+      d.appendChild(btn('✔ Finalizar',function(){jrun('adminAjustarReserva',r.codigo,{finalizar:true,medio:m.value});aviso('Finalizada ✔ · '+r.banda)}));
+      d.appendChild(btn('No asistió',function(){confirmarSN('¿Marcar «No asistió» a '+r.banda+'? Se retiene el abono.',function(){jrun('adminCambiarEstado',r.codigo,'No asiste')},'Sí, no asistió')},'sec'))})})}
+  if(cobrar.length){titulo('💰 Saldos por cobrar',cobrar.length,clp(cobrar.reduce(function(t,r){return t+r.saldo},0)));
+    cobrar.forEach(function(r){tarj(r,'#FCC631',function(d){var m=selMedio(d,r);d.appendChild(btn('Marcar pagado',function(){jrun('adminMarcarCobro',r.codigo,{cobro:'PAGADO',medio:m.value});aviso('Cobrado ✔ · '+r.banda)}))})})}
+  if(sinAb.length){titulo('🕓 Reservas sin abono',sinAb.length,'Cuando te confirmen el abono, un clic');
+    sinAb.forEach(function(r){tarj(r,'#8a8581',function(d){d.appendChild(btn('Con abono ✔',function(){jrun('adminCambiarEstado',r.codigo,'Reservado (con abono)');aviso('Con abono ✔ · '+r.banda)}));if(r.telefono)d.appendChild(btn('WhatsApp',function(){window.open('https://wa.me/'+r.telefono,'_blank','noopener')},'sec'))})})}
+  if(planes.length){titulo('🗓️ Planes sin pagar',planes.length,'');
+    planes.forEach(function(x){var d=el_('div','pend-c');d.style.setProperty('--c','#60a5fa');var i=el_('div','pi');i.appendChild(el_('b','',x.banda));i.appendChild(el_('small','',x.plan+' · '+clp(x.total)+' · cuota '+x.activas+' de 4'));d.appendChild(i);d.appendChild(btn('Marcar pagado',function(){ejecutar('adminPlanPagado',x.codigo,true)}));c.appendChild(d)})}
+}
 /* ---------- Reservas y jornadas ---------- */
 var JOR=null,jv='cal',jmes=null,jsel=null,jfEstado='',jbusca='',jAnu=false;
 var CLASE_EST={'Reservado (sin abono)':'sin','Reservado (con abono)':'con','Finalizada':'fin','No asiste':'noa','Anulada':'anu'};
@@ -1163,7 +1194,8 @@ function pintarJor(){
   $('jcal').hidden=jv!=='cal';$('jhis').hidden=jv!=='his';$('jcli').hidden=jv!=='cli';
   $('jstats').hidden=jv!=='cal';$('nuevo-bar').hidden=jv!=='his'&&jv!=='cli';$('rm-nueva').hidden=jv!=='his';$('cli-nuevo').hidden=$('cli-import').hidden=jv!=='cli';
   [].forEach.call(document.querySelectorAll('section[data-jt]'),function(x){x.classList.toggle('jt-on',x.getAttribute('data-jt')===jv)});
-  badgesJt();
+  badgesJt();pintarPend();
+  $('jbarra').hidden=jv==='cob'||jv==='sol';
   if(jv==='cal'){pintarStats();pintarCalJor()}else if(jv==='his')pintarHisJor();else if(jv==='cli')pintarCliJor();
 }
 var jfServ='';
