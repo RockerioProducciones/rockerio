@@ -157,3 +157,136 @@ html.rd .wiz-acc .btn,html.rd .wizard #enviar{min-height:56px;font-size:1.05rem;
 html.rd .btn.sec-b{background:rgba(255,255,255,.07);color:var(--txt);box-shadow:none;border:1px solid rgba(255,255,255,.14)}
 /* el resumen no se corre ni se pega: el casillero de condiciones siempre queda debajo y visible */
 html.rd .wizard .tu-reserva,html .wizard .tu-reserva{position:relative!important;top:auto!important;bottom:auto!important}
+/* >>> TEMAS ELABORADOS */
+/* ===== 9 TEMAS ELABORADOS (solo estética): siempre fondo de rocas y negro; cada uno con su acento, su logo y su acabado ===== */
+html.rd.rd[data-tema="medianoche"]{--oro:#4da3ff;--oro2:#22d3ee;--rojo:#ff4f9a;--hl:77,163,255;--hl2:34,211,238;--rd-r:18px;--rd-rs:10px;--r:18px;--r-s:10px;--f-t:'Space Grotesk',Inter,sans-serif;--tt:none;--ls:-.02em}
+html.rd.rd[data-tema="medianoche"] .marca img,html.rd.rd[data-tema="medianoche"] .hero-logo[src$="logo-horizontal-dorado.png"]{content:url(../assets/marca/logo-horizontal-blanco.png)}
+html.rd.rd[data-tema="medianoche"] body::before{background:radial-gradient(900px 520px at 50% -8%,rgba(77,163,255,.16),transparent 70%),linear-gradient(rgba(0,0,0,.42),rgba(0,0,0,.7)),url(../assets/marca/textura-fondo.jpg) center/cover no-repeat!important}
+html.rd.rd[data-tema="medianoche"] h1,html.rd.rd[data-tema="medianoche"] h2,html.rd.rd[data-tema="medianoche"] h3,html.rd.rd[data-tema="medianoche"] legend,html.rd.rd[data-tema="medianoche"] .tarjeta b,html.rd.rd[data-tema="medianoche"] .wiz-titulo,html.rd.rd[data-tema="medianoche"] .ro-titulo{font-family:var(--f-t);text-transform:var(--tt);letter-spacing:var(--ls)}
+html.rd.rd[data-tema="medianoche"] .btn,html.rd.rd[data-tema="medianoche"] button.btn,html.rd.rd[data-tema="medianoche"] .tarjeta.principal,html.rd.rd[data-tema="medianoche"] .ficha-tab[aria-selected="true"]{background:linear-gradient(135deg,#4da3ff,#22d3ee);color:#0a0a0a}
+html.rd.rd[data-tema="medianoche"] .btn:hover{box-shadow:0 12px 34px rgba(77,163,255,.42)}
+html.rd.rd[data-tema="medianoche"] .hero h1{background:linear-gradient(180deg,#fff 30%,#22d3ee);-webkit-background-clip:text;background-clip:text}
+html.rd.rd[data-tema="medianoche"] .hero-logo{box-shadow:0 0 0 1px rgba(77,163,255,.35),0 20px 60px rgba(77,163,255,.22)}
+html.rd.rd[data-tema="medianoche"] .tarjeta,html.rd.rd[data-tema="medianoche"] :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card){border-radius:var(--rd-r)}
+html.rd.rd[data-tema="medianoche"] .tarjeta:hover{border-color:#4da3ff;box-shadow:0 0 0 1px #4da3ff,0 14px 40px rgba(77,163,255,.22)}
+html.rd.rd[data-tema="vino"]{--oro:#ef2b33;--oro2:#ff6a3d;--rojo:#ff2e4d;--hl:239,43,51;--hl2:255,106,61;--rd-r:4px;--rd-rs:3px;--r:4px;--r-s:3px;--f-t:Oswald,Impact,sans-serif;--tt:uppercase;--ls:.03em}
+html.rd.rd[data-tema="vino"] .marca img,html.rd.rd[data-tema="vino"] .hero-logo[src$="logo-horizontal-dorado.png"]{content:url(../assets/marca/logo-horizontal-rojo.png)}
+html.rd.rd[data-tema="vino"] body::before{background:radial-gradient(900px 520px at 50% -8%,rgba(239,43,51,.16),transparent 70%),linear-gradient(rgba(0,0,0,.42),rgba(0,0,0,.7)),url(../assets/marca/textura-fondo.jpg) center/cover no-repeat!important}
+html.rd.rd[data-tema="vino"] h1,html.rd.rd[data-tema="vino"] h2,html.rd.rd[data-tema="vino"] h3,html.rd.rd[data-tema="vino"] legend,html.rd.rd[data-tema="vino"] .tarjeta b,html.rd.rd[data-tema="vino"] .wiz-titulo,html.rd.rd[data-tema="vino"] .ro-titulo{font-family:var(--f-t);text-transform:var(--tt);letter-spacing:var(--ls)}
+html.rd.rd[data-tema="vino"] .btn,html.rd.rd[data-tema="vino"] button.btn,html.rd.rd[data-tema="vino"] .tarjeta.principal,html.rd.rd[data-tema="vino"] .ficha-tab[aria-selected="true"]{background:linear-gradient(135deg,#ef2b33,#ff6a3d);color:#0a0a0a}
+html.rd.rd[data-tema="vino"] .btn:hover{box-shadow:0 12px 34px rgba(239,43,51,.42)}
+html.rd.rd[data-tema="vino"] .hero h1{background:linear-gradient(180deg,#fff 30%,#ff6a3d);-webkit-background-clip:text;background-clip:text}
+html.rd.rd[data-tema="vino"] .hero-logo{box-shadow:0 0 0 1px rgba(239,43,51,.35),0 20px 60px rgba(239,43,51,.22)}
+html.rd.rd[data-tema="vino"] .tarjeta,html.rd.rd[data-tema="vino"] :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card){border-radius:var(--rd-r)}
+html.rd.rd[data-tema="vino"] .tarjeta:hover{border-color:#ef2b33;box-shadow:0 0 0 1px #ef2b33,0 14px 40px rgba(239,43,51,.22)}
+html.rd.rd[data-tema="bosque"]{--oro:#34d399;--oro2:#a3e635;--rojo:#f59e0b;--hl:52,211,153;--hl2:163,230,53;--rd-r:30px;--rd-rs:16px;--r:30px;--r-s:16px;--f-t:Nunito,Inter,sans-serif;--tt:none;--ls:-.01em}
+html.rd.rd[data-tema="bosque"] .marca img,html.rd.rd[data-tema="bosque"] .hero-logo[src$="logo-horizontal-dorado.png"]{content:url(../assets/marca/logo-horizontal-blanco.png)}
+html.rd.rd[data-tema="bosque"] body::before{background:radial-gradient(900px 520px at 50% -8%,rgba(52,211,153,.16),transparent 70%),linear-gradient(rgba(0,0,0,.42),rgba(0,0,0,.7)),url(../assets/marca/textura-fondo.jpg) center/cover no-repeat!important}
+html.rd.rd[data-tema="bosque"] h1,html.rd.rd[data-tema="bosque"] h2,html.rd.rd[data-tema="bosque"] h3,html.rd.rd[data-tema="bosque"] legend,html.rd.rd[data-tema="bosque"] .tarjeta b,html.rd.rd[data-tema="bosque"] .wiz-titulo,html.rd.rd[data-tema="bosque"] .ro-titulo{font-family:var(--f-t);text-transform:var(--tt);letter-spacing:var(--ls)}
+html.rd.rd[data-tema="bosque"] .btn,html.rd.rd[data-tema="bosque"] button.btn,html.rd.rd[data-tema="bosque"] .tarjeta.principal,html.rd.rd[data-tema="bosque"] .ficha-tab[aria-selected="true"]{background:linear-gradient(135deg,#34d399,#a3e635);color:#0a0a0a}
+html.rd.rd[data-tema="bosque"] .btn:hover{box-shadow:0 12px 34px rgba(52,211,153,.42)}
+html.rd.rd[data-tema="bosque"] .hero h1{background:linear-gradient(180deg,#fff 30%,#a3e635);-webkit-background-clip:text;background-clip:text}
+html.rd.rd[data-tema="bosque"] .hero-logo{box-shadow:0 0 0 1px rgba(52,211,153,.35),0 20px 60px rgba(52,211,153,.22)}
+html.rd.rd[data-tema="bosque"] .tarjeta,html.rd.rd[data-tema="bosque"] :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card){border-radius:var(--rd-r)}
+html.rd.rd[data-tema="bosque"] .tarjeta:hover{border-color:#34d399;box-shadow:0 0 0 1px #34d399,0 14px 40px rgba(52,211,153,.22)}
+html.rd.rd[data-tema="grafito"]{--oro:#cfd6de;--oro2:#8aa0b8;--rojo:#ff5a1f;--hl:207,214,222;--hl2:138,160,184;--rd-r:0px;--rd-rs:0px;--r:0px;--r-s:0px;--f-t:'Space Mono',ui-monospace,monospace;--tt:uppercase;--ls:.02em}
+html.rd.rd[data-tema="grafito"] .marca img,html.rd.rd[data-tema="grafito"] .hero-logo[src$="logo-horizontal-dorado.png"]{content:url(../assets/marca/logo-horizontal-blanco.png)}
+html.rd.rd[data-tema="grafito"] body::before{background:radial-gradient(900px 520px at 50% -8%,rgba(207,214,222,.16),transparent 70%),linear-gradient(rgba(0,0,0,.42),rgba(0,0,0,.7)),url(../assets/marca/textura-fondo.jpg) center/cover no-repeat!important}
+html.rd.rd[data-tema="grafito"] h1,html.rd.rd[data-tema="grafito"] h2,html.rd.rd[data-tema="grafito"] h3,html.rd.rd[data-tema="grafito"] legend,html.rd.rd[data-tema="grafito"] .tarjeta b,html.rd.rd[data-tema="grafito"] .wiz-titulo,html.rd.rd[data-tema="grafito"] .ro-titulo{font-family:var(--f-t);text-transform:var(--tt);letter-spacing:var(--ls)}
+html.rd.rd[data-tema="grafito"] .btn,html.rd.rd[data-tema="grafito"] button.btn,html.rd.rd[data-tema="grafito"] .tarjeta.principal,html.rd.rd[data-tema="grafito"] .ficha-tab[aria-selected="true"]{background:linear-gradient(135deg,#cfd6de,#8aa0b8);color:#0a0a0a}
+html.rd.rd[data-tema="grafito"] .btn:hover{box-shadow:0 12px 34px rgba(207,214,222,.42)}
+html.rd.rd[data-tema="grafito"] .hero h1{background:linear-gradient(180deg,#fff 30%,#8aa0b8);-webkit-background-clip:text;background-clip:text}
+html.rd.rd[data-tema="grafito"] .hero-logo{box-shadow:0 0 0 1px rgba(207,214,222,.35),0 20px 60px rgba(207,214,222,.22)}
+html.rd.rd[data-tema="grafito"] .tarjeta,html.rd.rd[data-tema="grafito"] :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card){border-radius:var(--rd-r)}
+html.rd.rd[data-tema="grafito"] .tarjeta:hover{border-color:#cfd6de;box-shadow:0 0 0 1px #cfd6de,0 14px 40px rgba(207,214,222,.22)}
+html.rd.rd[data-tema="azufre"]{--oro:#ffe600;--oro2:#ff9500;--rojo:#ff3d00;--hl:255,230,0;--hl2:255,149,0;--rd-r:0px;--rd-rs:0px;--r:0px;--r-s:0px;--f-t:'Archivo Black',Impact,sans-serif;--tt:uppercase;--ls:.01em}
+html.rd.rd[data-tema="azufre"] .marca img,html.rd.rd[data-tema="azufre"] .hero-logo[src$="logo-horizontal-dorado.png"]{content:url(../assets/marca/logo-horizontal-dorado.png)}
+html.rd.rd[data-tema="azufre"] body::before{background:radial-gradient(900px 520px at 50% -8%,rgba(255,230,0,.16),transparent 70%),linear-gradient(rgba(0,0,0,.42),rgba(0,0,0,.7)),url(../assets/marca/textura-fondo.jpg) center/cover no-repeat!important}
+html.rd.rd[data-tema="azufre"] h1,html.rd.rd[data-tema="azufre"] h2,html.rd.rd[data-tema="azufre"] h3,html.rd.rd[data-tema="azufre"] legend,html.rd.rd[data-tema="azufre"] .tarjeta b,html.rd.rd[data-tema="azufre"] .wiz-titulo,html.rd.rd[data-tema="azufre"] .ro-titulo{font-family:var(--f-t);text-transform:var(--tt);letter-spacing:var(--ls)}
+html.rd.rd[data-tema="azufre"] .btn,html.rd.rd[data-tema="azufre"] button.btn,html.rd.rd[data-tema="azufre"] .tarjeta.principal,html.rd.rd[data-tema="azufre"] .ficha-tab[aria-selected="true"]{background:linear-gradient(135deg,#ffe600,#ff9500);color:#0a0a0a}
+html.rd.rd[data-tema="azufre"] .btn:hover{box-shadow:0 12px 34px rgba(255,230,0,.42)}
+html.rd.rd[data-tema="azufre"] .hero h1{background:linear-gradient(180deg,#fff 30%,#ff9500);-webkit-background-clip:text;background-clip:text}
+html.rd.rd[data-tema="azufre"] .hero-logo{box-shadow:0 0 0 1px rgba(255,230,0,.35),0 20px 60px rgba(255,230,0,.22)}
+html.rd.rd[data-tema="azufre"] .tarjeta,html.rd.rd[data-tema="azufre"] :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card){border-radius:var(--rd-r)}
+html.rd.rd[data-tema="azufre"] .tarjeta:hover{border-color:#ffe600;box-shadow:0 0 0 1px #ffe600,0 14px 40px rgba(255,230,0,.22)}
+html.rd.rd[data-tema="abismo"]{--oro:#2de2d0;--oro2:#60a5fa;--rojo:#7a5cff;--hl:45,226,208;--hl2:96,165,250;--rd-r:22px;--rd-rs:14px;--r:22px;--r-s:14px;--f-t:Poppins,Inter,sans-serif;--tt:none;--ls:-.01em}
+html.rd.rd[data-tema="abismo"] .marca img,html.rd.rd[data-tema="abismo"] .hero-logo[src$="logo-horizontal-dorado.png"]{content:url(../assets/marca/logo-horizontal-blanco.png)}
+html.rd.rd[data-tema="abismo"] body::before{background:radial-gradient(900px 520px at 50% -8%,rgba(45,226,208,.16),transparent 70%),linear-gradient(rgba(0,0,0,.42),rgba(0,0,0,.7)),url(../assets/marca/textura-fondo.jpg) center/cover no-repeat!important}
+html.rd.rd[data-tema="abismo"] h1,html.rd.rd[data-tema="abismo"] h2,html.rd.rd[data-tema="abismo"] h3,html.rd.rd[data-tema="abismo"] legend,html.rd.rd[data-tema="abismo"] .tarjeta b,html.rd.rd[data-tema="abismo"] .wiz-titulo,html.rd.rd[data-tema="abismo"] .ro-titulo{font-family:var(--f-t);text-transform:var(--tt);letter-spacing:var(--ls)}
+html.rd.rd[data-tema="abismo"] .btn,html.rd.rd[data-tema="abismo"] button.btn,html.rd.rd[data-tema="abismo"] .tarjeta.principal,html.rd.rd[data-tema="abismo"] .ficha-tab[aria-selected="true"]{background:linear-gradient(135deg,#2de2d0,#60a5fa);color:#0a0a0a}
+html.rd.rd[data-tema="abismo"] .btn:hover{box-shadow:0 12px 34px rgba(45,226,208,.42)}
+html.rd.rd[data-tema="abismo"] .hero h1{background:linear-gradient(180deg,#fff 30%,#60a5fa);-webkit-background-clip:text;background-clip:text}
+html.rd.rd[data-tema="abismo"] .hero-logo{box-shadow:0 0 0 1px rgba(45,226,208,.35),0 20px 60px rgba(45,226,208,.22)}
+html.rd.rd[data-tema="abismo"] .tarjeta,html.rd.rd[data-tema="abismo"] :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card){border-radius:var(--rd-r)}
+html.rd.rd[data-tema="abismo"] .tarjeta:hover{border-color:#2de2d0;box-shadow:0 0 0 1px #2de2d0,0 14px 40px rgba(45,226,208,.22)}
+html.rd.rd[data-tema="cobre"]{--oro:#ff8a3d;--oro2:#f2b35a;--rojo:#d6361e;--hl:255,138,61;--hl2:242,179,90;--rd-r:8px;--rd-rs:5px;--r:8px;--r-s:5px;--f-t:'Bebas Neue',Oswald,Impact,sans-serif;--tt:uppercase;--ls:.07em}
+html.rd.rd[data-tema="cobre"] .marca img,html.rd.rd[data-tema="cobre"] .hero-logo[src$="logo-horizontal-dorado.png"]{content:url(../assets/marca/logo-horizontal-rojo.png)}
+html.rd.rd[data-tema="cobre"] body::before{background:radial-gradient(900px 520px at 50% -8%,rgba(255,138,61,.16),transparent 70%),linear-gradient(rgba(0,0,0,.42),rgba(0,0,0,.7)),url(../assets/marca/textura-fondo.jpg) center/cover no-repeat!important}
+html.rd.rd[data-tema="cobre"] h1,html.rd.rd[data-tema="cobre"] h2,html.rd.rd[data-tema="cobre"] h3,html.rd.rd[data-tema="cobre"] legend,html.rd.rd[data-tema="cobre"] .tarjeta b,html.rd.rd[data-tema="cobre"] .wiz-titulo,html.rd.rd[data-tema="cobre"] .ro-titulo{font-family:var(--f-t);text-transform:var(--tt);letter-spacing:var(--ls)}
+html.rd.rd[data-tema="cobre"] .btn,html.rd.rd[data-tema="cobre"] button.btn,html.rd.rd[data-tema="cobre"] .tarjeta.principal,html.rd.rd[data-tema="cobre"] .ficha-tab[aria-selected="true"]{background:linear-gradient(135deg,#ff8a3d,#f2b35a);color:#0a0a0a}
+html.rd.rd[data-tema="cobre"] .btn:hover{box-shadow:0 12px 34px rgba(255,138,61,.42)}
+html.rd.rd[data-tema="cobre"] .hero h1{background:linear-gradient(180deg,#fff 30%,#f2b35a);-webkit-background-clip:text;background-clip:text}
+html.rd.rd[data-tema="cobre"] .hero-logo{box-shadow:0 0 0 1px rgba(255,138,61,.35),0 20px 60px rgba(255,138,61,.22)}
+html.rd.rd[data-tema="cobre"] .tarjeta,html.rd.rd[data-tema="cobre"] :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card){border-radius:var(--rd-r)}
+html.rd.rd[data-tema="cobre"] .tarjeta:hover{border-color:#ff8a3d;box-shadow:0 0 0 1px #ff8a3d,0 14px 40px rgba(255,138,61,.22)}
+html.rd.rd[data-tema="ciruela"]{--oro:#b86bff;--oro2:#ff4fa3;--rojo:#22d3ee;--hl:184,107,255;--hl2:255,79,163;--rd-r:20px;--rd-rs:12px;--r:20px;--r-s:12px;--f-t:Poppins,Inter,sans-serif;--tt:none;--ls:-.01em}
+html.rd.rd[data-tema="ciruela"] .marca img,html.rd.rd[data-tema="ciruela"] .hero-logo[src$="logo-horizontal-dorado.png"]{content:url(../assets/marca/logo-horizontal-blanco.png)}
+html.rd.rd[data-tema="ciruela"] body::before{background:radial-gradient(900px 520px at 50% -8%,rgba(184,107,255,.16),transparent 70%),linear-gradient(rgba(0,0,0,.42),rgba(0,0,0,.7)),url(../assets/marca/textura-fondo.jpg) center/cover no-repeat!important}
+html.rd.rd[data-tema="ciruela"] h1,html.rd.rd[data-tema="ciruela"] h2,html.rd.rd[data-tema="ciruela"] h3,html.rd.rd[data-tema="ciruela"] legend,html.rd.rd[data-tema="ciruela"] .tarjeta b,html.rd.rd[data-tema="ciruela"] .wiz-titulo,html.rd.rd[data-tema="ciruela"] .ro-titulo{font-family:var(--f-t);text-transform:var(--tt);letter-spacing:var(--ls)}
+html.rd.rd[data-tema="ciruela"] .btn,html.rd.rd[data-tema="ciruela"] button.btn,html.rd.rd[data-tema="ciruela"] .tarjeta.principal,html.rd.rd[data-tema="ciruela"] .ficha-tab[aria-selected="true"]{background:linear-gradient(135deg,#b86bff,#ff4fa3);color:#0a0a0a}
+html.rd.rd[data-tema="ciruela"] .btn:hover{box-shadow:0 12px 34px rgba(184,107,255,.42)}
+html.rd.rd[data-tema="ciruela"] .hero h1{background:linear-gradient(180deg,#fff 30%,#ff4fa3);-webkit-background-clip:text;background-clip:text}
+html.rd.rd[data-tema="ciruela"] .hero-logo{box-shadow:0 0 0 1px rgba(184,107,255,.35),0 20px 60px rgba(184,107,255,.22)}
+html.rd.rd[data-tema="ciruela"] .tarjeta,html.rd.rd[data-tema="ciruela"] :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card){border-radius:var(--rd-r)}
+html.rd.rd[data-tema="ciruela"] .tarjeta:hover{border-color:#b86bff;box-shadow:0 0 0 1px #b86bff,0 14px 40px rgba(184,107,255,.22)}
+html.rd.rd[data-tema="carbon"]{--oro:#ffffff;--oro2:#c9c9cf;--rojo:#ff3b30;--hl:255,255,255;--hl2:201,201,207;--rd-r:3px;--rd-rs:2px;--r:3px;--r-s:2px;--f-t:Inter,system-ui,sans-serif;--tt:none;--ls:-.03em}
+html.rd.rd[data-tema="carbon"] .marca img,html.rd.rd[data-tema="carbon"] .hero-logo[src$="logo-horizontal-dorado.png"]{content:url(../assets/marca/logo-horizontal-blanco.png)}
+html.rd.rd[data-tema="carbon"] body::before{background:radial-gradient(900px 520px at 50% -8%,rgba(255,255,255,.16),transparent 70%),linear-gradient(rgba(0,0,0,.42),rgba(0,0,0,.7)),url(../assets/marca/textura-fondo.jpg) center/cover no-repeat!important}
+html.rd.rd[data-tema="carbon"] h1,html.rd.rd[data-tema="carbon"] h2,html.rd.rd[data-tema="carbon"] h3,html.rd.rd[data-tema="carbon"] legend,html.rd.rd[data-tema="carbon"] .tarjeta b,html.rd.rd[data-tema="carbon"] .wiz-titulo,html.rd.rd[data-tema="carbon"] .ro-titulo{font-family:var(--f-t);text-transform:var(--tt);letter-spacing:var(--ls)}
+html.rd.rd[data-tema="carbon"] .btn,html.rd.rd[data-tema="carbon"] button.btn,html.rd.rd[data-tema="carbon"] .tarjeta.principal,html.rd.rd[data-tema="carbon"] .ficha-tab[aria-selected="true"]{background:linear-gradient(135deg,#ffffff,#c9c9cf);color:#0a0a0a}
+html.rd.rd[data-tema="carbon"] .btn:hover{box-shadow:0 12px 34px rgba(255,255,255,.42)}
+html.rd.rd[data-tema="carbon"] .hero h1{background:linear-gradient(180deg,#fff 30%,#c9c9cf);-webkit-background-clip:text;background-clip:text}
+html.rd.rd[data-tema="carbon"] .hero-logo{box-shadow:0 0 0 1px rgba(255,255,255,.35),0 20px 60px rgba(255,255,255,.22)}
+html.rd.rd[data-tema="carbon"] .tarjeta,html.rd.rd[data-tema="carbon"] :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card){border-radius:var(--rd-r)}
+html.rd.rd[data-tema="carbon"] .tarjeta:hover{border-color:#ffffff;box-shadow:0 0 0 1px #ffffff,0 14px 40px rgba(255,255,255,.22)}
+html.rd.rd[data-tema="medianoche"] h2{text-shadow:0 0 24px rgba(77,163,255,.55)}
+html.rd.rd[data-tema="medianoche"] .sec :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card){box-shadow:0 0 0 1px rgba(77,163,255,.25),0 0 34px rgba(34,211,238,.1)}
+html.rd.rd[data-tema="medianoche"] h2::before{border-radius:2px;width:.18em;height:.9em;background:linear-gradient(#22d3ee,#4da3ff);box-shadow:0 0 14px #22d3ee}
+html.rd.rd[data-tema="vino"] .sec :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card){border-left:4px solid #ef2b33!important;box-shadow:0 12px 32px rgba(0,0,0,.55),inset 0 0 40px rgba(216,29,35,.07)}
+html.rd.rd[data-tema="vino"] h2{font-size:clamp(2rem,7vw,3rem)}
+html.rd.rd[data-tema="vino"] h2::before{border-radius:0;width:.3em;height:1em;transform:skewX(-14deg);background:#ef2b33;box-shadow:0 0 16px rgba(239,43,51,.6)}
+html.rd.rd[data-tema="vino"] .btn,html.rd.rd[data-tema="vino"] .tarjeta{border-radius:4px}
+html.rd.rd[data-tema="bosque"] .sec :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card){box-shadow:0 18px 44px rgba(0,0,0,.5),0 0 40px rgba(52,211,153,.08)}
+html.rd.rd[data-tema="bosque"] h2::before{border-radius:60% 0 60% 0;width:.5em;height:.5em;background:linear-gradient(135deg,#34d399,#a3e635);box-shadow:0 0 18px rgba(52,211,153,.6)}
+html.rd.rd[data-tema="bosque"] .btn{border-radius:999px}
+html.rd.rd[data-tema="grafito"] .sec :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card),html.rd.rd[data-tema="grafito"] .tarjeta{border-radius:0;box-shadow:inset 0 0 0 4px #050505,inset 0 0 0 5px rgba(207,214,222,.28)}
+html.rd.rd[data-tema="grafito"] .btn,html.rd.rd[data-tema="grafito"] .hora,html.rd.rd[data-tema="grafito"] .hbtn,html.rd.rd[data-tema="grafito"] .cal-dia,html.rd.rd[data-tema="grafito"] input,html.rd.rd[data-tema="grafito"] select,html.rd.rd[data-tema="grafito"] textarea{border-radius:0}
+html.rd.rd[data-tema="grafito"] h2::before{border-radius:0;width:.12em;height:.9em;background:linear-gradient(#cfd6de,#8aa0b8);box-shadow:none}
+html.rd.rd[data-tema="grafito"] .btn{box-shadow:none;border:1px solid #cfd6de}
+html.rd.rd[data-tema="azufre"] .sec :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card){border:2px solid #ffe600!important;border-radius:0;box-shadow:6px 6px 0 rgba(255,230,0,.9)}
+html.rd.rd[data-tema="azufre"] .tarjeta{border:2px solid #ffe600;border-radius:0;box-shadow:4px 4px 0 rgba(255,149,0,.9)}
+html.rd.rd[data-tema="azufre"] .btn{border-radius:0;box-shadow:4px 4px 0 #ff9500;border:2px solid #000}
+html.rd.rd[data-tema="azufre"] .btn:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 #ff9500}
+html.rd.rd[data-tema="azufre"] .hora,html.rd.rd[data-tema="azufre"] .hbtn,html.rd.rd[data-tema="azufre"] .cal-dia,html.rd.rd[data-tema="azufre"] input,html.rd.rd[data-tema="azufre"] select,html.rd.rd[data-tema="azufre"] textarea,html.rd.rd[data-tema="azufre"] .ficha-tab,html.rd.rd[data-tema="azufre"] .wiz-chip,html.rd.rd[data-tema="azufre"] .opcion{border-radius:0}
+html.rd.rd[data-tema="azufre"] h2::before{border-radius:0;width:.5em;height:.5em;transform:rotate(45deg);background:#ffe600;box-shadow:none}
+html.rd.rd[data-tema="abismo"] .sec :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card){border-color:transparent!important;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+html.rd.rd[data-tema="abismo"] .sec :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card)::before{content:"";position:absolute;inset:0;padding:1.5px;border-radius:inherit;background:var(--bordeg);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;background-size:240% 240%}
+html.rd.rd[data-tema="cobre"] .sec :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card){border-color:transparent!important;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+html.rd.rd[data-tema="cobre"] .sec :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card)::before{content:"";position:absolute;inset:0;padding:1.5px;border-radius:inherit;background:var(--bordeg);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;background-size:240% 240%}
+html.rd.rd[data-tema="ciruela"] .sec :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card){border-color:transparent!important;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+html.rd.rd[data-tema="ciruela"] .sec :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card)::before{content:"";position:absolute;inset:0;padding:1.5px;border-radius:inherit;background:var(--bordeg);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;background-size:240% 240%}
+html.rd.rd[data-tema="abismo"]{--bordeg:linear-gradient(135deg,#2de2d0,#60a5fa 55%,rgba(96,165,250,.1))}
+html.rd.rd[data-tema="cobre"]{--bordeg:linear-gradient(160deg,#ff8a3d,#f2b35a 45%,rgba(214,54,30,.25))}
+html.rd.rd[data-tema="ciruela"]{--bordeg:linear-gradient(120deg,#b86bff,#ff4fa3,#22d3ee,#b86bff)}
+html.rd.rd[data-tema="abismo"] h2::before{background:linear-gradient(135deg,#2de2d0,#60a5fa);box-shadow:0 0 20px rgba(45,226,208,.6)}
+html.rd.rd[data-tema="cobre"] h2{font-size:clamp(2.1rem,7vw,3.2rem);font-weight:400}
+html.rd.rd[data-tema="cobre"] h2::before{border-radius:0;width:.5em;height:.12em;margin-right:.3em;vertical-align:.3em;background:linear-gradient(90deg,#ff8a3d,#f2b35a);box-shadow:0 0 12px rgba(255,138,61,.55)}
+html.rd.rd[data-tema="ciruela"] h2{background:linear-gradient(90deg,#fff,#e3b8ff 60%,#ff9bd0);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+html.rd.rd[data-tema="ciruela"] h2::before{background:linear-gradient(135deg,#b86bff,#ff4fa3,#22d3ee);box-shadow:0 0 20px rgba(184,107,255,.7)}
+@media(prefers-reduced-motion:no-preference){html.rd.rd[data-tema="ciruela"] .sec :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card)::before{animation:rk-holo 7s linear infinite}@keyframes rk-holo{to{background-position:240% 240%}}}
+html.rd.rd[data-tema="carbon"] .sec :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card){border-color:rgba(255,255,255,.16)!important;background:rgba(6,6,7,.92)!important;box-shadow:none}
+html.rd.rd[data-tema="carbon"] .tarjeta{box-shadow:none;border-color:rgba(255,255,255,.16)}
+html.rd.rd[data-tema="carbon"] h2::before{border-radius:0;width:1.1em;height:2px;box-shadow:none;background:#fff;vertical-align:.3em}
+html.rd.rd[data-tema="carbon"] .btn{box-shadow:none;border-radius:3px}
+html.rd.rd[data-tema="carbon"] h2{font-weight:800}
+/* <<< TEMAS ELABORADOS */

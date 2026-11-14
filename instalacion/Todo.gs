@@ -61,7 +61,7 @@ var Reglas = (function () {
     regimen: '14D3',              // 14D3 (Pro Pyme general) o 14D8 (Pro Pyme transparente)
     sitioUrl: '',                 // dirección pública del sitio (para armar los enlaces de socios)
     temaAdmin: 'rockerio',        // tema del portal de administración
-    tema: 'carbon',               // tema visual por defecto (ver js/tema.js)
+    tema: 'rockerio',             // tema visual por defecto (ver js/tema.js)
     presentacionTitulo: 'Mi enfoque',
     presentacion: '',             // vacío = la sección Producción muestra un texto base
     // Textos de la portada y secciones visibles del sitio
