@@ -46,3 +46,5 @@
 @media(min-width:561px){.mz-onda{min-height:72px}}
 
 .mz-pista[hidden]{display:none}.mz-modo{margin-left:0}
+.mz-et.cargando{opacity:.5;cursor:progress}.mz-et.cargando .mz-led{animation:mzpulso 1s infinite alternate}@keyframes mzpulso{to{background:var(--oro)}}
+@media(prefers-reduced-motion:reduce){.mz-et.cargando .mz-led{animation:none}}

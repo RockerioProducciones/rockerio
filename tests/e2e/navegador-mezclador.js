@@ -14,11 +14,13 @@ function wav(freq, seg, rate) { // WAV mono 16 bits en base64
   I.forEach((i) => E.forEach((e) => { const id = 'BBBBBBBB' + String(++n).padStart(2, '0'); ids[id] = i === 'Completa' ? 990 : 200 + n * 20; g.admin('adminGuardarMuestra', { fila: null, grupo: 'Tema Prueba', tipo: 'Mezclador', etiqueta: i + ' · ' + e, enlace: 'https://drive.google.com/file/d/' + id + '/view', descripcion: '', visible: true }); }));
   const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] }); const ctx = await b.newContext({ viewport: { width: 1280, height: 1000 } });
   const p = await ctx.newPage(); const errs = []; p.on('pageerror', (e) => errs.push(e.message));
-  await p.route(/accion=audiomix/, (r) => { const id = (/id=([\w-]+)/.exec(r.request().url()) || [])[1]; r.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify({ ok: true, tipo: 'audio/wav', b64: wav(ids[id] || 300, 6, 8000) }) }); });
+  await p.route(/accion=audiomix/, (r) => { const id = (/id=([\w-]+)/.exec(r.request().url()) || [])[1]; const tarde = ids[id] && Number(id.slice(8)) > 5; (tarde ? new Promise((x) => setTimeout(x, 700)) : Promise.resolve()).then(() => r.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify({ ok: true, tipo: 'audio/wav', b64: wav(ids[id] || 300, 6, 8000) }) })); });
   let fallas = 0; const chk = (c, m) => { if (!c) fallas++; console.log((c ? '  ok  ' : 'FALLA ') + m); };
   await p.goto('http://localhost:8099/'); await p.waitForFunction(() => window.RK && window.RK.conectado()); await p.waitForTimeout(600);
   await p.evaluate(() => { let e = document.getElementById('mezclador'); e.hidden = false; while (e && e !== document.body) { e.hidden = false; e.removeAttribute('hidden'); if (getComputedStyle(e).display === 'none') e.style.setProperty('display', 'block', 'important'); e = e.parentElement; } });
   await p.locator('#mezclador .btn', { hasText: 'Cargar mezclador' }).click(); await p.waitForSelector('#mezclador .mz-daw', { timeout: 10000 });
+  await p.waitForFunction(() => ![].some.call(document.querySelectorAll('#mezclador .mz-et'), (b) => b.disabled), null, { timeout: 8000 });
+  chk(true, 'las 3 etapas terminan de cargar y se habilitan');
   const vis = async () => p.locator('#mezclador .mz-pista:not([hidden])').count();
   chk(await vis() === 4, 'modo Pistas: 4 instrumentos visibles (sin la completa)');
   chk(await p.locator('#mezclador .mz-modo button').count() === 2, 'aparece el interruptor Pistas / Canción completa');

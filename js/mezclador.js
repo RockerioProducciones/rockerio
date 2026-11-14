@@ -74,7 +74,7 @@
     cont.appendChild(cargar); cont.appendChild(estado);
     if (!Ctx) { cargar.disabled = true; estado.textContent = 'Tu navegador no admite el mezclador. Prueba con Chrome, Safari o Firefox actualizados.'; return; }
     var ctx, buffers = {}, pk = {}, gains = {}, fuentes = [], etapa = P.etapas[0][0];
-    var modo = P.inst.length ? 'pistas' : 'completa', mute = {}, solo = {}, dur = 0, t0 = 0, desde = 0, sonando = false, raf = 0, ui = {};
+    var pend = {}, modo = P.inst.length ? 'pistas' : 'completa', mute = {}, solo = {}, dur = 0, t0 = 0, desde = 0, sonando = false, raf = 0, ui = {};
 
     function audible(i) { if (i === FULL) return modo === 'completa'; if (modo === 'completa') return false; var haySolo = P.inst.some(function (x) { return solo[x]; }); return !mute[i] && (haySolo ? !!solo[i] : true); }
     function pintarOndas() {
@@ -93,7 +93,7 @@
         f.row.classList.toggle('apagada', !hay || !audible(i)); f.row.classList.toggle('sin-pista', !hay); if (!hay && !f.row.hidden) faltan.push(i);
       });
       if (ui.modo) [].forEach.call(ui.modo.children, function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-m') === modo ? 'true' : 'false'); });
-      [].forEach.call(ui.et.children, function (b) { var on = b.getAttribute('data-e') === etapa; b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+      [].forEach.call(ui.et.children, function (b) { var e = b.getAttribute('data-e'), on = e === etapa, lista = !pend[e]; b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.disabled = !lista; b.classList.toggle('cargando', !lista); });
       aplicar.faltan = faltan;
       if (redibujar !== false) pintarOndas();
     }
@@ -171,19 +171,32 @@
 
     cargar.addEventListener('click', function () {
       cargar.disabled = true; ctx = new Ctx(); try { ctx.resume(); } catch (x) { /* se reanuda al reproducir */ }
-      var lista = []; FILAS.forEach(function (i) { P.etapas.forEach(function (e) { var u = P.pistas[i][e[0]]; if (u) lista.push([i, e[0], u]); }); });
-      var hechos = 0, sig = 0;
+      var lista = []; P.etapas.forEach(function (e) { FILAS.forEach(function (i) { var u = P.pistas[i] && P.pistas[i][e[0]]; if (u) { lista.push([i, e[0], u]); pend[e[0]] = (pend[e[0]] || 0) + 1; } }); });
+      var hechos = 0, sig = 0, listo = false, primera = P.etapas[0][0];
       estado.textContent = 'Cargando pistas 0/' + lista.length + '…';
+      function nueva(k) { // pista que llega con el mezclador ya abierto: entra sincronizada
+        var gn = ctx.createGain(); gn.gain.value = 0; gn.connect(ctx.destination); gains[k] = gn;
+        if (sonando) { var s = ctx.createBufferSource(); s.buffer = buffers[k]; s.loop = true; s.loopStart = 0; s.loopEnd = dur; s.connect(gn); s.start(0, pos()); fuentes.push(s); }
+      }
       function uno() {
         if (sig >= lista.length) return Promise.resolve();
-        var it = lista[sig++];
-        return bajar(it[2]).then(function (ab) { return decodificar(ctx, ab); }).then(function (b) { buffers[it[0] + '|' + it[1]] = b; pk[it[0] + '|' + it[1]] = picos(b, 480); estado.textContent = 'Cargando pistas ' + (++hechos) + '/' + lista.length + '…'; }).then(uno);
+        var it = lista[sig++], k = it[0] + '|' + it[1];
+        return bajar(it[2]).then(function (ab) { return decodificar(ctx, ab); }).then(function (b) {
+          buffers[k] = b; pk[k] = picos(b, 480); pend[it[1]]--; if (!pend[it[1]]) delete pend[it[1]]; ++hechos;
+          if (!listo) estado.textContent = 'Cargando pistas ' + hechos + '/' + lista.length + '…';
+          if (listo) { nueva(k); aplicar(); }
+          else if (!pend[primera]) { // primera etapa completa: ya se puede usar
+            listo = true; dur = Math.min.apply(null, Object.keys(buffers).map(function (x) { return buffers[x].duration; }));
+            Object.keys(buffers).forEach(function (x) { var gn = ctx.createGain(); gn.gain.value = 0; gn.connect(ctx.destination); gains[x] = gn; });
+            construir(); globo('Ya puedes escuchar. Las otras etapas (MIX y MASTER) siguen cargando en segundo plano.');
+          }
+        }).then(uno);
       }
-      Promise.all([uno(), uno(), uno()]).then(function () {
-        dur = Math.min.apply(null, Object.keys(buffers).map(function (k) { return buffers[k].duration; }));
-        Object.keys(buffers).forEach(function (k) { var gn = ctx.createGain(); gn.gain.value = 0; gn.connect(ctx.destination); gains[k] = gn; });
-        construir();
+      Promise.all([uno(), uno(), uno(), uno()]).then(function () {
+        if (!listo) { dur = Math.min.apply(null, Object.keys(buffers).map(function (k) { return buffers[k].duration; })); Object.keys(buffers).forEach(function (k) { var gn = ctx.createGain(); gn.gain.value = 0; gn.connect(ctx.destination); gains[k] = gn; }); construir(); }
+        else aplicar();
       }).catch(function (er) {
+        if (listo) { globo('No se pudo cargar una etapa. Recarga la página para intentarlo de nuevo.'); return; }
         try { ctx.close(); } catch (x) { /* ya cerrado */ }
         estado.textContent = 'No se pudo cargar el mezclador' + (er && er.message ? ' (' + er.message + ')' : '') + '. Intenta de nuevo.'; cargar.disabled = false;
       });
