@@ -3954,6 +3954,13 @@ function catalogoSocios_(tipo) {
     .map(function (p) { return { fila: p.fila, categoria: p.categoria, nombre: p.nombre, detalle: p.detalle, precio: p.precio, stock: p.stock, foto: fotoValida_(p.foto) }; });
 }
 
+/** Clase de color de una reserva; igual que el calendario del administrador. */
+function claseAgenda_(servicio, plan, ini, fin) {
+  if (/en vivo/i.test(servicio)) return 'vivo';
+  if (plan) return (Number(String(fin).slice(0, 2)) - Number(String(ini).slice(0, 2))) >= 3 ? 'p12' : 'p8';
+  return /^ensayo|sala/i.test(servicio) ? 'ens' : 'est';
+}
+function coloresAgenda_() { var c = getCfg_(); return { ens: c.colorEnsayo, est: c.colorEstudio, p8: c.colorPlan8, p12: c.colorPlan12, vivo: c.colorVivo, bloq: c.colorBloqueo }; }
 /** Agenda desde el 1° del mes actual hasta ~3 meses adelante: solo banda, hora, servicio y estado. Sin teléfonos, correos ni montos. */
 function agendaDetalle_(conCobro) {
   var ss = abrirBd_(), hoy = ahoraChile_().fecha, desde = hoy.slice(0, 8) + '01', fin = Reglas.sumarDias(hoy, 95), out = [];
@@ -3961,12 +3968,12 @@ function agendaDetalle_(conCobro) {
   if (n > 1) sr.getRange(2, 1, n - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r) {
     var f = aFechaIso_(r[RES.fecha - 1]), e = estadoNorm_(r[RES.estado - 1]);
     if (!r[RES.codigo - 1] || f < desde || f > fin || e === EST.ANULADA) return;
-    out.push({ fecha: f, inicio: horaCelda_(r[RES.inicio - 1]), fin: horaCelda_(r[RES.fin - 1]), servicio: String(r[RES.servicio - 1]), banda: String(r[RES.banda - 1]), estado: e, porCobrar: !!conCobro && e === EST.FINALIZADA && String(r[RES.cobro - 1]) === 'POR COBRAR' && String(r[RES.cortesia - 1]) !== 'SI' });
+    out.push({ fecha: f, inicio: horaCelda_(r[RES.inicio - 1]), fin: horaCelda_(r[RES.fin - 1]), servicio: String(r[RES.servicio - 1]), banda: String(r[RES.banda - 1]), cl: claseAgenda_(String(r[RES.servicio - 1]), String(r[RES.plan - 1] || ''), horaCelda_(r[RES.inicio - 1]), horaCelda_(r[RES.fin - 1])), estado: e, porCobrar: !!conCobro && e === EST.FINALIZADA && String(r[RES.cobro - 1]) === 'POR COBRAR' && String(r[RES.cortesia - 1]) !== 'SI' });
   });
   var sb = ss.getSheetByName(HOJAS.bloqueos), m = sb.getLastRow();
   if (m > 1) sb.getRange(2, 1, m - 1, 4).getValues().forEach(function (r) {
     var f = aFechaIso_(r[0]);
-    if (f && f >= desde && f <= fin) out.push({ fecha: f, inicio: String(r[1] || ''), fin: String(r[2] || ''), servicio: 'Bloqueo', banda: String(r[3] || 'No disponible'), estado: 'Bloqueo' });
+    if (f && f >= desde && f <= fin) out.push({ fecha: f, inicio: String(r[1] || ''), fin: String(r[2] || ''), servicio: 'Bloqueo', banda: String(r[3] || 'No disponible'), cl: 'bloq', estado: 'Bloqueo' });
   });
   out.sort(function (a, b) { return (a.fecha + a.inicio) < (b.fecha + b.inicio) ? -1 : 1; });
   return out;
@@ -3995,9 +4002,9 @@ function resumenGeneral_(mes) {
 function sociosDatos_(token, mes) {
   var nombre = socioDe_(token);
   if (!nombre) return { ok: false, codigo: 'ENLACE', error: 'Este enlace no es válido o fue desactivado. Pide uno nuevo.' };
-  if (tipoSocio_(token) === 'social') return { ok: true, socio: nombre, tipo: 'social', ahora: ahoraChile_(), agenda: agendaDetalle_() };
+  if (tipoSocio_(token) === 'social') return { ok: true, socio: nombre, tipo: 'social', ahora: ahoraChile_(), agenda: agendaDetalle_(), colores: coloresAgenda_() };
   var v = datosVentas_(mes);
-  return { ok: true, socio: nombre, tipo: 'colega', ahora: ahoraChile_(), agenda: agendaDetalle_(true), musica: catalogoSocios_('musica'), bebestibles: catalogoSocios_('bebestible'),
+  return { ok: true, socio: nombre, tipo: 'colega', ahora: ahoraChile_(), agenda: agendaDetalle_(true), colores: coloresAgenda_(), musica: catalogoSocios_('musica'), bebestibles: catalogoSocios_('bebestible'),
     resumen: v.resumen, ventas: v.ventas, pendientes: v.pendientes, general: resumenGeneral_(mes) };
 }
 

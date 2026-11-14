@@ -46,7 +46,8 @@
   }
   var amesAg = '', selDia = '';
   var MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-  function colorEv(x) { return x.estado === 'Bloqueo' ? '#8a8581' : /grab|estudio/i.test(x.servicio) ? '#ef4444' : '#22c55e'; }
+  var COL0 = { ens: '#f5b400', est: '#ef4444', p8: '#3b82f6', p12: '#a855f7', vivo: '#06b6d4', bloq: '#8a8581' };
+  function colorEv(x) { var c = (datos && datos.colores) || {}, k = x.cl || (x.estado === 'Bloqueo' ? 'bloq' : /grab|estudio/i.test(x.servicio) ? 'est' : 'ens'); return /^#[0-9a-f]{6}$/i.test(c[k] || '') ? c[k] : COL0[k]; }
   function marcaEv(x) { return x.estado === 'Finalizada' ? (x.porCobrar ? ['pc', '$'] : ['ok', '✔']) : x.estado === 'No asiste' ? ['no', '✕'] : null; }
   function pintarAgenda() {
     var s = $('v-agenda'); s.textContent = '';
@@ -57,7 +58,7 @@
     [['‹', function () { ir(-1); }], ['Hoy', function () { amesAg = hoy.slice(0, 7); selDia = hoy; pintarAgenda(); }], ['›', function () { ir(1); }]].forEach(function (x) { var b = el('button', 'pb sec', x[0]); b.onclick = x[1]; nv.appendChild(b); });
     cab.appendChild(nv); s.appendChild(cab);
     s.appendChild(el('p', 'sub', 'Agenda oficial del estudio. Solo lectura: toca un día para ver sus sesiones.'));
-    var ley = el('div', 'ag-ley'); [['Sala de ensayo', '#22c55e'], ['Estudio de grabación', '#ef4444'], ['Bloqueo', '#8a8581']].forEach(function (x) { var e = el('span', '', x[0]); e.style.setProperty('--c', x[1]); ley.appendChild(e); }); s.appendChild(ley);
+    var ley = el('div', 'ag-ley'); [['Sala de ensayo', colorEv({ cl: 'ens' })], ['Estudio de grabación', colorEv({ cl: 'est' })], ['Plan mensual 8 h', colorEv({ cl: 'p8' })], ['Plan mensual 12 h', colorEv({ cl: 'p12' })], ['Rockerío en vivo', colorEv({ cl: 'vivo' })], ['Bloqueo', colorEv({ cl: 'bloq' })]].forEach(function (x) { var e = el('span', '', x[0]); e.style.setProperty('--c', x[1]); ley.appendChild(e); }); s.appendChild(ley);
     var por = {}; datos.agenda.forEach(function (x) { (por[x.fecha] = por[x.fecha] || []).push(x); });
     var g = el('div', 'ag-grid');
     [['Lunes', 'Lun'], ['Martes', 'Mar'], ['Miércoles', 'Mié'], ['Jueves', 'Jue'], ['Viernes', 'Vie'], ['Sábado', 'Sáb'], ['Domingo', 'Dom']].forEach(function (d) { var e = el('div', 'ag-dow'); e.appendChild(el('span', 'f', d[0])); e.appendChild(el('span', 'a', d[1])); g.appendChild(e); });
