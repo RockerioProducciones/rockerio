@@ -265,7 +265,7 @@ section{border-top:1px solid var(--borde);border-radius:14px;background:var(--pa
 .cuad .dow .abr{display:none}.cuad .dow .full{display:inline}
 .dia.vacio{background:transparent;border:0;cursor:default;min-height:0}
 .dia .n{align-items:center}.mas-b{min-height:0;width:22px;height:22px;padding:0;line-height:1;border-radius:6px;background:transparent;color:var(--mut);border:1px solid transparent;font-size:.9rem}.dia:hover .mas-b{border-color:var(--borde);color:var(--oro)}
-.dia .pts{display:none;gap:3px;flex-wrap:wrap;margin-top:auto}.dia .pts i{width:8px;height:8px;border-radius:50%;display:block}
+.dia .pts{display:none;gap:3px;flex-wrap:wrap;margin-top:auto}.dia .pts i{width:8px;height:8px;border-radius:50%;display:block}.dia .pts i.mk{width:15px;height:15px;font:800 .62rem/15px Inter,sans-serif;text-align:center;color:#fff;font-style:normal;box-shadow:0 0 0 1px rgba(0,0,0,.5)}.dia .pts i.mk.ok,.mk-s.ok{background:#16a34a}.dia .pts i.mk.pc,.mk-s.pc{background:#f59e0b;color:#111}.dia .pts i.mk.no,.mk-s.no{background:#ec4899}.mk-s{display:inline-block;min-width:18px;height:18px;border-radius:50%;font:800 .7rem/18px Inter,sans-serif;text-align:center;color:#fff;font-style:normal;margin-right:4px}
 .dia.sel{border-color:var(--oro)}
 .dia-cab{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:.5rem}.dia-cab h4{margin:0;flex:1;min-width:160px;text-transform:capitalize}
 .ses{border:1px solid var(--borde);border-left:5px solid var(--k-ens);border-radius:10px;background:rgba(0,0,0,.25);padding:.6rem .8rem;margin:.5rem 0}.ses-est{border-left-color:var(--k-est)}.ses-p8{border-left-color:var(--k-p8)}.ses-p12{border-left-color:var(--k-p12)}.ses-vivo{border-left-color:var(--k-vivo)}.ses.sin{border-style:dashed;border-left-style:solid}.ses.anu{opacity:.55}
@@ -1192,6 +1192,7 @@ function sumMes(m,k){var y=Number(m.slice(0,4)),x=Number(m.slice(5,7))+k;if(x<1)
 function deDia(f){return(JOR.reservas||[]).filter(function(r){return r.fecha===f&&(jAnu||r.estado!=='Anulada')}).sort(function(a,b){return a.inicio<b.inicio?-1:1})}
 function bloqDia(f){var o=[];(JOR.bloqueos||[]).forEach(function(b){if(b.fecha===f)o.push({fila:b.fila,t:b.desde===''?0:Number(b.desde)*60,txt:(b.desde===''?'Todo el día':b.desde+':00–'+b.hasta+':00')+(b.motivo?' · '+b.motivo:'')})});(JOR.inhabiles||[]).forEach(function(b){if(b.fecha===f)o.push({t:0,txt:'Inhabilitado'+(b.motivo?' · '+b.motivo:'')})});return o}
 function el_(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!==undefined)e.textContent=x;return e}
+function marcaEst(r){return r.estado==='Finalizada'?(r.cobro&&!r.cortesia&&r.saldo>0?['pc','$']:['ok','✔']):r.estado==='No asiste'?['no','✕']:null}
 function chipEv(r){var b=el_('button','ev '+(CLASE_EST[r.estado]||'')+' '+'sv-'+claseServ(r));b.type='button';var h=el_('b','',r.inicio.replace(':00','')+'–'+r.fin.replace(':00','')+' ');b.appendChild(h);b.appendChild(document.createTextNode(r.banda+(r.extras||r.video||r.raw?' +':'')));var mk=null;if(r.estado==='Finalizada'){mk=el_('i','mk '+(r.cobro&&!r.cortesia&&r.saldo>0?'pc':'ok'),r.cobro&&!r.cortesia&&r.saldo>0?'$':'✔')}else if(r.estado==='No asiste')mk=el_('i','mk no','✕');if(mk)b.appendChild(mk);
   b.title=r.banda+' · '+r.contacto+' · '+r.estado+(r.estado==='Finalizada'?(r.cobro&&!r.cortesia&&r.saldo>0?' · saldo por cobrar':' · cobrada'):r.estado==='No asiste'?' · no asistió (retención del abono)':'');b.onclick=function(ev){ev.stopPropagation();fichaJor(r)};return b}
 function minDe(h){var m=String(h||'').match(/^(\d{1,2}):?(\d{2})?/);return m?Number(m[1])*60+Number(m[2]||0):0}
@@ -1238,7 +1239,7 @@ function pintarCalJor(){
     var f=jmes+'-'+String(d).padStart(2,'0'),rs=deDia(f).filter(filtrado),bq=bloqDia(f);
     var cel=el_('div','dia'+(f===JOR.hoy?' hoy':'')+(f===jsel?' sel':''));var n=el_('div','n');n.appendChild(el_('span','',String(d)));var mas=el_('button','mas-b','＋');mas.type='button';mas.title='Agendar reserva este día';mas.onclick=function(ev){ev.stopPropagation();abrirRM({fecha:f})};n.appendChild(mas);cel.appendChild(n);
     var mz=mezclaDia(rs,bq);mz.slice(0,4).forEach(function(i){cel.appendChild(i.b?chipBloq(i.b):chipEv(i.r))});if(mz.length>4)cel.appendChild(el_('div','mas','+ '+(mz.length-4)+' más'));
-    var pts=el_('div','pts');bq.slice(0,1).forEach(function(){var p=el_('i','');p.style.background='var(--k-bloq)';pts.appendChild(p)});rs.slice(0,6).forEach(function(r){var p=el_('i','');p.style.background='var(--k-'+claseServ(r)+')';pts.appendChild(p)});cel.appendChild(pts);
+    var pts=el_('div','pts');bq.slice(0,1).forEach(function(){var p=el_('i','');p.style.background='var(--k-bloq)';pts.appendChild(p)});rs.slice(0,6).forEach(function(r){var p=el_('i','');p.style.background='var(--k-'+claseServ(r)+')';var g=marcaEst(r);if(g){p.className='mk '+g[0];p.textContent=g[1];p.style.background=''}pts.appendChild(p)});cel.appendChild(pts);
     cel.onclick=function(){jsel=f;pintarCalJor()};g.appendChild(cel);
   })(d)}
   c.appendChild(g);var pd=el_('div','panel-dia');pd.id='jdia';c.appendChild(pd);diaJor(jsel||JOR.hoy);
@@ -1288,7 +1289,7 @@ function diaJor(f){
   if(!rs.length&&!bq.length)h.appendChild(par('Sin jornadas ni bloqueos este día.','color:#b5afa6'));
   var fb=function(x){var r=el_('div','fila');r.appendChild(chipBloq(x));if(x.fila)r.appendChild(btn('Quitar bloqueo',function(){confirmarSN('¿Quitar este bloqueo de la agenda?',function(){jrun('adminDesbloquear',x.fila)},'Sí, quitar')},'sec'));h.appendChild(r)};
   var fr=function(r){var k=el_('div','ses ses-'+claseServ(r)+' '+(CLASE_EST[r.estado]||''));
-    var top=el_('div','ses-top');top.appendChild(el_('b','ses-b',r.inicio+' - '+r.fin+' / '+String(r.banda||'').toUpperCase()+' / '+String(r.contacto||'').toUpperCase()));top.appendChild(el_('span','ses-e',r.estado));k.appendChild(top);
+    var top=el_('div','ses-top');top.appendChild(el_('b','ses-b',r.inicio+' - '+r.fin+' / '+String(r.banda||'').toUpperCase()+' / '+String(r.contacto||'').toUpperCase()));var mkE=marcaEst(r);if(mkE)top.appendChild(el_('i','mk mk-s '+mkE[0],mkE[1]));top.appendChild(el_('span','ses-e',r.estado));k.appendChild(top);
     k.appendChild(el_('div','ses-m',r.servicio+(r.plan?' · Plan '+r.plan:'')+' · '+(r.estado==='No asiste'?'cerrada · retención '+clp(r.retenido):clp(r.total)+(r.ajuste?' (con ajuste de '+clp(r.ajuste)+')':''))+(r.reag?' · reagendada '+r.reag+'/'+(JOR.maxReag||2):'')));
     if(r.pago==='COMPROBANTE'&&r.estado==='Reservado (sin abono)')k.appendChild(el_('div','ses-m','💬 El cliente dice que ya envió el comprobante: revísalo en WhatsApp y confirma el abono.'));
     if(r.estado==='Reservado (sin abono)'&&(r.pago==='MANUAL'||/^Reserva manual/.test(r.comentarios||'')))k.appendChild(el_('div','ses-m','📌 La ingresaste tú sin pago: el horario queda guardado hasta que lo confirmes o lo anules (no se libera solo).'));
