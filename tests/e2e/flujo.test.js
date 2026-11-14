@@ -9,6 +9,8 @@ const sumar = (iso, n) => R.sumarDias(iso, n);
 const hoy = C.ahoraChile_().fecha, manana = sumar(hoy, 1);
 // primer día con atención en línea a partir de hoy+3 que no sea jueves (para que 17–22 y 9–14 sean predecibles)
 let f3 = sumar(hoy, 3); while ([4, 6, 0].indexOf(new Date(f3 + 'T12:00:00Z').getUTCDay()) >= 0) f3 = sumar(f3, 1);
+// n-ésimo día con atención (no jueves, sábado ni domingo) a partir de hoy: así las pruebas no dependen del día de la semana ni se salen de la ventana de reserva
+const hab = (n) => { let f = hoy, c = 0; while (c < n) { f = sumar(f, 1); if ([4, 6, 0].indexOf(new Date(f + 'T12:00:00Z').getUTCDay()) < 0) c++; } return f; };
 const banda = { banda: 'Los Ensayos', nombre: 'Ana Pérez', telefono: '+56 9 1234 5678', correo: 'ana@correo.cl', tyc: true };
 const sol = (o) => Object.assign({ accion: 'reservar', servicio: 'ensayo', fecha: f3, inicio: 18, horas: 2, extras: 0, video: false, raw: false }, banda, o);
 
@@ -388,7 +390,7 @@ t('una reserva ingresada por ti sin pago NO se libera sola; las de clientes sí'
   assert.ok(/sin abono/i.test(est(m.codigo)), 'la manual sigue vigente: ' + est(m.codigo));
 });
 t('ingreso manual: abono flexible (banda amiga) y prioridad sobre reservas de clientes sin abono', () => {
-  let dia = sumar(f3, 18); while ([4, 6, 0].indexOf(new Date(dia + 'T12:00:00Z').getUTCDay()) >= 0) dia = sumar(dia, 1);
+  let dia = hab(9);
   const J = () => g.admin('adminJornadas').reservas;
   // 1) abono acordado a mano
   const a = g.admin('adminReservaManual', { servicio: 'ensayo', fecha: dia, inicio: 9, horas: 1, banda: 'Amigos', nombre: 'Lu', telefono: '+56 9 4444 0020', pago: 'abono', abono: '5000', total: '20000' });
@@ -557,7 +559,7 @@ t('postular al cuadro de honor con redes (máx. 3) y último trabajo', () => {
 
 t('reagendar: máximo 2 cambios, excepción del admin, sin pisar otras reservas ni bloqueos', () => {
   const gx = require('./gas-sim').crear(); gx.instalar(); const R2 = gx.ctx.Reglas, h = gx.ctx.ahoraChile_().fecha;
-  const dia = (n) => { let f = R2.sumarDias(h, n); while ([4, 6, 0].indexOf(new Date(f + 'T12:00:00Z').getUTCDay()) >= 0) f = R2.sumarDias(f, 1); return f; };
+  const dia = (n) => { let f = h, c = 0; while (c < n) { f = R2.sumarDias(f, 1); if ([4, 6, 0].indexOf(new Date(f + 'T12:00:00Z').getUTCDay()) < 0) c++; } return f; };
   const mk = (o) => gx.admin('adminReservaManual', Object.assign({ servicio: 'ensayo', fecha: dia(5), inicio: 18, horas: 2, banda: 'Los Mover', nombre: 'Ana', telefono: '+56 9 1234 5678', estado: 'Reservado (con abono)' }, o));
   const a = mk({}), b = mk({ inicio: 10, banda: 'Otra Banda', telefono: '+56 9 8765 4321' });
   gx.admin('adminReagendar', a.codigo, dia(6), 19); gx.admin('adminReagendar', a.codigo, dia(6), 17);
@@ -839,7 +841,7 @@ t('micrófonos: guarda hasta 2 fotos y 3 audios válidos por micrófono y descar
   assert.strictEqual(r.length, 1); assert.strictEqual(r[0].foto2, ''); assert.strictEqual(r[0].foto3, ''); assert.ok(r[0].audios.length >= 2 && r[0].audios.length <= 3, 'máximo 3 audios'); assert.ok(r[0].audios.every((a) => /^https:\/\//.test(a.enlace)), 'solo enlaces válidos');
 });
 t('banda de la casa: su reserva sin abono no vence sola y reagenda sin tope; las demás sí vencen', () => {
-  let dia = sumar(f3, 11); while ([4, 6, 0].indexOf(new Date(dia + 'T12:00:00Z').getUTCDay()) >= 0) dia = sumar(dia, 1);
+  let dia = hab(7);
   const casa = g.post(sol({ fecha: dia, inicio: 10, horas: 1, telefono: '56933330001', banda: 'Casa Semanal', nombre: 'Rex Z', correo: 'casa.sem@r.cl' })); assert.ok(casa.ok, JSON.stringify(casa));
   const otra = g.post(sol({ fecha: dia, inicio: 12, horas: 1, telefono: '56933330002', banda: 'Una Vez', nombre: 'Tom Y', correo: 'unavez@t.cl' })); assert.ok(otra.ok, JSON.stringify(otra));
   g.admin('adminGuardarCliente', { clave: '56933330001', nombre: 'Rex', apellido: 'Z', correo: 'casa.sem@r.cl', banda: 'Casa Semanal', casa: true });
@@ -853,7 +855,7 @@ t('banda de la casa: su reserva sin abono no vence sola y reagenda sin tope; las
   assert.ok(g.admin('adminJornadas').clientes.find((c) => c.telefono === '56933330001').casa, 'queda marcada como casa');
 });
 t('una reserva anulada que se reactiva con abono vuelve a ocupar el horario (y no se pisa si otro lo tomó)', () => {
-  const dia = sumar(f3, 16);
+  const dia = hab(8);
   const r = g.post(sol({ fecha: dia, inicio: 21, horas: 2, telefono: '56955556666', banda: 'Reactivada', nombre: 'Diego B', correo: 'd@d.cl' })); assert.ok(r.ok, JSON.stringify(r));
   g.admin('adminCambiarEstado', r.codigo, 'Anulada');
   let libres = g.get({ accion: 'disponibilidad', fecha: dia }).libres;
@@ -869,7 +871,7 @@ t('una reserva anulada que se reactiva con abono vuelve a ocupar el horario (y n
 });
 
 t('adicionales con un clic: agregar y quitar bajo/video/material ajusta total y saldo y vuelve al original', () => {
-  const r = g.post(sol({ fecha: sumar(f3, 10), inicio: 11, horas: 2, telefono: '56977776666', banda: 'Solo platos', nombre: 'Pablo Rey', correo: 'p@p.cl' })); assert.ok(r.ok, JSON.stringify(r));
+  const r = g.post(sol({ fecha: hab(11), inicio: 11, horas: 2, telefono: '56977776666', banda: 'Solo platos', nombre: 'Pablo Rey', correo: 'p@p.cl' })); assert.ok(r.ok, JSON.stringify(r));
   const ver = () => g.admin('adminJornadas').reservas.find((q) => q.codigo === r.codigo);
   const t0 = ver().total, s0 = ver().saldo;
   g.admin('adminCambiarAdicionales', r.codigo, { equipos: ['Bajo eléctrico Epiphone Thunderbird Pro IV'] });
