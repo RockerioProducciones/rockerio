@@ -258,3 +258,15 @@ html,body{overflow-x:clip}
 .mic-main>img{object-fit:contain!important}
 /* Título de portada: letra angular y condensada, más cercana a la del logo ROCKERÍO PRODUCCIONES */
 html .hero h1,html.rd body .hero h1{font-family:'Big Shoulders Display','Bebas Neue',Impact,'Arial Narrow',sans-serif!important;font-weight:900!important;text-transform:uppercase;letter-spacing:.025em!important;line-height:.95!important;font-size:clamp(3.2rem,13vw,6.6rem)}
+
+/* Rockerío en vivo: presentación */
+#vivo .vv-linea{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin:1rem 0 1.4rem}
+#vivo .vv-fase{border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:.9rem 1rem;background:rgba(255,255,255,.03);display:flex;flex-direction:column;gap:.3rem}
+#vivo .vv-fase .vv-h{font:700 .8rem Inter,sans-serif;color:#9a948b;letter-spacing:.06em}
+#vivo .vv-fase b{font-size:1.05rem}#vivo .vv-fase small{color:#b5afa6;line-height:1.4}
+#vivo .vv-show{border-color:var(--oro,#e39a2d);background:rgba(227,154,45,.12)}#vivo .vv-show .vv-h,#vivo .vv-show b{color:var(--oro,#e39a2d)}
+#vivo .vv-t{margin:1.4rem 0 .6rem;color:var(--oro,#e39a2d);text-transform:uppercase;font-size:.95rem;letter-spacing:.06em}
+#vivo .vv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.7rem}
+#vivo .vv-grid .caja{margin:0}#vivo .vv-grid .caja b{display:block;margin-bottom:.3rem}#vivo .vv-grid .caja p{margin:0;color:#d6d0c7;line-height:1.45;font-size:.95rem}
+#vivo .vv-org{margin:0}#vivo .vv-cta{margin-top:1.2rem;display:flex;flex-wrap:wrap;gap:.6rem}
+@media(max-width:720px){#vivo .vv-linea{grid-template-columns:1fr}}
