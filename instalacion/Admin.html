@@ -859,7 +859,7 @@ function subirComp(f,g,et){return new Promise(function(ok,mal){if(f.size>12*1024
 $('cmg').onclick=function(){var g=$('cmt').value.trim();if(!g){aviso('Escribe el nombre de la canción.');return}
   var ets=['En bruto','Mezclada','Masterizada'],pasos=[1,2,3].map(function(i){var f=$('cf'+i).files[0];return f?(aviso('Subiendo '+ets[i-1]+'…'),subirComp(f,g,ets[i-1])):Promise.resolve($('cm'+i).value.trim())});
   Promise.all(pasos).then(function(v){google.script.run.withSuccessHandler(function(r){['cmt','cmd','cm1','cm2','cm3'].forEach(function(i){$(i).value=''});['cf1','cf2','cf3'].forEach(function(i){$(i).value=''});pintar(r);aviso('Canción guardada en el comparador ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminGuardarComparador({titulo:g,descripcion:$('cmd').value,bruto:v[0],mezclada:v[1],master:v[2]})}).catch(function(e){aviso(e.message||'No se pudo subir el audio')})};
-var MEZ_I=['Batería','Bajo','Guitarras','Voces','Otros'],MEZ_E=['En bruto','Mezcla','Master'];
+var MEZ_I=['Batería','Bajo','Guitarras','Voces','Otros','Completa'],MEZ_E=['En bruto','Mezcla','Master'];
 (function(){var g=$('mzg');MEZ_I.forEach(function(i){MEZ_E.forEach(function(e){var k=i+'|'+e,d=document.createElement('div');d.style.cssText='border:1px solid #333;border-radius:8px;padding:6px';
   var l=document.createElement('label');l.textContent=i+' · '+e;l.style.cssText='display:block;color:#b5afa6;font-size:12px;margin-bottom:3px';
   var u=document.createElement('input');u.className='mzu';u.setAttribute('data-k',k);u.placeholder='https://drive.google.com/file/d/…';u.style.width='100%';

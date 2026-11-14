@@ -4,7 +4,8 @@
   'use strict';
   var RK = window.RK, $ = function (id) { return document.getElementById(id); }, el = RK.el, API = RK.api;
   var INST = ['Batería', 'Bajo', 'Guitarras', 'Voces', 'Otros'];
-  var ICO = { 'Batería': '🥁', 'Bajo': '🎸', 'Guitarras': '🎸', 'Voces': '🎤', 'Otros': '🎹' };
+  var ICO = { 'Batería': '🥁', 'Bajo': '🎸', 'Guitarras': '🎸', 'Voces': '🎤', 'Otros': '🎹', 'Completa': '🎵' };
+  var FULL = 'Completa', ALIAS_FULL = /^(canci[oó]n( completa)?|completa|tema( completo)?|mezcla completa|full)$/i;
   var ETAPAS = [
     ['En bruto', 'RAW', 'Sin procesar: tal como entra al micrófono.'],
     ['Mezcla', 'MIX', 'Cada pista con su EQ, compresión, panning y efectos.'],
@@ -16,10 +17,11 @@
     var pistas = {}, etapas = {};
     g.items.forEach(function (it) {
       var p = String(it.etiqueta || '').split(/\s*·\s*/); if (p.length < 2) return;
-      var i = INST.indexOf(p[0]), e = ETAPAS.map(function (x) { return x[0]; }).indexOf(p[1]); if (i < 0 || e < 0) return;
+      if (ALIAS_FULL.test(p[0].trim())) p[0] = FULL;
+      var i = p[0] === FULL ? 0 : INST.indexOf(p[0]), e = ETAPAS.map(function (x) { return x[0]; }).indexOf(p[1]); if (i < 0 || e < 0) return;
       (pistas[p[0]] = pistas[p[0]] || {})[p[1]] = it.enlace; etapas[p[1]] = true;
     });
-    return { pistas: pistas, etapas: ETAPAS.filter(function (e) { return etapas[e[0]]; }), inst: INST.filter(function (i) { return pistas[i]; }) };
+    return { pistas: pistas, etapas: ETAPAS.filter(function (e) { return etapas[e[0]]; }), inst: INST.filter(function (i) { return pistas[i]; }), completa: !!pistas[FULL] };
   }
   function b64ab(b64) { var bin = atob(b64), n = bin.length, u = new Uint8Array(n); for (var i = 0; i < n; i++) u[i] = bin.charCodeAt(i); return u.buffer; }
   function bajar(url) {
@@ -44,7 +46,7 @@
     'Otros': 'escúchala aislada para notar qué aporta al conjunto.'
   };
   var TXT_ETAPA_CORTA = { 'En bruto': 'Sin procesar', 'Mezcla': 'Con mezcla', 'Master': 'Con master' };
-  var COLOR = { 'Batería': '#ff8a3d', 'Bajo': '#a78bfa', 'Guitarras': '#4ea8ff', 'Voces': '#ff5fa2', 'Otros': '#3ddc84' };
+  var COLOR = { 'Completa': '#f5c542', 'Batería': '#ff8a3d', 'Bajo': '#a78bfa', 'Guitarras': '#4ea8ff', 'Voces': '#ff5fa2', 'Otros': '#3ddc84' };
   function picos(buf, n) {
     var out = new Float32Array(n), canales = [], c, k, i;
     for (c = 0; c < buf.numberOfChannels; c++) canales.push(buf.getChannelData(c));
@@ -62,7 +64,8 @@
   }
 
   function montar(cont, g) {
-    var P = parsear(g); if (P.inst.length < 1 || !P.etapas.length) return;
+    var P = parsear(g); if ((P.inst.length < 1 && !P.completa) || !P.etapas.length) return;
+    var FILAS = P.inst.concat(P.completa ? [FULL] : []);
     cont.textContent = '';
     if (g.descripcion) cont.appendChild(el('p', 'nota', g.descripcion));
     var Ctx = window.AudioContext || window.webkitAudioContext;
@@ -71,23 +74,25 @@
     cont.appendChild(cargar); cont.appendChild(estado);
     if (!Ctx) { cargar.disabled = true; estado.textContent = 'Tu navegador no admite el mezclador. Prueba con Chrome, Safari o Firefox actualizados.'; return; }
     var ctx, buffers = {}, pk = {}, gains = {}, fuentes = [], etapa = P.etapas[0][0];
-    var mute = {}, solo = {}, dur = 0, t0 = 0, desde = 0, sonando = false, raf = 0, ui = {};
+    var modo = P.inst.length ? 'pistas' : 'completa', mute = {}, solo = {}, dur = 0, t0 = 0, desde = 0, sonando = false, raf = 0, ui = {};
 
-    function audible(i) { var haySolo = P.inst.some(function (x) { return solo[x]; }); return !mute[i] && (haySolo ? !!solo[i] : true); }
+    function audible(i) { if (i === FULL) return modo === 'completa'; if (modo === 'completa') return false; var haySolo = P.inst.some(function (x) { return solo[x]; }); return !mute[i] && (haySolo ? !!solo[i] : true); }
     function pintarOndas() {
-      P.inst.forEach(function (i) { dibujar(ui.filas[i].cv, pk[i + '|' + etapa], COLOR[i]); });
+      FILAS.forEach(function (i) { if (ui.filas[i].row.hidden) return; dibujar(ui.filas[i].cv, pk[i + '|' + etapa], COLOR[i]); });
     }
     function aplicar(redibujar) {
-      P.inst.forEach(function (i) { P.etapas.forEach(function (e) {
+      FILAS.forEach(function (i) { P.etapas.forEach(function (e) {
         var gn = gains[i + '|' + e[0]]; if (!gn) return;
         gn.gain.setTargetAtTime(e[0] === etapa && audible(i) ? 1 : 0, ctx.currentTime, 0.012);
       }); });
       var faltan = [];
-      P.inst.forEach(function (i) {
+      FILAS.forEach(function (i) {
         var f = ui.filas[i], hay = !!buffers[i + '|' + etapa];
+        f.row.hidden = (i === FULL) !== (modo === 'completa');
         f.m.setAttribute('aria-pressed', mute[i] ? 'true' : 'false'); f.s.setAttribute('aria-pressed', solo[i] ? 'true' : 'false');
-        f.row.classList.toggle('apagada', !hay || !audible(i)); f.row.classList.toggle('sin-pista', !hay); if (!hay) faltan.push(i);
+        f.row.classList.toggle('apagada', !hay || !audible(i)); f.row.classList.toggle('sin-pista', !hay); if (!hay && !f.row.hidden) faltan.push(i);
       });
+      if (ui.modo) [].forEach.call(ui.modo.children, function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-m') === modo ? 'true' : 'false'); });
       [].forEach.call(ui.et.children, function (b) { var on = b.getAttribute('data-e') === etapa; b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
       aplicar.faltan = faltan;
       if (redibujar !== false) pintarOndas();
@@ -101,7 +106,7 @@
       Object.keys(buffers).forEach(function (k) { var s = ctx.createBufferSource(); s.buffer = buffers[k]; s.loop = true; s.loopStart = 0; s.loopEnd = dur; s.connect(gains[k]); s.start(0, off); fuentes.push(s); });
     }
     function hora(t) { var m = Math.floor(t / 60), s = t - m * 60; return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s.toFixed(1); }
-    function mostrarPos() { var p = pos(), f = dur ? p / dur : 0; ui.tiempo.textContent = hora(p); ui.lanes.setAttribute('aria-valuenow', String(Math.round(f * 100))); P.inst.forEach(function (i) { ui.filas[i].prog.style.transform = 'scaleX(' + f.toFixed(4) + ')'; }); }
+    function mostrarPos() { var p = pos(), f = dur ? p / dur : 0; ui.tiempo.textContent = hora(p); ui.lanes.setAttribute('aria-valuenow', String(Math.round(f * 100))); FILAS.forEach(function (i) { ui.filas[i].prog.style.transform = 'scaleX(' + f.toFixed(4) + ')'; }); }
     function bucle() { mostrarPos(); if (sonando) raf = requestAnimationFrame(bucle); }
     function reproducir() { if (activo && activo !== api) activo.pausar(); ctx.resume(); iniciar(desde); sonando = true; activo = api; ui.play.textContent = '⏸'; ui.play.setAttribute('aria-label', 'Pausa'); ui.play.setAttribute('aria-pressed', 'true'); bucle(); }
     function pausar() { if (!sonando) return; desde = pos(); sonando = false; detener(); ui.play.textContent = '▶'; ui.play.setAttribute('aria-label', 'Reproducir'); ui.play.setAttribute('aria-pressed', 'false'); cancelAnimationFrame(raf); mostrarPos(); }
@@ -123,20 +128,28 @@
         var b = el('button', 'mz-et'); b.type = 'button'; b.setAttribute('data-e', e[0]); b.setAttribute('aria-pressed', 'false');
         b.appendChild(el('i', 'mz-led')); b.appendChild(el('span', '', e[1])); b.title = TXT_ETAPA_CORTA[e[0]]; b.addEventListener('click', function () { etapa = e[0]; aplicar(); var f = aplicar.faltan || []; globo(TXT_ETAPA[e[0]] + (f.length ? ' (Sin pista separada de: ' + f.join(', ') + '; viene como conjunto.)' : '')); }); ui.et.appendChild(b);
       });
-      top.appendChild(ui.play); top.appendChild(rel); top.appendChild(tit); top.appendChild(ui.et); daw.appendChild(top);
+      if (P.inst.length && P.completa) {
+        ui.modo = el('div', 'mz-etapas mz-modo'); ui.modo.setAttribute('role', 'group'); ui.modo.setAttribute('aria-label', 'Qué escuchar');
+        [['pistas', 'PISTAS', 'Cada instrumento por separado: solo, silencio y mezcla.'], ['completa', 'CANCIÓN COMPLETA', 'La canción entera, sin separar los instrumentos.']].forEach(function (m) {
+          var b = el('button', 'mz-et'); b.type = 'button'; b.setAttribute('data-m', m[0]); b.setAttribute('aria-pressed', 'false'); b.title = m[2];
+          b.appendChild(el('i', 'mz-led')); b.appendChild(el('span', '', m[1]));
+          b.addEventListener('click', function () { modo = m[0]; aplicar(); globo(m[0] === 'completa' ? 'CANCIÓN COMPLETA · Suena la versión entera; cambia entre RAW, MIX y MASTER para comparar.' : 'PISTAS · Cada instrumento por separado: usa S para solo y M para silenciar.'); }); ui.modo.appendChild(b);
+        });
+      }
+      top.appendChild(ui.play); top.appendChild(rel); top.appendChild(tit); if (ui.modo) top.appendChild(ui.modo); top.appendChild(ui.et); daw.appendChild(top);
       // pistas con forma de onda
       ui.lanes = el('div', 'mz-pistas'); ui.lanes.tabIndex = 0; ui.lanes.setAttribute('role', 'slider'); ui.lanes.setAttribute('aria-label', 'Posición de la canción'); ui.lanes.setAttribute('aria-valuemin', '0'); ui.lanes.setAttribute('aria-valuemax', '100'); ui.lanes.setAttribute('aria-valuenow', '0');
       ui.lanes.addEventListener('keydown', function (ev) {
         if (ev.key === 'ArrowRight') { ir((pos() + 1) / dur); ev.preventDefault(); } else if (ev.key === 'ArrowLeft') { ir((pos() - 1) / dur); ev.preventDefault(); } else if (ev.key === ' ') { if (sonando) pausar(); else reproducir(); ev.preventDefault(); }
       });
       ui.filas = {};
-      P.inst.forEach(function (i) {
+      FILAS.forEach(function (i) {
         var row = el('div', 'mz-pista'); row.style.setProperty('--c', COLOR[i]);
         var cab = el('div', 'mz-cab'); cab.appendChild(el('span', 'mz-ico', ICO[i])); cab.appendChild(el('b', 'mz-nom', i));
         var bt = el('div', 'mz-bts'), m = el('button', 'mz-b', 'M'), s = el('button', 'mz-b', 'S'); m.type = s.type = 'button';
         m.title = 'Silenciar ' + i; s.title = 'Solo ' + i; m.setAttribute('aria-label', 'Silenciar ' + i); s.setAttribute('aria-label', 'Solo ' + i); m.setAttribute('aria-pressed', 'false'); s.setAttribute('aria-pressed', 'false');
         m.addEventListener('click', function () { mute[i] = !mute[i]; aplicar(false); globo(mute[i] ? 'Silenciaste ' + i + ': escucha cómo suena el resto sin ella; así se nota lo que aporta.' : i + ' vuelve a sonar.'); }); s.addEventListener('click', function () { solo[i] = !solo[i]; aplicar(false); globo(solo[i] ? 'SOLO · ' + i + ': ' + TXT_INST[i] : 'Salió del solo.'); });
-        bt.appendChild(s); bt.appendChild(m); cab.appendChild(bt);
+        bt.appendChild(s); bt.appendChild(m); if (i !== FULL) cab.appendChild(bt);
         var onda = el('div', 'mz-onda'), cv = document.createElement('canvas'), prog = el('div', 'mz-prog'); cv.setAttribute('aria-hidden', 'true');
         onda.appendChild(cv); onda.appendChild(prog); onda.appendChild(el('span', 'mz-nopista', 'sin pista en esta etapa'));
         var arrastra = false;
@@ -158,7 +171,7 @@
 
     cargar.addEventListener('click', function () {
       cargar.disabled = true; ctx = new Ctx(); try { ctx.resume(); } catch (x) { /* se reanuda al reproducir */ }
-      var lista = []; P.inst.forEach(function (i) { P.etapas.forEach(function (e) { var u = P.pistas[i][e[0]]; if (u) lista.push([i, e[0], u]); }); });
+      var lista = []; FILAS.forEach(function (i) { P.etapas.forEach(function (e) { var u = P.pistas[i][e[0]]; if (u) lista.push([i, e[0], u]); }); });
       var hechos = 0, sig = 0;
       estado.textContent = 'Cargando pistas 0/' + lista.length + '…';
       function uno() {
@@ -179,7 +192,7 @@
 
   function mezclador(grupos) {
     var cont = $('mezclador'), vac = $('mezclador-vacio'); if (!cont) return;
-    var validos = grupos.filter(function (g) { var p = parsear(g); return p.inst.length && p.etapas.length; });
+    var validos = grupos.filter(function (g) { var p = parsear(g); return (p.inst.length || p.completa) && p.etapas.length; });
     cont.textContent = ''; cont.hidden = !validos.length; if (vac) vac.hidden = !!validos.length; if (!validos.length) return;
     cont.appendChild(el('div', 'comp-kick', 'Mini DAW · Prueba tú mismo'));
     cont.appendChild(el('h3', 'comp-tit', 'Mezclador de pistas'));

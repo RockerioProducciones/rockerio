@@ -482,7 +482,7 @@ function adminEliminarHonor(fila) {
 }
 
 /* ---------- Mezclador (mini DAW del sitio): una canción de ~20 s en pistas, en tres etapas ---------- */
-var MEZ_INSTRUMENTOS = ['Batería', 'Bajo', 'Guitarras', 'Voces', 'Otros'];
+var MEZ_INSTRUMENTOS = ['Batería', 'Bajo', 'Guitarras', 'Voces', 'Otros', 'Completa'];
 var MEZ_ETAPAS = ['En bruto', 'Mezcla', 'Master'];
 function enlaceAudioValido_(e) { return /^https:\/\/\S{4,400}$/.test(e) || /^audio\/[\w\-. \/]{1,150}$/.test(e); }
 
