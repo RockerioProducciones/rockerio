@@ -2335,6 +2335,8 @@ function adminCambiarAdicionales(codigo, d) {
     if (!delta && !partes.length && d.equipos === undefined) return { ok: true };
     var total = Math.max(0, (Number(r[RES.total - 1]) || 0) + delta), abono = Number(r[RES.abono - 1]) || 0;
     sh.getRange(f, RES.total).setValue(total); sh.getRange(f, RES.saldo).setValue(Math.max(0, total - abono));
+    // Si ya estaba finalizada y cobrada y el total sube, la diferencia queda por cobrar (aparece en Pendientes)
+    if (est === EST.FINALIZADA && delta > 0 && String(r[RES.cobro - 1]) !== 'POR COBRAR') sh.getRange(f, RES.cobro).setValue('POR COBRAR');
     if (orig && typeof orig.t === 'number') {
       orig.t += delta; orig.e = (Number(orig.e) || 0) + dEquipo; orig.v = (Number(orig.v) || 0) + dV; orig.r = (Number(orig.r) || 0) + dR;
       sh.getRange(f, RES.original).setValue(JSON.stringify(orig));
@@ -2539,9 +2541,10 @@ function adminJornadas() {
 
   var cl = leerClientes_(), porTel = {};
   reservas.forEach(function (r) { r.enlace = enlaceDe_(cl, r.telefono, r.banda); });
-  cl.forEach(function (c) { porTel[c.telefono] = { telefono: c.telefono, correo: c.correo, banda: c.banda, contacto: c.contacto, nombre: c.nombre, apellido: c.apellido, enlace: c.enlace, casa: c.casa, jornadas: 0, finalizadas: 0, gastado: 0, ultima: '', proxima: '' }; });
+  cl.forEach(function (c) { porTel[c.telefono] = { telefono: c.telefono, correo: c.correo, banda: c.banda, contacto: c.contacto, nombre: c.nombre, apellido: c.apellido, enlace: c.enlace, casa: c.casa, noAsiste: 0, jornadas: 0, finalizadas: 0, gastado: 0, ultima: '', proxima: '' }; });
   reservas.forEach(function (r) {
-    var c = porTel[r.telefono] || (porTel[r.telefono] = { telefono: r.telefono, correo: r.correo, banda: r.banda, contacto: r.contacto, enlace: '', jornadas: 0, finalizadas: 0, gastado: 0, ultima: '', proxima: '' });
+    var c = porTel[r.telefono] || (porTel[r.telefono] = { telefono: r.telefono, correo: r.correo, banda: r.banda, contacto: r.contacto, enlace: '', noAsiste: 0, jornadas: 0, finalizadas: 0, gastado: 0, ultima: '', proxima: '' });
+    if (r.estado === EST.NO_ASISTE) c.noAsiste++;
     if (r.estado === EST.ANULADA) return;
     c.jornadas++;
     if (r.estado === EST.FINALIZADA) { c.finalizadas++; c.gastado += r.total; }

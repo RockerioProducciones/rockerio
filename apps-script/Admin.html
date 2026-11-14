@@ -1159,7 +1159,7 @@ function pintarPend(){
   var planes=((ultimo&&ultimo.planes)||[]).filter(function(x){return !x.pagado});
   var porCobrar=cobrar.reduce(function(t,r){return t+(r.saldo||0)},0)+pasadas.filter(function(r){return !r.cobro}).reduce(function(t,r){return t+(r.saldo||0)},0);
   function titulo(t,n,sub){var d=el_('div','pend-t');d.appendChild(el_('b','',t+' ('+n+')'));if(sub)d.appendChild(el_('span','',sub));c.appendChild(d)}
-  function tarj(r,color,extra){var d=el_('div','pend-c');d.style.setProperty('--c',color);var i=el_('div','pi');i.appendChild(el_('b','',r.banda));i.appendChild(el_('small','',r.fechaTxt+' · '+r.inicio+'–'+r.fin+' · '+r.servicio+' · '+(r.saldo?'saldo '+clp(r.saldo):'sin saldo')));i.onclick=function(){fichaJor(r)};d.appendChild(i);extra(d);c.appendChild(d)}
+  function tarj(r,color,extra){var d=el_('div','pend-c');d.style.setProperty('--c',color);var i=el_('div','pi');i.appendChild(el_('b','',r.banda));i.appendChild(el_('small','',r.fechaTxt+' · '+r.inicio+'–'+r.fin+' · '+r.servicio+' · '+(r.saldo?'saldo '+clp(r.saldo):'sin saldo')));var rt=reincTxt(r.telefono);if(rt){var rs2=el_('small','',rt);rs2.style.cssText='color:#ff5a5f;font-weight:700';i.appendChild(rs2)}i.onclick=function(){fichaJor(r)};d.appendChild(i);extra(d);c.appendChild(d)}
   function selMedio(d,r){var s=el_('select');MEDIOS.forEach(function(m){var o=el_('option','',m);o.value=m;s.appendChild(o)});s.value=r.medio||'Efectivo';d.appendChild(s);return s}
   if(!pasadas.length&&!cobrar.length&&!sinAb.length&&!planes.length){c.appendChild(el_('div','pend-ok','✔ Todo al día: no hay sesiones sin cerrar ni cobros pendientes.'));return}
   if(porCobrar>0||planes.length)c.appendChild(el_('div','pend-ok','Por cobrar en total: '+clp(porCobrar)+(planes.length?' · más '+planes.length+(planes.length===1?' plan':' planes')+' sin pagar':'')));
@@ -1302,6 +1302,9 @@ function equiposDe(r){var m=/Equipos: ([^·\[]*)/.exec(r.comentarios||''),o=[],m
   if(ma)ARRIENDOS_RM.forEach(function(n){if(ma[1].indexOf(n.split(':')[0])>=0&&o.indexOf(n)<0)o.push(n)});
   var k=Number(r.extras)||0;ARRIENDOS_RM.forEach(function(n){if(o.length<k&&o.indexOf(n)<0)o.push(n)});return o.slice(0,k)}
 function editarDe(r){abrirRM({equipos:equiposDe(r),codigo:r.codigo,servicio:/grab|estudio/i.test(r.servicio)?'grabacion':/en vivo/i.test(r.servicio)?'vivo':'ensayo',fecha:r.fecha,inicio:parseInt(r.inicio,10),horas:r.horas,banda:r.banda,nombre:r.contacto,telefono:r.telefono,correo:r.correo,estado:r.estado,total:r.total,extras:r.extras,video:r.video,raw:r.raw})}
+function confirmaAd(r,delta,ok){
+  if(r.estado==='Finalizada'&&delta){var pagada=!r.cobro;confirmarSN('Esta reserva ya está finalizada'+(pagada?' y cobrada':'')+'. El total '+(delta>0?'subirá':'bajará')+' '+clp(Math.abs(delta))+(delta>0?(pagada?' y esa diferencia quedará por cobrar.':'.'):'. Si ya cobraste, devuelve la diferencia al cliente.')+' ¿Continuar?',ok,'Sí, cambiar');return}
+  ok()}
 function jrunFicha(codigo,fn,args,msg){google.script.run.withSuccessHandler(function(J){JOR=J;if(!jmes)jmes=J.hoy.slice(0,7);pintarJor();RES_VIEJO=true;clearTimeout(RES_T);RES_T=setTimeout(refrescarResumen,12000);var n=(J.reservas||[]).filter(function(x){return x.codigo===codigo})[0];if(n)fichaJor(n);if(msg)aviso(typeof msg==='function'?msg(n):msg)}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminRapido(fn,args)}
 function fichaJor(r){
   var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);
@@ -1309,7 +1312,7 @@ function fichaJor(r){
   var f=el_('div','ficha-j');f.style.setProperty('--c',({sin:'#FCC631',con:'#4ade80',fin:'#60a5fa',noa:'#f472b6',anu:'#8a8581'})[CLASE_EST[r.estado]||'sin']);
   f.appendChild(el_('h3','',r.banda));f.appendChild(el_('div','sub',r.codigo+' · '+r.servicio+(r.plan?' · Plan '+r.plan:'')));
   var kv=el_('dl','kv');function fila(k,v){if(v===''||v===null||v===undefined)return;kv.appendChild(el_('dt','',k));kv.appendChild(el_('dd','',String(v)))}
-  fila('Día',r.fechaTxt);fila('Horario',r.inicio+' a '+r.fin+' ('+r.horas+(r.horas===1?' hora':' horas')+')');fila('Contacto',r.contacto);fila('WhatsApp','+'+r.telefono);fila('Correo',r.correo);
+  fila('Día',r.fechaTxt);fila('Horario',r.inicio+' a '+r.fin+' ('+r.horas+(r.horas===1?' hora':' horas')+')');fila('Contacto',r.contacto);fila('Historial',reincTxt(r.telefono));fila('WhatsApp','+'+r.telefono);fila('Correo',r.correo);
   if(r.estado==='No asiste'){fila('Cobro','Reserva cerrada · retención del abono '+clp(r.retenido)+' (entra al balance)');fila('Valor original de la reserva',clp(r.total))}
   else{if(r.ajuste){fila('Total original',clp(r.totalOriginal));fila(r.ajuste>0?'Descuento aplicado':'Recargo aplicado',clp(Math.abs(r.ajuste))+(r.notaAjuste?' · '+r.notaAjuste:''))}fila(r.ajuste?'Total final':'Total',clp(r.total));if(!r.ajuste&&r.notaAjuste)fila('Comentario del cobro',r.notaAjuste);fila('Abono',clp(r.abono));fila('Saldo en el estudio',clp(r.saldo));if(r.retenido)fila('Abono retenido',clp(r.retenido));if(r.devolver)fila('Abono a devolver',clp(r.devolver))}
   fila('Comentarios',r.comentarios);fila('Creada',r.creada);f.appendChild(kv);
@@ -1329,10 +1332,10 @@ function fichaJor(r){
       var P=JOR.precios||{},unidad=(P.equipo||0)*(P.equipoModo==='hora'?r.horas:1),act=equiposDe(r);
       function chipAd(txt,on,precio,fn){var b=el_('button','ad'+(on?' on':''),(on?'✔ ':'+ ')+txt+(precio?' · '+(on?'':'+')+clp(precio):''));b.type='button';b.onclick=fn;ac2.appendChild(b)}
       if(r.servicio==='Ensayo')ARRIENDOS_RM.forEach(function(n){var sn=n.split(':')[0],on=act.indexOf(n)>=0;
-        chipAd(sn.replace(/ \(.*\)$/,''),on,unidad,function(){var nuevos=act.filter(function(q){return q!==n}).map(function(q){return q.split(':')[0]});if(!on)nuevos.push(sn);
-          jrunFicha(r.codigo,'adminCambiarAdicionales',[r.codigo,{equipos:nuevos}],function(x){return (on?'Quitado: ':'Agregado: ')+sn.replace(/ \(.*\)$/,'')+(x?' · nuevo total '+clp(x.total)+' · saldo '+clp(x.saldo):'')})})});
-      chipAd('Video GoPro',!!r.video,P.video,function(){jrunFicha(r.codigo,'adminCambiarAdicionales',[r.codigo,{video:!r.video}],function(x){return (r.video?'Video quitado':'Video agregado')+(x?' · nuevo total '+clp(x.total)+' · saldo '+clp(x.saldo):'')})});
-      chipAd('Material en bruto',!!r.raw,P.raw,function(){jrunFicha(r.codigo,'adminCambiarAdicionales',[r.codigo,{raw:!r.raw}],function(x){return (r.raw?'Material quitado':'Material agregado')+(x?' · nuevo total '+clp(x.total)+' · saldo '+clp(x.saldo):'')})});
+        chipAd(sn.replace(/ \(.*\)$/,''),on,unidad,function(){confirmaAd(r,(on?-1:1)*unidad,function(){var nuevos=act.filter(function(q){return q!==n}).map(function(q){return q.split(':')[0]});if(!on)nuevos.push(sn);
+          jrunFicha(r.codigo,'adminCambiarAdicionales',[r.codigo,{equipos:nuevos}],function(x){return (on?'Quitado: ':'Agregado: ')+sn.replace(/ \(.*\)$/,'')+(x?' · nuevo total '+clp(x.total)+' · saldo '+clp(x.saldo):'')})})})});
+      chipAd('Video GoPro',!!r.video,P.video,function(){confirmaAd(r,(r.video?-1:1)*(P.video||0),function(){jrunFicha(r.codigo,'adminCambiarAdicionales',[r.codigo,{video:!r.video}],function(x){return (r.video?'Video quitado':'Video agregado')+(x?' · nuevo total '+clp(x.total)+' · saldo '+clp(x.saldo):'')})})});
+      chipAd('Material en bruto',!!r.raw,P.raw,function(){confirmaAd(r,(r.raw?-1:1)*(P.raw||0),function(){jrunFicha(r.codigo,'adminCambiarAdicionales',[r.codigo,{raw:!r.raw}],function(x){return (r.raw?'Material quitado':'Material agregado')+(x?' · nuevo total '+clp(x.total)+' · saldo '+clp(x.saldo):'')})})});
       f.appendChild(ac2)}
   }
   // 3) Acciones principales
@@ -1408,6 +1411,7 @@ function listaCli(){
   var c=$('jcli');c.textContent='';var q=jbusca.trim().toLowerCase(),g=el_('div','tarjetas-c');
   (JOR.clientes||[]).filter(function(x){return!q||(x.banda+' '+x.contacto+' '+x.nombre+' '+x.apellido+' '+x.telefono+' '+x.correo+' '+(x.enlace||'')).toLowerCase().indexOf(q)>=0}).forEach(function(x){
     var k=el_('div','cli');k.appendChild(el_('b','',(x.casa?'🏠 ':'')+(x.banda||'(sin banda)')));k.appendChild(el_('small','',x.contacto));k.appendChild(el_('small','',/^MAN-/.test(x.telefono)?'Sin teléfono':'+'+x.telefono));if(x.correo)k.appendChild(el_('small','',x.correo));
+    if(x.noAsiste){var rb=el_('small','',reincTxt(x.telefono));rb.style.cssText='color:'+(x.noAsiste>=2?'#ff5a5f':'#FCC631')+';font-weight:700';k.appendChild(rb)}
     var m=el_('div','mat');m.appendChild(el_('h5','','Material de banda (Drive)'));var f=el_('div','fila');
     function modoVer(){f.textContent='';
       if(x.enlace){var a=el_('a','sec','Abrir');a.href=x.enlace;a.target='_blank';a.rel='noopener';a.style.cssText='border:1px solid var(--borde);color:var(--oro)';f.appendChild(a);
@@ -1428,6 +1432,7 @@ function listaCli(){
 
 /* ---------- Fusionar clientes repetidos ---------- */
 var FUS_IGN={};
+function reincTxt(t){var c=(JOR.clientes||[]).filter(function(x){return x.telefono===t})[0],n=c?c.noAsiste||0:0;return n?'⚠️ No asistió '+n+(n===1?' vez':' veces')+(n>=2?' · conviene pedir abono':''):''}
 function cliPor(t){return(JOR.clientes||[]).filter(function(c){return c.telefono===t})[0]}
 function modalFusion(claves,motivo){
   var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);

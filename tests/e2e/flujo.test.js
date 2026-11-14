@@ -908,5 +908,16 @@ t('colores del calendario: se editan en Configuración, se validan y vuelven a l
   g.admin('adminGuardarAjustes', Object.assign({}, v, { colorVivo: '#06b6d4' }));
 });
 
+t('reincidentes: se cuentan los «No asiste» por cliente; adicional sobre reserva cobrada deja la diferencia por cobrar', () => {
+  const r = g.post(sol({ fecha: hab(6), inicio: 11, horas: 1, telefono: '56966660099', banda: 'Faltones', nombre: 'Fito Ruiz', correo: 'f@f.cl' })); assert.ok(r.ok, JSON.stringify(r));
+  g.admin('adminCambiarEstado', r.codigo, 'Reservado (con abono)'); g.admin('adminCambiarEstado', r.codigo, 'No asiste');
+  const c = g.admin('adminJornadas').clientes.find((x) => x.telefono === '56966660099'); assert.strictEqual(c.noAsiste, 1);
+  const q = g.post(sol({ fecha: hab(7), inicio: 11, horas: 1, telefono: '56966660098', banda: 'Cobrados', nombre: 'Cora Paz', correo: 'c@c.cl' })); assert.ok(q.ok, JSON.stringify(q));
+  g.admin('adminCambiarEstado', q.codigo, 'Reservado (con abono)'); g.admin('adminAjustarReserva', q.codigo, { finalizar: true, medio: 'Efectivo' });
+  let x = g.admin('adminJornadas').reservas.find((y) => y.codigo === q.codigo); assert.ok(!x.cobro, 'queda cobrada');
+  g.admin('adminCambiarAdicionales', q.codigo, { video: true });
+  x = g.admin('adminJornadas').reservas.find((y) => y.codigo === q.codigo); assert.ok(x.cobro, 'la diferencia queda por cobrar');
+});
+
 
 console.log('\n' + ok + ' pasos correctos, ' + fallas + ' con falla.');
