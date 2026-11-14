@@ -17,15 +17,15 @@
 <link rel="icon" href="assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=202611141407">
-<link rel="stylesheet" href="css/temas.css?v=202611141407">
-<link rel="stylesheet" href="css/movil.css?v=202611141407">
-<link rel="stylesheet" href="css/clasico.css?v=202611141407">
-<link rel="stylesheet" href="css/pulido.css?v=202611141407">
-<link rel="stylesheet" href="css/produccion.css?v=202611141407">
-<link rel="stylesheet" href="css/legible.css?v=202611141407">
+<link rel="stylesheet" href="css/styles.css?v=202611141412">
+<link rel="stylesheet" href="css/temas.css?v=202611141412">
+<link rel="stylesheet" href="css/movil.css?v=202611141412">
+<link rel="stylesheet" href="css/clasico.css?v=202611141412">
+<link rel="stylesheet" href="css/pulido.css?v=202611141412">
+<link rel="stylesheet" href="css/produccion.css?v=202611141412">
+<link rel="stylesheet" href="css/legible.css?v=202611141412">
 <script>(function(){try{var q=/[?&]rediseno=(\d)/.exec(location.search);if(q)localStorage.setItem('rk-rd',q[1]);if(localStorage.getItem('rk-rd')!=='0'){document.documentElement.classList.add('rd');['css/rediseno.css','https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap'].forEach(function(h){var l=document.createElement('link');l.rel='stylesheet';l.href=h;document.head.appendChild(l)})}}catch(e){}})()</script>
-<script src="js/tema.js?v=202611141407"></script><script src="js/teclado.js?v=202611141407" defer></script>
+<script src="js/tema.js?v=202611141412"></script><script src="js/teclado.js?v=202611141412" defer></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;800&family=Nunito:wght@400;700&family=Space+Mono:wght@400;700&family=Archivo+Black&family=Bebas+Neue&family=Big+Shoulders+Display:wght@800;900&family=Poppins:wght@400;600&display=swap"></head>
 <body>
 <div id="aviso" class="aviso" hidden></div>
@@ -191,7 +191,10 @@
     <p data-ed="nos.fil.p3" data-ed-l="Filosofía: punto 3"><strong>Aprender escuchando:</strong> creemos que la mejor materia prima son los ensayos grabados. Que la banda salga del estudio escuchando lo que acaba de interpretar es la herramienta más directa para crecer.</p>
     <p data-ed="nos.fil.p4" data-ed-l="Filosofía: punto 4"><strong>Tu ritmo, tu sonido:</strong> adaptamos el proceso a la dinámica de tu banda. Con nuestra plantilla digital tomamos decisiones sonoras en tiempo real, optimizando el tiempo y facilitando ajustes sin perder agilidad.</p></div>
   <p class="firma"><b>Juan Carlos Retamal González</b><br><span>Ingeniero en Sonido / Técnico en Informática</span></p>
-  <a class="firma-honor" href="#bandas" data-vista="bandas"><span aria-hidden="true">🏅</span><div><b>Cuadro de honor</b><small>Las bandas con las que he tenido el honor de trabajar, en ensayo y en grabación</small></div><i>Ver →</i></a>
+  <div class="honor-wrap" id="honor-wrap">
+    <a class="firma-honor" href="#bandas" data-vista="bandas"><span aria-hidden="true">🏅</span><div><b>Cuadro de honor</b><small>Las bandas con las que he tenido el honor de trabajar, en ensayo y en grabación</small></div><i>Ver →</i></a>
+  <div class="honor-prev" id="honor-prev" role="list" aria-label="Bandas del cuadro de honor" hidden></div>
+  </div>
   </div>
   <div class="prod-panel" data-p="demo" hidden>
     <p class="sub demo-intro">Aquí escuchas lo que hago con la música que se graba: cada instrumento por separado y el paso del sonido en bruto a la mezcla y al master.</p>
@@ -357,14 +360,14 @@
 
 <footer><p class="pie-chips"><span class="chip-ok">● Agenda oficial Rockerío conectada</span></p><img src="assets/marcas/calavera.png" alt="ROCKERÍO Producciones"> <span id="pie"></span></footer>
 
-<script src="js/config.js?v=202611141407"></script>
-<script src="js/reglas.js?v=202611141407"></script>
-<script src="js/app.js?v=202611141407"></script>
-<script src="js/planes.js?v=202611141407"></script>
-<script src="js/mezclador.js?v=202611141407"></script>
-<script src="js/contenido.js?v=202611141407"></script>
-<script src="js/pasos.js?v=202611141407"></script>
-<script src="js/vistas.js?v=202611141407"></script>
+<script src="js/config.js?v=202611141412"></script>
+<script src="js/reglas.js?v=202611141412"></script>
+<script src="js/app.js?v=202611141412"></script>
+<script src="js/planes.js?v=202611141412"></script>
+<script src="js/mezclador.js?v=202611141412"></script>
+<script src="js/contenido.js?v=202611141412"></script>
+<script src="js/pasos.js?v=202611141412"></script>
+<script src="js/vistas.js?v=202611141412"></script>
 <script>(function(){var h=document.querySelector(".hero-marca");if(!h||matchMedia("(prefers-reduced-motion:reduce)").matches)return;addEventListener("scroll",function(){h.style.setProperty("--par",Math.min(scrollY*.12,60)+"px")},{passive:true})})();</script>
 </body>
 </html>

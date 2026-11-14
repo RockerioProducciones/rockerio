@@ -227,6 +227,21 @@
         if (b) { d.appendChild(b); k.appendChild(d); } }
       $('honor').appendChild(k);
     });
+    /* Vista previa bajo la firma de «Sobre mí»: logos de las bandas del cuadro de honor, con enlace a la sección completa. */
+    var hw = $('honor-wrap'), hp = $('honor-prev');
+    if (hw) hw.hidden = !K.verHonor;
+    if (hp && K.verHonor && c.honor.length) {
+      hp.textContent = '';
+      c.honor.slice(0, 12).forEach(function (h) {
+        var t = el('a', 'hp-it'); t.href = '#bandas'; t.setAttribute('data-vista', 'bandas'); t.setAttribute('role', 'listitem'); t.title = h.banda;
+        var f = el('span', 'hp-foto');
+        if (/^https:\/\//.test(h.logo)) { var im = el('img'); im.src = h.logo; im.alt = ''; im.loading = 'lazy'; im.referrerPolicy = 'no-referrer'; im.addEventListener('error', function () { im.remove(); f.textContent = (h.banda || '?').charAt(0).toUpperCase(); }); f.appendChild(im); }
+        else f.textContent = (h.banda || '?').charAt(0).toUpperCase();
+        t.appendChild(f); t.appendChild(el('b', '', h.banda)); hp.appendChild(t);
+      });
+      if (c.honor.length > 12) { var mas = el('a', 'hp-it hp-mas'); mas.href = '#bandas'; mas.setAttribute('data-vista', 'bandas'); mas.appendChild(el('span', 'hp-foto', '+' + (c.honor.length - 12))); mas.appendChild(el('b', '', 'Ver todas')); hp.appendChild(mas); }
+      hp.hidden = false;
+    }
     
 
     $('opiniones').hidden = !K.verEvaluaciones;
