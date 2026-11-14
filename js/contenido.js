@@ -97,7 +97,8 @@
         play.textContent = ''; play.appendChild(el('p', 'nota', 'Cargando las 3 versiones para que suenen sincronizadas…'));
         Promise.all(items.map(function (it) { return bajar(drive(it.enlace)).then(function (ab) { return decodificar(ctx, ab); }); })).then(function (bufs) {
           M = armar(ctx, bufs); cargando = false; parar = M.cerrar; var i = pendiente >= 0 ? pendiente : 0; M.elegir(i); M.reproducir();
-        }).catch(function () {
+        }).catch(function (e) {
+          if (window.console) console.warn('Comparador: no se pudo sincronizar, uso el reproductor simple.', e && e.message ? e.message : e);
           cargando = false; sincro = false; try { ctx.close(); } catch (x) { /* sin contexto */ } if (pendiente >= 0) viejo(pendiente);
         });
       }
