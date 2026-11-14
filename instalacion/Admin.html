@@ -1412,7 +1412,7 @@ function listaCli(){
     var h=el_('div','hist');var h1=el_('span','','Historial: ');h1.appendChild(el_('b','',x.jornadas+' reservas'));var h2=el_('span','','Inversión: ');h2.appendChild(el_('b','',clp(x.gastado)));h.appendChild(h1);h.appendChild(h2);k.appendChild(h);
     if(x.proxima)k.appendChild(el_('small','','Próxima: '+x.proxima));else if(x.ultima)k.appendChild(el_('small','','Última: '+x.ultima));
     var w=el_('a','wa','WhatsApp');if(/^MAN-/.test(x.telefono))w.style.display='none';w.href='https://wa.me/'+String(x.telefono).replace(/\D/g,'');w.target='_blank';w.rel='noopener';w.onclick=function(e){e.stopPropagation()};k.appendChild(w);
-    if(!/^MAN-/.test(x.telefono)){var cx={contacto:x.contacto,banda:x.banda,telefono:x.telefono,enlace:x.enlace};var wb=waBotones(cx,['msgDescarga','msgResena','msgHonor']);wb.style.marginTop='.4rem';k.appendChild(wb)}
+    if(!/^MAN-/.test(x.telefono)){var cx={contacto:x.contacto,banda:x.banda,telefono:x.telefono,get enlace(){return x.enlace}};var wb=waBotones(cx,['msgDescarga','msgResena','msgHonor']);wb.style.marginTop='.4rem';k.appendChild(wb)}
     var det=btn('Ver jornadas',function(){fichaCli(x)},'sec');det.style.marginTop='.4rem';k.appendChild(det);var ed=btn('Editar',function(){formCli(x)},'sec');ed.style.margin='.4rem 0 0 .3rem';k.appendChild(ed);var nr=btn('+ Reserva',function(){abrirRM({banda:x.banda,nombre:x.contacto,telefono:/^MAN-/.test(x.telefono)?'':x.telefono,correo:x.correo})},'sec');nr.style.margin='.4rem 0 0 .3rem';k.appendChild(nr);
     g.appendChild(k)});
   c.appendChild(g);if(!g.firstChild)c.appendChild(par('Sin clientes todavía.','color:#b5afa6'));
