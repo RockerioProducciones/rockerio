@@ -68,7 +68,7 @@
       c.appendChild(el('span', 'n', String(d)));
       ev.slice(0, 3).forEach(function (x) { var ch = el('span', 'ag-ev', x.inicio.replace(':00', '') + ' ' + x.banda); ch.style.setProperty('--c', colorEv(x)); var mk = marcaEv(x); if (mk) { ch.style.position = 'relative'; ch.style.paddingRight = '20px'; ch.appendChild(el('i', 'mk ' + mk[0], mk[1])); } c.appendChild(ch); });
       if (ev.length > 3) c.appendChild(el('span', 'ag-mas', '+' + (ev.length - 3) + ' más'));
-      var pts = el('span', 'ag-pts'); ev.slice(0, 6).forEach(function (x) { var p = el('i'), mk = marcaEv(x); p.style.background = colorEv(x); if (mk) { p.className = 'mk ' + mk[0]; p.textContent = mk[1]; p.style.background = ''; } pts.appendChild(p); }); c.appendChild(pts);
+      var pts = el('span', 'ag-pts'); ev.slice(0, 6).forEach(function (x) { var p = el('i'), mk = marcaEv(x); p.style.background = colorEv(x); if (mk) p.className = 'st-' + mk[0]; pts.appendChild(p); }); c.appendChild(pts);
       c.onclick = function () { selDia = f; pintarAgenda(); }; g.appendChild(c);
     })(d);
     s.appendChild(g);
