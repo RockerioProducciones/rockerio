@@ -66,6 +66,8 @@ var Reglas = (function () {
     verProduccion: true, verFicha: true, verPlanes: true, verGaleria: true, verEvaluaciones: true, verProaudix: true, verContacto: true, verTienda: true, verHonor: true, verCotizar: true, verReglamento: true, verVivo: false,
     // Rockerío en vivo: presentaciones de bloque fijo (días y horario configurables) con cobro fijo
     vivoPrecio: 90000, vivoDias: 'Viernes y sábado', vivoDesde: 19, vivoHasta: 23,
+    // Colores de los servicios en el calendario del portal
+    colorEnsayo: '#f5b400', colorEstudio: '#ef4444', colorPlan8: '#3b82f6', colorPlan12: '#a855f7', colorVivo: '#06b6d4', colorBloqueo: '#8a8581',
     // Contacto y redes (enlaces https://; vacío = no se muestra)
     sitioWeb: '', redInstagram: 'https://instagram.com/rockerio_producciones', redFacebook: '', redYoutube: '', redTiktok: '', redSpotify: '', redYoutubeMusic: 'https://music.youtube.com/playlist?list=PLVvxu7INRfmo', redTwitch: '', redLinktree: '', correoContacto: 'rockerioestudio@gmail.com', mapsUrl: '',
     enlacesExtra: '',             // una línea por enlace: «Texto | https://…»
@@ -228,6 +230,7 @@ var Reglas = (function () {
     ['sitioWeb', 'redInstagram', 'redFacebook', 'redYoutube', 'redTiktok', 'redSpotify', 'redYoutubeMusic', 'redTwitch', 'redLinktree', 'correoContacto', 'mapsUrl', 'enlacesExtra', 'proaudixWeb', 'proaudixInstagram', 'proaudixFacebook', 'proaudixYoutube', 'proaudixEnlaces'].forEach(function (k) { c[k] = aTexto(raw[k], d[k]); });
     c.heroTitulo = aTexto(raw.heroTitulo, d.heroTitulo) || d.heroTitulo; c.heroTexto = aTexto(raw.heroTexto, d.heroTexto) || d.heroTexto;
     ['verProduccion', 'verFicha', 'verPlanes', 'verGaleria', 'verEvaluaciones', 'verProaudix', 'verContacto', 'verTienda', 'verHonor', 'verCotizar', 'verReglamento', 'verVivo'].forEach(function (k) { c[k] = aBool(raw[k], d[k]); });
+    ['colorEnsayo', 'colorEstudio', 'colorPlan8', 'colorPlan12', 'colorVivo', 'colorBloqueo'].forEach(function (k) { var t = String(raw[k] === undefined || raw[k] === null ? '' : raw[k]).trim().toLowerCase(); c[k] = /^#[0-9a-f]{6}$/.test(t) ? t : d[k]; });
     c.vivoDias = VIVO_DIAS[aTexto(raw.vivoDias, d.vivoDias)] ? aTexto(raw.vivoDias, d.vivoDias) : d.vivoDias;
     c.vivoPrecio = Math.max(0, Math.round(aNumero(raw.vivoPrecio, d.vivoPrecio)));
     c.vivoDesde = Math.max(0, Math.min(22, Math.round(aNumero(raw.vivoDesde, d.vivoDesde))));

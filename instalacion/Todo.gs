@@ -69,6 +69,8 @@ var Reglas = (function () {
     verProduccion: true, verFicha: true, verPlanes: true, verGaleria: true, verEvaluaciones: true, verProaudix: true, verContacto: true, verTienda: true, verHonor: true, verCotizar: true, verReglamento: true, verVivo: false,
     // Rockerío en vivo: presentaciones de bloque fijo (días y horario configurables) con cobro fijo
     vivoPrecio: 90000, vivoDias: 'Viernes y sábado', vivoDesde: 19, vivoHasta: 23,
+    // Colores de los servicios en el calendario del portal
+    colorEnsayo: '#f5b400', colorEstudio: '#ef4444', colorPlan8: '#3b82f6', colorPlan12: '#a855f7', colorVivo: '#06b6d4', colorBloqueo: '#8a8581',
     // Contacto y redes (enlaces https://; vacío = no se muestra)
     sitioWeb: '', redInstagram: 'https://instagram.com/rockerio_producciones', redFacebook: '', redYoutube: '', redTiktok: '', redSpotify: '', redYoutubeMusic: 'https://music.youtube.com/playlist?list=PLVvxu7INRfmo', redTwitch: '', redLinktree: '', correoContacto: 'rockerioestudio@gmail.com', mapsUrl: '',
     enlacesExtra: '',             // una línea por enlace: «Texto | https://…»
@@ -231,6 +233,7 @@ var Reglas = (function () {
     ['sitioWeb', 'redInstagram', 'redFacebook', 'redYoutube', 'redTiktok', 'redSpotify', 'redYoutubeMusic', 'redTwitch', 'redLinktree', 'correoContacto', 'mapsUrl', 'enlacesExtra', 'proaudixWeb', 'proaudixInstagram', 'proaudixFacebook', 'proaudixYoutube', 'proaudixEnlaces'].forEach(function (k) { c[k] = aTexto(raw[k], d[k]); });
     c.heroTitulo = aTexto(raw.heroTitulo, d.heroTitulo) || d.heroTitulo; c.heroTexto = aTexto(raw.heroTexto, d.heroTexto) || d.heroTexto;
     ['verProduccion', 'verFicha', 'verPlanes', 'verGaleria', 'verEvaluaciones', 'verProaudix', 'verContacto', 'verTienda', 'verHonor', 'verCotizar', 'verReglamento', 'verVivo'].forEach(function (k) { c[k] = aBool(raw[k], d[k]); });
+    ['colorEnsayo', 'colorEstudio', 'colorPlan8', 'colorPlan12', 'colorVivo', 'colorBloqueo'].forEach(function (k) { var t = String(raw[k] === undefined || raw[k] === null ? '' : raw[k]).trim().toLowerCase(); c[k] = /^#[0-9a-f]{6}$/.test(t) ? t : d[k]; });
     c.vivoDias = VIVO_DIAS[aTexto(raw.vivoDias, d.vivoDias)] ? aTexto(raw.vivoDias, d.vivoDias) : d.vivoDias;
     c.vivoPrecio = Math.max(0, Math.round(aNumero(raw.vivoPrecio, d.vivoPrecio)));
     c.vivoDesde = Math.max(0, Math.min(22, Math.round(aNumero(raw.vivoDesde, d.vivoDesde))));
@@ -4511,6 +4514,12 @@ var ESQUEMA = [
   ['vivoDias', 'Rockerío en vivo: días', 'lista', 'Rockerío en vivo', 'Días en que se pueden agendar presentaciones.', ['Viernes y sábado', 'Solo viernes', 'Solo sábado', 'Jueves a sábado', 'Viernes a domingo']],
   ['vivoDesde', 'Rockerío en vivo: hora de inicio', 'num', 'Rockerío en vivo', 'Por ejemplo 19.', 22],
   ['vivoHasta', 'Rockerío en vivo: hora de término', 'num', 'Rockerío en vivo', 'Por ejemplo 23. Debe ser posterior al inicio.', 24],
+  ['colorEnsayo', 'Sala de ensayo', 'color', 'Colores del calendario', 'Color de las reservas de sala de ensayo.'],
+  ['colorEstudio', 'Estudio de grabación', 'color', 'Colores del calendario', 'Color de las reservas de estudio.'],
+  ['colorPlan8', 'Plan mensual 8 horas', 'color', 'Colores del calendario', 'Color de las sesiones del plan de 8 horas.'],
+  ['colorPlan12', 'Plan mensual 12 horas', 'color', 'Colores del calendario', 'Color de las sesiones del plan de 12 horas.'],
+  ['colorVivo', 'Rockerío en vivo', 'color', 'Colores del calendario', 'Color de las presentaciones en vivo. Evita el verde: lo usa la marca ✔ de «cobrada».'],
+  ['colorBloqueo', 'Bloqueos / mantención', 'color', 'Colores del calendario', 'Color de los bloqueos de agenda.'],
   ['sitioWeb', 'Sitio web', 'url', 'Contacto y redes', 'Tu página web, si tienes.'],
   ['redInstagram', 'Instagram', 'url', 'Contacto y redes', 'Enlace completo, por ejemplo https://instagram.com/rockerio.'],
   ['redFacebook', 'Facebook', 'url', 'Contacto y redes', 'Enlace completo.'],
@@ -4552,6 +4561,7 @@ function validarAjuste_(def, v) {
     if (def[5] !== undefined && Number(v0) > def[5]) throw new Error(etq + ': el máximo es ' + def[5] + '.');
     return Number(v0);
   }
+  if (tipo === 'color') { var cl = v0.toLowerCase(); if (!/^#[0-9a-f]{6}$/.test(cl)) throw new Error(etq + ': elige un color válido.'); return cl; }
   if (tipo === 'lista') { if (def[5].indexOf(v0) < 0) throw new Error(etq + ': opción no válida.'); return v0; }
   if (tipo === 'url') { if (v0 === '') return ''; var u = urlHttps_(v0); if (!u) throw new Error(etq + ': debe ser un enlace que empiece con https://'); return u.replace(/\/+$/, ''); }
   if (tipo === 'telopc') { if (v0 === '') return ''; var t2 = Reglas.normalizarTelefono(v0); if (!/^\d{8,15}$/.test(t2)) throw new Error(etq + ': escríbelo con código de país, solo números.'); return t2; }

@@ -897,5 +897,14 @@ t('clientes repetidos: se detectan, avisan al crear y se fusionan pasando sus re
   assert.throws(() => g.admin('adminFusionarClientes', '56961611111', []));
 });
 
+t('colores del calendario: se editan en Configuración, se validan y vuelven a leerse', () => {
+  const aj = g.admin('adminResumen').ajustes, v = {}; aj.forEach((c) => { v[c.clave] = c.valor; });
+  assert.strictEqual(v.colorVivo, '#06b6d4', 'color por defecto de Rockerío en vivo');
+  g.admin('adminGuardarAjustes', Object.assign({}, v, { colorVivo: '#FF00AA' }));
+  assert.strictEqual(g.admin('adminResumen').ajustes.find((c) => c.clave === 'colorVivo').valor, '#ff00aa');
+  assert.throws(() => g.admin('adminGuardarAjustes', Object.assign({}, v, { colorVivo: 'rojo' })), /color/i);
+  g.admin('adminGuardarAjustes', Object.assign({}, v, { colorVivo: '#06b6d4' }));
+});
+
 
 console.log('\n' + ok + ' pasos correctos, ' + fallas + ' con falla.');
