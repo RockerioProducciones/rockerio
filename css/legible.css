@@ -29,3 +29,12 @@ body.con-vistas[data-vista]:not([data-vista="inicio"]) .menu .tarjeta::before{wi
 /* Rockerío en vivo: títulos en el amarillo del sitio */
 #vivo .vv-fase b,#vivo .vv-show b,#vivo .vv-grid .caja b{color:var(--oro,#FCC631)}
 .wizard button.on,.wizard .segm button.on{color:var(--srv-t)!important}
+
+/* Efecto «holograma» de los planes mensuales en las tarjetas de servicio (solo estética) */
+.wizard #servicios .opcion{border-width:2px!important;border-style:solid!important;overflow:hidden}
+.wizard #servicios .opcion:has(input[value=ensayo]){border-color:#f5b400!important;background:linear-gradient(150deg,rgba(245,180,0,.17),rgba(255,120,40,.07) 62%,rgba(20,19,18,.9))!important}
+.wizard #servicios .opcion:has(input[value=grabacion]){border-color:#ef4444!important;background:linear-gradient(150deg,rgba(239,68,68,.18),rgba(190,40,120,.08) 62%,rgba(20,19,18,.9))!important}
+.wizard #servicios .opcion:has(input[value=ensayo]:checked){box-shadow:0 0 26px rgba(245,180,0,.35)!important}
+.wizard #servicios .opcion:has(input[value=grabacion]:checked){box-shadow:0 0 26px rgba(239,68,68,.38)!important}
+.wizard #servicios .opcion:not(:has(input:checked)){opacity:.82}
+.wizard .hbtn[aria-pressed=true]{color:var(--srv-t)!important}
