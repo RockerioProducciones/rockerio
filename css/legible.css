@@ -81,3 +81,13 @@ html[data-tema="rockerio"] :is(#produccion,#nosotros,#galeria,#cotizar){--hl:239
 .gal-fig::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.14) 50%,transparent 65%);background-size:250% 100%;background-position:-150% 0;border-radius:inherit;pointer-events:none}
 .gal-fig:is(:hover,:active)::after{animation:rk-brillo 1.1s ease}
 @media(prefers-reduced-motion:reduce){.sec :is(.caja,.honor-card,.mic-it,.fo-it,.ex-card,.prod-bloque,.reg-lista,.tu-reserva,.plan-cond):hover::after,.menu .tarjeta:hover::after,.gal-fig:hover::after{animation:none}}
+
+/* Enlace al cuadro de honor, bajo la firma de «Sobre mí» */
+.firma-honor{display:flex;align-items:center;gap:.9rem;margin:1rem 0 .4rem;padding:.9rem 1.1rem;border:1px solid rgba(var(--hl),.55);border-radius:16px;background:linear-gradient(150deg,rgba(var(--hl),.14),rgba(14,13,12,.95));color:var(--txt);text-decoration:none;position:relative;overflow:hidden;transition:transform .15s,box-shadow .2s}
+.firma-honor>span{font-size:1.8rem;line-height:1}.firma-honor div{flex:1;min-width:0}.firma-honor b{display:block;color:var(--oro);font-size:1.05rem}.firma-honor small{color:var(--mut);display:block;line-height:1.35}
+.firma-honor i{font-style:normal;font-weight:800;color:var(--oro);white-space:nowrap}
+.firma-honor::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.1) 50%,transparent 65%);background-size:250% 100%;background-position:-150% 0;border-radius:inherit;pointer-events:none}
+.firma-honor:is(:hover,:active)::after{animation:rk-brillo 1.1s ease}
+.firma-honor:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(var(--hl),.18)}
+.firma-honor:focus-visible{outline:2px solid var(--oro);outline-offset:3px}
+@media(max-width:480px){.firma-honor{padding:.8rem .9rem}.firma-honor i{display:none}}
