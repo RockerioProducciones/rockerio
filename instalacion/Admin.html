@@ -229,7 +229,7 @@ section{border-top:1px solid var(--borde);border-radius:14px;background:var(--pa
 .vt-cols{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:14px;align-items:start}.vt-cols .vt-grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}.vt-der{position:sticky;top:62px;display:flex;flex-direction:column;gap:.6rem;border:1px solid #e39a2d;border-radius:14px;background:linear-gradient(180deg,#171512,#0f0e0d);padding:.9rem}.vt-dh{margin:0;font:800 1rem Inter,sans-serif;color:#f3efe8}.vt-der .vt-carro{margin:0}.vt-der .vt-pago{padding:.5rem;border:0;background:transparent}.vt-der .vt-pagos{grid-template-columns:1fr;gap:6px}.vt-der .vt-pie{grid-template-columns:1fr;margin-top:.2rem}.vt-der .vt-nota{width:100%}.vt-meta{display:flex;flex-direction:column;gap:.5rem}.vt-meta label{display:flex;flex-direction:column;gap:3px;font-weight:600;font-size:.85rem}.vt-meta input{width:100%}.vt-fd input{border-color:#f59e0b}.vt-avif{color:#f59e0b;font-weight:600}.vt-izq .vt-paso{margin-top:0}@media(max-width:900px){.vt-cols{grid-template-columns:1fr}.vt-der{position:static}}
 .vt-hist-cab{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--borde);margin-top:1rem;padding-top:.8rem;font-size:.85rem;text-transform:uppercase;letter-spacing:.04em}
 .vt-tabla-w{overflow-x:auto}.vt-tabla{width:100%;border-collapse:collapse;font-size:.82rem}.vt-tabla th{text-align:left;font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);padding:.5rem .55rem;border-bottom:1px solid var(--borde)}.vt-tabla td{padding:.6rem .55rem;border-bottom:1px solid var(--borde);vertical-align:middle}.vt-tabla tr.an td{opacity:.5;text-decoration:line-through}.vt-prod{font-weight:800;text-transform:uppercase}.vt-tot{color:var(--oro);font-weight:800}.vt-medio{display:inline-block;padding:.15rem .5rem;border:1px solid #2aa6c9;color:#6fd3ee;border-radius:5px;font-size:.72rem}.vt-est{font-size:.74rem;font-weight:700}.vt-est.ok{color:#3ddc97}.vt-est.p{color:#ffb454}.vt-est.x{color:#ff6b6b}.vt-acc{white-space:nowrap}.vt-acc button{padding:.25rem .55rem;font-size:.75rem;margin-right:.25rem}
-.vt-hist{border:1px solid var(--borde);border-radius:12px;background:#0a0a09;padding:.3rem .8rem;margin-top:.5rem}
+.vt-com{color:#6fd3ee}.vt-hist{border:1px solid var(--borde);border-radius:12px;background:#0a0a09;padding:.3rem .8rem;margin-top:.5rem}
 @media(max-width:640px){.vt{padding:.8rem}.vt-pie{grid-template-columns:1fr}.vt-stats{width:100%}.vt-stats>div{flex:1}}
 .nuevo-bar{display:flex;gap:8px;flex-wrap:wrap;margin:.3rem 0 .6rem}
 
@@ -613,8 +613,13 @@ function pos(id,tipo,titulo,ico,prods,d){
   caja.appendChild(ad);
   /* por cobrar e historial */
   var pend=v.pendientes.filter(function(x){return x.tipo===txt});
-  if(pend.length){caja.appendChild(el_('h3','sub-h','Entregado en sala · por cobrar'));pend.forEach(function(x){var f=el_('div','pos-l');f.appendChild(el_('span','',x.fecha+' · '+x.cantidad+' × '+x.producto+(x.nota?' · '+x.nota:'')+(x.vendedor?' · '+x.vendedor:'')));f.appendChild(el_('span','m',clp(x.total)));
-    var q=el_('span','q');q.appendChild(btn('Cobrado: efectivo',function(){ejecutar('adminCobrar',x.id,PAGOS[0])}));q.appendChild(btn('Cobrado: transferencia',function(){ejecutar('adminCobrar',x.id,PAGOS[1])},'sec'));q.appendChild(anular(x));f.appendChild(q);caja.appendChild(f)})}
+  if(pend.length){caja.appendChild(el_('h3','sub-h','Entregado en sala · por cobrar ('+pend.length+')'));
+    var tbp=document.createElement('table');tbp.className='vt-tabla';var thp=document.createElement('thead'),trp=document.createElement('tr');['Fecha','Producto','Cant.','Total','Medio de pago','Estado','Comprador / comentario','Cobrar'].forEach(function(h){var c=document.createElement('th');c.textContent=h;trp.appendChild(c)});thp.appendChild(trp);tbp.appendChild(thp);var tbpb=document.createElement('tbody');
+    pend.forEach(function(x){var tr=document.createElement('tr');tr.appendChild(td(x.fecha));var cp=td(x.producto);cp.className='vt-prod';tr.appendChild(cp);tr.appendChild(td(x.cantidad+' un.'));var ct=td(clp(x.total));ct.className='vt-tot';tr.appendChild(ct);
+      var cm=document.createElement('td');cm.appendChild(el_('span','vt-medio','—'));tr.appendChild(cm);var ce=document.createElement('td');ce.appendChild(el_('span','vt-est p','Pendiente'));tr.appendChild(ce);
+      var cc=td((x.nota||'—')+(x.vendedor?' · '+x.vendedor:''));cc.className='vt-com';tr.appendChild(cc);
+      var ca=document.createElement('td');ca.className='vt-acc';ca.appendChild(btn('Cobrado: efectivo',function(){ejecutar('adminCobrar',x.id,PAGOS[0])}));ca.appendChild(btn('Cobrado: transferencia',function(){ejecutar('adminCobrar',x.id,PAGOS[1])},'sec'));ca.appendChild(anular(x));tr.appendChild(ca);tbpb.appendChild(tr)});
+    tbp.appendChild(tbpb);var wrp=el_('div','vt-tabla-w');wrp.appendChild(tbp);var hbp=el_('div','vt-hist');hbp.appendChild(wrp);caja.appendChild(hbp)}
   var hist=v.ventas.filter(function(x){return x.tipo===txt});
   var hh=el_('div','vt-hist-cab');hh.appendChild(el_('b','','Historial de ventas ('+hist.length+')'));hh.appendChild(btn(HIST_VER[tipo]?'Ocultar historial':'Mostrar historial',function(){HIST_VER[tipo]=!HIST_VER[tipo];pintarCatalogos(ultimo)},'sec'));caja.appendChild(hh);
   if(HIST_VER[tipo]){var hb=el_('div','vt-hist');
@@ -624,7 +629,7 @@ function pos(id,tipo,titulo,ico,prods,d){
         tr.appendChild(td(x.fecha));var cp=td(x.producto);cp.className='vt-prod';tr.appendChild(cp);tr.appendChild(td(x.cantidad+' un.'));var ct=td(clp(x.total));ct.className='vt-tot';tr.appendChild(ct);
         var cm=document.createElement('td');var sm=el_('span','vt-medio',medio);cm.appendChild(sm);tr.appendChild(cm);
         var ce=document.createElement('td');ce.appendChild(el_('span','vt-est '+(an?'x':pe?'p':'ok'),an?'Anulada':pe?'Pendiente':'✓ Pagado'));tr.appendChild(ce);
-        tr.appendChild(td((x.nota||'—')+(x.vendedor?' · '+x.vendedor:'')));
+        var cn=td((x.nota||'—')+(x.vendedor?' · '+x.vendedor:''),'vt-com');tr.appendChild(cn);
         var cc=document.createElement('td');cc.className='vt-acc';if(!an)cc.appendChild(btn('✎ Editar',function(){formVenta(x)},'sec'));cc.appendChild(btnDel('🗑','¿Eliminar esta venta? Se devolverán las unidades al stock y no se puede deshacer.',function(){ejecutar('adminEliminarVenta',x.id)}));tr.appendChild(cc);tbd.appendChild(tr)});
       tb.appendChild(tbd);var wr=el_('div','vt-tabla-w');wr.appendChild(tb);hb.appendChild(wr)}
     caja.appendChild(hb)}
