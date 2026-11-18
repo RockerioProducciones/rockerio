@@ -9,7 +9,7 @@ const { sembrar } = require('./demo.js');
     const ctx = await b.newContext({ viewport: vw, deviceScaleFactor: esc, isMobile: nombre === 'movil' }); const p = await ctx.newPage();
     p.on('pageerror', (e) => errs.push(e.message)); await p.route('https://sitio.test/**', (r) => { const fs = require('fs'), path = require('path'); const u = new URL(r.request().url()); let f = path.join(__dirname, '..', '..', decodeURIComponent(u.pathname.replace(/^\//, '') || 'index.html')); if (!fs.existsSync(f) || fs.statSync(f).isDirectory()) return r.fulfill({ status: 404, body: '' }); r.fulfill({ status: 200, body: fs.readFileSync(f), headers: { 'access-control-allow-origin': '*', 'content-type': f.endsWith('.json') ? 'application/json' : f.endsWith('.html') ? 'text/html' : 'text/plain' } }); }); p.on('dialog', (d) => d.accept());
     await p.goto('http://localhost:8098/admin'); await p.waitForSelector('.area'); await p.waitForTimeout(400);
-    ok(await p.locator('.area').count() === 8, nombre + ': 8 tarjetas de áreas');
+    ok(await p.locator('.area').count() === 9, nombre + ': 9 tarjetas de áreas');
     ok(!(await p.locator('#sec-wa').isVisible()) && await p.locator('#sec-jor').isVisible(), nombre + ': arranca en Reservas y jornadas con la barra de pestañas');
     await p.screenshot({ path: 'a-' + nombre + '-inicio.png' });
     if (nombre === 'pc') {
