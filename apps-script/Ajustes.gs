@@ -59,6 +59,7 @@ var ESQUEMA = [
   ['waIdioma', 'Idioma de la plantilla', 'texto', 'WhatsApp', 'Ej.: es o es_CL.', 10],
   ['waVersion', 'Versión de la API de Meta', 'texto', 'WhatsApp', 'Ej.: v23.0. Si falla, revisa la versión vigente en Meta.', 10],
   ['reservasActivas', 'Reservas en línea activas', 'sino', 'Funciones', 'NO = el sitio deja de recibir reservas (por vacaciones, por ejemplo).'],
+  ['visitasActivo', 'Contar visitas al sitio', 'sino', 'Funciones', 'Guarda solo ciudad y región aproximadas, sección vista, tipo de dispositivo y de dónde llegó. Sin IP, sin nombres y sin cookies. El reporte está al final del portal («Visitas»).'],
   ['correoCliente', 'Enviar correo de confirmación al cliente', 'sino', 'Funciones', 'Gmail permite 100 correos al día.'],
   ['avisoBanner', 'Aviso en el sitio', 'texto', 'Funciones', 'Franja roja arriba del sitio (vacío = sin aviso).', 200],
   ['tema', 'Tema visual por defecto', 'lista', 'Funciones', 'Estética completa del sitio (colores, letras y formas).', ['rockerio', 'medianoche', 'vino', 'bosque', 'grafito', 'azufre', 'abismo', 'cobre', 'ciruela', 'carbon']],

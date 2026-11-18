@@ -234,6 +234,21 @@ t('ventas rápidas: el admin recibe solo productos y ventas, cobra y el resultad
   assert.throws(() => g.admin('adminVentaRapida', 'adminCerrarMes', ['2026-01']), /no permitida/);
   assert.ok(g.admin('adminResumen').reservas, 'el resumen completo sigue siendo completo después');
 });
+t('visitas: se registran anónimas y validadas, el reporte las agrupa y se pueden desactivar', () => {
+  const v = (o) => g.post(Object.assign({ accion: 'visita', pais: 'Chile', region: 'Región Metropolitana de Santiago', ciudad: 'Quinta Normal', seccion: 'planes', dispositivo: 'Móvil', origen: 'Instagram', nueva: true }, o));
+  assert.ok(v({}).ok); v({ ciudad: 'Valparaíso', region: 'Valparaíso', nueva: false, dispositivo: 'Escritorio', origen: 'Directo' }); v({ ciudad: '<script>alert(1)</script>Maipú', seccion: 'hackeo', dispositivo: 'Robot', origen: 'evil.com' });
+  const r = g.admin('adminVisitas', 30);
+  assert.strictEqual(r.total, 3); assert.strictEqual(r.visitasHoy, 3); assert.strictEqual(r.nuevas, 2);
+  assert.ok(r.porCiudad.some((x) => /Quinta Normal/.test(x[0])) && r.porCiudad.some((x) => /^Valparaíso/.test(x[0])));
+  assert.ok(r.porCiudad.some((x) => /^scriptalert1scriptMaip/.test(x[0].replace(/[<>()\/]/g, ''))) || r.porCiudad.every((x) => !/[<>]/.test(x[0])), 'sin etiquetas');
+  assert.ok(r.porSeccion.some((x) => x[0] === 'inicio') && r.porDispositivo.some((x) => x[0] === 'Escritorio') && r.porOrigen.some((x) => x[0] === 'Otro'), 'valores no permitidos se normalizan');
+  assert.strictEqual(r.serie.length, 30); assert.strictEqual(r.serie[29][1], 3);
+  const fila = g.hoja('Visitas')[1]; assert.ok(fila.length === 9 && !/\d+\.\d+\.\d+/.test(JSON.stringify(fila)), 'sin IP');
+  v({ vista: true, seccion: 'tienda', region: 'Santiago Metropolitan' }); const r2 = g.admin('adminVisitas', 7); assert.strictEqual(r2.total, 3, 'una vista de otra sección no es otra visita'); assert.strictEqual(r2.vistas, 4); assert.ok(r2.porSeccion.some((x) => x[0] === 'tienda'));
+  assert.ok(r2.porRegion.some((x) => x[0] === 'Región Metropolitana'), JSON.stringify(r2.porRegion)); assert.strictEqual(r2.serie.length, 7);
+  g.admin('adminGuardarAjustes', { visitasActivo: 'NO' }); v({}); assert.strictEqual(g.admin('adminVisitas', 30).total, 3, 'desactivado no cuenta');
+  g.admin('adminGuardarAjustes', { visitasActivo: 'SI' });
+});
 t('socio: se crea enlace, ve agenda y catálogo, vende y cobra una entrega pendiente', () => {
   const s = g.admin('adminCrearSocio', 'Jaime Encina'); tok = Object.keys(s.socios.tokens || s.socios).length ? (s.socios[0] && (s.socios[0].token)) : null;
   assert.ok(tok, 'token ' + JSON.stringify(s.socios).slice(0, 200));

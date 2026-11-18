@@ -124,6 +124,7 @@ function doPost(e) {
       case 'resena': return json_(registrarResena_(sol));
       case 'cotizacion': return json_(registrarCotizacion_(sol));
       case 'plan': return json_(reservarPlan_(sol));
+      case 'visita': return json_(registrarVisita_(sol));
       case 'socios_vender': return json_(sociosVender_(sol));
       case 'socios_carrito': return json_(sociosCarrito_(sol));
       case 'socios_cobrar': return json_(sociosCobrar_(sol));

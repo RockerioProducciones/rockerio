@@ -316,6 +316,18 @@ section.tab-off{display:none!important}
 .vt-medio{padding:.1rem .4rem;font-size:.7rem}
 .vt-tabla tr.an td{text-decoration:none}.vt-tabla tr.an td:nth-child(2){text-decoration:line-through}
 }
+
+/* Reporte de visitas */
+.vs-barra{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center;margin:.2rem 0 .9rem}.vs-per{display:flex;gap:6px}.vs-per button{padding:.4rem .8rem;border-radius:999px;background:#1b1a19;color:var(--txt);border:1px solid var(--borde);font-weight:700;cursor:pointer}.vs-per button.on{background:var(--oro);color:#111;border-color:var(--oro)}.vs-nota{color:var(--mut);font-size:.8rem}
+.vs-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}.vs-k{border:1px solid var(--borde);border-radius:14px;padding:.8rem 1rem;background:linear-gradient(160deg,rgba(252,198,49,.12),#141312 70%)}.vs-k small{display:block;color:var(--mut);font-size:.68rem;text-transform:uppercase;letter-spacing:.06em}.vs-k b{display:block;font:800 1.9rem Oswald,Inter,sans-serif;color:var(--oro);line-height:1.1}.vs-k span{font-size:.75rem;color:var(--mut)}
+.vs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}.vs-card{border:1px solid var(--borde);border-radius:14px;background:#121110;padding:.9rem 1rem}.vs-card h3{margin:0 0 .7rem;font-size:.82rem;text-transform:uppercase;letter-spacing:.07em;color:var(--oro)}.vs-card.ancha{grid-column:1/-1}
+.vs-fila{display:grid;grid-template-columns:minmax(120px,44%) 1fr auto;gap:.6rem;align-items:center;margin:.38rem 0;font-size:.85rem}.vs-fila>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.vs-bar{height:10px;border-radius:6px;background:#1f1d1b;overflow:hidden}.vs-bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#e39a2d,#FCC631)}.vs-fila b{font-variant-numeric:tabular-nums;min-width:2.2rem;text-align:right}.vs-fila em{font-style:normal;color:var(--mut);font-size:.72rem;margin-left:.3rem}
+.vs-serie{display:flex;align-items:flex-end;gap:2px;height:130px;padding-top:8px}.vs-serie i{flex:1 1 0;min-width:2px;background:linear-gradient(180deg,#FCC631,#a8731a);border-radius:3px 3px 0 0;position:relative;min-height:2px}.vs-serie i.cero{background:#2a2725;height:2px!important}.vs-serie i:hover{filter:brightness(1.25)}
+.vs-ejes{display:flex;justify-content:space-between;color:var(--mut);font-size:.7rem;margin-top:4px}
+.vs-horas{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;align-items:end;height:70px}.vs-horas i{background:linear-gradient(180deg,#5ad1ff,#1d6f94);border-radius:3px 3px 0 0;min-height:2px}.vs-horas i.cero{background:#2a2725}
+.vs-dona{display:flex;gap:14px;align-items:center;flex-wrap:wrap}.vs-dona .anillo{width:110px;height:110px;border-radius:50%;flex:0 0 auto;position:relative}.vs-dona .anillo::after{content:"";position:absolute;inset:22px;border-radius:50%;background:#121110}.vs-leyenda{display:grid;gap:.3rem;font-size:.85rem}.vs-leyenda span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--c);margin-right:.45rem}
+.vs-vacio{color:var(--mut);padding:1rem 0;text-align:center}.vs-pie{color:var(--mut);font-size:.78rem;margin-top:1rem;line-height:1.5}.vs-pie code{background:#1f1d1b;padding:.05rem .3rem;border-radius:4px}
+@media(max-width:600px){.vs-grid{grid-template-columns:1fr}.vs-fila{grid-template-columns:minmax(110px,46%) 1fr auto}}
 </style></head><body>
 <div class="cab"><h1>Portal de control <small>· Rockerío Producciones</small><span class="badge-adm">ADMIN</span></h1><div class="cab-acc"><a id="ver-sitio" href="#" target="_blank" rel="noopener" hidden>Ver sitio público ↗</a><button type="button" id="campana" title="Pendientes">🔔<i id="campana-n" hidden></i></button></div></div>
 <div id="msg"></div>
@@ -432,6 +444,11 @@ section.tab-off{display:none!important}
 <div id="socs"></div>
 <div class="fila"><input id="sn" maxlength="40" placeholder="Nombre (ej. Jaime, o Familia)" style="flex:1;min-width:160px"><select id="sti"><option value="colega">Colega: agenda + ventas + resúmenes</option><option value="social">Social / familia: solo agenda (lectura)</option></select><button id="sg">Crear enlace</button></div></details>
 <h3 style="margin:.8em 0 .2em;font-size:15px">Disponibilidad pública (solo libre / ocupado)</h3><div id="pubag"></div></section>
+<section id="sec-vis"><h2>Visitas al sitio</h2>
+  <div class="vs-barra"><div class="vs-per" id="vs-per"></div><span id="vs-nota" class="vs-nota"></span></div>
+  <div id="vs-cuerpo" class="vs"><p class="vs-vacio">Cargando…</p></div>
+  <p class="vs-pie">Conteo anónimo: no se guarda IP, nombre ni cookies. La ubicación es <b>aproximada</b> (la entrega la red del visitante: suele acertar la ciudad o región, no la comuna exacta). Tus propias visitas no cuentan si abres una vez el sitio con <code>?sinconteo=1</code> en cada dispositivo. Se puede apagar en Configuración → «Contar visitas al sitio».</p>
+</section>
 <section><h2>Respaldo</h2><div class="fila"><button id="resp">Respaldar ahora</button><span style="color:#b5afa6">Se hace solo cada noche en tu Drive (carpeta «Rockerío · Respaldos», últimas 30 copias).</span></div><div class="fila" style="margin-top:.6rem"><input id="inst-n" maxlength="50" placeholder="Nombre de la instantánea (ej. Antes de cambiar la ficha)" style="flex:1"><button id="inst">Guardar instantánea</button></div><p style="color:#b5afa6;margin:.3rem 0">Las instantáneas con nombre no se borran solas. Sácalas antes de un cambio grande.</p><div id="resp-lista" style="margin-top:.8rem"></div>
 <h3 style="margin-top:1.2rem">Mis cambios recientes</h3><p style="color:#b5afa6;margin:.2rem 0">Registro automático de lo que cambias (textos, fotos, precios, ajustes), con el valor anterior.</p><button id="agenda-rep" class="sec">Revisar agenda vs. reservas</button> <button id="cam-ver" class="sec">Ver mis cambios</button><div id="cam-lista" style="margin-top:.6rem"></div></section>
 <section><h2>Bloqueos</h2><div class="fila">
@@ -1166,17 +1183,53 @@ var AREAS=[
  ['mensajes','WhatsApp','Mensajes y recordatorios'],
  ['config','Configuración','Precios, reglas, secciones y redes'],
  ['conta','Contabilidad','Costos, cierre de mes e impuestos'],
- ['socios','Socios y respaldo','Enlaces para compartir y copias']
+ ['socios','Socios y respaldo','Enlaces para compartir y copias'],
+ ['visitas','Visitas','Alcance del sitio: de dónde y cuánta gente']
 ];
 var DE={'Editor del sitio web':'contenido','Reservas y jornadas':'jornadas','Reservas':'jornadas','Bloqueos':'jornadas','Planes mensuales':'jornadas','Cotizaciones y solicitudes':'jornadas','Cuadro de honor':'jornadas','Reseñas':'jornadas','Agregar banda al cuadro de honor':'jornadas','Ventas del mes':'tienda','Presentación personal':'contenido','Reglamento interno':'contenido','Muestras de audio':'contenido','Comparador de sonido (Raw → Mix → Master)':'contenido','Mensajes de WhatsApp':'mensajes','Configuración':'config','Sitio':'config','Costos del mes y cierre':'conta','Contabilidad formal':'conta','Enlaces para compartir':'socios','Respaldo':'socios'};
-[].forEach.call(document.querySelectorAll('section'),function(s){var h=s.querySelector('h2'),p=s.id==='sec-musica'?'tienda':s.id==='sec-beb'?'bebestibles':(s.id==='sec-conta'||s.id==='sec-ct'||s.id==='sec-rc')?'conta':s.id==='sec-wa'?'mensajes':(h&&DE[h.textContent.trim()]);if(p)s.setAttribute('data-p',p)});
+[].forEach.call(document.querySelectorAll('section'),function(s){var h=s.querySelector('h2'),p=s.id==='sec-musica'?'tienda':s.id==='sec-beb'?'bebestibles':(s.id==='sec-conta'||s.id==='sec-ct'||s.id==='sec-rc')?'conta':s.id==='sec-wa'?'mensajes':s.id==='sec-vis'?'visitas':(h&&DE[h.textContent.trim()]);if(p)s.setAttribute('data-p',p)});
 var JT={'Reservas':'cob','Bloqueos':'cob','Planes mensuales':'cob','Cotizaciones y solicitudes':'sol','Cuadro de honor':'sol','Reseñas':'sol','Agregar banda al cuadro de honor':'sol'};
 [].forEach.call(document.querySelectorAll('section'),function(s){var h=s.querySelector('h2');if(h&&JT[h.textContent.trim()])s.setAttribute('data-jt',JT[h.textContent.trim()])});
 function abrirArea(k){
   var a=AREAS.filter(function(x){return x[0]===k})[0];if(!a)return;
   document.body.setAttribute('data-panel',k);$('barra-t').textContent=a[1];[].forEach.call(document.querySelectorAll('.menu-a .area'),function(x){x.classList.toggle('on',x.getAttribute('data-p')===k)});
   [].forEach.call(document.querySelectorAll('section'),function(s){s.classList.toggle('on',s.getAttribute('data-p')===k)});
-  var b=$('barra');b.style.setProperty('--acc',getComputedStyle(document.querySelector('[data-p='+k+']')||document.body).getPropertyValue('--acc'));window.scrollTo(0,0);if(k==='jornadas')cargarJor();else refrescarResumen();if(k==='conta')cargarRC();if(k==='contenido'&&!ST.datos)cargarSitio();
+  var b=$('barra');b.style.setProperty('--acc',getComputedStyle(document.querySelector('[data-p='+k+']')||document.body).getPropertyValue('--acc'));window.scrollTo(0,0);if(k==='jornadas')cargarJor();else refrescarResumen();if(k==='conta')cargarRC();if(k==='visitas')cargarVisitas();if(k==='contenido'&&!ST.datos)cargarSitio();
+}
+
+/* ---------- Visitas ---------- */
+var VIS_DIAS=30,VIS_CACHE={};
+function cargarVisitas(){
+  var per=$('vs-per');per.textContent='';[[7,'7 días'],[30,'30 días'],[90,'90 días'],[365,'1 año']].forEach(function(x){var b=document.createElement('button');b.type='button';b.textContent=x[1];b.className=x[0]===VIS_DIAS?'on':'';b.onclick=function(){VIS_DIAS=x[0];cargarVisitas()};per.appendChild(b)});
+  if(VIS_CACHE[VIS_DIAS])pintarVisitas(VIS_CACHE[VIS_DIAS]);else $('vs-cuerpo').innerHTML='<p class="vs-vacio">Cargando…</p>';
+  RUN.withSuccessHandler(function(r){VIS_CACHE[VIS_DIAS]=r;pintarVisitas(r)}).withFailureHandler(function(e){$('vs-cuerpo').innerHTML='<p class="vs-vacio">No se pudo cargar el reporte.</p>';aviso((e&&e.message)||'Error')}).adminVisitas(VIS_DIAS)}
+function vsFilas(lista,total,vacio){var w=document.createElement('div');if(!lista.length){var p=document.createElement('p');p.className='vs-vacio';p.textContent=vacio||'Aún sin datos.';w.appendChild(p);return w}
+  var mx=lista[0][1]||1;lista.forEach(function(x){var f=document.createElement('div');f.className='vs-fila';var a=document.createElement('span');a.textContent=x[0];a.title=x[0];var b=document.createElement('div');b.className='vs-bar';var i=document.createElement('i');i.style.width=Math.max(3,Math.round(x[1]/mx*100))+'%';b.appendChild(i);var c=document.createElement('b');c.textContent=x[1];var e=document.createElement('em');e.textContent=total?Math.round(x[1]/total*100)+'%':'';c.appendChild(e);f.appendChild(a);f.appendChild(b);f.appendChild(c);w.appendChild(f)});return w}
+function vsCard(t,cont,cls){var c=document.createElement('div');c.className='vs-card'+(cls?' '+cls:'');var h=document.createElement('h3');h.textContent=t;c.appendChild(h);c.appendChild(cont);return c}
+function vsDona(lista,colores){var tot=lista.reduce(function(a,x){return a+x[1]},0),w=document.createElement('div');w.className='vs-dona';if(!tot){w.textContent='Aún sin datos.';w.className='vs-vacio';return w}
+  var acc=0,seg=[];lista.forEach(function(x,i){var a=acc/tot*360;acc+=x[1];seg.push(colores[i%colores.length]+' '+a+'deg '+(acc/tot*360)+'deg')});var an=document.createElement('div');an.className='anillo';an.style.background='conic-gradient('+seg.join(',')+')';w.appendChild(an);
+  var l=document.createElement('div');l.className='vs-leyenda';lista.forEach(function(x,i){var s=document.createElement('span');s.style.setProperty('--c',colores[i%colores.length]);s.textContent=x[0]+' · '+x[1]+' ('+Math.round(x[1]/tot*100)+'%)';l.appendChild(s)});w.appendChild(l);return w}
+var SEC_TXT={inicio:'Inicio',reservar:'Reservar',nosotros:'Producción',ficha:'Ficha técnica',planes:'Planes mensuales',galeria:'Galería',opiniones:'Evaluaciones',proaudix:'ProAudix',contacto:'Contacto',tienda:'Tienda',bandas:'Cuadro de honor',vivo:'Rockerío en vivo',cotizar:'Cotizar',reglamento:'Reglamento'};
+function pintarVisitas(r){
+  var c=$('vs-cuerpo');c.textContent='';$('vs-nota').textContent=r.activo?'':'⚠ El conteo está apagado en Configuración';
+  if(!r.total&&!r.vistas){var v=document.createElement('p');v.className='vs-vacio';v.innerHTML='Todavía no hay visitas registradas en este período.<br>Aparecerán aquí cuando alguien abra el sitio (ya quedó activado).';c.appendChild(v);return}
+  var prom=(r.total/r.dias),mov=(r.porDispositivo.filter(function(x){return x[0]==='Móvil'})[0]||[0,0])[1];
+  var k=document.createElement('div');k.className='vs-kpis';[['Visitas',r.total,'últimos '+r.dias+' días'],['Hoy',r.visitasHoy,'visitas de hoy'],['Promedio diario',prom<10?prom.toFixed(1).replace('.',','):Math.round(prom),'visitas por día'],['Visitas nuevas',r.total?Math.round(r.nuevas/r.total*100)+'%':'—',r.nuevas+' primera vez'],['Desde móvil',r.total?Math.round(mov/r.total*100)+'%':'—','del total']].forEach(function(x){var d=document.createElement('div');d.className='vs-k';var a=document.createElement('small');a.textContent=x[0];var b=document.createElement('b');b.textContent=x[1];var s=document.createElement('span');s.textContent=x[2];d.appendChild(a);d.appendChild(b);d.appendChild(s);k.appendChild(d)});c.appendChild(k);
+  var g=document.createElement('div');g.className='vs-grid';
+  /* serie */
+  var se=document.createElement('div'),sb=document.createElement('div');sb.className='vs-serie';var mx=Math.max.apply(null,r.serie.map(function(x){return x[1]}))||1;
+  r.serie.forEach(function(x){var i=document.createElement('i');i.style.height=Math.max(2,Math.round(x[1]/mx*100))+'%';if(!x[1])i.className='cero';i.title=x[0].split('-').reverse().join('/')+': '+x[1]+' visita'+(x[1]===1?'':'s');sb.appendChild(i)});se.appendChild(sb);
+  var ej=document.createElement('div');ej.className='vs-ejes';[r.serie[0][0],r.serie[Math.floor(r.serie.length/2)][0],r.serie[r.serie.length-1][0]].forEach(function(f){var s=document.createElement('span');s.textContent=f.split('-').reverse().slice(0,2).join('/');ej.appendChild(s)});se.appendChild(ej);
+  g.appendChild(vsCard('Visitas por día',se,'ancha'));
+  g.appendChild(vsCard('Regiones',vsFilas(r.porRegion.filter(function(x){return x[0]!=='Sin dato'}),r.total,'Sin datos de región todavía.')));
+  g.appendChild(vsCard('Ciudades y comunas',vsFilas(r.porCiudad.filter(function(x){return x[0].indexOf('Sin dato')!==0}).map(function(x){return [x[0].split(' · ')[0],x[1]]}),r.total,'Sin datos de ciudad todavía.')));
+  g.appendChild(vsCard('Países',vsFilas(r.porPais,r.total)));
+  g.appendChild(vsCard('Secciones más vistas',vsFilas(r.porSeccion.map(function(x){return [SEC_TXT[x[0]]||x[0],x[1]]}),r.vistas)));
+  g.appendChild(vsCard('Dispositivos',vsDona(r.porDispositivo,['#FCC631','#5ad1ff','#c084fc'])));
+  g.appendChild(vsCard('De dónde llegan',vsFilas(r.porOrigen,r.total)));
+  var ho=document.createElement('div'),hb=document.createElement('div');hb.className='vs-horas';var mh=Math.max.apply(null,r.porHora)||1;r.porHora.forEach(function(n,h){var i=document.createElement('i');i.style.height=Math.max(3,Math.round(n/mh*100))+'%';if(!n)i.className='cero';i.title=h+':00 · '+n;hb.appendChild(i)});ho.appendChild(hb);var e2=document.createElement('div');e2.className='vs-ejes';['0 h','6 h','12 h','18 h','23 h'].forEach(function(t){var s=document.createElement('span');s.textContent=t;e2.appendChild(s)});ho.appendChild(e2);
+  g.appendChild(vsCard('Hora del día (hora de Chile)',ho));
+  c.appendChild(g);
 }
 function campanaMenu(c){
   var m=$('campana-menu');if(m){m.remove();return}
@@ -1189,7 +1242,7 @@ function campanaMenu(c){
 }
 function irInicio(){document.body.removeAttribute('data-panel');window.scrollTo(0,0)}
 $('inicio-a').onclick=irInicio;
-var ICO={jornadas:'📅',tienda:'🎸',bebestibles:'🥤',contenido:'🌐',mensajes:'💬',config:'⚙️',conta:'📊',socios:'🔗'};
+var ICO={jornadas:'📅',tienda:'🎸',bebestibles:'🥤',contenido:'🌐',mensajes:'💬',config:'⚙️',conta:'📊',socios:'🔗',visitas:'📈'};
 function pintarMenu(d){
   var m=$('menu-a');m.textContent='';var c=d.cuenta||{};
   AREAS.forEach(function(a){var b=document.createElement('button');b.type='button';b.className='area'+(document.body.getAttribute('data-panel')===a[0]?' on':'');b.setAttribute('data-p',a[0]);b.setAttribute('data-ico',ICO[a[0]]||'•');

@@ -63,7 +63,7 @@ var Reglas = (function () {
     presentacion: '',             // vacío = la sección Producción muestra un texto base
     // Textos de la portada y secciones visibles del sitio
     heroTitulo: 'Tu banda suena aquí', heroTexto: 'Sala de ensayo y estudio de grabación en Quinta Normal, Santiago.',
-    verProduccion: true, verFicha: true, verPlanes: true, verGaleria: true, verEvaluaciones: true, verProaudix: true, verContacto: true, verTienda: true, verHonor: true, verCotizar: true, verReglamento: true, verVivo: false,
+    verProduccion: true, verFicha: true, verPlanes: true, verGaleria: true, verEvaluaciones: true, visitasActivo: true, verProaudix: true, verContacto: true, verTienda: true, verHonor: true, verCotizar: true, verReglamento: true, verVivo: false,
     // Rockerío en vivo: presentaciones de bloque fijo (días y horario configurables) con cobro fijo
     vivoPrecio: 90000, vivoDias: 'Viernes y sábado', vivoDesde: 19, vivoHasta: 23,
     // Colores de los servicios en el calendario del portal
@@ -230,6 +230,7 @@ var Reglas = (function () {
     ['sitioWeb', 'redInstagram', 'redFacebook', 'redYoutube', 'redTiktok', 'redSpotify', 'redYoutubeMusic', 'redTwitch', 'redLinktree', 'correoContacto', 'mapsUrl', 'enlacesExtra', 'proaudixWeb', 'proaudixInstagram', 'proaudixFacebook', 'proaudixYoutube', 'proaudixEnlaces'].forEach(function (k) { c[k] = aTexto(raw[k], d[k]); });
     c.heroTitulo = aTexto(raw.heroTitulo, d.heroTitulo) || d.heroTitulo; c.heroTexto = aTexto(raw.heroTexto, d.heroTexto) || d.heroTexto;
     ['verProduccion', 'verFicha', 'verPlanes', 'verGaleria', 'verEvaluaciones', 'verProaudix', 'verContacto', 'verTienda', 'verHonor', 'verCotizar', 'verReglamento', 'verVivo'].forEach(function (k) { c[k] = aBool(raw[k], d[k]); });
+    c.visitasActivo = aBool(raw.visitasActivo, d.visitasActivo);
     ['colorEnsayo', 'colorEstudio', 'colorPlan8', 'colorPlan12', 'colorVivo', 'colorBloqueo'].forEach(function (k) { var t = String(raw[k] === undefined || raw[k] === null ? '' : raw[k]).trim().toLowerCase(); c[k] = /^#[0-9a-f]{6}$/.test(t) ? t : d[k]; });
     c.vivoDias = VIVO_DIAS[aTexto(raw.vivoDias, d.vivoDias)] ? aTexto(raw.vivoDias, d.vivoDias) : d.vivoDias;
     c.vivoPrecio = Math.max(0, Math.round(aNumero(raw.vivoPrecio, d.vivoPrecio)));
