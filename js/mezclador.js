@@ -63,7 +63,7 @@
     for (var x = 0; x < w; x += paso) { var v = pk[Math.min(pk.length - 1, Math.floor(x / w * pk.length))] / max, alto = Math.max(dpr, v * (h - 6 * dpr)); g.fillRect(x, mid - alto / 2, ancho, alto); }
   }
 
-  function montar(cont, g) {
+  function montar(cont, g, auto) {
     var P = parsear(g); if ((P.inst.length < 1 && !P.completa) || !P.etapas.length) return;
     var FILAS = P.inst.concat(P.completa ? [FULL] : []);
     cont.textContent = '';
@@ -169,6 +169,14 @@
       var tmr = 0; window.addEventListener('resize', function () { clearTimeout(tmr); tmr = setTimeout(pintarOndas, 150); });
     }
 
+    if (auto && Ctx) { /* precarga en segundo plano: cuando el visitante llega a Demostración técnica ya está listo */
+      var c = navigator.connection || {}; var lenta = c.saveData || /(^|-)2g$|^3g$/.test(c.effectiveType || '');
+      if (!lenta) {
+        var lanzar = function () { if (!cargar.disabled) { estado.textContent = 'Preparando el mezclador…'; cargar.click(); } };
+        var tarde = function () { setTimeout(function () { if (window.requestIdleCallback) requestIdleCallback(lanzar, { timeout: 4000 }); else lanzar(); }, 1200); };
+        if (document.readyState === 'complete') tarde(); else window.addEventListener('load', tarde);
+      }
+    }
     cargar.addEventListener('click', function () {
       cargar.disabled = true; ctx = new Ctx(); try { ctx.resume(); } catch (x) { /* se reanuda al reproducir */ }
       var lista = []; P.etapas.forEach(function (e) { FILAS.forEach(function (i) { var u = P.pistas[i] && P.pistas[i][e[0]]; if (u) { lista.push([i, e[0], u]); pend[e[0]] = (pend[e[0]] || 0) + 1; } }); });
@@ -211,10 +219,11 @@
     cont.appendChild(el('h3', 'comp-tit', 'Mezclador de pistas'));
     cont.appendChild(el('p', 'comp-sub', 'Un tramo de una canción grabada aquí, pista por pista. Escucha cada instrumento solo o sin él, y alterna entre el sonido en bruto, la mezcla y el master para notar qué aporta cada etapa.'));
     var sel = el('div', 'comp-canciones'), cuerpo = el('div', 'mz-cuerpo'); cont.appendChild(sel); cont.appendChild(cuerpo);
+    var primera = true;
     function ver(g, b) {
       if (activo) activo.pausar();
       [].forEach.call(sel.children, function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
-      montar(cuerpo, g);
+      montar(cuerpo, g, primera); primera = false;
     }
     if (validos.length > 1) validos.forEach(function (g) { var b = el('button', 'btn chico sec-b', g.grupo); b.type = 'button'; b.addEventListener('click', function () { ver(g, b); }); sel.appendChild(b); });
     else cont.insertBefore(el('div', 'comp-cancion', '🎵 ' + validos[0].grupo), sel);

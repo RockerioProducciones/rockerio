@@ -4,7 +4,15 @@
 (function () {
   'use strict';
   try {
-    if (/[?&]sinconteo=1/.test(location.search)) localStorage.setItem('rk_sinconteo', '1');
+    var q = /[?&]sinconteo=([01])/.exec(location.search);
+    if (q) {
+      if (q[1] === '1') localStorage.setItem('rk_sinconteo', '1'); else localStorage.removeItem('rk_sinconteo');
+      var av = document.createElement('div'); av.setAttribute('role', 'status');
+      av.textContent = q[1] === '1' ? '✔ Listo: este dispositivo ya no cuenta como visita.' : 'Este dispositivo vuelve a contarse como visita.';
+      av.style.cssText = 'position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:99999;background:#111;color:#FCC631;border:1px solid #FCC631;border-radius:12px;padding:12px 16px;font:600 14px/1.3 system-ui,sans-serif;max-width:90vw;text-align:center';
+      var poner = function () { document.body.appendChild(av); setTimeout(function () { av.remove(); }, 6000); };
+      if (document.body) poner(); else document.addEventListener('DOMContentLoaded', poner);
+    }
     if (localStorage.getItem('rk_sinconteo') === '1' || navigator.webdriver || navigator.doNotTrack === '1' || window.doNotTrack === '1') return;
   } catch (e) { return; }
   var SEC = ['reservar', 'nosotros', 'ficha', 'planes', 'galeria', 'opiniones', 'proaudix', 'contacto', 'tienda', 'bandas', 'vivo', 'cotizar', 'reglamento'];

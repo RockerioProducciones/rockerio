@@ -18,7 +18,7 @@ function wav(freq, seg, rate) { // WAV mono 16 bits en base64
   let fallas = 0; const chk = (c, m) => { if (!c) fallas++; console.log((c ? '  ok  ' : 'FALLA ') + m); };
   await p.goto('http://localhost:8099/'); await p.waitForFunction(() => window.RK && window.RK.conectado()); await p.waitForTimeout(600);
   await p.evaluate(() => { let e = document.getElementById('mezclador'); e.hidden = false; while (e && e !== document.body) { e.hidden = false; e.removeAttribute('hidden'); if (getComputedStyle(e).display === 'none') e.style.setProperty('display', 'block', 'important'); e = e.parentElement; } });
-  await p.locator('#mezclador .btn', { hasText: 'Cargar mezclador' }).click(); await p.waitForSelector('#mezclador .mz-daw', { timeout: 10000 });
+  await p.waitForSelector('#mezclador .mz-daw', { timeout: 10000 });
   await p.waitForFunction(() => ![].some.call(document.querySelectorAll('#mezclador .mz-et'), (b) => b.disabled), null, { timeout: 8000 });
   chk(true, 'las 3 etapas terminan de cargar y se habilitan');
   const vis = async () => p.locator('#mezclador .mz-pista:not([hidden])').count();

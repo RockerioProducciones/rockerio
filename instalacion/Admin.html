@@ -270,6 +270,7 @@ section{border-top:1px solid var(--borde);border-radius:14px;background:var(--pa
 .dia.sel{border-color:var(--oro)}
 .dia-cab{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:.5rem}.dia-cab h4{margin:0;flex:1;min-width:160px;text-transform:capitalize}
 .ses{border:1px solid var(--borde);border-left:5px solid var(--k-ens);border-radius:10px;background:rgba(0,0,0,.25);padding:.6rem .8rem;margin:.5rem 0}.ses-est{border-left-color:var(--k-est)}.ses-p8{border-left-color:var(--k-p8)}.ses-p12{border-left-color:var(--k-p12)}.ses-vivo{border-left-color:var(--k-vivo)}.ses.sin{border-style:dashed;border-left-style:solid}.ses.anu{opacity:.55}
+.vs-excl{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;border:1px solid var(--borde);border-radius:12px;padding:10px 12px;margin:12px 0;background:rgba(0,0,0,.18)}.vs-excl span{flex:1 1 220px;color:var(--mut);font-size:13px}.vs-btn{display:inline-block;padding:9px 14px;border-radius:10px;background:var(--oro);color:#111;font-weight:700;text-decoration:none}.vs-btn.sec{background:transparent;color:var(--txt);border:1px solid var(--borde)}
 .cf-tabs{display:flex;gap:6px;overflow-x:auto;padding:2px 0 10px;margin:0 -2px;position:sticky;top:0;z-index:5;background:var(--panel);-webkit-overflow-scrolling:touch}
 .cf-tabs button{flex:0 0 auto;border-radius:999px;background:rgba(255,255,255,.06);color:var(--txt);border:1px solid var(--borde);padding:9px 14px;font-size:14px;font-weight:600;white-space:nowrap;min-height:40px}
 .cf-tabs button.on{background:var(--oro);color:#111;border-color:transparent}
@@ -470,6 +471,7 @@ section.tab-off{display:none!important}
 <section id="sec-vis"><h2>Visitas al sitio</h2>
   <div class="vs-barra"><div class="vs-per" id="vs-per"></div><span id="vs-nota" class="vs-nota"></span></div>
   <div id="vs-cuerpo" class="vs"><p class="vs-vacio">Cargando…</p></div>
+  <div class="vs-excl"><b>🙈 No contar mis visitas</b><span>Abre este botón una vez en cada dispositivo tuyo (Mac, celular, tablet): desde ahí el sitio deja de contarte.</span><a id="vs-excl" target="_blank" rel="noopener" class="vs-btn">Excluir este dispositivo</a><a id="vs-incl" target="_blank" rel="noopener" class="vs-btn sec">Volver a contarlo</a></div>
   <p class="vs-pie">Conteo anónimo: no se guarda IP, nombre ni cookies. La ubicación es <b>aproximada</b> (la entrega la red del visitante: suele acertar la ciudad o región, no la comuna exacta). Tus propias visitas no cuentan si abres una vez el sitio con <code>?sinconteo=1</code> en cada dispositivo. Se puede apagar en Configuración → «Contar visitas al sitio».</p>
 </section>
 <section><h2>Respaldo</h2><div class="fila"><button id="resp">Respaldar ahora</button><span style="color:#b5afa6">Se hace solo cada noche en tu Drive (carpeta «Rockerío · Respaldos», últimas 30 copias).</span></div><div class="fila" style="margin-top:.6rem"><input id="inst-n" maxlength="50" placeholder="Nombre de la instantánea (ej. Antes de cambiar la ficha)" style="flex:1"><button id="inst">Guardar instantánea</button></div><p style="color:#b5afa6;margin:.3rem 0">Las instantáneas con nombre no se borran solas. Sácalas antes de un cambio grande.</p><div id="resp-lista" style="margin-top:.8rem"></div>
@@ -939,6 +941,7 @@ function pintarSolicitudes(ss){var c=$('sol');c.textContent='';$('sinsol').textC
     var est=selEstado(['NUEVA','COTIZADA','ACEPTADA','RECHAZADA','CERRADA'],s.estado,function(){});
     f.appendChild(est);f.appendChild(m);f.appendChild(dt);
     f.appendChild(btn('Guardar',function(){ejecutar('adminSolicitud',s.fila,est.value,m.value,dt.value)}));
+    f.appendChild(btn('📅 Ingresar como reserva',function(){abrirArea('jornadas');var n=0,t=setInterval(function(){n++;if(JOR||n>40){clearInterval(t);if(!JOR)return;setTimeout(function(){abrirRM({banda:s.nombre,nombre:s.nombre,telefono:s.telefono,correo:s.correo,servicio:/Producci/.test(s.tipo)?'grabacion':'ensayo'});RM.comentario=('Solicitud: '+String(s.mensaje||'')).slice(0,200);RM.paso=2;pintarRM()},350)}},150)}));
     f.appendChild(btn('Enviar por correo',function(){ejecutar('adminCotizacionCorreo',s.fila)},'sec'));
     var w=link('Enviar por WhatsApp','https://wa.me/'+s.telefono+'?text='+encodeURIComponent(s.texto));f.appendChild(w);
     d.appendChild(f);c.appendChild(d)})}
@@ -1225,7 +1228,8 @@ function abrirArea(k){
 
 /* ---------- Visitas ---------- */
 var VIS_DIAS=30,VIS_CACHE={};
-function cargarVisitas(){
+function linksExcl(){var b=((ultimo&&ultimo.sitioUrl)||'https://rockerioproducciones.cl').replace(/\/+$/,'');var a=$('vs-excl'),c=$('vs-incl');if(a)a.href=b+'/?sinconteo=1';if(c)c.href=b+'/?sinconteo=0'}
+function cargarVisitas(){linksExcl();
   var per=$('vs-per');per.textContent='';[[7,'7 días'],[30,'30 días'],[90,'90 días'],[365,'1 año']].forEach(function(x){var b=document.createElement('button');b.type='button';b.textContent=x[1];b.className=x[0]===VIS_DIAS?'on':'';b.onclick=function(){VIS_DIAS=x[0];cargarVisitas()};per.appendChild(b)});
   if(VIS_CACHE[VIS_DIAS])pintarVisitas(VIS_CACHE[VIS_DIAS]);else $('vs-cuerpo').innerHTML='<p class="vs-vacio">Cargando…</p>';
   RUN.withSuccessHandler(function(r){VIS_CACHE[VIS_DIAS]=r;pintarVisitas(r)}).withFailureHandler(function(e){$('vs-cuerpo').innerHTML='<p class="vs-vacio">No se pudo cargar el reporte.</p>';aviso((e&&e.message)||'Error')}).adminVisitas(VIS_DIAS)}

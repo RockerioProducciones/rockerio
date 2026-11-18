@@ -559,7 +559,7 @@
     var w = el('a', 'ro-b ro-wsp', '📲 Enviar comprobante por WhatsApp'); w.href = wspUrl(o.whatsapp + '\nTe adjunto el comprobante del abono de ' + R.clp(o.monto) + '. ¡Gracias!'); w.target = '_blank'; w.rel = 'noopener'; bts.appendChild(w);
     box.appendChild(el('p', 'nota', 'Abre la conversación con el detalle de tu reserva ya escrito y adjunta el comprobante.'));
     if (o.pagar) {
-      var yp = el('button', 'ro-b ro-osc', '✅ Ya envié mi comprobante'); yp.type = 'button'; yp.className += ' ro-yapague';
+      var yp = el('button', 'ro-b ro-osc', '✅ Ya envié mi comprobante'); yp.type = 'button'; yp.className += ' ro-yapague'; w.addEventListener('click', function () { if (!yp.hidden && !yp.disabled) yp.click(); }); /* al abrir WhatsApp con el comprobante, el horario ya queda guardado */
       yp.addEventListener('click', function () {
         yp.disabled = true; yp.textContent = 'Avisando…';
         pedir(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ accion: 'pagado', codigo: o.pagar.codigo, telefono: o.pagar.telefono }) })

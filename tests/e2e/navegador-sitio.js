@@ -123,7 +123,7 @@ const { sembrar } = require('./demo.js');
   ok(await p.locator('#cta-honor').isVisible(), 'invitación al cuadro de honor en el inicio');
   { const h = g.admin('adminResumen').honor.filter((x) => x.banda === 'Banda Prueba')[0]; ok(!!h && /instagram\.com\/bandaprueba/.test(h.redes) && /youtube\.com/.test(h.redes) && /spotify/i.test(h.redes) && /dQw4w9WgXcQ/.test(h.ultimo), 'las redes y el último trabajo del formulario llegan al portal'); }
   // secciones nuevas del sitio
-  for (const [id, sel, txt] of [['nosotros', '#nosotros-in p', /Rocker/], ['proaudix', '#pa-texto', /ProAudix/], ['contacto', '#redes .enlace', /Instagram|Mi canal/], ['opiniones', '#resenas', null]]) {
+  for (const [id, sel, txt] of [['nosotros', '#nosotros .demo-intro', /escuchas/], ['proaudix', '#pa-texto', /ProAudix/], ['contacto', '#redes .enlace', /Instagram|Mi canal/], ['opiniones', '#resenas', null]]) {
     await p.goto('http://localhost:8099/#' + id); await p.waitForTimeout(600);
     ok(await p.locator(sel).first().isVisible() || id === 'contacto' || id === 'opiniones', 'sección ' + id + ' visible'); await p.screenshot({ path: 's-' + id + '.png' });
   }
