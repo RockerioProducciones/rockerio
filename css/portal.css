@@ -70,3 +70,18 @@ body{background:var(--bg2)}
 .mk.ok{background:#16a34a}.mk.pc{background:#f59e0b;color:#111}.mk.no{background:#ec4899}
 
 .ag-pts{flex-direction:column;width:100%}.ag-pts i{width:100%!important;height:7px!important;border-radius:3px!important;box-sizing:border-box}.ag-pts i.st-ok{border-right:9px solid #16a34a}.ag-pts i.st-pc{border-right:9px solid #f59e0b}.ag-pts i.st-no{border-right:9px solid #ec4899}
+
+/* Historial de ventas como el del administrador */
+.vt-hist-cab{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid var(--borde);margin-top:1rem;padding-top:.8rem;font-size:.85rem;text-transform:uppercase;letter-spacing:.04em}
+.vt-hist{border:1px solid var(--borde);border-radius:12px;background:#0a0a09;padding:.3rem .8rem;margin-top:.5rem}
+.vt-tabla-w{overflow-x:auto}.vt-tabla{width:100%;border-collapse:collapse;font-size:.82rem}.vt-tabla th{text-align:left;font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);padding:.5rem .55rem;border-bottom:1px solid var(--borde);white-space:nowrap}.vt-tabla td{padding:.6rem .55rem;border-bottom:1px solid var(--borde);vertical-align:middle}.vt-tabla tr.an td{opacity:.5;text-decoration:line-through}
+.vt-prod{font-weight:800;text-transform:uppercase}.vt-tot{color:var(--oro);font-weight:800}
+.vt-medio{display:inline-block;padding:.15rem .5rem;border:1px solid #2aa6c9;color:#6fd3ee;border-radius:5px;font-size:.72rem}
+.vt-est{font-size:.74rem;font-weight:700;white-space:nowrap}.vt-est.pg{color:#3ddc97;background:none}.vt-est.p{color:#ffb454}.vt-est.x{color:#ff6b6b}
+.vt-com{color:#6fd3ee}
+/* Venta actual: comentario visible y vaciar carro */
+.pos-nota{display:grid;gap:4px}.pos-nota b{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--oro)}
+.pos-der .pos-nota textarea{width:100%;box-sizing:border-box;min-height:84px;resize:vertical;padding:.7rem;background:#0a0a09;color:var(--txt);border:2px solid var(--oro);border-radius:10px;font:inherit;font-size:.95rem}
+.pos-der .pos-nota textarea:focus{outline:none;box-shadow:0 0 0 3px rgba(227,154,45,.3)}
+.pos-vaciar{width:100%;min-height:44px;border:1px solid #ff6b6b;color:#ff9a9a;background:transparent}
+@media(max-width:600px){.vt-tabla{min-width:640px}}

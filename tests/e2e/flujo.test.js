@@ -11,6 +11,8 @@ const hoy = C.ahoraChile_().fecha, manana = sumar(hoy, 1);
 let f3 = sumar(hoy, 3); while ([4, 6, 0].indexOf(new Date(f3 + 'T12:00:00Z').getUTCDay()) >= 0) f3 = sumar(f3, 1);
 // n-ésimo día con atención (no jueves, sábado ni domingo) a partir de hoy: así las pruebas no dependen del día de la semana ni se salen de la ventana de reserva
 const hab = (n) => { let f = hoy, c = 0; while (c < n) { f = sumar(f, 1); if ([4, 6, 0].indexOf(new Date(f + 'T12:00:00Z').getUTCDay()) < 0) c++; } return f; };
+// primer día hábil con esas horas libres (las pruebas no dependen del día de la semana en que se corren)
+const habLibre = (h, n, desde) => { let k = desde || 2, f; for (; k < 40; k++) { f = hab(k); const oc = C.ocupadasRango_(hoy, 60)[f] || []; let ok = true; for (let i = 0; i < n; i++) if (oc.indexOf(h + i) >= 0) ok = false; if (ok) return f; } return hab(desde || 2); };
 const banda = { banda: 'Los Ensayos', nombre: 'Ana Pérez', telefono: '+56 9 1234 5678', correo: 'ana@correo.cl', tyc: true };
 const sol = (o) => Object.assign({ accion: 'reservar', servicio: 'ensayo', fecha: f3, inicio: 18, horas: 2, extras: 0, video: false, raw: false }, banda, o);
 
@@ -842,7 +844,7 @@ t('micrófonos: guarda hasta 2 fotos y 3 audios válidos por micrófono y descar
   assert.strictEqual(r.length, 1); assert.strictEqual(r[0].foto2, ''); assert.strictEqual(r[0].foto3, ''); assert.ok(r[0].audios.length >= 2 && r[0].audios.length <= 3, 'máximo 3 audios'); assert.ok(r[0].audios.every((a) => /^https:\/\//.test(a.enlace)), 'solo enlaces válidos');
 });
 t('banda de la casa: su reserva sin abono no vence sola y reagenda sin tope; las demás sí vencen', () => {
-  let dia = hab(7);
+  let dia = habLibre(10, 3, 5);
   const casa = g.post(sol({ fecha: dia, inicio: 10, horas: 1, telefono: '56933330001', banda: 'Casa Semanal', nombre: 'Rex Z', correo: 'casa.sem@r.cl' })); assert.ok(casa.ok, JSON.stringify(casa));
   const otra = g.post(sol({ fecha: dia, inicio: 12, horas: 1, telefono: '56933330002', banda: 'Una Vez', nombre: 'Tom Y', correo: 'unavez@t.cl' })); assert.ok(otra.ok, JSON.stringify(otra));
   g.admin('adminGuardarCliente', { clave: '56933330001', nombre: 'Rex', apellido: 'Z', correo: 'casa.sem@r.cl', banda: 'Casa Semanal', casa: true });
@@ -872,7 +874,7 @@ t('una reserva anulada que se reactiva con abono vuelve a ocupar el horario (y n
 });
 
 t('adicionales con un clic: agregar y quitar bajo/video/material ajusta total y saldo y vuelve al original', () => {
-  const r = g.post(sol({ fecha: hab(11), inicio: 11, horas: 2, telefono: '56977776666', banda: 'Solo platos', nombre: 'Pablo Rey', correo: 'p@p.cl' })); assert.ok(r.ok, JSON.stringify(r));
+  const r = g.post(sol({ fecha: habLibre(11, 2, 6), inicio: 11, horas: 2, telefono: '56977776666', banda: 'Solo platos', nombre: 'Pablo Rey', correo: 'p@p.cl' })); assert.ok(r.ok, JSON.stringify(r));
   const ver = () => g.admin('adminJornadas').reservas.find((q) => q.codigo === r.codigo);
   const t0 = ver().total, s0 = ver().saldo;
   g.admin('adminCambiarAdicionales', r.codigo, { equipos: ['Bajo eléctrico Epiphone Thunderbird Pro IV'] });
@@ -910,10 +912,10 @@ t('colores del calendario: se editan en Configuración, se validan y vuelven a l
 });
 
 t('reincidentes: se cuentan los «No asiste» por cliente; adicional sobre reserva cobrada deja la diferencia por cobrar', () => {
-  const r = g.post(sol({ fecha: hab(6), inicio: 11, horas: 1, telefono: '56966660099', banda: 'Faltones', nombre: 'Fito Ruiz', correo: 'f@f.cl' })); assert.ok(r.ok, JSON.stringify(r));
+  const r = g.post(sol({ fecha: habLibre(11, 1, 4), inicio: 11, horas: 1, telefono: '56966660099', banda: 'Faltones', nombre: 'Fito Ruiz', correo: 'f@f.cl' })); assert.ok(r.ok, JSON.stringify(r));
   g.admin('adminCambiarEstado', r.codigo, 'Reservado (con abono)'); g.admin('adminCambiarEstado', r.codigo, 'No asiste');
   const c = g.admin('adminJornadas').clientes.find((x) => x.telefono === '56966660099'); assert.strictEqual(c.noAsiste, 1);
-  const q = g.post(sol({ fecha: hab(7), inicio: 11, horas: 1, telefono: '56966660098', banda: 'Cobrados', nombre: 'Cora Paz', correo: 'c@c.cl' })); assert.ok(q.ok, JSON.stringify(q));
+  const q = g.post(sol({ fecha: habLibre(11, 1, 8), inicio: 11, horas: 1, telefono: '56966660098', banda: 'Cobrados', nombre: 'Cora Paz', correo: 'c@c.cl' })); assert.ok(q.ok, JSON.stringify(q));
   g.admin('adminCambiarEstado', q.codigo, 'Reservado (con abono)'); g.admin('adminAjustarReserva', q.codigo, { finalizar: true, medio: 'Efectivo' });
   let x = g.admin('adminJornadas').reservas.find((y) => y.codigo === q.codigo); assert.ok(!x.cobro, 'queda cobrada');
   g.admin('adminCambiarAdicionales', q.codigo, { video: true });

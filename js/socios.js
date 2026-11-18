@@ -82,6 +82,29 @@
   function pasoDoble(b, fn) { var t = b.textContent; b.onclick = function () { if (b.textContent !== t) { fn(); return; } b.textContent = '¿Confirmar?'; setTimeout(function () { b.textContent = t; }, 4000); }; }
   var CART = { musica: {}, bebestible: {} }, PAGO_SEL = { musica: '', bebestible: '' }, NOTA = { musica: '', bebestible: '' };
   function fotoOk(u) { u = u || ''; if (/^assets\/[\w\/.\-]+$/.test(u) && u.indexOf('..') < 0) return u; return /^https:\/\//.test(u) ? u : ''; }
+  var HIST_VER = { musica: false, bebestible: false, todo: true };
+  function tablaVentas(lista) {
+    var w = el('div', 'vt-tabla-w'), tb = el('table', 'vt-tabla'), th = el('thead'), trh = el('tr');
+    ['Fecha', 'Producto', 'Cant.', 'Total', 'Medio de pago', 'Estado', 'Comprador / comentario'].forEach(function (h) { trh.appendChild(el('th', '', h)); });
+    th.appendChild(trh); tb.appendChild(th); var bd = el('tbody');
+    lista.slice(0, 150).forEach(function (x) {
+      var tr = el('tr'), an = x.pago === 'Anulada', pe = /pendiente/i.test(x.pago), medio = /efectivo/i.test(x.pago) ? 'Efectivo' : /transfer/i.test(x.pago) ? 'Transferencia' : '—'; if (an) tr.className = 'an';
+      tr.appendChild(el('td', '', x.fecha)); tr.appendChild(el('td', 'vt-prod', x.producto)); tr.appendChild(el('td', '', x.cantidad + ' un.')); tr.appendChild(el('td', 'vt-tot', clp(x.total)));
+      var cm = el('td'); cm.appendChild(el('span', 'vt-medio', medio)); tr.appendChild(cm);
+      var ce = el('td'); ce.appendChild(el('span', 'vt-est ' + (an ? 'x' : pe ? 'p' : 'pg'), an ? 'Anulada' : pe ? 'Pendiente' : '✓ Pagado')); tr.appendChild(ce);
+      tr.appendChild(el('td', 'vt-com', (x.nota || '—') + (x.vendedor ? ' · ' + x.vendedor : ''))); bd.appendChild(tr);
+    });
+    tb.appendChild(bd); w.appendChild(tb); return w;
+  }
+  /* Historial como el del administrador; por tipo (Música/Bebestibles) o de todo el mes (tipo = null). */
+  function histVentas(txt, clave) {
+    var k = clave || 'todo', lista = datos.ventas.filter(function (x) { return !clave || x.tipo === txt; }), box = el('div', 'vt-hist-box');
+    var cab = el('div', 'vt-hist-cab'); cab.appendChild(el('b', '', 'Historial de ventas (' + lista.length + ')'));
+    var bt = el('button', 'pb sec', HIST_VER[k] ? 'Ocultar historial' : 'Mostrar historial'); bt.type = 'button';
+    bt.onclick = function () { HIST_VER[k] = !HIST_VER[k]; pintar(); }; cab.appendChild(bt); box.appendChild(cab);
+    if (HIST_VER[k]) { var h = el('div', 'vt-hist'); if (!lista.length) h.appendChild(el('p', 'sub', 'Sin ventas este mes.')); else h.appendChild(tablaVentas(lista)); box.appendChild(h); }
+    return box;
+  }
   function pintarCatalogo(tipo) {
     var s = $('v-' + tipo); s.textContent = '';
     var lista = (tipo === 'musica' ? datos.musica : datos.bebestibles), cart = CART[tipo], ico = tipo === 'musica' ? '🎸' : '🥤', txt = tipo === 'musica' ? 'Música' : 'Bebestibles';
@@ -120,7 +143,8 @@
       der.appendChild(el('small', 'lb', '¿Cómo se paga?')); var pg = el('div', 'pos-pago');
       [[PAGOS[0], '💵 Efectivo'], [PAGOS[1], '🏦 Transferencia'], [PAGOS[2], '🎧 Entregado en sala']].forEach(function (x) { var b = el('button', 'pb' + (PAGO_SEL[tipo] === x[0] ? ' on' : ''), x[1]); b.onclick = function () { PAGO_SEL[tipo] = x[0]; carro(); }; pg.appendChild(b); });
       der.appendChild(pg);
-      var nt = el('input'); nt.placeholder = 'Comprador o banda (opcional)'; nt.maxLength = 100; nt.value = NOTA[tipo]; nt.oninput = function () { NOTA[tipo] = nt.value; }; der.appendChild(nt);
+      var lc = el('label', 'pos-nota'); lc.appendChild(el('b', '', 'Comentario de la venta'));
+      var nt = el('textarea'); nt.rows = 3; nt.placeholder = 'Comprador o banda y detalles (ej.: entregado en el ensayo de 18:00)'; nt.maxLength = 120; nt.value = NOTA[tipo]; nt.oninput = function () { NOTA[tipo] = nt.value; }; lc.appendChild(nt); der.appendChild(lc);
       var ok = el('button', 'pos-ok', 'Confirmar venta' + (tot ? ' · ' + clp(tot) : ''));
       ok.onclick = function () {
         if (!ks.length) { aviso('Agrega productos a la venta.'); return; } if (!PAGO_SEL[tipo]) { aviso('Elige cómo se paga.'); return; }
@@ -130,8 +154,12 @@
         }).catch(function () { ok.disabled = false; aviso('No se pudo registrar. Revisa tu conexión.'); });
       };
       der.appendChild(ok);
+      var va = el('button', 'pb sec pos-vaciar', '🗑 Vaciar carro'); va.type = 'button';
+      va.onclick = function () { Object.keys(cart).forEach(function (k) { delete cart[k]; }); PAGO_SEL[tipo] = ''; NOTA[tipo] = ''; carro(); grilla(); aviso('Carro vaciado', true); };
+      der.appendChild(va);
     }
     carro();
+    s.appendChild(histVentas(tipo === 'musica' ? 'Música' : 'Bebestibles', tipo));
   }
   function pintarHistorial() {
     var s = $('v-historial'); s.textContent = ''; var r = datos.resumen;
@@ -165,12 +193,7 @@
         }); td.appendChild(b);
       }); tr.appendChild(td); bp.appendChild(tr);
     });
-    s.appendChild(el('h3', '', 'Historial de ventas'));
-    var th = el('table', 'tab-p'), bh = el('tbody'); th.appendChild(bh); s.appendChild(th);
-    if (!datos.ventas.length) s.appendChild(el('p', 'sub', 'Sin ventas este mes.'));
-    datos.ventas.forEach(function (v) {
-      var tr = el('tr'); [v.fecha, v.cantidad + ' × ' + v.producto, clp(v.total), v.pago, v.vendedor].forEach(function (x) { tr.appendChild(el('td', '', x)); }); bh.appendChild(tr);
-    });
+    s.appendChild(histVentas('', null));
   }
   cargar();
 })();

@@ -597,7 +597,7 @@ function pos(id,tipo,titulo,ico,prods,d){
       if(!ks.length){aviso('Agrega productos a la venta.');return}if(!PAGO_SEL[tipo]){aviso('Elige cómo se paga.');return}
       var items=Object.keys(cart).map(function(k){return{fila:Number(k),cantidad:cart[k]}});
       google.script.run.withSuccessHandler(function(rr){CART[tipo]={};PAGO_SEL[tipo]='';pintarCarro.nota='';pintar(rr);aviso('Venta registrada ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminVenderCarrito(tipo,items,PAGO_SEL[tipo],pintarCarro.nota||'',fv.value||'')},'pos-ok');pie.appendChild(ok);
-    if(ks.length)pie.appendChild(btn('Vaciar',function(){CART[tipo]={};cart=CART[tipo];pintarCarro();lista()},'sec'));
+    var va=btn('🗑 Vaciar carro',function(){CART[tipo]={};cart=CART[tipo];PAGO_SEL[tipo]='';pintarCarro.nota='';nt.value='';pintarCarro();lista();aviso('Carro vaciado')},'sec');va.style.cssText='border:1px solid #ff6b6b;color:#ff9a9a;grid-column:1/-1;min-height:44px';pie.appendChild(va);
     }
   var ln2=el_('label','','Comentario de la venta');ln2.appendChild(nt);meta.appendChild(ln2);
   pintarCarro();
