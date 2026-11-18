@@ -249,6 +249,9 @@ function adminVerificarIngresos(mes) {
   checks.push({ nivel: dups.length ? 'aviso' : 'ok', titulo: 'Posibles reservas duplicadas', detalle: dups.length ? 'Misma fecha, hora y servicio finalizados más de una vez.' : 'No hay duplicadas.', lista: dups });
   var ventas = leerVentas_(), vSinFecha = ventas.filter(function (v) { return !v.fecha; }).length, vViejas = ventas.filter(function (v) { return v.pago === PAGO.PENDIENTE && v.fecha && v.fecha < Reglas.sumarDias(hoy, -30); });
   checks.push({ nivel: vSinFecha || vViejas.length ? 'aviso' : 'ok', titulo: 'Ventas de tienda y bebestibles', detalle: (vSinFecha ? vSinFecha + ' venta(s) sin fecha. ' : '') + (vViejas.length ? vViejas.length + ' entregada(s) en sala sin cobrar hace más de 30 días.' : '') || 'Sin problemas.', lista: vViejas.map(function (v) { return { fecha: v.fecha, codigo: v.id, banda: v.producto, total: v.total }; }) });
+  var codigos = {}; if (n > 1) sr.getRange(2, RES.codigo, n - 1, 1).getValues().forEach(function (q) { codigos[String(q[0])] = 1; });
+  var huerf = ventas.filter(function (v) { return v.reserva && !codigos[v.reserva]; });
+  checks.push({ nivel: huerf.length ? 'aviso' : 'ok', titulo: 'Ventas ligadas a una reserva', detalle: huerf.length ? huerf.length + ' venta(s) apuntan a una reserva que ya no existe (se eliminó). Siguen contando en su tienda; corrige el cliente con «Corregir venta».' : 'Cada venta ligada a un cliente apunta a una reserva válida. Los ingresos de tienda y bebestibles no se mezclan con los de las reservas.' });
   return { ok: true, mes: mes, totales: { ingresosBrutos: res.ingresosBrutos, recalculado: recomputado, finalizadas: finalizadas, diferencia: dif }, checks: checks };
 }
 

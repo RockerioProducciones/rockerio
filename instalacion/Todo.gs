@@ -1305,6 +1305,15 @@ function asegurarEsquema_(ss) {
       }
       props.setProperty('MIG_VISIBLES_2', '1');
     }
+    if (!props.getProperty('MIG_BAL_EST_1')) { // el estudio ahora también puede llevar arriendos y video: la hoja «Balance» los suma en la fila 19
+      var hb = ss.getSheetByName(HOJAS.balance);
+      if (hb && hb.getLastRow() >= 19) {
+        var mesB = '$B$2&"-01"', fB = 'Reservas!$E:$E,">="&DATEVALUE(' + mesB + '),Reservas!$E:$E,"<"&EDATE(DATEVALUE(' + mesB + '),1)';
+        var sB = function (col) { return 'SUMIFS(Reservas!$' + col + ':$' + col + ',Reservas!$D:$D,"Grabación",Reservas!$C:$C,"' + EST.FINALIZADA + '",' + fB + ')'; };
+        hb.getRange('A19:C19').setValues([['Estudio: horas, arriendos y video', '=IF($B$7="SI",' + sB('W') + ',0)+IF($B$5="SI",' + sB('X') + ',0)+IF($B$6="SI",' + sB('Y') + ',0)', 'Reservas finalizadas de grabación: horas + equipo extra + video GoPro']]);
+      }
+      props.setProperty('MIG_BAL_EST_1', '1');
+    }
     if (!props.getProperty('MIG_HONOR_1')) {
       var hc = ss.getSheetByName(HOJAS.config), nh = hc ? hc.getLastRow() : 0;
       if (nh > 1) {
@@ -1620,6 +1629,7 @@ function prepararBalance_(ss) {
   };
   var anexoVentas = ventasMes('Ventas!$A:$A', 'Ventas!$J:$J', '""') + '+' + ventasMes('Ventas!$J:$J', 'Ventas!$J:$J', '"<>"');
   if (sh.getLastRow() > 0) { // hojas de versiones anteriores: la tienda pasa a ser un anexo que no suma
+    sh.getRange('A19:C19').setValues([['Estudio: horas, arriendos y video', '=IF($B$7="SI",' + sf('W', 'Grabación', EST.FINALIZADA) + ',0)+IF($B$5="SI",' + sf('X', 'Grabación', EST.FINALIZADA) + ',0)+IF($B$6="SI",' + sf('Y', 'Grabación', EST.FINALIZADA) + ',0)', 'Reservas finalizadas de grabación: horas + equipo extra + video GoPro']]);
     sh.getRange('A11:C11').setValues([['(no se usa) Tienda y bebestibles', 'NO', 'Tienda y bebestibles son una cuenta aparte: nunca suman al balance']]);
     sh.getRange('A23:C24').setValues([['ANEXO · Tienda y bebestibles (cuenta aparte)', '=' + anexoVentas, 'Informativo: NO suma al balance ni a los impuestos. Ventas cobradas del mes.'], ['Ingresos brutos', '=B18+B21+B22', 'Sala + estudio + material en bruto (sin tienda ni bebestibles)']]);
     return;
@@ -1646,7 +1656,7 @@ function prepararBalance_(ss) {
     /* 16 */ ['Sala: video GoPro', si(6, sf('Y', 'Ensayo', EST.FINALIZADA)), 'Supuesto: el video GoPro va a la sala. Confirmar.'],
     /* 17 */ ['Sala: abonos retenidos', '=IF($B$9="SI",' + sf('AB', 'Ensayo', EST.NO_ASISTE) + ',0)+IF($B$10="SI",' + sf('AB', 'Ensayo', EST.ANULADA) + ',0)', 'Inasistencias y anulaciones de ensayo'],
     /* 18 */ ['Total sala', '=SUM(B14:B17)', ''],
-    /* 19 */ ['Estudio: horas de grabación', si(7, sf('W', 'Grabación', EST.FINALIZADA)), ''],
+    /* 19 */ ['Estudio: horas, arriendos y video', '=IF($B$7="SI",' + sf('W', 'Grabación', EST.FINALIZADA) + ',0)+IF($B$5="SI",' + sf('X', 'Grabación', EST.FINALIZADA) + ',0)+IF($B$6="SI",' + sf('Y', 'Grabación', EST.FINALIZADA) + ',0)', 'Reservas finalizadas de grabación: horas + equipo extra + video GoPro'],
     /* 20 */ ['Estudio: abonos retenidos', '=IF($B$9="SI",' + sf('AB', 'Grabación', EST.NO_ASISTE) + ',0)+IF($B$10="SI",' + sf('AB', 'Grabación', EST.ANULADA) + ',0)', ''],
     /* 21 */ ['Total estudio', '=B19+B20', ''],
     /* 22 */ ['Material en bruto', si(8, sf('Z', '', EST.FINALIZADA)), 'Va 100% a Juan Carlos'],
@@ -4372,6 +4382,9 @@ function adminVerificarIngresos(mes) {
   checks.push({ nivel: dups.length ? 'aviso' : 'ok', titulo: 'Posibles reservas duplicadas', detalle: dups.length ? 'Misma fecha, hora y servicio finalizados más de una vez.' : 'No hay duplicadas.', lista: dups });
   var ventas = leerVentas_(), vSinFecha = ventas.filter(function (v) { return !v.fecha; }).length, vViejas = ventas.filter(function (v) { return v.pago === PAGO.PENDIENTE && v.fecha && v.fecha < Reglas.sumarDias(hoy, -30); });
   checks.push({ nivel: vSinFecha || vViejas.length ? 'aviso' : 'ok', titulo: 'Ventas de tienda y bebestibles', detalle: (vSinFecha ? vSinFecha + ' venta(s) sin fecha. ' : '') + (vViejas.length ? vViejas.length + ' entregada(s) en sala sin cobrar hace más de 30 días.' : '') || 'Sin problemas.', lista: vViejas.map(function (v) { return { fecha: v.fecha, codigo: v.id, banda: v.producto, total: v.total }; }) });
+  var codigos = {}; if (n > 1) sr.getRange(2, RES.codigo, n - 1, 1).getValues().forEach(function (q) { codigos[String(q[0])] = 1; });
+  var huerf = ventas.filter(function (v) { return v.reserva && !codigos[v.reserva]; });
+  checks.push({ nivel: huerf.length ? 'aviso' : 'ok', titulo: 'Ventas ligadas a una reserva', detalle: huerf.length ? huerf.length + ' venta(s) apuntan a una reserva que ya no existe (se eliminó). Siguen contando en su tienda; corrige el cliente con «Corregir venta».' : 'Cada venta ligada a un cliente apunta a una reserva válida. Los ingresos de tienda y bebestibles no se mezclan con los de las reservas.' });
   return { ok: true, mes: mes, totales: { ingresosBrutos: res.ingresosBrutos, recalculado: recomputado, finalizadas: finalizadas, diferencia: dif }, checks: checks };
 }
 

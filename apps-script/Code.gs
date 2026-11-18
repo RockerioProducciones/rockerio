@@ -719,6 +719,15 @@ function asegurarEsquema_(ss) {
       }
       props.setProperty('MIG_VISIBLES_2', '1');
     }
+    if (!props.getProperty('MIG_BAL_EST_1')) { // el estudio ahora también puede llevar arriendos y video: la hoja «Balance» los suma en la fila 19
+      var hb = ss.getSheetByName(HOJAS.balance);
+      if (hb && hb.getLastRow() >= 19) {
+        var mesB = '$B$2&"-01"', fB = 'Reservas!$E:$E,">="&DATEVALUE(' + mesB + '),Reservas!$E:$E,"<"&EDATE(DATEVALUE(' + mesB + '),1)';
+        var sB = function (col) { return 'SUMIFS(Reservas!$' + col + ':$' + col + ',Reservas!$D:$D,"Grabación",Reservas!$C:$C,"' + EST.FINALIZADA + '",' + fB + ')'; };
+        hb.getRange('A19:C19').setValues([['Estudio: horas, arriendos y video', '=IF($B$7="SI",' + sB('W') + ',0)+IF($B$5="SI",' + sB('X') + ',0)+IF($B$6="SI",' + sB('Y') + ',0)', 'Reservas finalizadas de grabación: horas + equipo extra + video GoPro']]);
+      }
+      props.setProperty('MIG_BAL_EST_1', '1');
+    }
     if (!props.getProperty('MIG_HONOR_1')) {
       var hc = ss.getSheetByName(HOJAS.config), nh = hc ? hc.getLastRow() : 0;
       if (nh > 1) {
@@ -1034,6 +1043,7 @@ function prepararBalance_(ss) {
   };
   var anexoVentas = ventasMes('Ventas!$A:$A', 'Ventas!$J:$J', '""') + '+' + ventasMes('Ventas!$J:$J', 'Ventas!$J:$J', '"<>"');
   if (sh.getLastRow() > 0) { // hojas de versiones anteriores: la tienda pasa a ser un anexo que no suma
+    sh.getRange('A19:C19').setValues([['Estudio: horas, arriendos y video', '=IF($B$7="SI",' + sf('W', 'Grabación', EST.FINALIZADA) + ',0)+IF($B$5="SI",' + sf('X', 'Grabación', EST.FINALIZADA) + ',0)+IF($B$6="SI",' + sf('Y', 'Grabación', EST.FINALIZADA) + ',0)', 'Reservas finalizadas de grabación: horas + equipo extra + video GoPro']]);
     sh.getRange('A11:C11').setValues([['(no se usa) Tienda y bebestibles', 'NO', 'Tienda y bebestibles son una cuenta aparte: nunca suman al balance']]);
     sh.getRange('A23:C24').setValues([['ANEXO · Tienda y bebestibles (cuenta aparte)', '=' + anexoVentas, 'Informativo: NO suma al balance ni a los impuestos. Ventas cobradas del mes.'], ['Ingresos brutos', '=B18+B21+B22', 'Sala + estudio + material en bruto (sin tienda ni bebestibles)']]);
     return;
@@ -1060,7 +1070,7 @@ function prepararBalance_(ss) {
     /* 16 */ ['Sala: video GoPro', si(6, sf('Y', 'Ensayo', EST.FINALIZADA)), 'Supuesto: el video GoPro va a la sala. Confirmar.'],
     /* 17 */ ['Sala: abonos retenidos', '=IF($B$9="SI",' + sf('AB', 'Ensayo', EST.NO_ASISTE) + ',0)+IF($B$10="SI",' + sf('AB', 'Ensayo', EST.ANULADA) + ',0)', 'Inasistencias y anulaciones de ensayo'],
     /* 18 */ ['Total sala', '=SUM(B14:B17)', ''],
-    /* 19 */ ['Estudio: horas de grabación', si(7, sf('W', 'Grabación', EST.FINALIZADA)), ''],
+    /* 19 */ ['Estudio: horas, arriendos y video', '=IF($B$7="SI",' + sf('W', 'Grabación', EST.FINALIZADA) + ',0)+IF($B$5="SI",' + sf('X', 'Grabación', EST.FINALIZADA) + ',0)+IF($B$6="SI",' + sf('Y', 'Grabación', EST.FINALIZADA) + ',0)', 'Reservas finalizadas de grabación: horas + equipo extra + video GoPro'],
     /* 20 */ ['Estudio: abonos retenidos', '=IF($B$9="SI",' + sf('AB', 'Grabación', EST.NO_ASISTE) + ',0)+IF($B$10="SI",' + sf('AB', 'Grabación', EST.ANULADA) + ',0)', ''],
     /* 21 */ ['Total estudio', '=B19+B20', ''],
     /* 22 */ ['Material en bruto', si(8, sf('Z', '', EST.FINALIZADA)), 'Va 100% a Juan Carlos'],
