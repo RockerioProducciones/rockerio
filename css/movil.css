@@ -279,3 +279,6 @@ html .hero h1,html.rd body .hero h1{font-family:'Big Shoulders Display','Bebas N
 #vivo .vv-grid .caja b{color:#67e8f9}
 #vivo .vv-cta .btn{background:linear-gradient(135deg,#22d3ee,#06b6d4 55%,#6366f1);color:#04161b;border:0;box-shadow:0 8px 22px rgba(6,182,212,.35)}
 #vivo .vv-cta .btn.sec{background:transparent;color:#67e8f9;border:2px solid #06b6d4;box-shadow:none}
+
+/* Extras: en grabación solo se ofrece el video GoPro */
+#adicionales.solo-grab .ex-card:not(.ex-chk),#adicionales.solo-grab .ex-rider,#adicionales.solo-grab .ex-tit{display:none}

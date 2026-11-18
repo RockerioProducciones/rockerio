@@ -97,6 +97,7 @@ var Reglas = (function () {
     anticipacionMinHoras: 4,
     anticipacionMaxDias: 21,      // se puede reservar desde hoy hasta 21 días después
     planMaxDias: 35,              // los planes mensuales pueden agendar sus 4 sesiones hasta 35 días adelante
+    liberarSolo: false,           // NO: el horario sin abono queda guardado hasta que lo confirmes o anules; SI: se libera solo tras minutosReserva
     minutosReserva: 20,           // minutos que el horario queda tomado esperando el abono; luego se libera solo (5 a 180)
     horasAnulacion: 24,
     retencionPorHora: 1000,
@@ -234,6 +235,7 @@ var Reglas = (function () {
     c.heroTitulo = aTexto(raw.heroTitulo, d.heroTitulo) || d.heroTitulo; c.heroTexto = aTexto(raw.heroTexto, d.heroTexto) || d.heroTexto;
     ['verProduccion', 'verFicha', 'verPlanes', 'verGaleria', 'verEvaluaciones', 'verProaudix', 'verContacto', 'verTienda', 'verHonor', 'verCotizar', 'verReglamento', 'verVivo'].forEach(function (k) { c[k] = aBool(raw[k], d[k]); });
     c.visitasActivo = aBool(raw.visitasActivo, d.visitasActivo);
+    c.liberarSolo = aBool(raw.liberarSolo, d.liberarSolo);
     ['colorEnsayo', 'colorEstudio', 'colorPlan8', 'colorPlan12', 'colorVivo', 'colorBloqueo'].forEach(function (k) { var t = String(raw[k] === undefined || raw[k] === null ? '' : raw[k]).trim().toLowerCase(); c[k] = /^#[0-9a-f]{6}$/.test(t) ? t : d[k]; });
     c.vivoDias = VIVO_DIAS[aTexto(raw.vivoDias, d.vivoDias)] ? aTexto(raw.vivoDias, d.vivoDias) : d.vivoDias;
     c.vivoPrecio = Math.max(0, Math.round(aNumero(raw.vivoPrecio, d.vivoPrecio)));
@@ -284,6 +286,10 @@ var Reglas = (function () {
   function addonsPermitidos(cfg, servicio, horas) {
     return servicio === 'ensayo' && horas >= cfg.addonsMinHoras;
   }
+  /** El video GoPro se ofrece en ensayo y en grabación; el material en bruto solo en ensayo. */
+  function videoPermitido(cfg, servicio, horas) {
+    return (servicio === 'ensayo' || servicio === 'grabacion') && horas >= cfg.addonsMinHoras;
+  }
 
   /** Total = precio x horas + extras + video + material en bruto. Abono = abonoPorHora x horas. */
   /**
@@ -319,10 +325,8 @@ var Reglas = (function () {
       var n = Math.max(0, Math.min(6, +p.extras || 0));
       extras = n * cfg.precioExtraEquipo * (cfg.extraModo === 'hora' ? horas : 1);
     }
-    if (addonsPermitidos(cfg, p.servicio, horas)) {
-      video = p.video ? cfg.precioVideo : 0;
-      raw = p.raw ? cfg.precioRaw : 0;
-    }
+    if (videoPermitido(cfg, p.servicio, horas)) video = p.video ? cfg.precioVideo : 0;
+    if (addonsPermitidos(cfg, p.servicio, horas)) raw = p.raw ? cfg.precioRaw : 0;
     var total = base + extras + video + raw;
     var abono = Math.min(total, cfg.abonoPorHora * horas);
     return { base: base, extras: extras, video: video, raw: raw, total: total, abono: abono, saldo: total - abono, horasConveniente: tc.horas, ahorro: (porHora - tc.precio) * tc.horas };
@@ -508,7 +512,8 @@ var Reglas = (function () {
     }
     if (d.servicio !== 'ensayo') d.extras = 0;
     var calculo = calcularPrecio(cfg, d);
-    if (!addonsPermitidos(cfg, d.servicio, d.horas)) { d.video = false; d.raw = false; }
+    if (!videoPermitido(cfg, d.servicio, d.horas)) d.video = false;
+    if (!addonsPermitidos(cfg, d.servicio, d.horas)) d.raw = false;
     return {
       ok: true,
       datos: d,
@@ -568,7 +573,7 @@ var Reglas = (function () {
     CLAUSULA_DATOS: CLAUSULA_DATOS, TZ: TZ, SERVICIOS: SERVICIOS, VIVO_DIAS: VIVO_DIAS, vivoDiaValido: vivoDiaValido, DIAS: DIAS, CONFIG_POR_DEFECTO: CONFIG_POR_DEFECTO, datosTransf: datosTransf,
     aNumero: aNumero, aBool: aBool, clp: clp, horaTxt: horaTxt, fechaValida: fechaValida, diaSemana: diaSemana,
     diasEntre: diasEntre, sumarDias: sumarDias, fechaLarga: fechaLarga, parseBloque: parseBloque, parseEscala: parseEscala,
-    normalizarConfig: normalizarConfig, limitesHoras: limitesHoras, addonsPermitidos: addonsPermitidos,
+    normalizarConfig: normalizarConfig, limitesHoras: limitesHoras, addonsPermitidos: addonsPermitidos, videoPermitido: videoPermitido,
     calcularPrecio: calcularPrecio, grabacionIncluidaMin: grabacionIncluidaMin, llenarPlantilla: llenarPlantilla, tarifaConveniente: tarifaConveniente, minutosTxt: minutosTxt,
     horasAbiertas: horasAbiertas, horasLibres: horasLibres, inicios: inicios, planInfo: planInfo, validarPlan: validarPlan, finPlan: finPlan, diasPlan: diasPlan,
     normalizarTelefono: normalizarTelefono, correoValido: correoValido, telefonoValido: telefonoValido,
@@ -1062,7 +1067,7 @@ function notificar_(cfg, v, codigo) {
     if (cfg.correoCliente && d.correo) {
       var texto = 'Hola ' + d.nombre + ',\n\nRecibimos tu solicitud en ' + cfg.nombreNegocio + '. Tu código es #' + codigo + '.\n\n' +
         Reglas.resumenTexto(cfg, v, '').split('\n').slice(1).join('\n') + '\n\n' +
-        'Tu horario queda reservado ' + cfg.minutosReserva + ' minutos a la espera del abono de ' + Reglas.clp(v.calculo.abono) + '. Si por algún motivo no alcanzas a abonar en ese plazo, el horario vuelve a quedar disponible para otras bandas; y si necesitas más tiempo, escríbenos y vemos cómo ayudarte.\n' +
+        (cfg.liberarSolo ? 'Tu horario queda reservado ' + cfg.minutosReserva + ' minutos a la espera del abono de ' + Reglas.clp(v.calculo.abono) + '. Si por algún motivo no alcanzas a abonar en ese plazo, el horario vuelve a quedar disponible para otras bandas; y si necesitas más tiempo, escríbenos y vemos cómo ayudarte.' : 'Tu horario queda guardado a tu nombre a la espera del abono de ' + Reglas.clp(v.calculo.abono) + '. Cuando lo transfieras, avísanos por WhatsApp con el comprobante para dejar tu reserva confirmada.') + '\n' +
         cfg.instruccionesPago + ((cfg.pagoTransferencia && cfg.datosTransferencia) ? '\n\n' + (Reglas.datosTransf(cfg.datosTransferencia) ? '[[TRANSF]]' : 'Transferencia: ' + cfg.datosTransferencia) : '') + ((cfg.pagoOnline && cfg.linkPago) ? '\nPuedes pagar aquí: ' + cfg.linkPago : '') + '\n\n' +
         'Si necesitas cambiar o anular, avísanos por WhatsApp con al menos ' + cfg.horasAnulacion + ' horas de anticipación: así podemos darle ese espacio a otra banda y mantener la agenda fluida para todos. ¡Gracias!\n' + cfg.direccion;
       enviarCorreoMarca_(cfg, { to: d.correo, subject: 'Tu reserva #' + codigo + ' en ' + cfg.nombreNegocio, body: texto, transf: Reglas.datosTransf(cfg.datosTransferencia || ''), name: cfg.nombreNegocio, replyTo: cfg.correoAdmin || '' });
@@ -1094,6 +1099,7 @@ function esCasa_(telefono, banda) {
 
 /** Anula las reservas «sin abono» cuyo plazo (minutosReserva) venció y libera su horario. Llamar con el bloqueo tomado. */
 function liberarVencidas_(cfg) {
+  if (!cfg.liberarSolo) return; // por defecto NO se anula nada solo: el horario sin abono queda guardado hasta que lo confirmes o lo anules
   var sh = abrirBd_().getSheetByName(HOJAS.reservas);
   var n = sh.getLastRow();
   if (n < 2) return;
@@ -1434,6 +1440,7 @@ function prepararConfig_(ss) {
     ['anticipacionMinHoras', d.anticipacionMinHoras, 'Horas de anticipación mínima para reservar en línea.'],
     ['anticipacionMaxDias', d.anticipacionMaxDias, 'Hasta cuántos días hacia adelante se puede reservar.'],
     ['planMaxDias', d.planMaxDias, 'Hasta cuántos días adelante se pueden agendar las 4 sesiones de un plan mensual.'],
+    ['liberarSolo', d.liberarSolo ? 'SI' : 'NO', 'SI o NO. NO (recomendado): una reserva sin abono queda guardada hasta que la confirmes o anules, y nadie más puede tomar ese horario. SI: se anula sola pasados los minutos de «minutosReserva».'],
     ['minutosReserva', d.minutosReserva, 'Minutos que el horario queda tomado esperando el abono (entre 5 y 180). Pasado ese tiempo se libera solo y el cliente ve una cuenta regresiva.'],
     ['horasAnulacion', d.horasAnulacion, 'Horas de anticipación para anular o reagendar.'],
     ['retencionPorHora', d.retencionPorHora, 'Pesos que se retienen por hora al anular.'],
@@ -2387,7 +2394,7 @@ function adminCalcularReserva(p) {
   if (servicio === 'vivo') horas = cfg.vivoHasta - cfg.vivoDesde;
   var n = servicio === 'ensayo' ? Math.max(0, Math.min(6, Number(p.extras) || 0)) : 0;
   var c = Reglas.calcularPrecio(cfg, { servicio: servicio, fecha: String(p.fecha || ''), inicio: Number(p.inicio) || 0, horas: horas, extras: n, video: !!p.video, raw: !!p.raw });
-  c.unidadExtra = cfg.precioExtraEquipo * (cfg.extraModo === 'hora' ? horas : 1); c.precioVideo = cfg.precioVideo; c.precioRaw = cfg.precioRaw; c.addons = !!Reglas.addonsPermitidos(cfg, servicio, horas);
+  c.unidadExtra = cfg.precioExtraEquipo * (cfg.extraModo === 'hora' ? horas : 1); c.precioVideo = cfg.precioVideo; c.precioRaw = cfg.precioRaw; c.addons = !!Reglas.addonsPermitidos(cfg, servicio, horas); c.videoOk = !!Reglas.videoPermitido(cfg, servicio, horas);
   c.extraTxt = cfg.extraModo === 'hora' ? 'por hora c/u' : 'por sesión c/u'; c.abonoHora = cfg.abonoPorHora;
   return c;
 }
@@ -4494,6 +4501,7 @@ var ESQUEMA = [
   ['anticipacionMinHoras', 'Anticipación mínima (horas)', 'num', 'Reglas de reserva', 'Con cuántas horas de anticipación como mínimo se puede reservar.', 168],
   ['anticipacionMaxDias', 'Reservar hasta (días hacia adelante)', 'num', 'Reglas de reserva', 'Cuántos días hacia adelante muestra el calendario.', 120],
   ['planMaxDias', 'Sesiones de plan hasta (días)', 'num', 'Reglas de reserva', 'Hasta cuántos días hacia adelante se pueden agendar las 4 sesiones de un plan.', 180],
+  ['liberarSolo', 'Liberar sola la reserva sin abono', 'sino', 'Reglas de reserva', 'NO = el horario queda guardado hasta que tú lo confirmes o lo anules: nadie más puede tomarlo (recomendado). SI = se libera solo pasados los minutos de abajo.'],
   ['minutosReserva', 'Minutos que se guarda el horario', 'num', 'Reglas de reserva', 'Tiempo que el horario queda tomado esperando el abono (5 a 180). Luego se libera solo.', 180],
   ['horasAnulacion', 'Horas mínimas para anular', 'num', 'Reglas de reserva', 'Anular con al menos estas horas devuelve el abono (menos la retención).', 168],
   ['noAsisteCobroPorHora', 'Cobro por «No asiste» (por hora reservada)', 'pesos', 'Reglas de reserva', 'Si el cliente no asiste, esta retención por cada hora reservada se da por cobrada y la reserva queda cerrada (entra al balance). Es por la seriedad de la agenda.'],

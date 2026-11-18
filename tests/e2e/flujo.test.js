@@ -81,10 +81,21 @@ t('fórmulas maliciosas se guardan como texto (no se ejecutan en la hoja)', () =
 });
 
 console.log('\n== 4. Pago pendiente y cuenta regresiva ==');
+g.admin('adminGuardarAjustes', { liberarSolo: 'SI' }); // estas pruebas verifican el modo «liberar solo»
 t('el bloque sin abono se libera solo al vencer el tiempo y queda libre para otra persona', () => {
   g.avanzar(25 * 60 * 1000); C.liberarPendientes();
   const r = g.post(sol({ telefono: '56944443333', banda: 'Nuevos', nombre: 'Carla Rojas', correo: 'c@c.cl' })); assert.ok(r.ok, JSON.stringify(r));
   const f = g.hoja('Reservas').find((x) => x[0] === cod1); assert.ok(!f || /(Cancel|Venc|Libera|Anul)/i.test(String(f[RES('estado')])), 'estado ' + (f && f[RES('estado')]));
+});
+
+t('con «liberar solo» en NO, la reserva sin abono NO se anula y nadie más puede tomar el bloque', () => {
+  g.admin('adminGuardarAjustes', { liberarSolo: 'NO' });
+  const dia = diaLibre(15, 1, 3);
+  const r = g.post(sol({ fecha: dia, inicio: 15, horas: 1, telefono: '56955550000', banda: 'Sin Prisa', nombre: 'Paz Mora', correo: 'p@p.cl' })); assert.ok(r.ok, JSON.stringify(r));
+  g.avanzar(400 * 60 * 1000); C.liberarPendientes();
+  const f = g.hoja('Reservas').find((x) => x[0] === r.codigo); assert.ok(/sin abono/i.test(String(f[RES('estado')])), 'estado ' + f[RES('estado')]);
+  const o = g.post(sol({ fecha: dia, inicio: 15, horas: 1, telefono: '56966660000', banda: 'Otra', nombre: 'Ana L', correo: 'o@o.cl' })); assert.ok(!o.ok, 'el bloque sigue tomado');
+  g.admin('adminGuardarAjustes', { liberarSolo: 'SI' });
 });
 
 console.log('\n== 5. Administrador ==');

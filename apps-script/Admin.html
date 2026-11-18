@@ -1616,7 +1616,7 @@ var ARRIENDOS_RM=['Set de platos Kingdo SN8 (B8): Hi-Hat 14” / Crash 16” / C
 function pintarDet(box,c){box.textContent='';var t=el_('div','rm-res');function ln(a,v,cl){var p=el_('div',cl||'');p.style.cssText='display:flex;justify-content:space-between;gap:10px';p.appendChild(el_('span','',a));p.appendChild(el_('b','',v));t.appendChild(p)}
   ln('Servicio ('+RM.horas+(RM.horas===1?' hora':' horas')+')',clp(c.base));
   if(RM.servicio==='ensayo')RM.equipos.forEach(function(n){ln('🎸 '+n.split(':')[0],clp(c.unidadExtra))});
-  if(RM.video)ln('🎥 Video GoPro',c.addons?clp(c.video):'no disponible para esta duración');
+  if(RM.video)ln('🎥 Video GoPro',c.videoOk?clp(c.video):'no disponible para esta duración');
   if(RM.raw)ln('💾 Material en bruto',c.addons?clp(c.raw):'no disponible para esta duración');
   if(c.horasConveniente)ln('✔ Tarifa conveniente en '+c.horasConveniente+' h','ahorro '+clp(c.ahorro));
   ln('Total calculado',clp(c.total));ln('Abono ('+clp(c.abonoHora)+' por hora)',clp(c.abono));ln('Saldo en sala',clp(c.saldo));
@@ -1677,7 +1677,7 @@ function pintarRM(){
     var ex=el_('div','full rm-extras');ex.appendChild(el_('b','','Extras (marca los que se cobran)'));var exl=el_('div','');ex.appendChild(exl);var det=el_('div','full rm-det');
     function ticket(txt,ck0,fn,id){var l=el_('label','ex-fila-ck');var ck=document.createElement('input');ck.type='checkbox';ck.checked=ck0;ck.onchange=function(){fn(ck.checked);pedirCalc()};l.appendChild(ck);l.appendChild(el_('span','',txt));if(id)l.id=id;return l}
     if(RM.servicio==='ensayo')ARRIENDOS_RM.forEach(function(n){exl.appendChild(ticket('🎸 '+n.split(':')[0]+(n.indexOf(':')>0?' ('+n.split(':')[1].trim()+')':''),RM.equipos.indexOf(n)>=0,function(v){var i=RM.equipos.indexOf(n);if(v&&i<0)RM.equipos.push(n);if(!v&&i>=0)RM.equipos.splice(i,1);RM.extras=RM.equipos.length}))});
-    exl.appendChild(ticket('🎥 Video GoPro Hero 13',RM.video,function(v){RM.video=v}));exl.appendChild(ticket('💾 Material en bruto multitrack',RM.raw,function(v){RM.raw=v}));fm.appendChild(ex);fm.appendChild(det);
+    exl.appendChild(ticket('🎥 Video GoPro Hero 13',RM.video,function(v){RM.video=v}));if(RM.servicio==='ensayo')exl.appendChild(ticket('💾 Material en bruto multitrack',RM.raw,function(v){RM.raw=v}));fm.appendChild(ex);fm.appendChild(det);
     var tcalc=null;function pedirCalc(){clearTimeout(tcalc);det.textContent='Calculando…';tcalc=setTimeout(function(){RUN.withSuccessHandler(function(c){pintarDet(det,c)}).withFailureHandler(function(){det.textContent=''}).adminCalcularReserva({servicio:RM.servicio,fecha:RM.fecha,inicio:RM.inicio,horas:RM.horas,extras:RM.extras,video:RM.video,raw:RM.raw})},250)}
     pedirCalc();
     campo('comentario','Comentarios','text',true);c.appendChild(fm);

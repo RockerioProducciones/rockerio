@@ -94,6 +94,7 @@ var Reglas = (function () {
     anticipacionMinHoras: 4,
     anticipacionMaxDias: 21,      // se puede reservar desde hoy hasta 21 días después
     planMaxDias: 35,              // los planes mensuales pueden agendar sus 4 sesiones hasta 35 días adelante
+    liberarSolo: false,           // NO: el horario sin abono queda guardado hasta que lo confirmes o anules; SI: se libera solo tras minutosReserva
     minutosReserva: 20,           // minutos que el horario queda tomado esperando el abono; luego se libera solo (5 a 180)
     horasAnulacion: 24,
     retencionPorHora: 1000,
@@ -231,6 +232,7 @@ var Reglas = (function () {
     c.heroTitulo = aTexto(raw.heroTitulo, d.heroTitulo) || d.heroTitulo; c.heroTexto = aTexto(raw.heroTexto, d.heroTexto) || d.heroTexto;
     ['verProduccion', 'verFicha', 'verPlanes', 'verGaleria', 'verEvaluaciones', 'verProaudix', 'verContacto', 'verTienda', 'verHonor', 'verCotizar', 'verReglamento', 'verVivo'].forEach(function (k) { c[k] = aBool(raw[k], d[k]); });
     c.visitasActivo = aBool(raw.visitasActivo, d.visitasActivo);
+    c.liberarSolo = aBool(raw.liberarSolo, d.liberarSolo);
     ['colorEnsayo', 'colorEstudio', 'colorPlan8', 'colorPlan12', 'colorVivo', 'colorBloqueo'].forEach(function (k) { var t = String(raw[k] === undefined || raw[k] === null ? '' : raw[k]).trim().toLowerCase(); c[k] = /^#[0-9a-f]{6}$/.test(t) ? t : d[k]; });
     c.vivoDias = VIVO_DIAS[aTexto(raw.vivoDias, d.vivoDias)] ? aTexto(raw.vivoDias, d.vivoDias) : d.vivoDias;
     c.vivoPrecio = Math.max(0, Math.round(aNumero(raw.vivoPrecio, d.vivoPrecio)));
@@ -281,6 +283,10 @@ var Reglas = (function () {
   function addonsPermitidos(cfg, servicio, horas) {
     return servicio === 'ensayo' && horas >= cfg.addonsMinHoras;
   }
+  /** El video GoPro se ofrece en ensayo y en grabación; el material en bruto solo en ensayo. */
+  function videoPermitido(cfg, servicio, horas) {
+    return (servicio === 'ensayo' || servicio === 'grabacion') && horas >= cfg.addonsMinHoras;
+  }
 
   /** Total = precio x horas + extras + video + material en bruto. Abono = abonoPorHora x horas. */
   /**
@@ -316,10 +322,8 @@ var Reglas = (function () {
       var n = Math.max(0, Math.min(6, +p.extras || 0));
       extras = n * cfg.precioExtraEquipo * (cfg.extraModo === 'hora' ? horas : 1);
     }
-    if (addonsPermitidos(cfg, p.servicio, horas)) {
-      video = p.video ? cfg.precioVideo : 0;
-      raw = p.raw ? cfg.precioRaw : 0;
-    }
+    if (videoPermitido(cfg, p.servicio, horas)) video = p.video ? cfg.precioVideo : 0;
+    if (addonsPermitidos(cfg, p.servicio, horas)) raw = p.raw ? cfg.precioRaw : 0;
     var total = base + extras + video + raw;
     var abono = Math.min(total, cfg.abonoPorHora * horas);
     return { base: base, extras: extras, video: video, raw: raw, total: total, abono: abono, saldo: total - abono, horasConveniente: tc.horas, ahorro: (porHora - tc.precio) * tc.horas };
@@ -505,7 +509,8 @@ var Reglas = (function () {
     }
     if (d.servicio !== 'ensayo') d.extras = 0;
     var calculo = calcularPrecio(cfg, d);
-    if (!addonsPermitidos(cfg, d.servicio, d.horas)) { d.video = false; d.raw = false; }
+    if (!videoPermitido(cfg, d.servicio, d.horas)) d.video = false;
+    if (!addonsPermitidos(cfg, d.servicio, d.horas)) d.raw = false;
     return {
       ok: true,
       datos: d,
@@ -565,7 +570,7 @@ var Reglas = (function () {
     CLAUSULA_DATOS: CLAUSULA_DATOS, TZ: TZ, SERVICIOS: SERVICIOS, VIVO_DIAS: VIVO_DIAS, vivoDiaValido: vivoDiaValido, DIAS: DIAS, CONFIG_POR_DEFECTO: CONFIG_POR_DEFECTO, datosTransf: datosTransf,
     aNumero: aNumero, aBool: aBool, clp: clp, horaTxt: horaTxt, fechaValida: fechaValida, diaSemana: diaSemana,
     diasEntre: diasEntre, sumarDias: sumarDias, fechaLarga: fechaLarga, parseBloque: parseBloque, parseEscala: parseEscala,
-    normalizarConfig: normalizarConfig, limitesHoras: limitesHoras, addonsPermitidos: addonsPermitidos,
+    normalizarConfig: normalizarConfig, limitesHoras: limitesHoras, addonsPermitidos: addonsPermitidos, videoPermitido: videoPermitido,
     calcularPrecio: calcularPrecio, grabacionIncluidaMin: grabacionIncluidaMin, llenarPlantilla: llenarPlantilla, tarifaConveniente: tarifaConveniente, minutosTxt: minutosTxt,
     horasAbiertas: horasAbiertas, horasLibres: horasLibres, inicios: inicios, planInfo: planInfo, validarPlan: validarPlan, finPlan: finPlan, diasPlan: diasPlan,
     normalizarTelefono: normalizarTelefono, correoValido: correoValido, telefonoValido: telefonoValido,

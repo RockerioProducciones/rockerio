@@ -137,7 +137,7 @@
     txt($('dir'), cfg.direccion); txt($('dir2'), String(cfg.direccion || '').replace(/[\s·]+$/, '').toUpperCase()); $('franja-dir').hidden = !cfg.direccion;
     txt($('max-dias'), String(cfg.anticipacionMaxDias));
     $('wsp').href = wspUrl('Hola 👋 Me gustaría consultar por ' + cfg.nombreNegocio);
-    txt($('tyc-txt'), 'Leí el reglamento interno y acepto que el horario queda reservado ' + cfg.minutosReserva + ' minutos a la espera del abono (' + R.clp(cfg.abonoPorHora) + ' por hora) y que puedo anular o reagendar con al menos ' + cfg.horasAnulacion + ' horas de anticipación. También acepto que usen mis datos personales para gestionar mi reserva, según la sección «Protección de datos personales».');
+    txt($('tyc-txt'), 'Leí el reglamento interno y acepto que el horario queda reservado ' + (cfg.liberarSolo ? 'por ' + cfg.minutosReserva + ' minutos ' : '') + 'a la espera del abono (' + R.clp(cfg.abonoPorHora) + ' por hora) y que puedo anular o reagendar con al menos ' + cfg.horasAnulacion + ' horas de anticipación. También acepto que usen mis datos personales para gestionar mi reserva, según la sección «Protección de datos personales».');
     var rl = el('a', 'ver-reg', ' Ver reglamento'); rl.href = '#reglamento'; rl.setAttribute('role', 'button');
     rl.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); abrirReglamento(); }); $('tyc-txt').appendChild(rl);
     txt($('pie'), '© ' + new Date().getFullYear() + ' ' + cfg.nombreNegocio);
@@ -404,8 +404,13 @@
     else ai.hidden = true;
     pintarArriendos();
     var ens = S.servicio === 'ensayo', addOk = R.addonsPermitidos(cfg, S.servicio, S.horas);
-    $('adicionales').hidden = !ens;
-    ['video', 'raw'].forEach(function (id) { $(id).closest('label').style.display = addOk ? '' : 'none'; if (!addOk) $(id).checked = false; });
+    var vidOk = R.videoPermitido(cfg, S.servicio, S.horas);
+    $('adicionales').hidden = !(ens || S.servicio === 'grabacion');
+    $('adicionales').classList.toggle('solo-grab', !ens);
+    var exs = $('ex-toggle').querySelector('small'); if (exs) exs.textContent = ens ? 'Arriendo de equipos · video GoPro · material en bruto (opcional)' : 'Video GoPro de tu sesión (opcional)';
+    var exb = $('video').nextElementSibling.querySelector('b'); if (exb) exb.firstChild.nodeValue = (ens ? '2. ' : '1. ') + 'Grabación en video GoPro Hero 13 ';
+    $('video').closest('label').style.display = vidOk ? '' : 'none'; if (!vidOk) $('video').checked = false;
+    $('raw').closest('label').style.display = addOk ? '' : 'none'; if (!addOk) $('raw').checked = false;
     renumerar();
   }
 
@@ -495,7 +500,7 @@
         var arr = arriendosElegidos(), unit = arr.length ? Math.round(p.extras / arr.length) : p.extras;
         arr.forEach(function (n) { linea('🎸 ' + n.split(':')[0] + (cfg.extraModo === 'hora' ? ' (' + S.horas + (S.horas === 1 ? ' hr' : ' hrs') + ')' : ''), unit); });
       }
-      if (p.video && s.video && ok) linea('🎥 Grabación en video GoPro Hero 13', p.video);
+      if (p.video && s.video && R.videoPermitido(cfg, S.servicio, S.horas)) linea('🎥 Grabación en video GoPro Hero 13', p.video);
       if (p.raw && s.raw && ok) linea('💾 Material en bruto multitrack', p.raw);
       if (p.horasConveniente) its.appendChild(el('div', 'nota ahorro', '✔ Tarifa conveniente aplicada en ' + p.horasConveniente + (p.horasConveniente === 1 ? ' hora' : ' horas') + ' (ahorras ' + R.clp(p.ahorro) + ').'));
       if (g) its.appendChild(el('div', 'nota ahorro', '🎙️ Incluye ' + R.minutosTxt(g) + ' de grabación con mezcla.'));
@@ -525,7 +530,7 @@
     var tk = el('div', 'ro-ticket'); var tl = el('div'); tl.appendChild(el('small', '', 'Ticket de reserva generado:')); tl.appendChild(el('b', 'cod', o.titulo.replace(/^.*?(#\S+).*$/, '$1').charAt(0) === '#' ? o.titulo.replace(/^.*?(#\S+).*$/, '$1') : o.titulo)); tk.appendChild(tl);
     var cupo = el('div', 'ro-cupo'); cupo.setAttribute('role', 'timer'); tk.appendChild(cupo); box.appendChild(tk);
     var res = el('div', 'ro-det'); o.lineas.forEach(function (l) { res.appendChild(el('p', '', l)); }); box.appendChild(res);
-    var tm = el('div', 'ro-abono'); var ta = el('div'); ta.appendChild(el('b', '', 'Abona ' + R.clp(o.monto) + ' para confirmar tu horario')); ta.appendChild(el('small', '', 'Tu horario queda tomado por ' + o.pago.minutosReserva + ' minutos; si no llega el abono, se libera solo.')); tm.appendChild(ta); tm.appendChild(el('b', 'v', R.clp(o.monto))); box.appendChild(tm);
+    var tm = el('div', 'ro-abono'); var ta = el('div'); ta.appendChild(el('b', '', 'Abona ' + R.clp(o.monto) + ' para confirmar tu horario')); ta.appendChild(el('small', '', cfg.liberarSolo ? 'Tu horario queda tomado por ' + o.pago.minutosReserva + ' minutos; si no llega el abono, se libera solo.' : 'Tu horario queda guardado a tu nombre. Cuando abones, avísanos con el comprobante para confirmarlo.')); tm.appendChild(ta); tm.appendChild(el('b', 'v', R.clp(o.monto))); box.appendChild(tm);
     var bts = el('div', 'ro-bts'); box.appendChild(bts);
     if (o.pago.link) { var p = el('a', 'ro-b ro-azul', '💳 Pagar abono en línea (instantáneo)'); p.href = o.pago.link; p.target = '_blank'; p.rel = 'noopener'; bts.appendChild(p); }
     if (o.pago.mp && o.pagar) {
@@ -568,7 +573,7 @@
       });
       box.appendChild(yp);
     }
-    iniciarCuenta(cupo, o.pago.segundos, bts);
+    iniciarCuenta(cupo, cfg.liberarSolo ? o.pago.segundos : 0, bts);
     box.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
   function avisoPago(box, texto, bueno) {

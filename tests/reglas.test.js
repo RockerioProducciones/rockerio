@@ -24,9 +24,14 @@ t('extras por sesión cuando extraModo = sesion', () => {
   const c = R.normalizarConfig({ extraModo: 'sesion' });
   assert.strictEqual(R.calcularPrecio(c, { servicio: 'ensayo', horas: 3, extras: 2 }).extras, 6000);
 });
-t('grabación 4 h = $120.000 y no admite video ni extras', () => {
-  const p = R.calcularPrecio(cfg, { servicio: 'grabacion', horas: 4, extras: 3, video: true, raw: true });
+t('grabación 4 h = $120.000 y no admite extras ni material en bruto', () => {
+  const p = R.calcularPrecio(cfg, { servicio: 'grabacion', horas: 4, extras: 3, video: false, raw: true });
   assert.deepStrictEqual([p.total, p.abono], [120000, 20000]);
+});
+t('el video GoPro sí se ofrece en grabación (desde las horas mínimas) y el bruto no', () => {
+  const p = R.calcularPrecio(cfg, { servicio: 'grabacion', horas: 4, video: true, raw: true });
+  assert.deepStrictEqual([p.video, p.raw, p.total], [cfg.precioVideo, 0, 120000 + cfg.precioVideo]);
+  assert.strictEqual(R.calcularPrecio(cfg, { servicio: 'grabacion', horas: 1, video: true }).video, 0);
 });
 t('video y bruto no se cobran bajo 2 horas', () => {
   const p = R.calcularPrecio(cfg, { servicio: 'ensayo', horas: 1, video: true, raw: true });
@@ -167,10 +172,10 @@ t('datos incompletos o inválidos', () => {
   assert.ok(!malo('servicio', 'otro').ok);
   assert.ok(!malo('fecha', '2026-02-31').ok);
 });
-t('extras y video se ignoran en grabación', () => {
-  const r = R.validarSolicitud(cfg, ahora, Object.assign({}, base, { servicio: 'grabacion', extras: 3, video: true }), []);
+t('extras y material en bruto se ignoran en grabación', () => {
+  const r = R.validarSolicitud(cfg, ahora, Object.assign({}, base, { servicio: 'grabacion', extras: 3, raw: true }), []);
   assert.ok(r.ok);
-  assert.deepStrictEqual([r.calculo.total, r.datos.extras, r.datos.video], [60000, 0, false]);
+  assert.deepStrictEqual([r.calculo.total, r.datos.extras, r.datos.raw], [60000, 0, false]);
 });
 t('el texto se limpia de caracteres de control y se acota', () => {
   const r = R.validarDatos(Object.assign({}, base, { banda: 'A\u0000B\n  C' + 'x'.repeat(100) }));
