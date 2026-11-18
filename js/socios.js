@@ -185,6 +185,7 @@
     if (!datos.pendientes.length) s.appendChild(el('p', 'sub', 'Nada por cobrar.'));
     if (datos.pendientes.length) {
       var hp = el('div', 'vt-hist'); hp.appendChild(tablaVentas(datos.pendientes, function (v, td) {
+        var tg = el('button', 'pb vt-cob-t', 'Cobrar ▾'); tg.type = 'button'; tg.onclick = function () { td.classList.toggle('abierto'); }; td.appendChild(tg);
         [['Cobrado: efectivo', PAGOS[0]], ['Cobrado: transferencia', PAGOS[1]]].forEach(function (o) {
           var b = el('button', 'pb', o[0]); pasoDoble(b, function () {
             post('socios_cobrar', { id: v.id, pago: o[1] }).then(function (x) { if (x.ok) { aviso('Cobro registrado', true); cargar(); } else aviso(x.error || 'No se pudo registrar.'); });

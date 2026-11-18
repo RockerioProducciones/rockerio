@@ -291,22 +291,27 @@ section.tab-off{display:none!important}
 .mas-op{margin-top:.8rem;border-top:1px solid #2a2a2a;padding-top:.6rem}.mas-op summary{cursor:pointer;color:#b5afa6;padding:.5rem 0;font-size:.95rem}.mas-op .ad-extra{margin-top:.6rem}
 .mic-ed-foto{display:flex;flex-direction:column;gap:4px;align-items:flex-start;margin:.3rem .8rem .3rem 0}.mic-ed-foto img{width:84px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--borde)}
 
-/* Historial / por cobrar en celular: cada venta es una tarjeta (sin desplazar de lado) */
+/* Historial / por cobrar en celular: tarjetas compactas (sin desplazar de lado) */
 .vt-tabla td.vt-tot{border:0;border-radius:0;background:none;padding:.6rem .55rem;text-align:left;display:table-cell}
+.vt-cob-t{display:none}
 @media(max-width:700px){
-.vt-hist{padding:.2rem .5rem}
-.vt-tabla,.vt-tabla tbody{display:block;width:100%;min-width:0!important}.vt-tabla thead{display:none}
-.vt-tabla tr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.3rem .7rem;align-items:center;padding:.8rem .2rem;border-bottom:1px solid var(--borde)}
-.vt-tabla td,.vt-tabla td.vt-tot{display:block;border:0!important;border-radius:0;background:none;padding:0!important;min-width:0;text-align:left;font-size:.88rem}
-.vt-tabla td:nth-child(2){grid-column:1;grid-row:1;font-size:.98rem}
-.vt-tabla td:nth-child(4){grid-column:2;grid-row:1;text-align:right;font-size:1.05rem}
-.vt-tabla td:nth-child(1){grid-column:1;grid-row:2;color:var(--mut);font-size:.8rem}
-.vt-tabla td:nth-child(6){grid-column:2;grid-row:2;text-align:right}
-.vt-tabla td:nth-child(3){grid-column:1;grid-row:3;color:var(--mut);font-size:.82rem}
-.vt-tabla td:nth-child(5){grid-column:2;grid-row:3;text-align:right}
-.vt-tabla td:nth-child(7){grid-column:1/-1;grid-row:4;padding:.35rem .6rem!important;background:rgba(42,166,201,.08);border-left:3px solid #2aa6c9!important;border-radius:0 8px 8px 0;font-size:.9rem;overflow-wrap:anywhere}
-.vt-tabla td:nth-child(8){grid-column:1/-1;grid-row:5;display:flex;flex-wrap:wrap;gap:6px;white-space:normal;margin-top:.2rem}
-.vt-tabla td:nth-child(8) button,.vt-tabla td:nth-child(8) .pb{flex:1 1 auto;min-height:40px;margin:0;font-size:.82rem}
+.vt-hist{padding:.1rem .45rem;margin-left:0;margin-right:0}.vt-tabla-w{overflow:visible}
+.vt-tabla,.vt-tabla tbody{display:block;width:100%;max-width:100%;min-width:0!important}.vt-tabla thead{display:none}
+.vt-tabla tr{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;column-gap:.55rem;row-gap:.25rem;align-items:center;padding:.6rem .1rem;border-bottom:1px solid var(--borde)}
+.vt-tabla td,.vt-tabla td.vt-tot{display:block;border:0!important;border-radius:0;background:none;padding:0!important;min-width:0;text-align:left;font-size:.78rem;line-height:1.2}
+.vt-tabla td:nth-child(2){grid-column:1/4;grid-row:1;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vt-tabla td:nth-child(4){grid-column:4;grid-row:1;text-align:right;font-size:.98rem}
+.vt-tabla td:nth-child(1){grid-column:1;grid-row:2;color:var(--mut)}
+.vt-tabla td:nth-child(3){grid-column:2;grid-row:2;color:var(--mut)}
+.vt-tabla td:nth-child(5){grid-column:3;grid-row:2}
+.vt-tabla td:nth-child(6){grid-column:4;grid-row:2;text-align:right}
+.vt-tabla td:nth-child(7){grid-column:1/-1;grid-row:3;padding:.25rem .5rem!important;background:rgba(42,166,201,.08);border-left:3px solid #2aa6c9!important;border-radius:0 6px 6px 0;font-size:.82rem;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.vt-tabla td:nth-child(8){grid-column:1/-1;grid-row:4;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px;white-space:normal;margin-top:.1rem}
+.vt-tabla td:nth-child(8) button{margin:0!important;min-height:34px;padding:.3rem .7rem;font-size:.78rem}
+.vt-tabla td.vt-acc:has(.vt-cob-t) .vt-cob-t{display:inline-block;flex:1 1 100%}
+.vt-tabla td.vt-acc:has(.vt-cob-t):not(.abierto) button:not(.vt-cob-t){display:none}
+.vt-tabla td.vt-acc.abierto button:not(.vt-cob-t){flex:1 1 30%;white-space:normal;line-height:1.15}.vt-tabla td.vt-acc .vt-cob-t{min-height:36px!important}
+.vt-medio{padding:.1rem .4rem;font-size:.7rem}
 .vt-tabla tr.an td{text-decoration:none}.vt-tabla tr.an td:nth-child(2){text-decoration:line-through}
 }
 </style></head><body>
@@ -637,7 +642,7 @@ function pos(id,tipo,titulo,ico,prods,d){
     pend.forEach(function(x){var tr=document.createElement('tr');tr.appendChild(td(x.fecha));var cp=td(x.producto);cp.className='vt-prod';tr.appendChild(cp);tr.appendChild(td(x.cantidad+' un.'));var ct=td(clp(x.total));ct.className='vt-tot';tr.appendChild(ct);
       var cm=document.createElement('td');cm.appendChild(el_('span','vt-medio','—'));tr.appendChild(cm);var ce=document.createElement('td');ce.appendChild(el_('span','vt-est p','Pendiente'));tr.appendChild(ce);
       var cc=td((x.nota||'—')+(x.vendedor?' · '+x.vendedor:''));cc.className='vt-com';tr.appendChild(cc);
-      var ca=document.createElement('td');ca.className='vt-acc';ca.appendChild(btn('Cobrado: efectivo',function(){ejecutar('adminCobrar',x.id,PAGOS[0])}));ca.appendChild(btn('Cobrado: transferencia',function(){ejecutar('adminCobrar',x.id,PAGOS[1])},'sec'));ca.appendChild(anular(x));tr.appendChild(ca);tbpb.appendChild(tr)});
+      var ca=document.createElement('td');ca.className='vt-acc';var tg=btn('Cobrar ▾',function(){ca.classList.toggle('abierto')});tg.className+=' vt-cob-t';ca.appendChild(tg);ca.appendChild(btn('Cobrado: efectivo',function(){ejecutar('adminCobrar',x.id,PAGOS[0])}));ca.appendChild(btn('Cobrado: transferencia',function(){ejecutar('adminCobrar',x.id,PAGOS[1])},'sec'));ca.appendChild(anular(x));tr.appendChild(ca);tbpb.appendChild(tr)});
     tbp.appendChild(tbpb);var wrp=el_('div','vt-tabla-w');wrp.appendChild(tbp);var hbp=el_('div','vt-hist');hbp.appendChild(wrp);caja.appendChild(hbp)}
   var hist=v.ventas.filter(function(x){return x.tipo===txt});
   var hh=el_('div','vt-hist-cab');hh.appendChild(el_('b','','Historial de ventas ('+hist.length+')'));hh.appendChild(btn(HIST_VER[tipo]?'Ocultar historial':'Mostrar historial',function(){HIST_VER[tipo]=!HIST_VER[tipo];pintarCatalogos(ultimo)},'sec'));caja.appendChild(hh);
