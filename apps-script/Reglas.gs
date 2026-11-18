@@ -318,7 +318,7 @@ var Reglas = (function () {
     var tc = tarifaConveniente(cfg, p.servicio, p.fecha, p.inicio, horas);
     var base = porHora * (horas - tc.horas) + tc.precio * tc.horas;
     var extras = 0, video = 0, raw = 0;
-    if (p.servicio === 'ensayo') {
+    if (p.servicio === 'ensayo' || p.servicio === 'grabacion') {
       var n = Math.max(0, Math.min(6, +p.extras || 0));
       extras = n * cfg.precioExtraEquipo * (cfg.extraModo === 'hora' ? horas : 1);
     }
@@ -507,7 +507,7 @@ var Reglas = (function () {
     if (inicios(r.libres, d.horas).indexOf(d.inicio) < 0) {
       return { ok: false, codigo: 'OCUPADO', error: 'Ese horario ya no está disponible. Elige otro.' };
     }
-    if (d.servicio !== 'ensayo') d.extras = 0;
+    if (d.servicio !== 'ensayo' && d.servicio !== 'grabacion') d.extras = 0;
     var calculo = calcularPrecio(cfg, d);
     if (!videoPermitido(cfg, d.servicio, d.horas)) d.video = false;
     if (!addonsPermitidos(cfg, d.servicio, d.horas)) d.raw = false;

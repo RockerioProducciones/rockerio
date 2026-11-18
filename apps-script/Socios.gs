@@ -132,7 +132,7 @@ function sociosDatos_(token, mes) {
   if (tipoSocio_(token) === 'social') return { ok: true, socio: nombre, tipo: 'social', ahora: ahoraChile_(), agenda: agendaDetalle_(), colores: coloresAgenda_() };
   var v = datosVentas_(mes);
   return { ok: true, socio: nombre, tipo: 'colega', ahora: ahoraChile_(), agenda: agendaDetalle_(true), colores: coloresAgenda_(), musica: catalogoSocios_('musica'), bebestibles: catalogoSocios_('bebestible'),
-    resumen: v.resumen, ventas: v.ventas, pendientes: v.pendientes, general: resumenGeneral_(mes) };
+    resumen: v.resumen, ventas: v.ventas, pendientes: v.pendientes, sesiones: v.sesiones, general: resumenGeneral_(mes) };
 }
 
 function sociosVender_(sol) {
@@ -140,7 +140,7 @@ function sociosVender_(sol) {
   if (!nombre || tipoSocio_(sol.t) === 'social') return { ok: false, codigo: 'ENLACE', error: 'Enlace no válido.' };
   if (limiteGlobal_('socios_venta', 200)) return { ok: false, codigo: 'TASA', error: 'Demasiadas ventas seguidas. Intenta más tarde.' };
   try {
-    var id = conBloqueo_(function () { return registrarVenta_(tipoCatalogo_(sol.tipo), sol.fila, sol.cantidad, sol.pago, nombre, sol.nota); });
+    var id = conBloqueo_(function () { return registrarVenta_(tipoCatalogo_(sol.tipo), sol.fila, sol.cantidad, sol.pago, nombre, sol.nota, '', sol.reserva); });
     return { ok: true, id: id };
   } catch (e) { return { ok: false, codigo: 'DATOS', error: String(e.message || e) }; }
 }
@@ -151,7 +151,7 @@ function sociosCarrito_(sol) {
   if (!nombre || tipoSocio_(sol.t) === 'social') return { ok: false, codigo: 'ENLACE', error: 'Enlace no válido.' };
   if (limiteGlobal_('socios_venta', 200)) return { ok: false, codigo: 'TASA', error: 'Demasiadas ventas seguidas. Intenta más tarde.' };
   try {
-    var ids = conBloqueo_(function () { return registrarCarrito_(tipoCatalogo_(sol.tipo), sol.items, sol.pago, nombre, sol.nota); });
+    var ids = conBloqueo_(function () { return registrarCarrito_(tipoCatalogo_(sol.tipo), sol.items, sol.pago, nombre, sol.nota, '', sol.reserva); });
     return { ok: true, ids: ids };
   } catch (e) { return { ok: false, codigo: 'DATOS', error: String(e.message || e) }; }
 }

@@ -693,7 +693,7 @@ function abrirBd_() {
 /** Agrega a la hoja de reservas la columna «Reagendos» si falta (hojas de versiones anteriores). Se revisa una vez cada 6 horas. */
 function asegurarEsquema_(ss) {
   var cache = CacheService.getScriptCache();
-  if (cache.get('esq8')) return;
+  if (cache.get('esq9')) return;
   try {
     var sh = ss.getSheetByName(HOJAS.reservas);
     if (sh) {
@@ -701,6 +701,11 @@ function asegurarEsquema_(ss) {
       [[RES.reagendos, 'Reagendos'], [RES.ajuste, 'Ajuste (descuento)'], [RES.notaAjuste, 'Nota del ajuste'], [RES.original, 'Montos originales'], [RES.cobro, ENCABEZADO_RESERVAS[RES.cobro - 1]], [RES.medioPago, ENCABEZADO_RESERVAS[RES.medioPago - 1]], [RES.cortesia, ENCABEZADO_RESERVAS[RES.cortesia - 1]], [RES.fechaPago, ENCABEZADO_RESERVAS[RES.fechaPago - 1]], [RES.pago, ENCABEZADO_RESERVAS[RES.pago - 1]], [RES.pagoFecha, ENCABEZADO_RESERVAS[RES.pagoFecha - 1]], [RES.pagoId, ENCABEZADO_RESERVAS[RES.pagoId - 1]], [RES.comision, ENCABEZADO_RESERVAS[RES.comision - 1]]].forEach(function (c) {
         if (!sh.getRange(1, c[0]).getValue()) sh.getRange(1, c[0]).setValue(c[1]).setFontWeight('bold');
       });
+    }
+    var shv = ss.getSheetByName(HOJAS.ventas);
+    if (shv) {
+      if (shv.getMaxColumns() < 13) shv.insertColumnsAfter(shv.getMaxColumns(), 13 - shv.getMaxColumns());
+      [[12, 'Reserva'], [13, 'Cliente de la reserva']].forEach(function (c) { if (!shv.getRange(1, c[0]).getValue()) shv.getRange(1, c[0]).setValue(c[1]).setFontWeight('bold'); });
     }
     prepararSimple_(ss, HOJAS.movimientos, ENCABEZADO_MOVIMIENTOS, [], { 2: 'yyyy-mm-dd', 5: '$#,##0' });
     prepararSimple_(ss, HOJAS.sitio, ['Parte', 'Contenido (JSON)', 'Actualizado'], [], {});
@@ -722,7 +727,7 @@ function asegurarEsquema_(ss) {
       }
       props.setProperty('MIG_HONOR_1', '1');
     }
-    cache.put('esq8', '1', 21600);
+    cache.put('esq9', '1', 21600);
   } catch (e) { /* si falla, se reintenta en la próxima solicitud */ }
 }
 
@@ -766,7 +771,7 @@ function instalar() {
   prepararSimple_(ss, HOJAS.bloqueos, ['Fecha', 'Desde (hora)', 'Hasta (hora)', 'Motivo'], [], { 1: 'yyyy-mm-dd', 2: '@', 3: '@' });
   prepararTienda_(ss);
   prepararBebestibles_(ss);
-  prepararSimple_(ss, HOJAS.ventas, ['Fecha', 'Producto', 'Cantidad', 'Precio unitario', 'Total', 'Tipo', 'Pago', 'Vendedor', 'Nota', 'Fecha de cobro', 'ID'], [], { 1: 'yyyy-mm-dd', 4: '$#,##0', 5: '$#,##0', 10: 'yyyy-mm-dd' });
+  prepararSimple_(ss, HOJAS.ventas, ['Fecha', 'Producto', 'Cantidad', 'Precio unitario', 'Total', 'Tipo', 'Pago', 'Vendedor', 'Nota', 'Fecha de cobro', 'ID', 'Reserva', 'Cliente de la reserva'], [], { 1: 'yyyy-mm-dd', 4: '$#,##0', 5: '$#,##0', 10: 'yyyy-mm-dd' });
   ss.getSheetByName(HOJAS.ventas).getRange(2, VT.pago, 5000, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(PAGOS_VENTA.concat([PAGO.ANULADA]), true).setAllowInvalid(false).build());
   prepararSimple_(ss, HOJAS.costos, ['Mes (AAAA-MM)', 'Luz total (boleta)', 'Aporte ProAudix', 'Caja chica', 'Otros gastos de sala', 'Notas', 'Luz con factura a nombre del negocio (SI/NO)'], [], { 1: '@', 2: '$#,##0', 3: '$#,##0', 4: '$#,##0', 5: '$#,##0' });
   prepararSimple_(ss, HOJAS.movimientos, ENCABEZADO_MOVIMIENTOS, [], { 2: 'yyyy-mm-dd', 5: '$#,##0' });

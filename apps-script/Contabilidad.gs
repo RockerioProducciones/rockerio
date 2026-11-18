@@ -275,7 +275,7 @@ function adminResumenContable(periodo, ref) {
   var cfg = getCfg_(), R = rangoPeriodo_(periodo, ref), ss = abrirBd_();
   var fee = Number(cfg.noAsisteCobroPorHora) || 0;
   var sala = { sesiones: 0, horas: 0, base: 0, extras: 0, video: 0, retenidos: 0, total: 0 };
-  var estudio = { sesiones: 0, horas: 0, base: 0, retenidos: 0, total: 0 };
+  var estudio = { sesiones: 0, horas: 0, base: 0, extras: 0, video: 0, retenidos: 0, total: 0 };
   var arr = { unidades: 0, monto: 0 }, bruto = { sesiones: 0, monto: 0 };
   var noa = { n: 0, horas: 0, cobro: 0, abonoRetenido: 0, porCobrar: 0, lista: [] };
   var anu = { n: 0, retenido: 0, devolver: 0 };
@@ -297,8 +297,7 @@ function adminResumenContable(periodo, ref) {
     if (estado === EST.FINALIZADA) {
       var o = ens ? sala : estudio;
       o.sesiones++; o.horas += h; o.base += base;
-      if (ens) { sala.extras += ex; sala.video += vi; arr.unidades += Number(r[RES.extras - 1]) || 0; arr.monto += ex; }
-      else { arr.unidades += Number(r[RES.extras - 1]) || 0; arr.monto += ex; }
+      var oo = ens ? sala : estudio; oo.extras += ex; oo.video += vi; arr.unidades += Number(r[RES.extras - 1]) || 0; arr.monto += ex;
       bruto.sesiones += rw > 0 ? 1 : 0; bruto.monto += rw;
       fila.total = base + ex + vi + rw; fila.cortesia = r[RES.cortesia - 1] === 'SI'; detalle.push(fila);
       if (fila.cortesia) { cortesias.n++; cortesias.valor += totalOriginal_(r); cortesias.lista.push({ fecha: f, codigo: fila.codigo, banda: fila.banda, cliente: fila.cliente, valor: totalOriginal_(r), nota: String(r[RES.notaAjuste - 1] || '') }); }
@@ -324,22 +323,24 @@ function adminResumenContable(periodo, ref) {
       proy.sesiones++; proy.horas += h; proy.monto += Number(r[RES.total - 1]) || 0;
     }
   });
-  sala.total += sala.base + sala.extras + sala.video; estudio.total += estudio.base;
+  sala.total += sala.base + sala.extras + sala.video; estudio.total += estudio.base + estudio.extras + estudio.video;
   // ventas de tienda y bebestibles (por fecha de cobro)
   var ventas = leerVentas_(), tiendas = {};
-  ['musica', 'bebestible'].forEach(function (t) { tiendas[t] = { cobrado: 0, efectivo: 0, transferencia: 0, porCobrar: 0, unidades: 0, productos: {}, detalle: [] }; });
+  ['musica', 'bebestible'].forEach(function (t) { tiendas[t] = { cobrado: 0, efectivo: 0, transferencia: 0, porCobrar: 0, unidades: 0, productos: {}, detalle: [], reservas: {}, sueltas: 0 }; });
   ventas.forEach(function (v) {
-    if (v.pago === PAGO.ANULADA || !tiendas[v.tipo]) return;
-    var o = tiendas[v.tipo], fc = v.cobro || v.fecha;
+    var clave = String(v.tipo) === ETIQUETA_TIPO.bebestible ? 'bebestible' : (String(v.tipo) === ETIQUETA_TIPO.musica ? 'musica' : '');
+    if (v.pago === PAGO.ANULADA || !clave) return;
+    var o = tiendas[clave], fc = v.cobro || v.fecha;
     if (v.pago === PAGO.PENDIENTE) { if (v.fecha >= R.desde && v.fecha <= R.hasta) o.porCobrar += v.total; return; }
     if (fc < R.desde || fc > R.hasta) return;
     o.cobrado += v.total; o.unidades += v.cantidad;
     if (v.pago === PAGO.EFECTIVO) o.efectivo += v.total; else o.transferencia += v.total;
     var p = o.productos[v.producto] = o.productos[v.producto] || { nombre: v.producto, unidades: 0, total: 0 };
     p.unidades += v.cantidad; p.total += v.total;
-    o.detalle.push({ fecha: fc, producto: v.producto, cantidad: v.cantidad, total: v.total, pago: v.pago, vendedor: v.vendedor });
+    if (v.reserva) { var pr = o.reservas[v.reserva] = o.reservas[v.reserva] || { codigo: v.reserva, cliente: v.cliente, unidades: 0, total: 0 }; pr.unidades += v.cantidad; pr.total += v.total; } else o.sueltas += v.total;
+    o.detalle.push({ fecha: fc, producto: v.producto, cantidad: v.cantidad, total: v.total, pago: v.pago, vendedor: v.vendedor, reserva: v.reserva, cliente: v.cliente });
   });
-  var salidaTienda = function (o) { o.productos = Object.keys(o.productos).map(function (k) { return o.productos[k]; }).sort(function (a, b) { return b.total - a.total; }); o.detalle = o.detalle.slice(0, 200); return o; };
+  var salidaTienda = function (o) { o.reservas = Object.keys(o.reservas).map(function (k) { return o.reservas[k]; }).sort(function (a, b) { return b.total - a.total; }); o.productos = Object.keys(o.productos).map(function (k) { return o.productos[k]; }).sort(function (a, b) { return b.total - a.total; }); o.detalle = o.detalle.slice(0, 200); return o; };
   var out = {
     ok: true, periodo: R.periodo, desde: R.desde, hasta: R.hasta, ref: R.ref,
     semAnt: Reglas.sumarDias(R.desde, -7), semSig: Reglas.sumarDias(R.desde, 7),

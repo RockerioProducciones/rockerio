@@ -6,8 +6,8 @@
 
 var PAGO = { EFECTIVO: 'Venta efectivo', TRANSFERENCIA: 'Venta transferencia', PENDIENTE: 'Entregado en sesión (pago pendiente)', ANULADA: 'Anulada' };
 var PAGOS_VENTA = [PAGO.EFECTIVO, PAGO.TRANSFERENCIA, PAGO.PENDIENTE];
-var COLS_VENTAS = 11;
-var VT = { fecha: 1, producto: 2, cantidad: 3, precio: 4, total: 5, tipo: 6, pago: 7, vendedor: 8, nota: 9, cobro: 10, id: 11 };
+var COLS_VENTAS = 13;
+var VT = { fecha: 1, producto: 2, cantidad: 3, precio: 4, total: 5, tipo: 6, pago: 7, vendedor: 8, nota: 9, cobro: 10, id: 11, reserva: 12, cliente: 13 };
 var ETIQUETA_TIPO = { musica: 'Música', bebestible: 'Bebestibles' };
 
 function pagoNorm_(v) {
@@ -124,8 +124,37 @@ function fechaVenta_(fecha) {
   return fechaHora_(fecha, 12);
 }
 
-function registrarVenta_(tipo, fila, cantidad, pago, vendedor, nota, fecha) {
-  var fv = fechaVenta_(fecha);
+/** Reservas de hoy a las que se puede asociar una venta (en curso, próximas o recién terminadas). Cada venta queda ligada a UNA reserva; los ingresos no se mezclan. */
+function sesionesVenta_() {
+  var ah = ahoraChile_(), out = [], sr = abrirBd_().getSheetByName(HOJAS.reservas), n = sr.getLastRow();
+  if (n < 2) return out;
+  function hh(s) { var m = /^(\d{1,2}):(\d{2})/.exec(String(s || '')); return m ? Number(m[1]) + Number(m[2]) / 60 : null; }
+  sr.getRange(2, 1, n - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r) {
+    if (!r[RES.codigo - 1] || aFechaIso_(r[RES.fecha - 1]) !== ah.fecha) return;
+    var e = estadoNorm_(r[RES.estado - 1]);
+    if ([EST.SIN_ABONO, EST.CON_ABONO, EST.FINALIZADA].indexOf(e) < 0) return;
+    var ini = horaCelda_(r[RES.inicio - 1]), fin = horaCelda_(r[RES.fin - 1]), a = hh(ini), b = hh(fin);
+    if (a === null || b === null) return;
+    var fase = ah.hora >= a && ah.hora < b ? 'curso' : (ah.hora < a ? 'proxima' : 'terminada');
+    out.push({ codigo: String(r[RES.codigo - 1]), banda: String(r[RES.banda - 1]), servicio: String(r[RES.servicio - 1]), inicio: ini, fin: fin, fase: fase });
+  });
+  var orden = { curso: 0, proxima: 1, terminada: 2 };
+  return out.sort(function (x, y) { return orden[x.fase] - orden[y.fase] || (x.inicio < y.inicio ? -1 : 1); });
+}
+
+/** Valida la reserva elegida para una venta y devuelve {codigo, banda}; vacío = venta suelta (sin reserva). */
+function reservaParaVenta_(codigo) {
+  codigo = String(codigo || '').trim();
+  if (!codigo) return { codigo: '', banda: '' };
+  var sr = abrirBd_().getSheetByName(HOJAS.reservas), f = filaPorTexto_(sr, codigo, RES.codigo);
+  if (!f) throw new Error('No encontramos esa reserva para asociar la venta.');
+  var r = sr.getRange(f, 1, 1, ENCABEZADO_RESERVAS.length).getValues()[0];
+  if (estadoNorm_(r[RES.estado - 1]) === EST.ANULADA) throw new Error('Esa reserva está anulada.');
+  return { codigo: codigo, banda: String(r[RES.banda - 1]) };
+}
+
+function registrarVenta_(tipo, fila, cantidad, pago, vendedor, nota, fecha, reserva) {
+  var fv = fechaVenta_(fecha), rv = reservaParaVenta_(reserva);
   pago = pagoNorm_(pago);
   if (PAGOS_VENTA.indexOf(pago) < 0) throw new Error('Elige cómo se pagó: efectivo, transferencia o pago pendiente.');
   cantidad = Number(cantidad);
@@ -140,14 +169,14 @@ function registrarVenta_(tipo, fila, cantidad, pago, vendedor, nota, fecha) {
   }
   var id = siguienteIdVenta_();
   abrirBd_().getSheetByName(HOJAS.ventas).appendRow([fv, textoSeguro_(String(r[1])), cantidad, precio, precio * cantidad,
-    ETIQUETA_TIPO[tipoCatalogo_(tipo)], pago, textoSeguro_(limpiar_(vendedor, 40)), textoSeguro_(limpiar_(nota, 120)), '', id]);
+    ETIQUETA_TIPO[tipoCatalogo_(tipo)], pago, textoSeguro_(limpiar_(vendedor, 40)), textoSeguro_(limpiar_(nota, 120)), '', id, rv.codigo, textoSeguro_(rv.banda)]);
   return id;
 }
 
 /** Registra un carrito completo (varios productos) con una sola forma de pago. Valida todo antes de descontar nada.
  *  items = [{fila, cantidad}]. Debe llamarse dentro de conBloqueo_. Devuelve los ids de venta. */
-function registrarCarrito_(tipo, items, pago, vendedor, nota, fecha) {
-  fechaVenta_(fecha);
+function registrarCarrito_(tipo, items, pago, vendedor, nota, fecha, reserva) {
+  fechaVenta_(fecha); reservaParaVenta_(reserva);
   if (!items || !items.length) throw new Error('El carrito está vacío.');
   if (items.length > 40) throw new Error('Demasiados productos en una venta.');
   pago = pagoNorm_(pago);
@@ -160,7 +189,7 @@ function registrarCarrito_(tipo, items, pago, vendedor, nota, fecha) {
     if (!r[1] || Reglas.aNumero(r[3], null) === null) throw new Error('«' + r[1] + '» no tiene precio.');
     if (r[4] !== '' && Number(r[4]) < c) throw new Error('Stock insuficiente de «' + r[1] + '»: quedan ' + r[4] + '.');
   });
-  return Object.keys(juntos).map(function (k) { return registrarVenta_(tipo, Number(k), juntos[k], pago, vendedor, nota, fecha); });
+  return Object.keys(juntos).map(function (k) { return registrarVenta_(tipo, Number(k), juntos[k], pago, vendedor, nota, fecha, reserva); });
 }
 
 /** Cambia una venta «pendiente» a efectivo o transferencia. Debe llamarse dentro de conBloqueo_. */
@@ -184,7 +213,7 @@ function leerVentas_() {
     out.push({
       id: String(r[VT.id - 1]), fecha: aFechaIso_(r[VT.fecha - 1]), producto: String(r[VT.producto - 1]), cantidad: Number(r[VT.cantidad - 1]) || 0,
       precio: Number(r[VT.precio - 1]) || 0, total: Number(r[VT.total - 1]) || 0, tipo: String(r[VT.tipo - 1]), pago: pagoNorm_(r[VT.pago - 1]),
-      vendedor: String(r[VT.vendedor - 1] || ''), nota: String(r[VT.nota - 1] || ''), cobro: aFechaIso_(r[VT.cobro - 1])
+      vendedor: String(r[VT.vendedor - 1] || ''), nota: String(r[VT.nota - 1] || ''), cobro: aFechaIso_(r[VT.cobro - 1]), reserva: String(r[VT.reserva - 1] || ''), cliente: String(r[VT.cliente - 1] || '')
     });
   });
   return out.reverse(); // las más recientes primero
@@ -227,20 +256,21 @@ function datosVentas_(mes) {
   return {
     resumen: resumen,
     ventas: todas.filter(function (v) { return (v.cobro || v.fecha).slice(0, 7) === mes || v.fecha.slice(0, 7) === mes; }).slice(0, 300),
-    pendientes: todas.filter(function (v) { return v.pago === PAGO.PENDIENTE; })
+    pendientes: todas.filter(function (v) { return v.pago === PAGO.PENDIENTE; }),
+    sesiones: sesionesVenta_()
   };
 }
 
 /* ---------- administrador: ventas ---------- */
 
-function adminVender(tipo, fila, cantidad, pago, nota, fecha) {
+function adminVender(tipo, fila, cantidad, pago, nota, fecha, reserva) {
   exigirAdmin_();
-  return conBloqueo_(function () { registrarVenta_(tipo, fila, cantidad, pago, 'Administración', nota || '', fecha); return adminResumen(); });
+  return conBloqueo_(function () { registrarVenta_(tipo, fila, cantidad, pago, 'Administración', nota || '', fecha, reserva); return adminResumen(); });
 }
 /** Venta por carrito desde el portal: items = [{fila, cantidad}], pago = una de PAGOS_VENTA. */
-function adminVenderCarrito(tipo, items, pago, nota, fecha) {
+function adminVenderCarrito(tipo, items, pago, nota, fecha, reserva) {
   exigirAdmin_();
-  return conBloqueo_(function () { var ids = registrarCarrito_(tipo, items, pago, 'Administración', nota || '', fecha); var r = adminResumen(); r.idsVenta = ids; return r; });
+  return conBloqueo_(function () { var ids = registrarCarrito_(tipo, items, pago, 'Administración', nota || '', fecha, reserva); var r = adminResumen(); r.idsVenta = ids; return r; });
 }
 function adminCobrar(id, pago) {
   exigirAdmin_();
@@ -306,6 +336,7 @@ function adminEditarVenta(id, d) {
     if (pago === PAGO.PENDIENTE) sh.getRange(f, VT.cobro).setValue('');
     sh.getRange(f, VT.nota).setValue(textoSeguro_(limpiar_(d.nota, 200)));
     if (d.fecha) sh.getRange(f, VT.fecha).setValue(fechaVenta_(d.fecha));
+    if (d.reserva !== undefined) { var rv = reservaParaVenta_(d.reserva); sh.getRange(f, VT.reserva, 1, 2).setValues([[rv.codigo, textoSeguro_(rv.banda)]]); }
     return adminResumen();
   });
 }

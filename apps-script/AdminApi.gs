@@ -699,7 +699,7 @@ function adminCalcularReserva(p) {
   p = p || {};
   var cfg = getCfg_(), servicio = p.servicio === 'grabacion' ? 'grabacion' : (p.servicio === 'vivo' ? 'vivo' : 'ensayo'), horas = Math.max(1, Math.min(24, Number(p.horas) || 1));
   if (servicio === 'vivo') horas = cfg.vivoHasta - cfg.vivoDesde;
-  var n = servicio === 'ensayo' ? Math.max(0, Math.min(6, Number(p.extras) || 0)) : 0;
+  var n = servicio !== 'vivo' ? Math.max(0, Math.min(6, Number(p.extras) || 0)) : 0;
   var c = Reglas.calcularPrecio(cfg, { servicio: servicio, fecha: String(p.fecha || ''), inicio: Number(p.inicio) || 0, horas: horas, extras: n, video: !!p.video, raw: !!p.raw });
   c.unidadExtra = cfg.precioExtraEquipo * (cfg.extraModo === 'hora' ? horas : 1); c.precioVideo = cfg.precioVideo; c.precioRaw = cfg.precioRaw; c.addons = !!Reglas.addonsPermitidos(cfg, servicio, horas); c.videoOk = !!Reglas.videoPermitido(cfg, servicio, horas);
   c.extraTxt = cfg.extraModo === 'hora' ? 'por hora c/u' : 'por sesión c/u'; c.abonoHora = cfg.abonoPorHora;
@@ -729,7 +729,7 @@ function adminReservaManual(p) {
   if (pago === 'completo' || pago === 'abono') estado = EST.CON_ABONO; else if (pago === 'ninguno') estado = EST.SIN_ABONO;
   if (pago === 'completo' && MEDIOS_PAGO.indexOf(medioPago) < 0) throw new Error('Elige el medio de pago.');
   var equipos = (Array.isArray(p.equipos) ? p.equipos : []).map(function (x) { return limpiar_(x, 120); }).filter(Boolean).slice(0, 6);
-  var extras = servicio === 'ensayo' ? Math.max(0, Math.min(6, equipos.length || Number(p.extras) || 0)) : 0;
+  var extras = servicio !== 'vivo' ? Math.max(0, Math.min(6, equipos.length || Number(p.extras) || 0)) : 0;
   var d = { servicio: servicio, fecha: fecha, inicio: inicio, horas: horas, extras: extras, video: !!p.video, raw: !!p.raw };
   var c = Reglas.calcularPrecio(cfg, d);
   var total = c.total, abono = c.abono;
@@ -794,7 +794,7 @@ function adminReservaManual(p) {
     fila[RES.banda - 1] = textoSeguro_(banda); fila[RES.contacto - 1] = textoSeguro_(nombre); fila[RES.telefono - 1] = tel; fila[RES.correo - 1] = textoSeguro_(correo);
     fila[RES.extras - 1] = extras; fila[RES.video - 1] = d.video ? 'SI' : 'NO'; fila[RES.raw - 1] = d.raw ? 'SI' : 'NO';
     fila[RES.total - 1] = total; fila[RES.abono - 1] = abono; fila[RES.saldo - 1] = total - abono;
-    fila[RES.zurdo - 1] = 'NO'; fila[RES.voces - 1] = 0; fila[RES.comentarios - 1] = textoSeguro_('Reserva manual' + (equipos.length && servicio === 'ensayo' ? ' · Equipos: ' + equipos.map(function (x) { return x.split(':')[0]; }).join(', ') : '') + (p.comentario ? ' · ' + limpiar_(p.comentario, 300) : ''));
+    fila[RES.zurdo - 1] = 'NO'; fila[RES.voces - 1] = 0; fila[RES.comentarios - 1] = textoSeguro_('Reserva manual' + (equipos.length && servicio !== 'vivo' ? ' · Equipos: ' + equipos.map(function (x) { return x.split(':')[0]; }).join(', ') : '') + (p.comentario ? ' · ' + limpiar_(p.comentario, 300) : ''));
     fila[RES.evento - 1] = evento.getId();
     var mm = { b: c.base, e: c.extras, v: c.video, r: c.raw }, dManual = c.total - total;
     if (dManual !== 0) { mm = repartirDescuento_({ b: c.base, e: c.extras, v: c.video, r: c.raw }, dManual); fila[RES.ajuste - 1] = dManual; fila[RES.notaAjuste - 1] = 'Total ingresado a mano'; fila[RES.original - 1] = JSON.stringify({ b: c.base, e: c.extras, v: c.video, r: c.raw, t: c.total }); }

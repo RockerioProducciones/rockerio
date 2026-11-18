@@ -24,9 +24,11 @@ t('extras por sesión cuando extraModo = sesion', () => {
   const c = R.normalizarConfig({ extraModo: 'sesion' });
   assert.strictEqual(R.calcularPrecio(c, { servicio: 'ensayo', horas: 3, extras: 2 }).extras, 6000);
 });
-t('grabación 4 h = $120.000 y no admite extras ni material en bruto', () => {
-  const p = R.calcularPrecio(cfg, { servicio: 'grabacion', horas: 4, extras: 3, video: false, raw: true });
-  assert.deepStrictEqual([p.total, p.abono], [120000, 20000]);
+t('grabación 4 h = $120.000 base; admite arriendos y video pero no material en bruto', () => {
+  const base = R.calcularPrecio(cfg, { servicio: 'grabacion', horas: 4, extras: 0, video: false, raw: true });
+  assert.deepStrictEqual([base.total, base.abono, base.raw], [120000, 20000, 0]);
+  const x = R.calcularPrecio(cfg, { servicio: 'grabacion', horas: 4, extras: 2, video: false });
+  assert.strictEqual(x.extras, 2 * cfg.precioExtraEquipo * (cfg.extraModo === 'hora' ? 4 : 1));
 });
 t('el video GoPro sí se ofrece en grabación (desde las horas mínimas) y el bruto no', () => {
   const p = R.calcularPrecio(cfg, { servicio: 'grabacion', horas: 4, video: true, raw: true });
@@ -172,10 +174,10 @@ t('datos incompletos o inválidos', () => {
   assert.ok(!malo('servicio', 'otro').ok);
   assert.ok(!malo('fecha', '2026-02-31').ok);
 });
-t('extras y material en bruto se ignoran en grabación', () => {
+t('en grabación se ignora el material en bruto pero se aceptan los arriendos', () => {
   const r = R.validarSolicitud(cfg, ahora, Object.assign({}, base, { servicio: 'grabacion', extras: 3, raw: true }), []);
   assert.ok(r.ok);
-  assert.deepStrictEqual([r.calculo.total, r.datos.extras, r.datos.raw], [60000, 0, false]);
+  assert.deepStrictEqual([r.datos.extras, r.datos.raw, r.calculo.raw], [3, false, 0]);
 });
 t('el texto se limpia de caracteres de control y se acota', () => {
   const r = R.validarDatos(Object.assign({}, base, { banda: 'A\u0000B\n  C' + 'x'.repeat(100) }));

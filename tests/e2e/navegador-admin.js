@@ -24,11 +24,12 @@ const { sembrar } = require('./demo.js');
       ok(await p.locator('#sec-musica .vt-tabla th', { hasText: 'Medio de pago' }).count() >= 1 && await p.locator('#sec-musica .vt-tabla tbody tr').count() >= 1 && await p.locator('#sec-musica .vt-tabla button', { hasText: 'Editar' }).count() >= 1, 'tienda: historial en tabla con medio de pago, estado y editar');
       await p.screenshot({ path: 'a-tienda-pos.png' });
       await p.click('.area[data-p=conta]'); await p.waitForTimeout(600);
-      ok(/Resumen por área/i.test(await p.locator('#rc-box').innerText()) && /No asiste/i.test(await p.locator('#rc-box').innerText()), 'contabilidad: resumen por área y No asiste');
+      ok(/Ingresos brutos/i.test(await p.locator('#rc-box').innerText()), 'contabilidad: resumen con ingresos brutos'); await p.locator('.rc-tabs [data-rt=ing]').click(); await p.waitForTimeout(150);
+      ok(/Por área/i.test(await p.locator('#rc-box').innerText()) && /No asiste/i.test(await p.locator('#rc-box').innerText()), 'contabilidad: ingresos por área y No asiste');
       await p.screenshot({ path: 'a-conta-resumen.png', fullPage: true });
-      await p.locator('#rc-nav button', { hasText: 'Verificar ingresos' }).click(); await p.waitForSelector('.ficha-j .rc-ok, .ficha-j .rc-warn'); await p.waitForTimeout(300);
+      await p.locator('#rc-nav button', { hasText: 'Verificar' }).click(); await p.waitForSelector('.ficha-j .rc-ok, .ficha-j .rc-warn'); await p.waitForTimeout(300);
       ok(/coincide con las reservas/.test(await p.locator('.ficha-j').innerText()), 'verificación de ingresos muestra sus controles'); await p.screenshot({ path: 'a-verificacion.png', fullPage: true }); await p.locator('.ficha-j button', { hasText: 'Cerrar' }).click();
-      await p.click('.rc-p[data-rp=semana]'); await p.waitForTimeout(500); ok(/Ingresos por día/i.test(await p.locator('#rc-box').innerText()), 'contabilidad: resumen semanal');
+      await p.click('.rc-p[data-rp=semana]'); await p.waitForTimeout(500); await p.locator('.rc-tabs [data-rt=res]').click(); ok(/Ingresos por día/i.test(await p.locator('#rc-box').innerText()), 'contabilidad: resumen semanal');
       await p.click('.ct-tabs button[data-ct=trib]'); await p.waitForTimeout(200); ok(await p.locator('#sec-conta').isVisible() && !(await p.locator('#sec-rc').isVisible()), 'contabilidad: pestaña de simulaciones tributarias');
       await p.click('.ct-tabs button[data-ct=res]'); await p.waitForTimeout(200);
       // configuración: abrir grupos nuevos y guardar

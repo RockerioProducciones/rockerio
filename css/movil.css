@@ -280,5 +280,24 @@ html .hero h1,html.rd body .hero h1{font-family:'Big Shoulders Display','Bebas N
 #vivo .vv-cta .btn{background:linear-gradient(135deg,#22d3ee,#06b6d4 55%,#6366f1);color:#04161b;border:0;box-shadow:0 8px 22px rgba(6,182,212,.35)}
 #vivo .vv-cta .btn.sec{background:transparent;color:#67e8f9;border:2px solid #06b6d4;box-shadow:none}
 
-/* Extras: en grabación solo se ofrece el video GoPro */
-#adicionales.solo-grab .ex-card:not(.ex-chk),#adicionales.solo-grab .ex-rider,#adicionales.solo-grab .ex-tit{display:none}
+/* Extras compactos: fotos alineadas en cuadrículas iguales (mismo tamaño y encuadre), para ver bien qué es cada cosa */
+#adicionales .ex-card{padding:.6rem .7rem;margin:.4rem 0}
+#adicionales .ex-card .ex-cab{margin-bottom:.45rem}
+#arriendo-lista{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem}
+@media(max-width:340px){#arriendo-lista{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ex-fila-ck.ex-foto{position:relative;display:flex;flex-direction:column;align-items:stretch;min-height:0;padding:0;border-radius:12px;isolation:auto;background:var(--panel,#1b1a19);overflow:hidden}
+.ex-foto .ex-img{position:static;inset:auto;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;object-position:center;filter:none;z-index:auto;transform:none!important;background:#0d0d0d}
+.ex-foto::before{display:none}
+.ex-foto .ex-nom{max-width:none;display:block;padding:.4rem .45rem .5rem;font-size:.72rem;font-weight:600;line-height:1.2;text-shadow:none;color:inherit;min-height:2.5em}
+.ex-foto input{top:.35rem;right:.35rem;width:24px;height:24px}
+.ex-foto.sel .ex-img{filter:none}
+.ex-foto.sel .ex-nom{color:var(--oro,#FCC631)}
+#adicionales .ex-chk{padding:.55rem .7rem}
+#adicionales .ex-chk small{font-size:.74rem}
+#adicionales .ex-rider{padding:.55rem .7rem}
+#adicionales .ex-tit{display:none}
+#adicionales .ex-toggle{min-height:0!important;padding:.5rem .75rem!important}
+#adicionales .ex-toggle .ex-mas{width:28px;height:28px;font-size:1.1rem}
+#adicionales .ex-toggle .ex-tx b{font-size:.92rem}
+#adicionales .ex-toggle .ex-tx small{font-size:.74rem}
+.ex-foto .ex-img{aspect-ratio:4/3}

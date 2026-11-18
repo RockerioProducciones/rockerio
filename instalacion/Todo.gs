@@ -321,7 +321,7 @@ var Reglas = (function () {
     var tc = tarifaConveniente(cfg, p.servicio, p.fecha, p.inicio, horas);
     var base = porHora * (horas - tc.horas) + tc.precio * tc.horas;
     var extras = 0, video = 0, raw = 0;
-    if (p.servicio === 'ensayo') {
+    if (p.servicio === 'ensayo' || p.servicio === 'grabacion') {
       var n = Math.max(0, Math.min(6, +p.extras || 0));
       extras = n * cfg.precioExtraEquipo * (cfg.extraModo === 'hora' ? horas : 1);
     }
@@ -510,7 +510,7 @@ var Reglas = (function () {
     if (inicios(r.libres, d.horas).indexOf(d.inicio) < 0) {
       return { ok: false, codigo: 'OCUPADO', error: 'Ese horario ya no está disponible. Elige otro.' };
     }
-    if (d.servicio !== 'ensayo') d.extras = 0;
+    if (d.servicio !== 'ensayo' && d.servicio !== 'grabacion') d.extras = 0;
     var calculo = calcularPrecio(cfg, d);
     if (!videoPermitido(cfg, d.servicio, d.horas)) d.video = false;
     if (!addonsPermitidos(cfg, d.servicio, d.horas)) d.raw = false;
@@ -1279,7 +1279,7 @@ function abrirBd_() {
 /** Agrega a la hoja de reservas la columna «Reagendos» si falta (hojas de versiones anteriores). Se revisa una vez cada 6 horas. */
 function asegurarEsquema_(ss) {
   var cache = CacheService.getScriptCache();
-  if (cache.get('esq8')) return;
+  if (cache.get('esq9')) return;
   try {
     var sh = ss.getSheetByName(HOJAS.reservas);
     if (sh) {
@@ -1287,6 +1287,11 @@ function asegurarEsquema_(ss) {
       [[RES.reagendos, 'Reagendos'], [RES.ajuste, 'Ajuste (descuento)'], [RES.notaAjuste, 'Nota del ajuste'], [RES.original, 'Montos originales'], [RES.cobro, ENCABEZADO_RESERVAS[RES.cobro - 1]], [RES.medioPago, ENCABEZADO_RESERVAS[RES.medioPago - 1]], [RES.cortesia, ENCABEZADO_RESERVAS[RES.cortesia - 1]], [RES.fechaPago, ENCABEZADO_RESERVAS[RES.fechaPago - 1]], [RES.pago, ENCABEZADO_RESERVAS[RES.pago - 1]], [RES.pagoFecha, ENCABEZADO_RESERVAS[RES.pagoFecha - 1]], [RES.pagoId, ENCABEZADO_RESERVAS[RES.pagoId - 1]], [RES.comision, ENCABEZADO_RESERVAS[RES.comision - 1]]].forEach(function (c) {
         if (!sh.getRange(1, c[0]).getValue()) sh.getRange(1, c[0]).setValue(c[1]).setFontWeight('bold');
       });
+    }
+    var shv = ss.getSheetByName(HOJAS.ventas);
+    if (shv) {
+      if (shv.getMaxColumns() < 13) shv.insertColumnsAfter(shv.getMaxColumns(), 13 - shv.getMaxColumns());
+      [[12, 'Reserva'], [13, 'Cliente de la reserva']].forEach(function (c) { if (!shv.getRange(1, c[0]).getValue()) shv.getRange(1, c[0]).setValue(c[1]).setFontWeight('bold'); });
     }
     prepararSimple_(ss, HOJAS.movimientos, ENCABEZADO_MOVIMIENTOS, [], { 2: 'yyyy-mm-dd', 5: '$#,##0' });
     prepararSimple_(ss, HOJAS.sitio, ['Parte', 'Contenido (JSON)', 'Actualizado'], [], {});
@@ -1308,7 +1313,7 @@ function asegurarEsquema_(ss) {
       }
       props.setProperty('MIG_HONOR_1', '1');
     }
-    cache.put('esq8', '1', 21600);
+    cache.put('esq9', '1', 21600);
   } catch (e) { /* si falla, se reintenta en la próxima solicitud */ }
 }
 
@@ -1352,7 +1357,7 @@ function instalar() {
   prepararSimple_(ss, HOJAS.bloqueos, ['Fecha', 'Desde (hora)', 'Hasta (hora)', 'Motivo'], [], { 1: 'yyyy-mm-dd', 2: '@', 3: '@' });
   prepararTienda_(ss);
   prepararBebestibles_(ss);
-  prepararSimple_(ss, HOJAS.ventas, ['Fecha', 'Producto', 'Cantidad', 'Precio unitario', 'Total', 'Tipo', 'Pago', 'Vendedor', 'Nota', 'Fecha de cobro', 'ID'], [], { 1: 'yyyy-mm-dd', 4: '$#,##0', 5: '$#,##0', 10: 'yyyy-mm-dd' });
+  prepararSimple_(ss, HOJAS.ventas, ['Fecha', 'Producto', 'Cantidad', 'Precio unitario', 'Total', 'Tipo', 'Pago', 'Vendedor', 'Nota', 'Fecha de cobro', 'ID', 'Reserva', 'Cliente de la reserva'], [], { 1: 'yyyy-mm-dd', 4: '$#,##0', 5: '$#,##0', 10: 'yyyy-mm-dd' });
   ss.getSheetByName(HOJAS.ventas).getRange(2, VT.pago, 5000, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(PAGOS_VENTA.concat([PAGO.ANULADA]), true).setAllowInvalid(false).build());
   prepararSimple_(ss, HOJAS.costos, ['Mes (AAAA-MM)', 'Luz total (boleta)', 'Aporte ProAudix', 'Caja chica', 'Otros gastos de sala', 'Notas', 'Luz con factura a nombre del negocio (SI/NO)'], [], { 1: '@', 2: '$#,##0', 3: '$#,##0', 4: '$#,##0', 5: '$#,##0' });
   prepararSimple_(ss, HOJAS.movimientos, ENCABEZADO_MOVIMIENTOS, [], { 2: 'yyyy-mm-dd', 5: '$#,##0' });
@@ -2392,7 +2397,7 @@ function adminCalcularReserva(p) {
   p = p || {};
   var cfg = getCfg_(), servicio = p.servicio === 'grabacion' ? 'grabacion' : (p.servicio === 'vivo' ? 'vivo' : 'ensayo'), horas = Math.max(1, Math.min(24, Number(p.horas) || 1));
   if (servicio === 'vivo') horas = cfg.vivoHasta - cfg.vivoDesde;
-  var n = servicio === 'ensayo' ? Math.max(0, Math.min(6, Number(p.extras) || 0)) : 0;
+  var n = servicio !== 'vivo' ? Math.max(0, Math.min(6, Number(p.extras) || 0)) : 0;
   var c = Reglas.calcularPrecio(cfg, { servicio: servicio, fecha: String(p.fecha || ''), inicio: Number(p.inicio) || 0, horas: horas, extras: n, video: !!p.video, raw: !!p.raw });
   c.unidadExtra = cfg.precioExtraEquipo * (cfg.extraModo === 'hora' ? horas : 1); c.precioVideo = cfg.precioVideo; c.precioRaw = cfg.precioRaw; c.addons = !!Reglas.addonsPermitidos(cfg, servicio, horas); c.videoOk = !!Reglas.videoPermitido(cfg, servicio, horas);
   c.extraTxt = cfg.extraModo === 'hora' ? 'por hora c/u' : 'por sesión c/u'; c.abonoHora = cfg.abonoPorHora;
@@ -2422,7 +2427,7 @@ function adminReservaManual(p) {
   if (pago === 'completo' || pago === 'abono') estado = EST.CON_ABONO; else if (pago === 'ninguno') estado = EST.SIN_ABONO;
   if (pago === 'completo' && MEDIOS_PAGO.indexOf(medioPago) < 0) throw new Error('Elige el medio de pago.');
   var equipos = (Array.isArray(p.equipos) ? p.equipos : []).map(function (x) { return limpiar_(x, 120); }).filter(Boolean).slice(0, 6);
-  var extras = servicio === 'ensayo' ? Math.max(0, Math.min(6, equipos.length || Number(p.extras) || 0)) : 0;
+  var extras = servicio !== 'vivo' ? Math.max(0, Math.min(6, equipos.length || Number(p.extras) || 0)) : 0;
   var d = { servicio: servicio, fecha: fecha, inicio: inicio, horas: horas, extras: extras, video: !!p.video, raw: !!p.raw };
   var c = Reglas.calcularPrecio(cfg, d);
   var total = c.total, abono = c.abono;
@@ -2487,7 +2492,7 @@ function adminReservaManual(p) {
     fila[RES.banda - 1] = textoSeguro_(banda); fila[RES.contacto - 1] = textoSeguro_(nombre); fila[RES.telefono - 1] = tel; fila[RES.correo - 1] = textoSeguro_(correo);
     fila[RES.extras - 1] = extras; fila[RES.video - 1] = d.video ? 'SI' : 'NO'; fila[RES.raw - 1] = d.raw ? 'SI' : 'NO';
     fila[RES.total - 1] = total; fila[RES.abono - 1] = abono; fila[RES.saldo - 1] = total - abono;
-    fila[RES.zurdo - 1] = 'NO'; fila[RES.voces - 1] = 0; fila[RES.comentarios - 1] = textoSeguro_('Reserva manual' + (equipos.length && servicio === 'ensayo' ? ' · Equipos: ' + equipos.map(function (x) { return x.split(':')[0]; }).join(', ') : '') + (p.comentario ? ' · ' + limpiar_(p.comentario, 300) : ''));
+    fila[RES.zurdo - 1] = 'NO'; fila[RES.voces - 1] = 0; fila[RES.comentarios - 1] = textoSeguro_('Reserva manual' + (equipos.length && servicio !== 'vivo' ? ' · Equipos: ' + equipos.map(function (x) { return x.split(':')[0]; }).join(', ') : '') + (p.comentario ? ' · ' + limpiar_(p.comentario, 300) : ''));
     fila[RES.evento - 1] = evento.getId();
     var mm = { b: c.base, e: c.extras, v: c.video, r: c.raw }, dManual = c.total - total;
     if (dManual !== 0) { mm = repartirDescuento_({ b: c.base, e: c.extras, v: c.video, r: c.raw }, dManual); fila[RES.ajuste - 1] = dManual; fila[RES.notaAjuste - 1] = 'Total ingresado a mano'; fila[RES.original - 1] = JSON.stringify({ b: c.base, e: c.extras, v: c.video, r: c.raw, t: c.total }); }
@@ -3505,8 +3510,8 @@ function adminAgendarSesion(codigoPlan, fecha, inicio) {
 
 var PAGO = { EFECTIVO: 'Venta efectivo', TRANSFERENCIA: 'Venta transferencia', PENDIENTE: 'Entregado en sesión (pago pendiente)', ANULADA: 'Anulada' };
 var PAGOS_VENTA = [PAGO.EFECTIVO, PAGO.TRANSFERENCIA, PAGO.PENDIENTE];
-var COLS_VENTAS = 11;
-var VT = { fecha: 1, producto: 2, cantidad: 3, precio: 4, total: 5, tipo: 6, pago: 7, vendedor: 8, nota: 9, cobro: 10, id: 11 };
+var COLS_VENTAS = 13;
+var VT = { fecha: 1, producto: 2, cantidad: 3, precio: 4, total: 5, tipo: 6, pago: 7, vendedor: 8, nota: 9, cobro: 10, id: 11, reserva: 12, cliente: 13 };
 var ETIQUETA_TIPO = { musica: 'Música', bebestible: 'Bebestibles' };
 
 function pagoNorm_(v) {
@@ -3623,8 +3628,37 @@ function fechaVenta_(fecha) {
   return fechaHora_(fecha, 12);
 }
 
-function registrarVenta_(tipo, fila, cantidad, pago, vendedor, nota, fecha) {
-  var fv = fechaVenta_(fecha);
+/** Reservas de hoy a las que se puede asociar una venta (en curso, próximas o recién terminadas). Cada venta queda ligada a UNA reserva; los ingresos no se mezclan. */
+function sesionesVenta_() {
+  var ah = ahoraChile_(), out = [], sr = abrirBd_().getSheetByName(HOJAS.reservas), n = sr.getLastRow();
+  if (n < 2) return out;
+  function hh(s) { var m = /^(\d{1,2}):(\d{2})/.exec(String(s || '')); return m ? Number(m[1]) + Number(m[2]) / 60 : null; }
+  sr.getRange(2, 1, n - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r) {
+    if (!r[RES.codigo - 1] || aFechaIso_(r[RES.fecha - 1]) !== ah.fecha) return;
+    var e = estadoNorm_(r[RES.estado - 1]);
+    if ([EST.SIN_ABONO, EST.CON_ABONO, EST.FINALIZADA].indexOf(e) < 0) return;
+    var ini = horaCelda_(r[RES.inicio - 1]), fin = horaCelda_(r[RES.fin - 1]), a = hh(ini), b = hh(fin);
+    if (a === null || b === null) return;
+    var fase = ah.hora >= a && ah.hora < b ? 'curso' : (ah.hora < a ? 'proxima' : 'terminada');
+    out.push({ codigo: String(r[RES.codigo - 1]), banda: String(r[RES.banda - 1]), servicio: String(r[RES.servicio - 1]), inicio: ini, fin: fin, fase: fase });
+  });
+  var orden = { curso: 0, proxima: 1, terminada: 2 };
+  return out.sort(function (x, y) { return orden[x.fase] - orden[y.fase] || (x.inicio < y.inicio ? -1 : 1); });
+}
+
+/** Valida la reserva elegida para una venta y devuelve {codigo, banda}; vacío = venta suelta (sin reserva). */
+function reservaParaVenta_(codigo) {
+  codigo = String(codigo || '').trim();
+  if (!codigo) return { codigo: '', banda: '' };
+  var sr = abrirBd_().getSheetByName(HOJAS.reservas), f = filaPorTexto_(sr, codigo, RES.codigo);
+  if (!f) throw new Error('No encontramos esa reserva para asociar la venta.');
+  var r = sr.getRange(f, 1, 1, ENCABEZADO_RESERVAS.length).getValues()[0];
+  if (estadoNorm_(r[RES.estado - 1]) === EST.ANULADA) throw new Error('Esa reserva está anulada.');
+  return { codigo: codigo, banda: String(r[RES.banda - 1]) };
+}
+
+function registrarVenta_(tipo, fila, cantidad, pago, vendedor, nota, fecha, reserva) {
+  var fv = fechaVenta_(fecha), rv = reservaParaVenta_(reserva);
   pago = pagoNorm_(pago);
   if (PAGOS_VENTA.indexOf(pago) < 0) throw new Error('Elige cómo se pagó: efectivo, transferencia o pago pendiente.');
   cantidad = Number(cantidad);
@@ -3639,14 +3673,14 @@ function registrarVenta_(tipo, fila, cantidad, pago, vendedor, nota, fecha) {
   }
   var id = siguienteIdVenta_();
   abrirBd_().getSheetByName(HOJAS.ventas).appendRow([fv, textoSeguro_(String(r[1])), cantidad, precio, precio * cantidad,
-    ETIQUETA_TIPO[tipoCatalogo_(tipo)], pago, textoSeguro_(limpiar_(vendedor, 40)), textoSeguro_(limpiar_(nota, 120)), '', id]);
+    ETIQUETA_TIPO[tipoCatalogo_(tipo)], pago, textoSeguro_(limpiar_(vendedor, 40)), textoSeguro_(limpiar_(nota, 120)), '', id, rv.codigo, textoSeguro_(rv.banda)]);
   return id;
 }
 
 /** Registra un carrito completo (varios productos) con una sola forma de pago. Valida todo antes de descontar nada.
  *  items = [{fila, cantidad}]. Debe llamarse dentro de conBloqueo_. Devuelve los ids de venta. */
-function registrarCarrito_(tipo, items, pago, vendedor, nota, fecha) {
-  fechaVenta_(fecha);
+function registrarCarrito_(tipo, items, pago, vendedor, nota, fecha, reserva) {
+  fechaVenta_(fecha); reservaParaVenta_(reserva);
   if (!items || !items.length) throw new Error('El carrito está vacío.');
   if (items.length > 40) throw new Error('Demasiados productos en una venta.');
   pago = pagoNorm_(pago);
@@ -3659,7 +3693,7 @@ function registrarCarrito_(tipo, items, pago, vendedor, nota, fecha) {
     if (!r[1] || Reglas.aNumero(r[3], null) === null) throw new Error('«' + r[1] + '» no tiene precio.');
     if (r[4] !== '' && Number(r[4]) < c) throw new Error('Stock insuficiente de «' + r[1] + '»: quedan ' + r[4] + '.');
   });
-  return Object.keys(juntos).map(function (k) { return registrarVenta_(tipo, Number(k), juntos[k], pago, vendedor, nota, fecha); });
+  return Object.keys(juntos).map(function (k) { return registrarVenta_(tipo, Number(k), juntos[k], pago, vendedor, nota, fecha, reserva); });
 }
 
 /** Cambia una venta «pendiente» a efectivo o transferencia. Debe llamarse dentro de conBloqueo_. */
@@ -3683,7 +3717,7 @@ function leerVentas_() {
     out.push({
       id: String(r[VT.id - 1]), fecha: aFechaIso_(r[VT.fecha - 1]), producto: String(r[VT.producto - 1]), cantidad: Number(r[VT.cantidad - 1]) || 0,
       precio: Number(r[VT.precio - 1]) || 0, total: Number(r[VT.total - 1]) || 0, tipo: String(r[VT.tipo - 1]), pago: pagoNorm_(r[VT.pago - 1]),
-      vendedor: String(r[VT.vendedor - 1] || ''), nota: String(r[VT.nota - 1] || ''), cobro: aFechaIso_(r[VT.cobro - 1])
+      vendedor: String(r[VT.vendedor - 1] || ''), nota: String(r[VT.nota - 1] || ''), cobro: aFechaIso_(r[VT.cobro - 1]), reserva: String(r[VT.reserva - 1] || ''), cliente: String(r[VT.cliente - 1] || '')
     });
   });
   return out.reverse(); // las más recientes primero
@@ -3726,20 +3760,21 @@ function datosVentas_(mes) {
   return {
     resumen: resumen,
     ventas: todas.filter(function (v) { return (v.cobro || v.fecha).slice(0, 7) === mes || v.fecha.slice(0, 7) === mes; }).slice(0, 300),
-    pendientes: todas.filter(function (v) { return v.pago === PAGO.PENDIENTE; })
+    pendientes: todas.filter(function (v) { return v.pago === PAGO.PENDIENTE; }),
+    sesiones: sesionesVenta_()
   };
 }
 
 /* ---------- administrador: ventas ---------- */
 
-function adminVender(tipo, fila, cantidad, pago, nota, fecha) {
+function adminVender(tipo, fila, cantidad, pago, nota, fecha, reserva) {
   exigirAdmin_();
-  return conBloqueo_(function () { registrarVenta_(tipo, fila, cantidad, pago, 'Administración', nota || '', fecha); return adminResumen(); });
+  return conBloqueo_(function () { registrarVenta_(tipo, fila, cantidad, pago, 'Administración', nota || '', fecha, reserva); return adminResumen(); });
 }
 /** Venta por carrito desde el portal: items = [{fila, cantidad}], pago = una de PAGOS_VENTA. */
-function adminVenderCarrito(tipo, items, pago, nota, fecha) {
+function adminVenderCarrito(tipo, items, pago, nota, fecha, reserva) {
   exigirAdmin_();
-  return conBloqueo_(function () { var ids = registrarCarrito_(tipo, items, pago, 'Administración', nota || '', fecha); var r = adminResumen(); r.idsVenta = ids; return r; });
+  return conBloqueo_(function () { var ids = registrarCarrito_(tipo, items, pago, 'Administración', nota || '', fecha, reserva); var r = adminResumen(); r.idsVenta = ids; return r; });
 }
 function adminCobrar(id, pago) {
   exigirAdmin_();
@@ -3805,6 +3840,7 @@ function adminEditarVenta(id, d) {
     if (pago === PAGO.PENDIENTE) sh.getRange(f, VT.cobro).setValue('');
     sh.getRange(f, VT.nota).setValue(textoSeguro_(limpiar_(d.nota, 200)));
     if (d.fecha) sh.getRange(f, VT.fecha).setValue(fechaVenta_(d.fecha));
+    if (d.reserva !== undefined) { var rv = reservaParaVenta_(d.reserva); sh.getRange(f, VT.reserva, 1, 2).setValues([[rv.codigo, textoSeguro_(rv.banda)]]); }
     return adminResumen();
   });
 }
@@ -4025,7 +4061,7 @@ function sociosDatos_(token, mes) {
   if (tipoSocio_(token) === 'social') return { ok: true, socio: nombre, tipo: 'social', ahora: ahoraChile_(), agenda: agendaDetalle_(), colores: coloresAgenda_() };
   var v = datosVentas_(mes);
   return { ok: true, socio: nombre, tipo: 'colega', ahora: ahoraChile_(), agenda: agendaDetalle_(true), colores: coloresAgenda_(), musica: catalogoSocios_('musica'), bebestibles: catalogoSocios_('bebestible'),
-    resumen: v.resumen, ventas: v.ventas, pendientes: v.pendientes, general: resumenGeneral_(mes) };
+    resumen: v.resumen, ventas: v.ventas, pendientes: v.pendientes, sesiones: v.sesiones, general: resumenGeneral_(mes) };
 }
 
 function sociosVender_(sol) {
@@ -4033,7 +4069,7 @@ function sociosVender_(sol) {
   if (!nombre || tipoSocio_(sol.t) === 'social') return { ok: false, codigo: 'ENLACE', error: 'Enlace no válido.' };
   if (limiteGlobal_('socios_venta', 200)) return { ok: false, codigo: 'TASA', error: 'Demasiadas ventas seguidas. Intenta más tarde.' };
   try {
-    var id = conBloqueo_(function () { return registrarVenta_(tipoCatalogo_(sol.tipo), sol.fila, sol.cantidad, sol.pago, nombre, sol.nota); });
+    var id = conBloqueo_(function () { return registrarVenta_(tipoCatalogo_(sol.tipo), sol.fila, sol.cantidad, sol.pago, nombre, sol.nota, '', sol.reserva); });
     return { ok: true, id: id };
   } catch (e) { return { ok: false, codigo: 'DATOS', error: String(e.message || e) }; }
 }
@@ -4044,7 +4080,7 @@ function sociosCarrito_(sol) {
   if (!nombre || tipoSocio_(sol.t) === 'social') return { ok: false, codigo: 'ENLACE', error: 'Enlace no válido.' };
   if (limiteGlobal_('socios_venta', 200)) return { ok: false, codigo: 'TASA', error: 'Demasiadas ventas seguidas. Intenta más tarde.' };
   try {
-    var ids = conBloqueo_(function () { return registrarCarrito_(tipoCatalogo_(sol.tipo), sol.items, sol.pago, nombre, sol.nota); });
+    var ids = conBloqueo_(function () { return registrarCarrito_(tipoCatalogo_(sol.tipo), sol.items, sol.pago, nombre, sol.nota, '', sol.reserva); });
     return { ok: true, ids: ids };
   } catch (e) { return { ok: false, codigo: 'DATOS', error: String(e.message || e) }; }
 }
@@ -4362,7 +4398,7 @@ function adminResumenContable(periodo, ref) {
   var cfg = getCfg_(), R = rangoPeriodo_(periodo, ref), ss = abrirBd_();
   var fee = Number(cfg.noAsisteCobroPorHora) || 0;
   var sala = { sesiones: 0, horas: 0, base: 0, extras: 0, video: 0, retenidos: 0, total: 0 };
-  var estudio = { sesiones: 0, horas: 0, base: 0, retenidos: 0, total: 0 };
+  var estudio = { sesiones: 0, horas: 0, base: 0, extras: 0, video: 0, retenidos: 0, total: 0 };
   var arr = { unidades: 0, monto: 0 }, bruto = { sesiones: 0, monto: 0 };
   var noa = { n: 0, horas: 0, cobro: 0, abonoRetenido: 0, porCobrar: 0, lista: [] };
   var anu = { n: 0, retenido: 0, devolver: 0 };
@@ -4384,8 +4420,7 @@ function adminResumenContable(periodo, ref) {
     if (estado === EST.FINALIZADA) {
       var o = ens ? sala : estudio;
       o.sesiones++; o.horas += h; o.base += base;
-      if (ens) { sala.extras += ex; sala.video += vi; arr.unidades += Number(r[RES.extras - 1]) || 0; arr.monto += ex; }
-      else { arr.unidades += Number(r[RES.extras - 1]) || 0; arr.monto += ex; }
+      var oo = ens ? sala : estudio; oo.extras += ex; oo.video += vi; arr.unidades += Number(r[RES.extras - 1]) || 0; arr.monto += ex;
       bruto.sesiones += rw > 0 ? 1 : 0; bruto.monto += rw;
       fila.total = base + ex + vi + rw; fila.cortesia = r[RES.cortesia - 1] === 'SI'; detalle.push(fila);
       if (fila.cortesia) { cortesias.n++; cortesias.valor += totalOriginal_(r); cortesias.lista.push({ fecha: f, codigo: fila.codigo, banda: fila.banda, cliente: fila.cliente, valor: totalOriginal_(r), nota: String(r[RES.notaAjuste - 1] || '') }); }
@@ -4411,22 +4446,24 @@ function adminResumenContable(periodo, ref) {
       proy.sesiones++; proy.horas += h; proy.monto += Number(r[RES.total - 1]) || 0;
     }
   });
-  sala.total += sala.base + sala.extras + sala.video; estudio.total += estudio.base;
+  sala.total += sala.base + sala.extras + sala.video; estudio.total += estudio.base + estudio.extras + estudio.video;
   // ventas de tienda y bebestibles (por fecha de cobro)
   var ventas = leerVentas_(), tiendas = {};
-  ['musica', 'bebestible'].forEach(function (t) { tiendas[t] = { cobrado: 0, efectivo: 0, transferencia: 0, porCobrar: 0, unidades: 0, productos: {}, detalle: [] }; });
+  ['musica', 'bebestible'].forEach(function (t) { tiendas[t] = { cobrado: 0, efectivo: 0, transferencia: 0, porCobrar: 0, unidades: 0, productos: {}, detalle: [], reservas: {}, sueltas: 0 }; });
   ventas.forEach(function (v) {
-    if (v.pago === PAGO.ANULADA || !tiendas[v.tipo]) return;
-    var o = tiendas[v.tipo], fc = v.cobro || v.fecha;
+    var clave = String(v.tipo) === ETIQUETA_TIPO.bebestible ? 'bebestible' : (String(v.tipo) === ETIQUETA_TIPO.musica ? 'musica' : '');
+    if (v.pago === PAGO.ANULADA || !clave) return;
+    var o = tiendas[clave], fc = v.cobro || v.fecha;
     if (v.pago === PAGO.PENDIENTE) { if (v.fecha >= R.desde && v.fecha <= R.hasta) o.porCobrar += v.total; return; }
     if (fc < R.desde || fc > R.hasta) return;
     o.cobrado += v.total; o.unidades += v.cantidad;
     if (v.pago === PAGO.EFECTIVO) o.efectivo += v.total; else o.transferencia += v.total;
     var p = o.productos[v.producto] = o.productos[v.producto] || { nombre: v.producto, unidades: 0, total: 0 };
     p.unidades += v.cantidad; p.total += v.total;
-    o.detalle.push({ fecha: fc, producto: v.producto, cantidad: v.cantidad, total: v.total, pago: v.pago, vendedor: v.vendedor });
+    if (v.reserva) { var pr = o.reservas[v.reserva] = o.reservas[v.reserva] || { codigo: v.reserva, cliente: v.cliente, unidades: 0, total: 0 }; pr.unidades += v.cantidad; pr.total += v.total; } else o.sueltas += v.total;
+    o.detalle.push({ fecha: fc, producto: v.producto, cantidad: v.cantidad, total: v.total, pago: v.pago, vendedor: v.vendedor, reserva: v.reserva, cliente: v.cliente });
   });
-  var salidaTienda = function (o) { o.productos = Object.keys(o.productos).map(function (k) { return o.productos[k]; }).sort(function (a, b) { return b.total - a.total; }); o.detalle = o.detalle.slice(0, 200); return o; };
+  var salidaTienda = function (o) { o.reservas = Object.keys(o.reservas).map(function (k) { return o.reservas[k]; }).sort(function (a, b) { return b.total - a.total; }); o.productos = Object.keys(o.productos).map(function (k) { return o.productos[k]; }).sort(function (a, b) { return b.total - a.total; }); o.detalle = o.detalle.slice(0, 200); return o; };
   var out = {
     ok: true, periodo: R.periodo, desde: R.desde, hasta: R.hasta, ref: R.ref,
     semAnt: Reglas.sumarDias(R.desde, -7), semSig: Reglas.sumarDias(R.desde, 7),

@@ -406,9 +406,7 @@
     var ens = S.servicio === 'ensayo', addOk = R.addonsPermitidos(cfg, S.servicio, S.horas);
     var vidOk = R.videoPermitido(cfg, S.servicio, S.horas);
     $('adicionales').hidden = !(ens || S.servicio === 'grabacion');
-    $('adicionales').classList.toggle('solo-grab', !ens);
-    var exs = $('ex-toggle').querySelector('small'); if (exs) exs.textContent = ens ? 'Arriendo de equipos · video GoPro · material en bruto (opcional)' : 'Video GoPro de tu sesión (opcional)';
-    var exb = $('video').nextElementSibling.querySelector('b'); if (exb) exb.firstChild.nodeValue = (ens ? '2. ' : '1. ') + 'Grabación en video GoPro Hero 13 ';
+    var exs = $('ex-toggle').querySelector('small'); if (exs) exs.textContent = ens ? 'Arriendo de equipos · video GoPro · material en bruto (opcional)' : 'Arriendo de equipos · video GoPro (opcional)';
     $('video').closest('label').style.display = vidOk ? '' : 'none'; if (!vidOk) $('video').checked = false;
     $('raw').closest('label').style.display = addOk ? '' : 'none'; if (!addOk) $('raw').checked = false;
     renumerar();
@@ -466,17 +464,17 @@
       var im = el('img', 'ex-img'); var fx = (sitio.fotos || {})['extra-' + FOTOS_ARR[k]]; im.src = (typeof fx === 'string' && /^https:\/\//.test(fx)) ? fx : 'assets/extras/' + FOTOS_ARR[k] + '.jpg'; im.alt = ''; im.loading = 'lazy'; im.decoding = 'async';
       l.classList.add('ex-foto'); l.classList.toggle('sel', i.checked);
       i.addEventListener('change', function () { l.classList.toggle('sel', i.checked); });
-      l.appendChild(im); l.appendChild(i); l.appendChild(el('span', 'ex-nom', n)); c.appendChild(l);
+      l.title = n; l.appendChild(im); l.appendChild(i); l.appendChild(el('span', 'ex-nom', n.split(':')[0])); c.appendChild(l);
     });
     $('extras').value = arriendosElegidos().length;
   }
   function solicitud() {
     return {
       servicio: S.servicio, fecha: S.fecha, inicio: S.inicio, horas: S.horas,
-      extras: S.servicio === 'ensayo' ? Number($('extras').value) || 0 : 0, video: $('video').checked, raw: $('raw').checked,
+      extras: Number($('extras').value) || 0, video: $('video').checked, raw: $('raw').checked,
       zurdo: $('zurdo').checked, voces: Number($('voces').value),
       banda: $('banda').value, nombre: $('nombre').value, telefono: $('telefono').value, correo: $('correo').value,
-      comentario: ($('comentario').value + (arriendosElegidos().length && S.servicio === 'ensayo' ? ' [Arriendos: ' + arriendosElegidos().join('; ') + ']' : '')).slice(0, 500), tyc: $('tyc').checked, web: $('web').value
+      comentario: ($('comentario').value + (arriendosElegidos().length ? ' [Arriendos: ' + arriendosElegidos().join('; ') + ']' : '')).slice(0, 500), tyc: $('tyc').checked, web: $('web').value
     };
   }
   function fila(dl, k, v) { dl.appendChild(el('dt', '', k)); dl.appendChild(el('dd', '', v)); }

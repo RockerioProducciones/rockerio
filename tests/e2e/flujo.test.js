@@ -235,6 +235,38 @@ t('no se puede vender más que el stock ni con precio inválido', () => {
   assert.throws(() => g.admin('adminGuardarProducto', { tipo: 'musica', nombre: 'X', precio: -5 }));
   assert.throws(() => g.admin('adminGuardarProducto', { tipo: 'musica', nombre: 'X', foto: 'javascript:alert(1)' }));
 });
+t('ventas asociadas a la reserva en curso: cada pedido va a UNA reserva y los ingresos no se mezclan', () => {
+  const ah = C.ahoraChile_(), h0 = Math.floor(ah.hora), ini = Math.max(0, h0 - 1);
+  const mk = (banda, tel) => g.admin('adminReservaManual', { servicio: 'ensayo', fecha: ah.fecha, inicio: ini, horas: 2, banda, nombre: 'Cli ' + banda, telefono: tel, estado: 'Reservado (con abono)', pago: 'completo', medio: 'Transferencia' });
+  let rA, rB; try { rA = mk('Banda Ahora', '+56 9 7000 0001'); } catch (e) { if (/CHOQUE/.test(e.message)) return; throw e; } // si el día está ocupado por otra prueba, no aplica
+  try { rB = g.admin('adminReservaManual', { servicio: 'grabacion', fecha: ah.fecha, inicio: ini, horas: 2, banda: 'Banda Llega', nombre: 'Cli B', telefono: '+56 9 7000 0002', estado: 'Reservado (con abono)', pago: 'completo', medio: 'Transferencia' }); } catch (e) { rB = null; }
+  const d0 = g.admin('adminResumen'); assert.ok((d0.ventas.sesiones || []).some((x) => x.codigo === rA.codigo), 'la reserva de hoy aparece para asociar ventas');
+  const filaB = d0.bebestibles.find((p) => p.stock !== 0 && p.precio !== '').fila, filaM = d0.productos.find((p) => p.stock !== 0 && p.precio !== '').fila;
+  const v1 = g.admin('adminVentaRapida', 'adminVenderCarrito', ['bebestible', [{ fila: filaB, cantidad: 2 }], 'Venta efectivo', '', '', rA.codigo]);
+  assert.ok(v1.ventas.ventas.find((x) => x.id === v1.idsVenta[0] && x.reserva === rA.codigo && x.cliente === 'Banda Ahora'), 'queda ligada a la reserva');
+  if (rB && rB.codigo) g.admin('adminVentaRapida', 'adminVenderCarrito', ['musica', [{ fila: filaM, cantidad: 1 }], 'Venta transferencia', '', '', rB.codigo]);
+  g.admin('adminVentaRapida', 'adminVenderCarrito', ['bebestible', [{ fila: filaB, cantidad: 1 }], 'Venta efectivo', '', '', '']); // venta suelta
+  assert.throws(() => g.admin('adminVentaRapida', 'adminVenderCarrito', ['bebestible', [{ fila: filaB, cantidad: 1 }], 'Venta efectivo', '', '', 'RP-NO-EXISTE']), /reserva/i);
+  const c = g.admin('adminResumenContable', 'mes', ah.fecha.slice(0, 7)), pr = c.bebestibles.reservas.find((x) => x.codigo === rA.codigo);
+  assert.ok(pr && pr.cliente === 'Banda Ahora' && pr.unidades === 2, JSON.stringify(c.bebestibles.reservas)); assert.ok(c.bebestibles.sueltas > 0, 'la venta suelta queda aparte');
+  assert.ok(!c.bebestibles.reservas.find((x) => rB && x.codigo === rB.codigo), 'lo de la otra banda no se mezcla en bebestibles');
+  const bruto0 = c.ingresosBrutos; assert.ok(typeof bruto0 === 'number');
+  // el balance de las reservas no cambia por las ventas: la tienda es cuenta aparte
+  const c2 = g.admin('adminResumenContable', 'mes', ah.fecha.slice(0, 7)); assert.strictEqual(c2.ingresosBrutos, bruto0);
+  g.admin('adminReponer', filaB, 3, 'bebestible'); if (rB && rB.codigo) g.admin('adminReponer', filaM, 1, 'musica'); // deja el stock como estaba
+});
+t('balance: una reserva pendiente no cuenta; finalizada suma horas + arriendos + video también en estudio; no asiste suma la retención', () => {
+  const ah = C.ahoraChile_(), f = sumar(ah.fecha, 40);
+  const men = f.slice(0, 7), antes = g.admin('adminResumenContable', 'mes', men);
+  const hs = habLibre(10, 2, 30); const m2 = hs.slice(0, 7), a2 = g.admin('adminResumenContable', 'mes', m2);
+  const r = g.admin('adminReservaManual', { servicio: 'grabacion', fecha: hs, inicio: 10, horas: 2, banda: 'Estudio Extras', nombre: 'Ex', telefono: '+56 9 7000 0003', estado: 'Reservado (con abono)', pago: 'abono', medio: 'Transferencia', extras: 2, video: true, equipos: ['Bajo eléctrico Epiphone Thunderbird Pro IV', 'Guitarra electroacústica Takamine'] });
+  assert.ok(r.ok, JSON.stringify(r));
+  let c = g.admin('adminResumenContable', 'mes', m2); assert.strictEqual(c.estudio.total, a2.estudio.total, 'pendiente: no suma'); assert.ok(c.proyectado.monto > a2.proyectado.monto, 'aparece como reservado aún sin finalizar');
+  g.admin('adminCambiarEstado', r.codigo, 'Finalizada');
+  c = g.admin('adminResumenContable', 'mes', m2); const det = c.detalle.find((x) => x.codigo === r.codigo);
+  assert.ok(det && det.extras > 0 && det.video > 0, 'la reserva trae arriendos y video'); assert.strictEqual(c.estudio.total - a2.estudio.total, det.total, 'estudio suma base + extras + video');
+  assert.ok(c.estudio.extras > a2.estudio.extras && c.estudio.video > a2.estudio.video);
+});
 t('ventas rápidas: el admin recibe solo productos y ventas, cobra y el resultado queda igual que con la respuesta completa', () => {
   const d0 = g.admin('adminResumen'); const fila = d0.bebestibles.find((p) => p.stock !== 0 && p.precio !== '').fila;
   const r = g.admin('adminVentaRapida', 'adminVenderCarrito', ['bebestible', [{ fila, cantidad: 1 }], 'Entregado en sesión (pago pendiente)', 'Banda Rápida', '']);
