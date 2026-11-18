@@ -14,4 +14,4 @@ node --check instalacion/Todo.gs 2>/dev/null || { cp instalacion/Todo.gs /tmp/_t
 echo "ok  instalacion/Todo.gs generado"
 # Versión de los archivos del sitio: evita que el celular siga mostrando CSS/JS antiguos guardados en caché
 v=$(date +%Y%m%d%H%M)
-sed -i -E "s#((href|src)=\"(css|js)/[A-Za-z0-9._-]+\.(css|js))(\?v=[0-9]+)?\"#\1?v=$v\"#g" index.html
+sed -i -E "s#((href|src)=\"(css|js)/[A-Za-z0-9._-]+\.(css|js))(\?v=[0-9]+)?\"#\1?v=$v\"#g" index.html proaudix/index.html agenda/index.html socios.html disponibilidad.html
