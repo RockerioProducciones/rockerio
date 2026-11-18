@@ -13,7 +13,7 @@ const { sembrar } = require('./demo.js');
     ok(!(await p.locator('#sec-wa').isVisible()) && await p.locator('#sec-jor').isVisible(), nombre + ': arranca en Reservas y jornadas con la barra de pestañas');
     await p.screenshot({ path: 'a-' + nombre + '-inicio.png' });
     if (nombre === 'pc') {
-      for (const [k, sel] of [['tienda', '#sec-musica'], ['contenido', '#sitio-panel'], ['mensajes', '#wam'], ['config', '#ajustes'], ['conta', '#sec-rc'], ['socios', '#resp']]) {
+      for (const [k, sel] of [['tienda', '#sec-musica'], ['contenido', '#sitio-panel'], ['mensajes', '#wam'], ['config', '#cfg-w'], ['conta', '#sec-rc'], ['socios', '#resp']]) {
         await p.click('.area[data-p=' + k + ']'); await p.waitForTimeout(250);
         ok(await p.locator(sel).first().isVisible(), 'área ' + k + ' abre su contenido'); await p.screenshot({ path: 'a-' + k + '.png' });
       }

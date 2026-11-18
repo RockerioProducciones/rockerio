@@ -13,6 +13,7 @@ let f3 = sumar(hoy, 3); while ([4, 6, 0].indexOf(new Date(f3 + 'T12:00:00Z').get
 const hab = (n) => { let f = hoy, c = 0; while (c < n) { f = sumar(f, 1); if ([4, 6, 0].indexOf(new Date(f + 'T12:00:00Z').getUTCDay()) < 0) c++; } return f; };
 // primer día hábil con esas horas libres (las pruebas no dependen del día de la semana en que se corren)
 const habLibre = (h, n, desde) => { let k = desde || 2, f; for (; k < 40; k++) { f = hab(k); const oc = C.ocupadasRango_(hoy, 60)[f] || []; let ok = true; for (let i = 0; i < n; i++) if (oc.indexOf(h + i) >= 0) ok = false; if (ok) return f; } return hab(desde || 2); };
+const diaLibre = (h, n, desde) => { for (let k = desde; k < 60; k++) { const f = sumar(hoy, k), l = g.get({ accion: 'disponibilidad', fecha: f }).libres || []; let ok = true; for (let i = 0; i < n; i++) if (l.indexOf(h + i) < 0) ok = false; if (ok) return f; } return sumar(hoy, desde); };
 const banda = { banda: 'Los Ensayos', nombre: 'Ana Pérez', telefono: '+56 9 1234 5678', correo: 'ana@correo.cl', tyc: true };
 const sol = (o) => Object.assign({ accion: 'reservar', servicio: 'ensayo', fecha: f3, inicio: 18, horas: 2, extras: 0, video: false, raw: false }, banda, o);
 
@@ -828,7 +829,7 @@ t('Mercado Pago: pago aprobado confirma la reserva y anota la comisión como gas
 
 
 t('la disponibilidad usa la hoja de Reservas: aunque falte el evento del calendario, el horario sigue ocupado', () => {
-  const dia = sumar(f3, 17);
+  const dia = diaLibre(19, 2, 14);
   const r = g.post(sol({ fecha: dia, inicio: 19, horas: 2, telefono: '56977778888', banda: 'SinEvento', nombre: 'Eva L', correo: 'e@e.cl' })); assert.ok(r.ok, JSON.stringify(r));
   g.admin('adminCambiarEstado', r.codigo, 'Reservado (con abono)');
   g.estado.eventos.forEach((e) => { if (/SinEvento/i.test(e.titulo)) e.borrado = true; }); // el evento desaparece del calendario
@@ -839,7 +840,7 @@ t('la disponibilidad usa la hoja de Reservas: aunque falte el evento del calenda
   assert.ok(!o.ok, 'no se puede reservar encima');
 });
 t('«Mantener 12 h»: el horario sin abono no vence antes de ese plazo', () => {
-  const dia = sumar(f3, 17);
+  const dia = diaLibre(12, 1, 14);
   const r = g.post(sol({ fecha: dia, inicio: 12, horas: 1, telefono: '56911112222', banda: 'Comprobante', nombre: 'Lalo R', correo: 'l@l.cl' })); assert.ok(r.ok, JSON.stringify(r));
   g.admin('adminMantenerHorario', r.codigo);
   const f = g.hoja('Reservas').find((x) => x[0] === r.codigo);

@@ -42,7 +42,7 @@ console.log('\n' + ok + ' pruebas correctas' + (process.exitCode ? ', con fallas
   const borrados = [];
   ctx2.abrirBd_ = () => ({ getSheetByName: () => ({ getLastRow: () => filas.length + 1,
     getRange: (r, c, nr) => nr ? { getValues: () => filas } : { setValue: (v) => { filas[r - 2][c - 1] = v; } } }) });
-  ctx2.getCalendar_ = () => ({}); ctx2.borrarEvento_ = (cal, id) => borrados.push(id);
+  ctx2.getCalendar_ = () => ({}); ctx2.borrarEvento_ = (cal, id) => borrados.push(id); ctx2.registrarCambio_ = () => {};
   ctx2.liberarVencidas_({ minutosReserva: 20 });
   try {
     as.strictEqual(filas[0][2], 'Anulada'); as.strictEqual(filas[1][2], 'Reservado (sin abono)'); as.strictEqual(filas[2][2], 'Reservado (con abono)'); as.strictEqual(borrados.length, 1);
