@@ -83,16 +83,16 @@
   var CART = { musica: {}, bebestible: {} }, PAGO_SEL = { musica: '', bebestible: '' }, NOTA = { musica: '', bebestible: '' };
   function fotoOk(u) { u = u || ''; if (/^assets\/[\w\/.\-]+$/.test(u) && u.indexOf('..') < 0) return u; return /^https:\/\//.test(u) ? u : ''; }
   var HIST_VER = { musica: false, bebestible: false, todo: true };
-  function tablaVentas(lista) {
+  function tablaVentas(lista, accion) {
     var w = el('div', 'vt-tabla-w'), tb = el('table', 'vt-tabla'), th = el('thead'), trh = el('tr');
-    ['Fecha', 'Producto', 'Cant.', 'Total', 'Medio de pago', 'Estado', 'Comprador / comentario'].forEach(function (h) { trh.appendChild(el('th', '', h)); });
+    ['Fecha', 'Producto', 'Cant.', 'Total', 'Medio de pago', 'Estado', 'Comprador / comentario'].concat(accion ? ['Cobrar'] : []).forEach(function (h) { trh.appendChild(el('th', '', h)); });
     th.appendChild(trh); tb.appendChild(th); var bd = el('tbody');
     lista.slice(0, 150).forEach(function (x) {
       var tr = el('tr'), an = x.pago === 'Anulada', pe = /pendiente/i.test(x.pago), medio = /efectivo/i.test(x.pago) ? 'Efectivo' : /transfer/i.test(x.pago) ? 'Transferencia' : '—'; if (an) tr.className = 'an';
       tr.appendChild(el('td', '', x.fecha)); tr.appendChild(el('td', 'vt-prod', x.producto)); tr.appendChild(el('td', '', x.cantidad + ' un.')); tr.appendChild(el('td', 'vt-tot', clp(x.total)));
       var cm = el('td'); cm.appendChild(el('span', 'vt-medio', medio)); tr.appendChild(cm);
       var ce = el('td'); ce.appendChild(el('span', 'vt-est ' + (an ? 'x' : pe ? 'p' : 'pg'), an ? 'Anulada' : pe ? 'Pendiente' : '✓ Pagado')); tr.appendChild(ce);
-      tr.appendChild(el('td', 'vt-com', (x.nota || '—') + (x.vendedor ? ' · ' + x.vendedor : ''))); bd.appendChild(tr);
+      tr.appendChild(el('td', 'vt-com', (x.nota || '—') + (x.vendedor ? ' · ' + x.vendedor : ''))); if (accion) { var ca = el('td', 'vt-acc'); accion(x, ca); tr.appendChild(ca); } bd.appendChild(tr);
     });
     tb.appendChild(bd); w.appendChild(tb); return w;
   }
@@ -183,16 +183,15 @@
     det.textContent = partes.join(' · '); s.appendChild(det);
     s.appendChild(el('h3', '', 'Por cobrar'));
     if (!datos.pendientes.length) s.appendChild(el('p', 'sub', 'Nada por cobrar.'));
-    var tp = el('table', 'tab-p'), bp = el('tbody'); tp.appendChild(bp); s.appendChild(tp);
-    datos.pendientes.forEach(function (v) {
-      var tr = el('tr'); [v.fecha, v.cantidad + ' × ' + v.producto + ' (' + v.tipo + ')', clp(v.total), v.vendedor].forEach(function (x) { tr.appendChild(el('td', '', x)); });
-      var td = el('td');
-      [['Cobrado: efectivo', PAGOS[0]], ['Cobrado: transferencia', PAGOS[1]]].forEach(function (o) {
-        var b = el('button', 'pb', o[0]); pasoDoble(b, function () {
-          post('socios_cobrar', { id: v.id, pago: o[1] }).then(function (x) { if (x.ok) { aviso('Cobro registrado', true); cargar(); } else aviso(x.error || 'No se pudo registrar.'); });
-        }); td.appendChild(b);
-      }); tr.appendChild(td); bp.appendChild(tr);
-    });
+    if (datos.pendientes.length) {
+      var hp = el('div', 'vt-hist'); hp.appendChild(tablaVentas(datos.pendientes, function (v, td) {
+        [['Cobrado: efectivo', PAGOS[0]], ['Cobrado: transferencia', PAGOS[1]]].forEach(function (o) {
+          var b = el('button', 'pb', o[0]); pasoDoble(b, function () {
+            post('socios_cobrar', { id: v.id, pago: o[1] }).then(function (x) { if (x.ok) { aviso('Cobro registrado', true); cargar(); } else aviso(x.error || 'No se pudo registrar.'); });
+          }); td.appendChild(b);
+        });
+      })); s.appendChild(hp);
+    }
     s.appendChild(histVentas('', null));
   }
   cargar();

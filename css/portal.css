@@ -85,3 +85,4 @@ body{background:var(--bg2)}
 .pos-der .pos-nota textarea:focus{outline:none;box-shadow:0 0 0 3px rgba(227,154,45,.3)}
 .pos-vaciar{width:100%;min-height:44px;border:1px solid #ff6b6b;color:#ff9a9a;background:transparent}
 @media(max-width:600px){.vt-tabla{min-width:640px}}
+.vt-acc{white-space:nowrap}.vt-acc .pb{padding:.4rem .6rem;font-size:.78rem;margin-right:.3rem}

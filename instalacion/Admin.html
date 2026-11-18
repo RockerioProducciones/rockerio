@@ -613,7 +613,7 @@ function pos(id,tipo,titulo,ico,prods,d){
   caja.appendChild(ad);
   /* por cobrar e historial */
   var pend=v.pendientes.filter(function(x){return x.tipo===txt});
-  if(pend.length){caja.appendChild(el_('h3','sub-h','Entregado en sala · por cobrar'));pend.forEach(function(x){var f=el_('div','pos-l');f.appendChild(el_('span','',x.fecha+' · '+x.cantidad+' × '+x.producto+(x.vendedor?' · '+x.vendedor:'')));f.appendChild(el_('span','m',clp(x.total)));
+  if(pend.length){caja.appendChild(el_('h3','sub-h','Entregado en sala · por cobrar'));pend.forEach(function(x){var f=el_('div','pos-l');f.appendChild(el_('span','',x.fecha+' · '+x.cantidad+' × '+x.producto+(x.nota?' · '+x.nota:'')+(x.vendedor?' · '+x.vendedor:'')));f.appendChild(el_('span','m',clp(x.total)));
     var q=el_('span','q');q.appendChild(btn('Cobrado: efectivo',function(){ejecutar('adminCobrar',x.id,PAGOS[0])}));q.appendChild(btn('Cobrado: transferencia',function(){ejecutar('adminCobrar',x.id,PAGOS[1])},'sec'));q.appendChild(anular(x));f.appendChild(q);caja.appendChild(f)})}
   var hist=v.ventas.filter(function(x){return x.tipo===txt});
   var hh=el_('div','vt-hist-cab');hh.appendChild(el_('b','','Historial de ventas ('+hist.length+')'));hh.appendChild(btn(HIST_VER[tipo]?'Ocultar historial':'Mostrar historial',function(){HIST_VER[tipo]=!HIST_VER[tipo];pintarCatalogos(ultimo)},'sec'));caja.appendChild(hh);
