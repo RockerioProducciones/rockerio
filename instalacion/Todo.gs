@@ -1709,6 +1709,8 @@ function paginaAdmin_() {
 
 /** Cuando es true, adminResumen() no arma el resumen completo (lo usan las acciones rápidas de «Reservas y jornadas»). */
 var LIGERO_ = false;
+/** Cuando es true, adminResumen() devuelve solo productos y ventas (acciones de Tienda y Bebestibles: respuesta mucho más rápida). */
+var VENTAS_PARCIAL_ = false;
 var RAPIDAS_ = ['adminFusionarClientes', 'adminCambiarAdicionales', 'adminAgregarAdicional','adminCambiarEstado', 'adminReagendar', 'adminAjustarReserva', 'adminMarcarCobro', 'adminMarcarCortesia', 'adminAjustarRetencion', 'adminGuardarEnlace', 'adminEliminarReserva', 'adminCuadrarReservas', 'adminDesbloquear'];
 /** Ejecuta una acción sobre reservas y devuelve solo «Reservas y jornadas» (una llamada en vez de dos: se nota mucho menos la espera). */
 function adminRapido(nombre, args) {
@@ -1722,6 +1724,7 @@ function adminRapido(nombre, args) {
 function adminResumen(mesVentas) {
   exigirAdmin_();
   if (LIGERO_) return { ligero: true };
+  if (VENTAS_PARCIAL_) return { parcial: 'ventas', productos: leerProductos_('musica'), bebestibles: leerProductos_('bebestible'), ventas: datosVentas_(mesVentas) };
   var ss = abrirBd_(), hoy = ahoraChile_().fecha;
   var cfg = getCfg_();
 
@@ -3732,6 +3735,14 @@ function adminVenderCarrito(tipo, items, pago, nota, fecha) {
 function adminCobrar(id, pago) {
   exigirAdmin_();
   return conBloqueo_(function () { cobrarVenta_(id, pago, 'Administración'); return adminResumen(); });
+}
+var VENTAS_RAPIDAS_ = ['adminVender', 'adminVenderCarrito', 'adminCobrar', 'adminAnularVenta', 'adminEditarVenta', 'adminEliminarVenta'];
+/** Ejecuta una acción de ventas y devuelve solo productos y ventas (no rearma todo el portal): se nota mucho menos la espera. */
+function adminVentaRapida(nombre, args) {
+  exigirAdmin_();
+  if (VENTAS_RAPIDAS_.indexOf(nombre) < 0) throw new Error('Acción no permitida.');
+  VENTAS_PARCIAL_ = true;
+  try { return globalThis[nombre].apply(null, Array.isArray(args) ? args : []); } finally { VENTAS_PARCIAL_ = false; }
 }
 /** Anula una venta (queda en el historial como «Anulada») y devuelve las unidades al stock. */
 function adminAnularVenta(id) {

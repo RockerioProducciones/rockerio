@@ -223,6 +223,17 @@ t('no se puede vender más que el stock ni con precio inválido', () => {
   assert.throws(() => g.admin('adminGuardarProducto', { tipo: 'musica', nombre: 'X', precio: -5 }));
   assert.throws(() => g.admin('adminGuardarProducto', { tipo: 'musica', nombre: 'X', foto: 'javascript:alert(1)' }));
 });
+t('ventas rápidas: el admin recibe solo productos y ventas, cobra y el resultado queda igual que con la respuesta completa', () => {
+  const d0 = g.admin('adminResumen'); const fila = d0.bebestibles.find((p) => p.stock !== 0 && p.precio !== '').fila;
+  const r = g.admin('adminVentaRapida', 'adminVenderCarrito', ['bebestible', [{ fila, cantidad: 1 }], 'Entregado en sesión (pago pendiente)', 'Banda Rápida', '']);
+  assert.strictEqual(r.parcial, 'ventas'); assert.ok(r.ventas && r.productos && r.bebestibles && !r.reservas, 'respuesta parcial'); assert.ok(r.idsVenta && r.idsVenta.length === 1, JSON.stringify(r.idsVenta));
+  const pend = r.ventas.pendientes.find((x) => x.id === r.idsVenta[0]); assert.ok(pend && /Banda Rápida/.test(pend.nota));
+  const c = g.admin('adminVentaRapida', 'adminCobrar', [pend.id, 'Venta efectivo']); assert.strictEqual(c.parcial, 'ventas');
+  assert.ok(!c.ventas.pendientes.find((x) => x.id === pend.id)); assert.ok(c.ventas.ventas.find((x) => x.id === pend.id && /efectivo/i.test(x.pago)));
+  const e = g.admin('adminVentaRapida', 'adminEliminarVenta', [pend.id]); assert.ok(!e.ventas.ventas.find((x) => x.id === pend.id), 'eliminada'); // deja el stock como estaba
+  assert.throws(() => g.admin('adminVentaRapida', 'adminCerrarMes', ['2026-01']), /no permitida/);
+  assert.ok(g.admin('adminResumen').reservas, 'el resumen completo sigue siendo completo después');
+});
 t('socio: se crea enlace, ve agenda y catálogo, vende y cobra una entrega pendiente', () => {
   const s = g.admin('adminCrearSocio', 'Jaime Encina'); tok = Object.keys(s.socios.tokens || s.socios).length ? (s.socios[0] && (s.socios[0].token)) : null;
   assert.ok(tok, 'token ' + JSON.stringify(s.socios).slice(0, 200));

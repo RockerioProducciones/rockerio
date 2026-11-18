@@ -186,10 +186,20 @@
     if (datos.pendientes.length) {
       var hp = el('div', 'vt-hist'); hp.appendChild(tablaVentas(datos.pendientes, function (v, td) {
         var tg = el('button', 'pb vt-cob-t', 'Cobrar ▾'); tg.type = 'button'; tg.onclick = function () { td.classList.toggle('abierto'); }; td.appendChild(tg);
-        [['Cobrado: efectivo', PAGOS[0]], ['Cobrado: transferencia', PAGOS[1]]].forEach(function (o) {
-          var b = el('button', 'pb', o[0]); pasoDoble(b, function () {
-            post('socios_cobrar', { id: v.id, pago: o[1] }).then(function (x) { if (x.ok) { aviso('Cobro registrado', true); cargar(); } else aviso(x.error || 'No se pudo registrar.'); });
-          }); td.appendChild(b);
+        [['Cobrado: efectivo', PAGOS[0], 'efectivo'], ['Cobrado: transferencia', PAGOS[1], 'transferencia']].forEach(function (o) {
+          var b = el('button', 'pb', o[0]); b.type = 'button';
+          b.onclick = function () {
+            var nodes = [].slice.call(td.childNodes); td.textContent = ''; td.classList.remove('abierto');
+            td.appendChild(el('span', 'vt-conf', '¿Registrar ' + clp(v.total) + ' cobrados en ' + o[2] + '?'));
+            var si = el('button', 'pb', 'Sí, cobrado'); si.type = 'button';
+            si.onclick = function () {
+              datos.pendientes = datos.pendientes.filter(function (q) { return q.id !== v.id; }); datos.ventas.forEach(function (q) { if (q.id === v.id) q.pago = o[1]; }); pintar(); aviso('Cobro registrado ✔', true);
+              post('socios_cobrar', { id: v.id, pago: o[1] }).then(function (x) { cargar(); if (!x.ok) aviso(x.error || 'No se pudo registrar.'); }).catch(function () { cargar(); aviso('No se pudo registrar. Revisa tu conexión.'); });
+            };
+            var no = el('button', 'pb sec', 'No'); no.type = 'button'; no.onclick = function () { td.textContent = ''; nodes.forEach(function (n) { td.appendChild(n); }); };
+            td.appendChild(si); td.appendChild(no);
+          };
+          td.appendChild(b);
         });
       })); s.appendChild(hp);
     }

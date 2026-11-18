@@ -25,6 +25,8 @@ function paginaAdmin_() {
 
 /** Cuando es true, adminResumen() no arma el resumen completo (lo usan las acciones rápidas de «Reservas y jornadas»). */
 var LIGERO_ = false;
+/** Cuando es true, adminResumen() devuelve solo productos y ventas (acciones de Tienda y Bebestibles: respuesta mucho más rápida). */
+var VENTAS_PARCIAL_ = false;
 var RAPIDAS_ = ['adminFusionarClientes', 'adminCambiarAdicionales', 'adminAgregarAdicional','adminCambiarEstado', 'adminReagendar', 'adminAjustarReserva', 'adminMarcarCobro', 'adminMarcarCortesia', 'adminAjustarRetencion', 'adminGuardarEnlace', 'adminEliminarReserva', 'adminCuadrarReservas', 'adminDesbloquear'];
 /** Ejecuta una acción sobre reservas y devuelve solo «Reservas y jornadas» (una llamada en vez de dos: se nota mucho menos la espera). */
 function adminRapido(nombre, args) {
@@ -38,6 +40,7 @@ function adminRapido(nombre, args) {
 function adminResumen(mesVentas) {
   exigirAdmin_();
   if (LIGERO_) return { ligero: true };
+  if (VENTAS_PARCIAL_) return { parcial: 'ventas', productos: leerProductos_('musica'), bebestibles: leerProductos_('bebestible'), ventas: datosVentas_(mesVentas) };
   var ss = abrirBd_(), hoy = ahoraChile_().fecha;
   var cfg = getCfg_();
 
