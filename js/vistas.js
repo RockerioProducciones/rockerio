@@ -12,14 +12,14 @@
     if (!s || s.hidden) { id = 'inicio'; s = null; }
     body.setAttribute('data-vista', id);
     secs.forEach(function (x) { x.classList.toggle('activa', x === s); });
-    [].forEach.call(document.querySelectorAll('.tarjeta[data-vista]'), function (a) { if (a.getAttribute('data-vista') === id) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    [].forEach.call(document.querySelectorAll('.tarjeta[data-vista], nav a[data-vista]'), function (a) { if (a.getAttribute('data-vista') === id) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     var barra = document.getElementById('vista-barra'); barra.hidden = !s;
     if (s) { var h = s.querySelector('h2'); document.getElementById('vista-titulo').textContent = h ? h.textContent : ''; }
     if (!primera) window.scrollTo(0, 0);
     primera = false;
   }
   function tarjetas() {
-    [].forEach.call(document.querySelectorAll('.tarjeta[data-vista], .honor-banda[data-vista]'), function (a) { var s = porId(a.getAttribute('data-vista')); a.hidden = !s || s.hidden; });
+    [].forEach.call(document.querySelectorAll('.tarjeta[data-vista], .honor-banda[data-vista], nav a[data-vista]'), function (a) { var s = porId(a.getAttribute('data-vista')); a.hidden = !s || s.hidden; });
   }
   var mo = new MutationObserver(function () { tarjetas(); mostrar(); });
   secs.forEach(function (s) { mo.observe(s, { attributes: true, attributeFilter: ['hidden'] }); });
