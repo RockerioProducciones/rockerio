@@ -301,3 +301,24 @@ html .hero h1,html.rd body .hero h1{font-family:'Big Shoulders Display','Bebas N
 #adicionales .ex-toggle .ex-tx b{font-size:.92rem}
 #adicionales .ex-toggle .ex-tx small{font-size:.74rem}
 .ex-foto .ex-img{aspect-ratio:4/3}
+
+/* Extras «piola»: filas pequeñas con miniatura, en varias columnas */
+#arriendo-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr))!important;gap:.4rem!important}
+@media(max-width:520px){#arriendo-lista{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+.ex-fila-ck.ex-foto{flex-direction:row!important;align-items:center!important;gap:.5rem;padding:.3rem .45rem .3rem .3rem!important;border-radius:10px!important;min-height:0!important}
+.ex-foto .ex-img{position:static!important;flex:none;width:44px!important;height:44px!important;aspect-ratio:auto!important;border-radius:8px!important;object-fit:cover}
+.ex-foto .ex-nom{padding:0!important;min-height:0!important;font-size:.76rem!important;line-height:1.2;flex:1;min-width:0}
+.ex-foto input{position:static!important;flex:none;width:20px!important;height:20px!important;margin:0!important;order:3}
+#adicionales .ex-card{padding:.45rem .6rem!important;margin:.3rem 0!important}
+#adicionales .ex-card .ex-cab b{font-size:.88rem}
+#adicionales .ex-chk{display:flex;align-items:center;gap:.5rem}
+#adicionales .ex-chk small{display:none}
+#adicionales .ex-chk b{font-size:.86rem}
+#adicionales .ex-rider .ex-cab{margin-bottom:.2rem}
+@media(max-width:520px){
+#arriendo-lista{grid-template-columns:1fr!important;gap:.3rem!important}
+.ex-foto .ex-img{width:36px!important;height:36px!important}
+.ex-fila-ck.ex-foto{padding:.25rem .5rem .25rem .25rem!important}
+.ex-foto .ex-nom{font-size:.8rem!important}
+#adicionales .ex-toggle small,#adicionales .ex-toggle .ex-sub{display:none!important}
+}
