@@ -84,6 +84,7 @@ details{background:rgba(0,0,0,.18)}
 details[open]>summary{color:var(--acc)}
 summary{cursor:pointer;font-weight:700;padding:4px 0}
 .fila{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.est{font-weight:700}
+#guarda{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:30;padding:9px 16px;border-radius:999px;font-weight:700;font-size:.9rem;box-shadow:0 8px 24px rgba(0,0,0,.55);display:none;pointer-events:none;border:1px solid transparent}#guarda.g-ocu{background:#1b1710;color:#ffd166;border-color:#e39a2d}#guarda.g-ok{background:#0f2a1a;color:#3ddc97;border-color:#16a34a}#guarda.g-err{background:#2a1010;color:#ff8a8a;border-color:#ef4444}
 #msg{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:20;max-width:90vw;background:var(--rojo);box-shadow:0 8px 24px rgba(0,0,0,.5);padding:10px 16px;border-radius:10px;display:none;font-weight:600}
 @media(max-width:700px){table,tbody,tr,td{display:block}th{display:none}tr{border-bottom:2px solid var(--borde);padding:8px 0}td{border:0;padding:3px 0}input,select{max-width:100%}}
 
@@ -438,13 +439,27 @@ section.tab-off{display:none!important}
 <p style="color:#b5afa6;margin:.4em 0">Sin horas = todo el día.</p><table><tbody id="blo"></tbody></table></section>
 <script>
 var $=function(i){return document.getElementById(i)};
+/* Indicador de guardado: cada llamada al servidor muestra «Guardando…» al instante y «Guardado» con el tiempo que tardó,
+   así siempre se sabe si el cambio quedó registrado (o si falló). */
+var RUN=(function(){var real=google.script.run,n=0,errs=0,tmr=null,t0=0,pill=null;
+  function ui(txt,cls){if(!pill){pill=document.createElement('div');pill.id='guarda';pill.setAttribute('role','status');document.body.appendChild(pill)}pill.className=cls;pill.textContent=txt;pill.style.display='block'}
+  function begin(){if(!n){t0=Date.now();errs=0}n++;clearTimeout(tmr);ui('⏳ Guardando…','g-ocu')}
+  function end(err){n=Math.max(0,n-1);if(err)errs++;if(n)return;var s=((Date.now()-t0)/1000).toFixed(1).replace('.',',');
+    if(errs)ui('⚠ No se pudo guardar — revisa el aviso','g-err');else ui('✔ Guardado ('+s+' s)','g-ok');
+    clearTimeout(tmr);tmr=setTimeout(function(){if(pill&&!n)pill.style.display='none'},errs?7000:2200)}
+  function chain(ok,fail,uo){return new Proxy({},{get:function(_,k){
+    if(k==='withSuccessHandler')return function(f){return chain(f,fail,uo)};
+    if(k==='withFailureHandler')return function(f){return chain(ok,f,uo)};
+    if(k==='withUserObject')return function(o){return chain(ok,fail,o)};
+    return function(){var a=arguments;begin();var r=real.withSuccessHandler(function(res,u){end(false);if(ok)ok.call(uo,res,u)}).withFailureHandler(function(e,u){end(true);if(fail)fail.call(uo,e,u);else aviso((e&&e.message)||'Error')});if(uo!==undefined)r=r.withUserObject(uo);r[k].apply(r,a)}}})}
+  return chain(null,null,undefined)})();
 function aviso(t){var m=$('msg');m.textContent=t;m.style.display=t?'block':'none';if(t)setTimeout(function(){m.style.display='none'},6000)}
 function pintarParcial(r){if(r&&r.parcial&&ultimo){ultimo.productos=r.productos;ultimo.bebestibles=r.bebestibles;ultimo.ventas=r.ventas;pintarCatalogos(ultimo);RES_VIEJO=true;clearTimeout(RES_T);RES_T=setTimeout(refrescarResumen,15000)}else pintar(r)}
-function vr(fn,args,ok){google.script.run.withSuccessHandler(function(r){pintarParcial(r);if(ok)ok(r)}).withFailureHandler(function(e){aviso(e.message||'Error');ejecutar('adminResumen')}).adminVentaRapida(fn,args)}
+function vr(fn,args,ok){RUN.withSuccessHandler(function(r){pintarParcial(r);if(ok)ok(r)}).withFailureHandler(function(e){aviso(e.message||'Error');ejecutar('adminResumen')}).adminVentaRapida(fn,args)}
 function pedirCobro(ca,x,pago,txt){var nodes=[].slice.call(ca.childNodes);ca.textContent='';ca.classList.remove('abierto');ca.appendChild(el_('span','vt-conf','¿Registrar '+clp(x.total)+' cobrados en '+txt+'?'));
   ca.appendChild(btn('Sí, cobrado',function(){var v=ultimo.ventas;v.pendientes=v.pendientes.filter(function(q){return q.id!==x.id});v.ventas.forEach(function(q){if(q.id===x.id)q.pago=pago});pintarCatalogos(ultimo);aviso('Cobro registrado ✔');vr('adminCobrar',[x.id,pago])}));
   ca.appendChild(btn('No',function(){ca.textContent='';nodes.forEach(function(n){ca.appendChild(n)})},'sec'))}
-function ejecutar(fn){var a=[].slice.call(arguments,1);google.script.run.withSuccessHandler(pintar).withFailureHandler(function(e){aviso(e.message||'Error')})[fn].apply(null,a)}
+function ejecutar(fn){var a=[].slice.call(arguments,1);RUN.withSuccessHandler(pintar).withFailureHandler(function(e){aviso(e.message||'Error')})[fn].apply(null,a)}
 function td(t,c){var e=document.createElement('td');e.textContent=t;if(c)e.className=c;return e}
 function clp(n){n=Number(n)||0;return (n<0?'-':'')+'$'+Math.abs(n).toLocaleString('es-CL')}
 function wsp(r){
@@ -489,11 +504,11 @@ $('guardar').onclick=function(){ejecutar('adminConfigurar',$('activas').checked,
 $('bloq').onclick=function(){ejecutar('adminBloquear',$('bf').value,$('bd').value,$('bh').value,$('bm').value)};
 
 function btn(t,f,c){var b=document.createElement('button');b.textContent=t;if(c)b.className=c;b.onclick=f;return b}
-function pintarResp(){var c=$('resp-lista');c.textContent='Cargando copias…';google.script.run.withSuccessHandler(function(l){c.textContent='';if(!l.length){c.textContent='Aún no hay copias.';return}l.forEach(function(x){var f=el_('div','fila');var t=el_('span');t.textContent=x.nombre+' · '+x.creado;t.style.flex='1';f.appendChild(t);f.appendChild(btn('Restaurar',function(){confirmarSN('¿Restaurar TODA la información a como estaba en «'+x.nombre+'»? Lo actual se guarda antes como «Previo a restaurar», así que se puede deshacer.',function(){google.script.run.withSuccessHandler(function(m){aviso(m);pintarResp()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminRestaurar(x.id)},'Sí, restaurar')},'sec'));c.appendChild(f)})}).withFailureHandler(function(e){c.textContent=e.message||'Error'}).adminListarRespaldos()}
-$('inst').onclick=function(){var n=$('inst-n').value.trim();if(!n){aviso('Escribe un nombre para la instantánea');return}google.script.run.withSuccessHandler(function(m){aviso(m);$('inst-n').value='';pintarResp()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminInstantanea(n)};
-$('agenda-rep').onclick=function(){google.script.run.withSuccessHandler(function(m){aviso(m)}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminRepararAgenda()};
-$('cam-ver').onclick=function(){var c=$('cam-lista');c.textContent='Cargando…';google.script.run.withSuccessHandler(function(l){c.textContent='';if(!l.length){c.textContent='Aún no hay cambios registrados.';return}l.forEach(function(x){var f=el_('div','fila');f.style.flexDirection='column';f.style.alignItems='flex-start';var t=el_('b');t.textContent=x.fecha+' · '+x.tipo+' · '+x.que;f.appendChild(t);if(x.antes){var a=el_('small');a.style.color='#b5afa6';a.textContent='Antes: '+x.antes;f.appendChild(a)}c.appendChild(f)})}).withFailureHandler(function(e){c.textContent=e.message||'Error'}).adminListarCambios()};
-$('resp').onclick=function(){google.script.run.withSuccessHandler(function(m){aviso(m);pintarResp()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminRespaldar()};pintarResp();
+function pintarResp(){var c=$('resp-lista');c.textContent='Cargando copias…';RUN.withSuccessHandler(function(l){c.textContent='';if(!l.length){c.textContent='Aún no hay copias.';return}l.forEach(function(x){var f=el_('div','fila');var t=el_('span');t.textContent=x.nombre+' · '+x.creado;t.style.flex='1';f.appendChild(t);f.appendChild(btn('Restaurar',function(){confirmarSN('¿Restaurar TODA la información a como estaba en «'+x.nombre+'»? Lo actual se guarda antes como «Previo a restaurar», así que se puede deshacer.',function(){RUN.withSuccessHandler(function(m){aviso(m);pintarResp()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminRestaurar(x.id)},'Sí, restaurar')},'sec'));c.appendChild(f)})}).withFailureHandler(function(e){c.textContent=e.message||'Error'}).adminListarRespaldos()}
+$('inst').onclick=function(){var n=$('inst-n').value.trim();if(!n){aviso('Escribe un nombre para la instantánea');return}RUN.withSuccessHandler(function(m){aviso(m);$('inst-n').value='';pintarResp()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminInstantanea(n)};
+$('agenda-rep').onclick=function(){RUN.withSuccessHandler(function(m){aviso(m)}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminRepararAgenda()};
+$('cam-ver').onclick=function(){var c=$('cam-lista');c.textContent='Cargando…';RUN.withSuccessHandler(function(l){c.textContent='';if(!l.length){c.textContent='Aún no hay cambios registrados.';return}l.forEach(function(x){var f=el_('div','fila');f.style.flexDirection='column';f.style.alignItems='flex-start';var t=el_('b');t.textContent=x.fecha+' · '+x.tipo+' · '+x.que;f.appendChild(t);if(x.antes){var a=el_('small');a.style.color='#b5afa6';a.textContent='Antes: '+x.antes;f.appendChild(a)}c.appendChild(f)})}).withFailureHandler(function(e){c.textContent=e.message||'Error'}).adminListarCambios()};
+$('resp').onclick=function(){RUN.withSuccessHandler(function(m){aviso(m);pintarResp()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminRespaldar()};pintarResp();
 
 
 function filaR(t,v,neg,nota){var tr=document.createElement('tr');tr.appendChild(td(t));tr.appendChild(td(clp(v),neg?'est':''));tr.appendChild(td(nota||''));tr.lastChild.style.color='#b5afa6';return tr}
@@ -557,7 +572,7 @@ $('ajg').onclick=function(){var o=cambiados($('ajustes'));if(!Object.keys(o).len
 $('hog').onclick=function(){var f=[];for(var k=0;k<7;k++)f.push({b1:document.querySelector('[data-h="'+k+'b1"]').value,b2:document.querySelector('[data-h="'+k+'b2"]').value});ejecutar('adminGuardarHorarios',f);aviso('Guardando…')};
 $('ing').onclick=function(){ejecutar('adminGuardarIngresos',[].map.call(document.querySelectorAll('#ingr input'),function(c){return c.checked}));aviso('Guardando…')};
 
-$('rgr').onclick=function(){confirmarSN('¿Reemplazar lo que ves en el cuadro por el texto recomendado? No se guarda hasta que presiones «Guardar reglamento».',function(){google.script.run.withSuccessHandler(function(t){$('rgt').value=t;aviso('Texto cargado: revísalo y guarda')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminReglamentoRecomendado()},'Sí, cargar')};
+$('rgr').onclick=function(){confirmarSN('¿Reemplazar lo que ves en el cuadro por el texto recomendado? No se guarda hasta que presiones «Guardar reglamento».',function(){RUN.withSuccessHandler(function(t){$('rgt').value=t;aviso('Texto cargado: revísalo y guarda')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminReglamentoRecomendado()},'Sí, cargar')};
 $('rgg').onclick=function(){ejecutar('adminGuardarReglamento',$('rgt').value);aviso('Reglamento guardado')};
 function pintarWA(d){
   var box=$('wam');if(!box.firstChild||document.activeElement.tagName!=='TEXTAREA'){box.textContent='';WATIPOS.forEach(function(x){var l=document.createElement('label');l.textContent=x[1];l.style.cssText='display:block;font-weight:600;margin-top:8px';var a=document.createElement('textarea');a.rows=3;a.maxLength=1000;a.style.width='100%';a.value=d.wa.plantillas[x[0]];a.setAttribute('data-msg',x[0]);box.appendChild(l);box.appendChild(a)})}
@@ -626,7 +641,7 @@ function pos(id,tipo,titulo,ico,prods,d){
     var ok=btn('Confirmar venta',function(){
       if(!ks.length){aviso('Agrega productos a la venta.');return}if(!PAGO_SEL[tipo]){aviso('Elige cómo se paga.');return}
       var items=Object.keys(cart).map(function(k){return{fila:Number(k),cantidad:cart[k]}});
-      ok.disabled=true;google.script.run.withSuccessHandler(function(rr){CART[tipo]={};PAGO_SEL[tipo]='';pintarCarro.nota='';pintarParcial(rr);aviso('Venta registrada ✔')}).withFailureHandler(function(e){ok.disabled=false;aviso(e.message||'Error')}).adminVentaRapida('adminVenderCarrito',[tipo,items,PAGO_SEL[tipo],pintarCarro.nota||'',fv.value||''])},'pos-ok');pie.appendChild(ok);
+      ok.disabled=true;RUN.withSuccessHandler(function(rr){CART[tipo]={};PAGO_SEL[tipo]='';pintarCarro.nota='';pintarParcial(rr);aviso('Venta registrada ✔')}).withFailureHandler(function(e){ok.disabled=false;aviso(e.message||'Error')}).adminVentaRapida('adminVenderCarrito',[tipo,items,PAGO_SEL[tipo],pintarCarro.nota||'',fv.value||''])},'pos-ok');pie.appendChild(ok);
     var va=btn('🗑 Vaciar carro',function(){CART[tipo]={};cart=CART[tipo];PAGO_SEL[tipo]='';pintarCarro.nota='';nt.value='';pintarCarro();lista();aviso('Carro vaciado')},'sec');va.style.cssText='border:1px solid #ff6b6b;color:#ff9a9a;grid-column:1/-1;min-height:44px';pie.appendChild(va);
     }
   var ln2=el_('label','','Comentario de la venta');ln2.appendChild(nt);meta.appendChild(ln2);
@@ -673,7 +688,7 @@ function formVenta(x){
   var lf3=el_('label');lf3.appendChild(document.createTextNode('Fecha de la venta'));var if3=document.createElement('input');if3.type='date';if3.max=ultimo.hoy;if3.value=x.fecha;if3.oninput=function(){v.fecha=if3.value};lf3.appendChild(if3);fm.appendChild(lf3);v.fecha=x.fecha;
   var l3=el_('label','full');l3.appendChild(document.createTextNode('Comprador / comentario'));var i3=document.createElement('input');i3.maxLength=200;i3.value=v.nota;i3.oninput=function(){v.nota=i3.value};l3.appendChild(i3);fm.appendChild(l3);f.appendChild(fm);
   f.appendChild(par('Al cambiar la cantidad se ajusta el stock y el total.','color:#b5afa6;font-size:.82rem'));
-  var acc=el_('div','fila');acc.appendChild(btn('Guardar cambios',function(){google.script.run.withSuccessHandler(function(r){d.hidden=true;pintarParcial(r);aviso('Venta corregida ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminVentaRapida('adminEditarVenta',[x.id,v])}));acc.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
+  var acc=el_('div','fila');acc.appendChild(btn('Guardar cambios',function(){RUN.withSuccessHandler(function(r){d.hidden=true;pintarParcial(r);aviso('Venta corregida ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminVentaRapida('adminEditarVenta',[x.id,v])}));acc.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
 }
 function formProd(tipo,p){
   var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);
@@ -690,7 +705,7 @@ function formProd(tipo,p){
   var lv=el_('label','full');lv.style.cssText='flex-direction:row;display:flex;gap:8px;align-items:center;color:var(--txt)';var ck=document.createElement('input');ck.type='checkbox';ck.checked=v.visible;ck.onchange=function(){v.visible=ck.checked};lv.appendChild(ck);lv.appendChild(document.createTextNode('Visible para vender'));fm.appendChild(lv);f.appendChild(fm);
   var acc=el_('div','fila');acc.style.marginTop='10px';
   acc.appendChild(btn('Guardar',function(){var o={tipo:tipo,fila:p?p.fila:null,categoria:v.categoria,nombre:v.nombre,detalle:v.detalle,precio:v.precio,stock:v.stock,visible:v.visible,foto:p?p.foto:''};if(b64)o.fotoB64=b64;
-    google.script.run.withSuccessHandler(function(r){d.hidden=true;pintar(r);aviso('Producto guardado ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminGuardarProducto(o)}));
+    RUN.withSuccessHandler(function(r){d.hidden=true;pintar(r);aviso('Producto guardado ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminGuardarProducto(o)}));
   acc.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
 }
 function anular(x){return btnDel('Eliminar','¿Eliminar esta venta? Se devolverán las unidades al stock y no se puede deshacer.',function(){vr('adminEliminarVenta',[x.id],function(){aviso('Venta eliminada')})})}
@@ -700,7 +715,7 @@ var RC={per:'mes',ref:'',data:null};
 function ctTab(k){[].forEach.call(document.querySelectorAll('[data-tab]'),function(x){x.classList.toggle('tab-off',x.getAttribute('data-tab')!==k)});[].forEach.call(document.querySelectorAll('.ct-tabs button'),function(b){b.classList.toggle('on',b.getAttribute('data-ct')===k)})}
 [].forEach.call(document.querySelectorAll('.ct-tabs button'),function(b){b.onclick=function(){ctTab(b.getAttribute('data-ct'));if(b.getAttribute('data-ct')==='res')cargarRC()}});ctTab('res');
 [].forEach.call(document.querySelectorAll('.rc-p'),function(b){b.onclick=function(){RC.per=b.getAttribute('data-rp');RC.ref='';[].forEach.call(document.querySelectorAll('.rc-p'),function(x){x.classList.toggle('on',x===b);x.classList.toggle('sec',x!==b)});cargarRC()}});
-function cargarRC(){$('rc-box').textContent='Cargando resumen…';google.script.run.withSuccessHandler(function(d){RC.data=d;RC.ref=d.ref;pintarRC(d)}).withFailureHandler(function(e){$('rc-box').textContent=e.message||'Error'}).adminResumenContable(RC.per,RC.ref)}
+function cargarRC(){$('rc-box').textContent='Cargando resumen…';RUN.withSuccessHandler(function(d){RC.data=d;RC.ref=d.ref;pintarRC(d)}).withFailureHandler(function(e){$('rc-box').textContent=e.message||'Error'}).adminResumenContable(RC.per,RC.ref)}
 function fechaCorta(f){return f.slice(8)+'/'+f.slice(5,7)+'/'+f.slice(0,4)}
 function rcTabla(cols,filas,tot){var t=el_('table','rc-t'),h=el_('tr');cols.forEach(function(c,i){var e=el_('th',i?'n':'',c);h.appendChild(e)});t.appendChild(h);
   filas.forEach(function(f){var tr=el_('tr',f.tot?'rc-tot':'');f.c.forEach(function(x,i){tr.appendChild(td(x,i?'n':''))});t.appendChild(tr)});return t}
@@ -754,7 +769,7 @@ function pintarRC(d){
   else{b.appendChild(el_('h3','rc-h','Ingresos por día'));b.appendChild(d.porDia.length?rcTabla(['Día','Total'],d.porDia.map(function(x){return{c:[fechaCorta(x.fecha),clp(x.total)]}})):par('Sin ingresos en la semana.','color:#b5afa6'))}
   if((d.descuadres||[]).length){var dq=el_('div','rc-warn');dq.appendChild(el_('b','','⚠ '+d.descuadres.length+' reserva(s) cuyo total no coincide con lo que cuenta el balance. '));dq.appendChild(document.createTextNode('Suele pasar cuando el total se cambió a mano en versiones anteriores. «Cuadrar» deja el balance igual al total de cada reserva (el total que tú pusiste no cambia).'));
     dq.appendChild(rcTabla(['Fecha','Reserva','Estado','Total reserva','Cuenta el balance'],d.descuadres.map(function(x){return{c:[fechaCorta(x.fecha),x.codigo+' · '+x.banda,x.estado,clp(x.total),clp(x.montos)]}})));
-    var bq=btn('Cuadrar todas',function(){confirmarSN('¿Cuadrar '+d.descuadres.length+' reserva(s)? El balance usará el total de cada reserva. Los montos originales quedan guardados.',function(){google.script.run.withSuccessHandler(function(r){aviso('Cuadradas: '+r.cuadradas+' ✔');cargarRC()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminCuadrarReservas([])},'Sí, cuadrar')});dq.appendChild(bq);b.appendChild(dq)}
+    var bq=btn('Cuadrar todas',function(){confirmarSN('¿Cuadrar '+d.descuadres.length+' reserva(s)? El balance usará el total de cada reserva. Los montos originales quedan guardados.',function(){RUN.withSuccessHandler(function(r){aviso('Cuadradas: '+r.cuadradas+' ✔');cargarRC()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminCuadrarReservas([])},'Sí, cuadrar')});dq.appendChild(bq);b.appendChild(dq)}
   // Detalle
   b.appendChild(el_('h3','rc-h','Detalle de sesiones'));
   b.appendChild(d.detalle.length?rcTabla(['Fecha','Código','Banda / cliente','Servicio','Horas','Estado','Horas $','Extras','Video','Bruto','Total'],d.detalle.map(function(x){return{c:[fechaCorta(x.fecha),x.codigo,x.banda+' / '+x.cliente,x.servicio,x.horas,x.estado,clp(x.base),clp(x.extras),clp(x.video),clp(x.raw),clp(x.total)]}})):par('Sin sesiones en este período.','color:#b5afa6'));
@@ -776,7 +791,7 @@ function rcExcepciones(d,b){
   if(!de.length)b.appendChild(par('No hay saldos pendientes. Una reserva se marca «por cobrar» desde su detalle.','color:#b5afa6'));
   de.forEach(function(x){var f=el_('div','fila');f.style.margin='4px 0';f.appendChild(par(fechaCorta(x.fecha)+' · '+x.banda+' / '+x.cliente+' · '+x.codigo+' · '+clp(x.saldo),'flex:1;min-width:200px'));
     var sel=el_('select');MEDIOS.forEach(function(m){var o=el_('option','',m);o.value=m;sel.appendChild(o)});f.appendChild(sel);
-    f.appendChild(btn('Marcar pagado',function(){google.script.run.withSuccessHandler(function(r){pintar(r);cargarRC();aviso('Pago registrado ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminMarcarCobro(x.codigo,{cobro:'PAGADO',medio:sel.value})}));
+    f.appendChild(btn('Marcar pagado',function(){RUN.withSuccessHandler(function(r){pintar(r);cargarRC();aviso('Pago registrado ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminMarcarCobro(x.codigo,{cobro:'PAGADO',medio:sel.value})}));
     if(x.telefono&&!/^MAN-/.test(x.telefono)){var w=el_('a','','Cobrar por WhatsApp');w.href='https://wa.me/'+x.telefono.replace(/\D/g,'')+'?text='+encodeURIComponent('Hola '+x.cliente+' 😊 te escribimos de '+((WA&&WA.negocio)||'Rockerío')+': queda un saldo pendiente de '+clp(x.saldo)+' de tu reserva '+x.codigo+' del '+fechaCorta(x.fecha)+'. ¿Cuándo te acomoda dejarlo al día? Así mantenemos todo en orden. ¡Gracias!');w.target='_blank';w.rel='noopener';w.style.color='#FCC631';f.appendChild(w)}
     b.appendChild(f)});
   var co=d.cortesias||{n:0,lista:[]};
@@ -789,9 +804,9 @@ function rcExcepciones(d,b){
   var ds=el_('select');['Sala','Estudio'].forEach(function(x){var o=el_('option','',x);o.value=x;ds.appendChild(o)});
   var mo=el_('input');mo.type='number';mo.min=1;mo.placeholder='Monto $';mo.style.width='110px';var nt=el_('input');nt.maxLength=150;nt.placeholder='Nota (ej. cable XLR, arreglo de parlante, arriendo extra)';nt.style.cssText='flex:1;min-width:200px';
   [fe,tp,ds,mo,nt].forEach(function(x){fm.appendChild(x)});
-  fm.appendChild(btn('Agregar',function(){google.script.run.withSuccessHandler(function(r){pintar(r);cargarRC();aviso('Movimiento agregado ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminGuardarMovimiento({fecha:fe.value,tipo:tp.value,destino:ds.value,monto:mo.value,nota:nt.value})}));b.appendChild(fm);
+  fm.appendChild(btn('Agregar',function(){RUN.withSuccessHandler(function(r){pintar(r);cargarRC();aviso('Movimiento agregado ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminGuardarMovimiento({fecha:fe.value,tipo:tp.value,destino:ds.value,monto:mo.value,nota:nt.value})}));b.appendChild(fm);
   if(mv.lista.length){var t=rcTabla(['Fecha','Tipo','Área','Monto','Nota',''],mv.lista.map(function(x){return{c:[fechaCorta(x.fecha),x.tipo,x.destino,(x.tipo==='Gasto'?'−':'+')+clp(x.monto),x.nota,'']}}));
-    [].forEach.call(t.querySelectorAll('tr'),function(tr,i){if(!i)return;var x=mv.lista[i-1];var c=tr.lastChild;c.appendChild(btnDel('Eliminar','¿Eliminar este movimiento?',function(){google.script.run.withSuccessHandler(function(r){pintar(r);cargarRC()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminEliminarMovimiento(x.id)}))});b.appendChild(t)}
+    [].forEach.call(t.querySelectorAll('tr'),function(tr,i){if(!i)return;var x=mv.lista[i-1];var c=tr.lastChild;c.appendChild(btnDel('Eliminar','¿Eliminar este movimiento?',function(){RUN.withSuccessHandler(function(r){pintar(r);cargarRC()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminEliminarMovimiento(x.id)}))});b.appendChild(t)}
   else b.appendChild(par('Sin movimientos en este período. Los del mes entran al cierre con Jaime y Gabriela.','color:#b5afa6'));
 }
 var MEDIOS=['Efectivo','Transferencia','Tarjeta'];
@@ -809,7 +824,7 @@ function bloqueCobro(r,d){
   w.appendChild(g);return w}
 function verificarIngresos(){var m=RC.data?(RC.data.periodo==='mes'?RC.data.ref:RC.data.desde.slice(0,7)):'';
   var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);var f=el_('div','ficha-j');f.appendChild(el_('h3','','Verificación de ingresos'));f.appendChild(par('Revisando…','color:#b5afa6'));d.appendChild(f);
-  google.script.run.withSuccessHandler(function(r){f.textContent='';f.appendChild(el_('h3','','Verificación de ingresos · '+mesTxt(r.mes)));
+  RUN.withSuccessHandler(function(r){f.textContent='';f.appendChild(el_('h3','','Verificación de ingresos · '+mesTxt(r.mes)));
     var T=r.totales;f.appendChild(par('Ingresos brutos del resumen: '+clp(T.ingresosBrutos)+' · recalculados reserva por reserva: '+clp(T.recalculado)+' · '+T.finalizadas+' reservas finalizadas.','color:#b5afa6;margin:.3rem 0'));
     r.checks.forEach(function(c){var b=el_('div',c.nivel==='ok'?'rc-ok':'rc-warn');b.style.margin='6px 0';b.appendChild(el_('b','',(c.nivel==='ok'?'✔ ':c.nivel==='error'?'✖ ':'⚠ ')+c.titulo));b.appendChild(el_('div','',c.detalle));
       if(c.lista&&c.lista.length){var t=el_('table','rc-t');c.lista.slice(0,25).forEach(function(x){var tr=el_('tr');[fechaCorta(x.fecha||'0000-00-00'),(x.codigo||'')+' · '+(x.banda||''),x.estado||'',x.total!==undefined?clp(x.total):(x.saldo!==undefined?clp(x.saldo):'')].forEach(function(v,i){tr.appendChild(el_('td',i===3?'n':'',v))});t.appendChild(tr)});b.appendChild(t);if(c.lista.length>25)b.appendChild(par('…y '+(c.lista.length-25)+' más.','color:#b5afa6'))}f.appendChild(b)});
@@ -893,10 +908,10 @@ function pintarComp(ms){var t=$('cml');t.textContent='';var gs={};
     var e=btnDel('Eliminar','¿Eliminar esta canción del comparador?',function(){ejecutar('adminEliminarComparador',g)});c.appendChild(e);tr.appendChild(c);t.appendChild(tr)});
   if(!Object.keys(gs).length){var tr=document.createElement('tr');tr.appendChild(td('Aún no hay canciones en el comparador.'));t.appendChild(tr)}}
 function subirComp(f,g,et){return new Promise(function(ok,mal){if(f.size>12*1024*1024){mal(new Error('Un audio pesa más de 12 MB. Expórtalo en mp3.'));return}
-  var r=new FileReader();r.onload=function(){google.script.run.withSuccessHandler(ok).withFailureHandler(mal).adminSubirArchivoAudio({grupo:g,etiqueta:et,b64:r.result})};r.onerror=function(){mal(new Error('No pudimos leer el archivo.'))};r.readAsDataURL(f)})}
+  var r=new FileReader();r.onload=function(){RUN.withSuccessHandler(ok).withFailureHandler(mal).adminSubirArchivoAudio({grupo:g,etiqueta:et,b64:r.result})};r.onerror=function(){mal(new Error('No pudimos leer el archivo.'))};r.readAsDataURL(f)})}
 $('cmg').onclick=function(){var g=$('cmt').value.trim();if(!g){aviso('Escribe el nombre de la canción.');return}
   var ets=['En bruto','Mezclada','Masterizada'],pasos=[1,2,3].map(function(i){var f=$('cf'+i).files[0];return f?(aviso('Subiendo '+ets[i-1]+'…'),subirComp(f,g,ets[i-1])):Promise.resolve($('cm'+i).value.trim())});
-  Promise.all(pasos).then(function(v){google.script.run.withSuccessHandler(function(r){['cmt','cmd','cm1','cm2','cm3'].forEach(function(i){$(i).value=''});['cf1','cf2','cf3'].forEach(function(i){$(i).value=''});pintar(r);aviso('Canción guardada en el comparador ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminGuardarComparador({titulo:g,descripcion:$('cmd').value,bruto:v[0],mezclada:v[1],master:v[2]})}).catch(function(e){aviso(e.message||'No se pudo subir el audio')})};
+  Promise.all(pasos).then(function(v){RUN.withSuccessHandler(function(r){['cmt','cmd','cm1','cm2','cm3'].forEach(function(i){$(i).value=''});['cf1','cf2','cf3'].forEach(function(i){$(i).value=''});pintar(r);aviso('Canción guardada en el comparador ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminGuardarComparador({titulo:g,descripcion:$('cmd').value,bruto:v[0],mezclada:v[1],master:v[2]})}).catch(function(e){aviso(e.message||'No se pudo subir el audio')})};
 var MEZ_I=['Batería','Bajo','Guitarras','Voces','Otros','Completa'],MEZ_E=['En bruto','Mezcla','Master'];
 (function(){var g=$('mzg');MEZ_I.forEach(function(i){MEZ_E.forEach(function(e){var k=i+'|'+e,d=document.createElement('div');d.style.cssText='border:1px solid #333;border-radius:8px;padding:6px';
   var l=document.createElement('label');l.textContent=i+' · '+e;l.style.cssText='display:block;color:#b5afa6;font-size:12px;margin-bottom:3px';
@@ -909,7 +924,7 @@ $('mzb').onclick=function(){var g=$('mzt').value.trim();if(!g){aviso('Escribe el
   var pistas={},cadena=Promise.resolve();
   [].forEach.call(document.querySelectorAll('.mzu'),function(u){var k=u.getAttribute('data-k'),f=document.querySelector('.mzf[data-k="'+k+'"]').files[0];
     cadena=cadena.then(function(){if(f){aviso('Subiendo '+k.replace('|',' · ')+'…');return subirComp(f,g,k.replace('|',' ')).then(function(url){pistas[k]=url})}if(u.value.trim())pistas[k]=u.value.trim()})});
-  cadena.then(function(){google.script.run.withSuccessHandler(function(r){mezLimpiar();pintar(r);aviso('Canción guardada en el mezclador ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminGuardarMezclador({titulo:g,descripcion:$('mzd').value.trim(),pistas:pistas})}).catch(function(e){aviso(e.message||'Error al subir')})};
+  cadena.then(function(){RUN.withSuccessHandler(function(r){mezLimpiar();pintar(r);aviso('Canción guardada en el mezclador ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminGuardarMezclador({titulo:g,descripcion:$('mzd').value.trim(),pistas:pistas})}).catch(function(e){aviso(e.message||'Error al subir')})};
 function pintarMez(ms){var t=$('mzl');t.textContent='';var gs={};
   ms.forEach(function(m){if(m.tipo!=='Mezclador')return;(gs[m.grupo]=gs[m.grupo]||[]).push(m)});
   Object.keys(gs).forEach(function(g){var tr=document.createElement('tr');tr.appendChild(td('🎛️ '+g));tr.appendChild(td(gs[g].length+' pistas'));var c=document.createElement('td');
@@ -938,7 +953,7 @@ function pintarPlanes(ps){var c=$('pls');c.textContent='';$('sinpl').textContent
     var f=document.createElement('div');f.className='fila';f.style.marginTop='6px';
     f.appendChild(btn(p.pagado?'Marcar sin pagar':'Marcar pagado',function(){ejecutar('adminPlanPagado',p.codigo,!p.pagado)},p.pagado?'sec':''));
     if(p.activas<4){var fe=document.createElement('input');fe.type='date';var se=document.createElement('select');se.innerHTML='<option value="">Hora…</option>';
-      fe.onchange=function(){se.textContent='';google.script.run.withSuccessHandler(function(r){se.innerHTML='<option value="">'+(r.inicios.length?'Hora…':'Sin horarios')+'</option>';r.inicios.forEach(function(h){var o=document.createElement('option');o.value=h;o.textContent=h+':00 a '+(h+p.horas)+':00';se.appendChild(o)})}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminDisponibilidad(fe.value,p.horas)};
+      fe.onchange=function(){se.textContent='';RUN.withSuccessHandler(function(r){se.innerHTML='<option value="">'+(r.inicios.length?'Hora…':'Sin horarios')+'</option>';r.inicios.forEach(function(h){var o=document.createElement('option');o.value=h;o.textContent=h+':00 a '+(h+p.horas)+':00';se.appendChild(o)})}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminDisponibilidad(fe.value,p.horas)};
       f.appendChild(fe);f.appendChild(se);f.appendChild(btn('Agregar sesión',function(){if(!fe.value||se.value==='')return aviso('Elige fecha y hora.');ejecutar('adminAgendarSesion',p.codigo,fe.value,se.value)}))}
     d.appendChild(f);c.appendChild(d)})}
 $('plg').onclick=function(){ejecutar('adminCrearPlan',{tipo:$('plt').value,banda:$('plb').value,contacto:$('plc').value,telefono:$('plf').value,correo:$('ple').value,pagado:$('plp').checked});['plb','plc','plf','ple'].forEach(function(i){$(i).value=''});$('plp').checked=false};
@@ -975,7 +990,7 @@ function pintarExtra(d){
 [['banda','Banda o proyecto *'],['genero','Género o estilo'],['formacion','Formación'],['resena','Reseña'],['instagram','Instagram'],['youtube','YouTube'],['ultimo','Link del último trabajo'],['enlace','Spotify u otro enlace'],['telefono','WhatsApp (opcional)'],['correo','Correo (opcional)'],['logo','Logo (enlace https, o sube un archivo abajo)']].forEach(function(x){var i=document.createElement('input');i.placeholder=x[1];i.title=x[1];i.style.cssText='flex:1;min-width:180px';F[x[0]]=i;c.appendChild(i)});
 var fl=document.createElement('input');fl.type='file';fl.accept='image/png,image/jpeg,image/webp';fl.title='Subir logo';c.appendChild(fl);
 c.appendChild(btn('Agregar al cuadro de honor',function(){var o={};Object.keys(F).forEach(function(k){o[k]=F[k].value});
-  function enviar(){google.script.run.withSuccessHandler(function(r){Object.keys(F).forEach(function(k){F[k].value=''});fl.value='';pintar(r);aviso('Banda agregada ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminAgregarHonor(o)}
+  function enviar(){RUN.withSuccessHandler(function(r){Object.keys(F).forEach(function(k){F[k].value=''});fl.value='';pintar(r);aviso('Banda agregada ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminAgregarHonor(o)}
   if(fl.files[0]){redimLogo(fl.files[0]).then(function(b){o.logoB64=b.b64||b;enviar()}).catch(function(er){aviso(er.message)})}else enviar()}))})();
 ejecutar('adminResumen');
 
@@ -996,25 +1011,25 @@ function redimFoto(file){return new Promise(function(ok,mal){if(!/^image\/(png|j
 var FX=[['platos','Set de platos Kingdo SN8'],['bajo','Bajo eléctrico Epiphone Thunderbird'],['squier','Guitarra eléctrica Squier Stratocaster'],['takamine','Guitarra electroacústica Takamine'],['pedalera-bajo','Pedalera multiefecto para bajo'],['pedalera-guitarra','Pedalera multiefecto para guitarra']],FX_OK=false;
 var FP_OK=false;
 function pintarFotoPortada(){if(FP_OK)return;var box=$('fp-box');if(!box)return;FP_OK=true;box.textContent='Cargando…';
-  google.script.run.withSuccessHandler(function(d){var base=(d&&d.base)||'',fotos=Object.assign({},(d&&d.sitio&&d.sitio.fotos)||{}),orig=base+'/assets/fotos/control-panoramica.jpg',cur=fotos.portada||'';box.textContent='';
+  RUN.withSuccessHandler(function(d){var base=(d&&d.base)||'',fotos=Object.assign({},(d&&d.sitio&&d.sitio.fotos)||{}),orig=base+'/assets/fotos/control-panoramica.jpg',cur=fotos.portada||'';box.textContent='';
     var row=el_('div','sitio-foto'),im=el_('img');im.alt='';im.src=cur||orig;im.style.cssText='width:190px;height:110px;object-fit:cover';row.appendChild(im);
     var col=el_('div','sitio-foto-c');col.appendChild(el_('b','','Foto de portada'));
     var lab=el_('label','sitio-subir','📷 '+(cur?'Cambiar foto':'Agregar foto'));var fl=el_('input');fl.type='file';fl.accept='image/png,image/jpeg,image/webp';fl.onchange=function(){if(fl.files[0])subirFoto(fl.files[0],'portada',function(u){cur=u;im.src=u})};lab.appendChild(fl);col.appendChild(lab);
     col.appendChild(btn('Volver a la original',function(){cur='';im.src=orig},'sec'));row.appendChild(col);box.appendChild(row);
     box.appendChild(btn('Guardar foto de portada',function(){var o=Object.assign({},fotos);if(cur)o.portada=cur;else delete o.portada;aviso('Guardando…');
-      google.script.run.withSuccessHandler(function(){aviso('Foto de portada guardada ✔ Se ve en el sitio en unos minutos.');FP_OK=false;pintarFotoPortada()}).withFailureHandler(function(e){aviso(e.message||'No se pudo guardar')}).adminGuardarSitio('fotos',JSON.stringify(o))}))}).withFailureHandler(function(e){FP_OK=false;box.textContent='No se pudo cargar: '+(e.message||'error')}).adminSitioDatos()}
+      RUN.withSuccessHandler(function(){aviso('Foto de portada guardada ✔ Se ve en el sitio en unos minutos.');FP_OK=false;pintarFotoPortada()}).withFailureHandler(function(e){aviso(e.message||'No se pudo guardar')}).adminGuardarSitio('fotos',JSON.stringify(o))}))}).withFailureHandler(function(e){FP_OK=false;box.textContent='No se pudo cargar: '+(e.message||'error')}).adminSitioDatos()}
 function pintarFotosExtras(){if(FX_OK)return;var box=$('fx-box');if(!box)return;FX_OK=true;box.textContent='Cargando fotos…';
-  google.script.run.withSuccessHandler(function(d){var base=(d&&d.base)||'',fotos=Object.assign({},(d&&d.sitio&&d.sitio.fotos)||{}),cur={};box.textContent='';
+  RUN.withSuccessHandler(function(d){var base=(d&&d.base)||'',fotos=Object.assign({},(d&&d.sitio&&d.sitio.fotos)||{}),cur={};box.textContent='';
     FX.forEach(function(x){var k='extra-'+x[0],row=el_('div','sitio-foto'),im=el_('img');im.alt='';cur[k]=fotos[k]||'';im.src=cur[k]||base+'/assets/extras/'+x[0]+'.jpg';row.appendChild(im);
       var col=el_('div','sitio-foto-c');col.appendChild(el_('b','',x[1]));
       var lab=el_('label','sitio-subir','📷 Cambiar foto');var fl=el_('input');fl.type='file';fl.accept='image/png,image/jpeg,image/webp';fl.onchange=function(){if(fl.files[0])subirFoto(fl.files[0],k,function(u){cur[k]=u;im.src=u})};lab.appendChild(fl);col.appendChild(lab);
       col.appendChild(btn('Volver a la original',function(){cur[k]='';im.src=base+'/assets/extras/'+x[0]+'.jpg'},'sec'));row.appendChild(col);box.appendChild(row)});
     box.appendChild(btn('Guardar fotos',function(){var o=Object.assign({},fotos);FX.forEach(function(x){var k='extra-'+x[0];if(cur[k])o[k]=cur[k];else delete o[k]});aviso('Guardando fotos…');
-      google.script.run.withSuccessHandler(function(){aviso('Fotos guardadas ✔');FX_OK=false;pintarFotosExtras()}).withFailureHandler(function(e){aviso(e.message||'No se pudo guardar')}).adminGuardarSitio('fotos',JSON.stringify(o))}))}).withFailureHandler(function(e){FX_OK=false;box.textContent='No se pudieron cargar las fotos: '+(e.message||'error')}).adminSitioDatos()}
-function subirFoto(file,nombre,fin){aviso('Subiendo foto…');redimFoto(file).then(function(b64){google.script.run.withSuccessHandler(function(u){aviso('Foto subida ✔ (recuerda «Guardar cambios»)');fin(u)}).withFailureHandler(function(e){aviso(e.message||'No se pudo subir')}).adminSubirImagenSitio({b64:b64,nombre:nombre})}).catch(function(er){aviso(er.message)})}
+      RUN.withSuccessHandler(function(){aviso('Fotos guardadas ✔');FX_OK=false;pintarFotosExtras()}).withFailureHandler(function(e){aviso(e.message||'No se pudo guardar')}).adminGuardarSitio('fotos',JSON.stringify(o))}))}).withFailureHandler(function(e){FX_OK=false;box.textContent='No se pudieron cargar las fotos: '+(e.message||'error')}).adminSitioDatos()}
+function subirFoto(file,nombre,fin){aviso('Subiendo foto…');redimFoto(file).then(function(b64){RUN.withSuccessHandler(function(u){aviso('Foto subida ✔ (recuerda «Guardar cambios»)');fin(u)}).withFailureHandler(function(e){aviso(e.message||'No se pudo subir')}).adminSubirImagenSitio({b64:b64,nombre:nombre})}).catch(function(er){aviso(er.message)})}
 /* Registra una parte para guardarla con el botón general */
 function tarea(fn){ST.tareas.push(fn)}
-function tareaParte(parte,get){tarea(function(sig,mal){var v=get();google.script.run.withSuccessHandler(function(r){ST.datos.sitio=r;sig()}).withFailureHandler(mal).adminGuardarSitio(parte,JSON.stringify(v))})}
+function tareaParte(parte,get){tarea(function(sig,mal){var v=get();RUN.withSuccessHandler(function(r){ST.datos.sitio=r;sig()}).withFailureHandler(mal).adminGuardarSitio(parte,JSON.stringify(v))})}
 function guardarSeccion(){var ts=ST.tareas.slice();if(!ts.length){aviso('No hay nada que guardar aquí.');return}aviso('Guardando…');
   (function sig(){var t=ts.shift();if(!t){aviso('Guardado ✔ El sitio se actualiza en unos minutos.');return}t(sig,function(e){aviso(e.message||'No se pudo guardar')})})()}
 /* El sitio publicado se lee desde el navegador (sin permisos extra de Google) */
@@ -1022,7 +1037,7 @@ function leerSitioWeb(base,fin){var o={html:'',ficha:null,galeria:null,playlist:
   function g(ruta,json){return fetch(base+'/'+ruta+'?v='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error(String(r.status));return json?r.json():r.text()})}
   Promise.all([g('index.html',false).catch(function(e){o.error='No pude abrir '+base+' ('+(e.message||'sin conexión')+'). Revisa la dirección del sitio.';return ''}),g('data/ficha.json',true).catch(function(){return null}),g('data/galeria.json',true).catch(function(){return null}),g('data/playlist.json',true).catch(function(){return null}),g('data/microfonos.json',true).catch(function(){return null})]).then(function(r){o.html=r[0];o.ficha=r[1];o.galeria=r[2];o.playlist=r[3];o.microfonos=r[4];fin(o)})}
 function cargarSitio(){if(ST.cargando)return;ST.cargando=true;$('sitio-panel').textContent='Leyendo el sitio publicado…';
-  google.script.run.withSuccessHandler(function(d){leerSitioWeb(d.base,function(w){ST.cargando=false;d.html=w.html;d.ficha=w.ficha;d.galeria=w.galeria;d.playlist=w.playlist;d.microfonos=w.microfonos;d.aviso=w.error;ST.datos=d;ST.doc=w.html?new DOMParser().parseFromString(w.html,'text/html'):null;pintarSitio()})}).withFailureHandler(function(e){ST.cargando=false;$('sitio-panel').textContent=e.message||'Error'}).adminSitioDatos()}
+  RUN.withSuccessHandler(function(d){leerSitioWeb(d.base,function(w){ST.cargando=false;d.html=w.html;d.ficha=w.ficha;d.galeria=w.galeria;d.playlist=w.playlist;d.microfonos=w.microfonos;d.aviso=w.error;ST.datos=d;ST.doc=w.html?new DOMParser().parseFromString(w.html,'text/html'):null;pintarSitio()})}).withFailureHandler(function(e){ST.cargando=false;$('sitio-panel').textContent=e.message||'Error'}).adminSitioDatos()}
 function seccionesSitio(){var o=[],ya={};
   SEC_FIJAS.forEach(function(x){o.push({id:x[0],titulo:x[1]});ya[x[0]]=1});
   if(ST.doc)[].forEach.call(ST.doc.querySelectorAll('main > section[id]'),function(x){var id=x.id;if(!ya[id]&&x.querySelector('[data-ed],[data-ed-foto]')){var h=x.querySelector('h2');o.push({id:id,titulo:h?h.textContent.trim():id});ya[id]=1}});return o}
@@ -1046,12 +1061,12 @@ function pintarSitioPanel(){var p=$('sitio-panel'),top=$('sitio-top');if(!ST.dat
   var cab=el_('div','sitio-cab');cab.appendChild(btn('‹ Todas las secciones',volverLista,'sec'));cab.appendChild(el_('h3','',(SEC_ICO[sid]||'')+' '+tit));
   var ver=SEC_VER[sid],va=ver&&aj.filter(function(a){return a.clave===ver})[0];
   if(va){var lb=el_('label','sitio-ver');var ck=el_('input');ck.type='checkbox';ck.checked=va.valor==='SI';ck.setAttribute('data-clave',ver);ck.onchange=function(){ck.value=ck.checked?'SI':'NO'};ck.value=va.valor;lb.appendChild(ck);lb.appendChild(document.createTextNode(' Mostrar esta sección en el sitio'));cab.appendChild(lb);
-    tarea(function(sig,mal){if((ck.checked?'SI':'NO')===va.valor){sig();return}google.script.run.withSuccessHandler(function(){sig()}).withFailureHandler(mal).adminGuardarAjustes(Object.fromEntries([[ver,ck.checked?'SI':'NO']]))})}
+    tarea(function(sig,mal){if((ck.checked?'SI':'NO')===va.valor){sig();return}RUN.withSuccessHandler(function(){sig()}).withFailureHandler(mal).adminGuardarAjustes(Object.fromEntries([[ver,ck.checked?'SI':'NO']]))})}
   top.appendChild(cab);
   var cl=SEC_CFG[sid];
   if(cl){var cc=sCaja('Datos de esta sección');cl.forEach(function(k){var a=aj.filter(function(x){return x.clave===k})[0];if(a)cc.appendChild(campoCfg(a))});p.appendChild(cc);
     if(sid==='contacto')cc.appendChild(par('La dirección y el WhatsApp del negocio se cambian en Configuración → Negocio (así no quedan en dos lugares).','color:#b5afa6;font-size:13px'));
-    tarea(function(sig,mal){var o=cambiados(cc);if(!Object.keys(o).length){sig();return}google.script.run.withSuccessHandler(function(){sig()}).withFailureHandler(mal).adminGuardarAjustes(o)})}
+    tarea(function(sig,mal){var o=cambiados(cc);if(!Object.keys(o).length){sig();return}RUN.withSuccessHandler(function(){sig()}).withFailureHandler(mal).adminGuardarAjustes(o)})}
   var tx=(ST.datos.sitio.textos)||{},ft=(ST.datos.sitio.fotos)||{};
   var els=sx?[].slice.call(sx.querySelectorAll('[data-ed]')):[],fts=sx?[].slice.call(sx.querySelectorAll('[data-ed-foto]')):[];
   if(sid==='inicio'){var h=ST.doc&&ST.doc.querySelector('.hero');if(h){els=els.concat([].slice.call(h.querySelectorAll('[data-ed]')));fts=fts.concat([].slice.call(h.querySelectorAll('[data-ed-foto]')))}}
@@ -1215,13 +1230,13 @@ function pintarPend(){
 /* ---------- Reservas y jornadas ---------- */
 var JOR=null,jv='cal',jmes=null,jsel=null,jfEstado='',jbusca='',jAnu=false;
 var CLASE_EST={'Reservado (sin abono)':'sin','Reservado (con abono)':'con','Finalizada':'fin','No asiste':'noa','Anulada':'anu'};
-function cargarJor(){google.script.run.withSuccessHandler(function(d){JOR=d;if(!jmes)jmes=d.hoy.slice(0,7);pintarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminJornadas()}
+function cargarJor(){RUN.withSuccessHandler(function(d){JOR=d;if(!jmes)jmes=d.hoy.slice(0,7);pintarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminJornadas()}
 /* Cierra una ventana al tocar el fondo, pero solo si el toque empezó y terminó en el fondo (así no se cierra al arrastrar para seleccionar texto). */
 function cierraFuera(d){var md=false;d.onmousedown=function(e){md=e.target===d};d.ontouchstart=function(e){md=e.target===d};d.onclick=function(e){if(e.target===d&&md)d.hidden=true;md=false}}
 var RES_VIEJO=false,RES_T=null;
 function refrescarResumen(){if(!RES_VIEJO)return;RES_VIEJO=false;ejecutar('adminResumen')}
 /* Acción rápida sobre reservas: una sola llamada que devuelve las jornadas; el resumen general se actualiza solo en segundo plano. */
-function jrun(fn){var a=[].slice.call(arguments,1);google.script.run.withSuccessHandler(function(r){JOR=r;if(!jmes)jmes=r.hoy.slice(0,7);pintarJor();RES_VIEJO=true;clearTimeout(RES_T);RES_T=setTimeout(refrescarResumen,12000)}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminRapido(fn,a)}
+function jrun(fn){var a=[].slice.call(arguments,1);RUN.withSuccessHandler(function(r){JOR=r;if(!jmes)jmes=r.hoy.slice(0,7);pintarJor();RES_VIEJO=true;clearTimeout(RES_T);RES_T=setTimeout(refrescarResumen,12000)}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminRapido(fn,a)}
 function mesTxt(m){var n=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];return n[Number(m.slice(5,7))-1]+' '+m.slice(0,4)}
 function sumMes(m,k){var y=Number(m.slice(0,4)),x=Number(m.slice(5,7))+k;if(x<1){x=12;y--}if(x>12){x=1;y++}return y+'-'+String(x).padStart(2,'0')}
 function deDia(f){return(JOR.reservas||[]).filter(function(r){return r.fecha===f&&(jAnu||r.estado!=='Anulada')}).sort(function(a,b){return a.inicio<b.inicio?-1:1})}
@@ -1304,7 +1319,7 @@ function formReag(r){
     if(!l.length){var o=document.createElement('option');o.value='';o.textContent='Sin horario libre ese día';s2.appendChild(o)}nota.textContent=v.fecha?l.length+' horario'+(l.length===1?'':'s')+' disponible'+(l.length===1?'':'s')+' (no se muestran los que quedarían sobre otra reserva o bloqueo).':'';
     if(v.fecha===r.fecha&&l.indexOf(parseInt(r.inicio,10))>=0)s2.value=parseInt(r.inicio,10)}
   i1.onchange=horas;horas();
-  function enviar(exc){google.script.run.withSuccessHandler(function(rr){d.hidden=true;pintar(rr);cargarJor();aviso('Reserva reagendada ✔')}).withFailureHandler(function(e){var m=e.message||'Error';if(/LIMITE/.test(m)&&!exc)confirmarSN(m.replace(/^.*LIMITE:\s*/,'')+' ¿Hacer una excepción y reagendar igual?',function(){enviar(true)},'Sí, hacer excepción');else aviso(m.replace(/^.*(CHOQUE|LIMITE):\s*/,''))}).adminReagendar(r.codigo,i1.value,s2.value,!!exc)}
+  function enviar(exc){RUN.withSuccessHandler(function(rr){d.hidden=true;pintar(rr);cargarJor();aviso('Reserva reagendada ✔')}).withFailureHandler(function(e){var m=e.message||'Error';if(/LIMITE/.test(m)&&!exc)confirmarSN(m.replace(/^.*LIMITE:\s*/,'')+' ¿Hacer una excepción y reagendar igual?',function(){enviar(true)},'Sí, hacer excepción');else aviso(m.replace(/^.*(CHOQUE|LIMITE):\s*/,''))}).adminReagendar(r.codigo,i1.value,s2.value,!!exc)}
   var acc=el_('div','fila');acc.style.marginTop='10px';acc.appendChild(btn('Reagendar',function(){if(s2.value===''){aviso('Elige una hora disponible.');return}if(lim)confirmarSN('Esta reserva ya usó sus '+max+' reagendamientos. ¿Hacer una excepción?',function(){enviar(true)},'Sí, hacer excepción');else enviar(false)}));acc.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
 }
 function formBloq(fecha){
@@ -1315,7 +1330,7 @@ function formBloq(fecha){
   function hs(et,vac){var l=el_('label');l.appendChild(document.createTextNode(et));var s=document.createElement('select');var o0=document.createElement('option');o0.value='';o0.textContent=vac;s.appendChild(o0);for(var h=0;h<=24;h++){var o=document.createElement('option');o.value=h;o.textContent=h+':00';s.appendChild(o)}l.appendChild(s);fm.appendChild(l);return s}
   var s1=hs('Desde','Todo el día'),s2=hs('Hasta','Todo el día');
   var l3=el_('label','full');l3.appendChild(document.createTextNode('Motivo'));var i3=document.createElement('input');i3.maxLength=100;i3.placeholder='Ej. Mantención, tiempo personal…';l3.appendChild(i3);fm.appendChild(l3);f.appendChild(fm);
-  var acc=el_('div','fila');acc.style.marginTop='10px';acc.appendChild(btn('🔒 Bloquear',function(){google.script.run.withSuccessHandler(function(rr){d.hidden=true;pintar(rr);cargarJor();aviso('Bloqueo guardado ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminBloquear(i1.value,s1.value,s2.value,i3.value)}));acc.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
+  var acc=el_('div','fila');acc.style.marginTop='10px';acc.appendChild(btn('🔒 Bloquear',function(){RUN.withSuccessHandler(function(rr){d.hidden=true;pintar(rr);cargarJor();aviso('Bloqueo guardado ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminBloquear(i1.value,s1.value,s2.value,i3.value)}));acc.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
 }
 function R_fecha(f){var d=new Date(f+'T12:00:00Z'),n=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];return n[d.getUTCDay()]+' '+Number(f.slice(8))+' de '+mesTxt(f.slice(0,7)).split(' ')[0].toLowerCase()}
 function diaJor(f){
@@ -1344,7 +1359,7 @@ function editarDe(r){abrirRM({equipos:equiposDe(r),codigo:r.codigo,servicio:/gra
 function confirmaAd(r,delta,ok){
   if(r.estado==='Finalizada'&&delta){var pagada=!r.cobro;confirmarSN('Esta reserva ya está finalizada'+(pagada?' y cobrada':'')+'. El total '+(delta>0?'subirá':'bajará')+' '+clp(Math.abs(delta))+(delta>0?(pagada?' y esa diferencia quedará por cobrar.':'.'):'. Si ya cobraste, devuelve la diferencia al cliente.')+' ¿Continuar?',ok,'Sí, cambiar');return}
   ok()}
-function jrunFicha(codigo,fn,args,msg){google.script.run.withSuccessHandler(function(J){JOR=J;if(!jmes)jmes=J.hoy.slice(0,7);pintarJor();RES_VIEJO=true;clearTimeout(RES_T);RES_T=setTimeout(refrescarResumen,12000);var n=(J.reservas||[]).filter(function(x){return x.codigo===codigo})[0];if(n)fichaJor(n);if(msg)aviso(typeof msg==='function'?msg(n):msg)}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminRapido(fn,args)}
+function jrunFicha(codigo,fn,args,msg){RUN.withSuccessHandler(function(J){JOR=J;if(!jmes)jmes=J.hoy.slice(0,7);pintarJor();RES_VIEJO=true;clearTimeout(RES_T);RES_T=setTimeout(refrescarResumen,12000);var n=(J.reservas||[]).filter(function(x){return x.codigo===codigo})[0];if(n)fichaJor(n);if(msg)aviso(typeof msg==='function'?msg(n):msg)}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminRapido(fn,args)}
 function fichaJor(r){
   var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);
   var cerrada=r.estado==='No asiste'||r.estado==='Anulada';
@@ -1389,7 +1404,7 @@ function fichaJor(r){
   var mas=el_('details','mas-op');mas.appendChild(el_('summary','','Más opciones'));
   if(!cerrada){var ml=el_('div','fila');ml.appendChild(btn('Cambiar valor / comentario',function(){formAjuste(r,false)},'sec'));mas.appendChild(ml)}
   var bc=bloqueCobro(r,d);if(bc)mas.appendChild(bc);
-  mas.appendChild(btnDel('Eliminar','¿Eliminar la reserva '+r.codigo+' de '+r.banda+'? Se borra también de la agenda y no se puede deshacer.',function(){google.script.run.withSuccessHandler(function(){d.hidden=true;aviso('Reserva eliminada');cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminEliminarReserva(r.codigo)}));
+  mas.appendChild(btnDel('Eliminar','¿Eliminar la reserva '+r.codigo+' de '+r.banda+'? Se borra también de la agenda y no se puede deshacer.',function(){RUN.withSuccessHandler(function(){d.hidden=true;aviso('Reserva eliminada');cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminEliminarReserva(r.codigo)}));
   f.appendChild(mas);d.appendChild(f);
 }
 
@@ -1401,7 +1416,7 @@ function formRetencion(r){
   var g=el_('div','aj-grid');var l=el_('label','','Monto que se retiene ($) — 0 = perdonar');var i=el_('input');i.type='number';i.min=0;i.value=r.retenido;l.appendChild(i);g.appendChild(l);
   var ln=el_('label','','Motivo');var nt=el_('input');nt.maxLength=150;nt.placeholder='Ej.: avisó tarde, se perdona la mitad…';ln.appendChild(nt);g.appendChild(ln);f.appendChild(g);
   f.appendChild(el_('div','sub','Lo retenido es lo que entra al balance. La reserva sigue cerrada. Si el abono es mayor, la diferencia queda como «a devolver».'));
-  var acc=el_('div','fila');acc.appendChild(btn('Guardar retención',function(){google.script.run.withSuccessHandler(function(){d.hidden=true;aviso('Retención actualizada ✔');cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminAjustarRetencion(r.codigo,Number(i.value)||0,nt.value)}));
+  var acc=el_('div','fila');acc.appendChild(btn('Guardar retención',function(){RUN.withSuccessHandler(function(){d.hidden=true;aviso('Retención actualizada ✔');cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminAjustarRetencion(r.codigo,Number(i.value)||0,nt.value)}));
   acc.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
 }
 function formAjuste(r,fin){
@@ -1457,7 +1472,7 @@ function listaCli(){
         f.appendChild(btn('Copiar',function(){try{navigator.clipboard.writeText(x.enlace);aviso('Enlace copiado')}catch(e){aviso('Copia el enlace manualmente')}},'sec'));f.appendChild(btn('Cambiar',modoEd,'sec'))}
       else f.appendChild(btn('+ Añadir enlace',modoEd,'sec'))}
     function modoEd(){f.textContent='';var i=document.createElement('input');i.placeholder='https://drive.google.com/…';i.value=x.enlace||'';i.style.cssText='flex:1;min-width:120px';f.appendChild(i);
-      f.appendChild(btn('Guardar',function(){google.script.run.withSuccessHandler(function(){x.enlace=i.value.trim();aviso('Enlace guardado');modoVer()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminGuardarEnlace(x.telefono,i.value.trim())}));f.appendChild(btn('✕',modoVer,'sec'))}
+      f.appendChild(btn('Guardar',function(){RUN.withSuccessHandler(function(){x.enlace=i.value.trim();aviso('Enlace guardado');modoVer()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminGuardarEnlace(x.telefono,i.value.trim())}));f.appendChild(btn('✕',modoVer,'sec'))}
     modoVer();m.appendChild(f);k.appendChild(m);
     var h=el_('div','hist');var h1=el_('span','','Historial: ');h1.appendChild(el_('b','',x.jornadas+' reservas'));var h2=el_('span','','Inversión: ');h2.appendChild(el_('b','',clp(x.gastado)));h.appendChild(h1);h.appendChild(h2);k.appendChild(h);
     if(x.proxima)k.appendChild(el_('small','','Próxima: '+x.proxima));else if(x.ultima)k.appendChild(el_('small','','Última: '+x.ultima));
@@ -1580,7 +1595,7 @@ function pintarRM(){
     function ticket(txt,ck0,fn,id){var l=el_('label','ex-fila-ck');var ck=document.createElement('input');ck.type='checkbox';ck.checked=ck0;ck.onchange=function(){fn(ck.checked);pedirCalc()};l.appendChild(ck);l.appendChild(el_('span','',txt));if(id)l.id=id;return l}
     if(RM.servicio==='ensayo')ARRIENDOS_RM.forEach(function(n){exl.appendChild(ticket('🎸 '+n.split(':')[0]+(n.indexOf(':')>0?' ('+n.split(':')[1].trim()+')':''),RM.equipos.indexOf(n)>=0,function(v){var i=RM.equipos.indexOf(n);if(v&&i<0)RM.equipos.push(n);if(!v&&i>=0)RM.equipos.splice(i,1);RM.extras=RM.equipos.length}))});
     exl.appendChild(ticket('🎥 Video GoPro Hero 13',RM.video,function(v){RM.video=v}));exl.appendChild(ticket('💾 Material en bruto multitrack',RM.raw,function(v){RM.raw=v}));fm.appendChild(ex);fm.appendChild(det);
-    var tcalc=null;function pedirCalc(){clearTimeout(tcalc);det.textContent='Calculando…';tcalc=setTimeout(function(){google.script.run.withSuccessHandler(function(c){pintarDet(det,c)}).withFailureHandler(function(){det.textContent=''}).adminCalcularReserva({servicio:RM.servicio,fecha:RM.fecha,inicio:RM.inicio,horas:RM.horas,extras:RM.extras,video:RM.video,raw:RM.raw})},250)}
+    var tcalc=null;function pedirCalc(){clearTimeout(tcalc);det.textContent='Calculando…';tcalc=setTimeout(function(){RUN.withSuccessHandler(function(c){pintarDet(det,c)}).withFailureHandler(function(){det.textContent=''}).adminCalcularReserva({servicio:RM.servicio,fecha:RM.fecha,inicio:RM.inicio,horas:RM.horas,extras:RM.extras,video:RM.video,raw:RM.raw})},250)}
     pedirCalc();
     campo('comentario','Comentarios','text',true);c.appendChild(fm);
     acc.appendChild(btn('Continuar ›',function(){if(!RM.banda.trim()||!RM.nombre.trim()||!RM.telefono.trim()){aviso('Completa banda, nombre y teléfono.');return}RM.paso=4;pintarRM()}));
@@ -1592,7 +1607,7 @@ function pintarRM(){
 }
 function guardarRM(forzar){
   var p={servicio:RM.servicio,fecha:RM.fecha,inicio:RM.inicio,horas:RM.horas,banda:RM.banda,nombre:RM.nombre,telefono:RM.telefono,correo:RM.correo,estado:RM.estado,total:RM.total,pago:RM.codigo?'':RM.pago,abono:RM.codigo?'':RM.abono,medio:RM.medio,extras:RM.extras,equipos:RM.equipos,video:RM.video,raw:RM.raw,comentario:RM.comentario,forzar:!!forzar,codigoEditar:RM.codigo||''};
-  google.script.run.withSuccessHandler(function(r){$('jdet').hidden=true;aviso('Reserva '+r.codigo+(RM.codigo?' actualizada':' guardada')+(r.desplazadas&&r.desplazadas.length?' · Se liberó el horario de una reserva sin abono: '+r.desplazadas.join(', ')+'. Avísales por WhatsApp.':''));jsel=RM.fecha;jmes=RM.fecha.slice(0,7);cargarJor()}).withFailureHandler(function(e){
+  RUN.withSuccessHandler(function(r){$('jdet').hidden=true;aviso('Reserva '+r.codigo+(RM.codigo?' actualizada':' guardada')+(r.desplazadas&&r.desplazadas.length?' · Se liberó el horario de una reserva sin abono: '+r.desplazadas.join(', ')+'. Avísales por WhatsApp.':''));jsel=RM.fecha;jmes=RM.fecha.slice(0,7);cargarJor()}).withFailureHandler(function(e){
     var m=e.message||'Error';if(/CHOQUE/.test(m)){if(confirm(m.replace(/^.*CHOQUE:\s*/,'')+'\n\n¿Guardar igual?'))guardarRM(true)}else aviso(m)}).adminReservaManual(p);
 }
 /* ---------- Ficha manual de cliente ---------- */
@@ -1605,8 +1620,8 @@ function formCli(x){
   campo('banda','Banda o proyecto *','text',true);campo('enlace','Enlace de Google Drive','url',true,'https://drive.google.com/…');
   var lc=el_('label','full chk');var ck=document.createElement('input');ck.type='checkbox';ck.checked=v.casa;ck.onchange=function(){v.casa=ck.checked};lc.appendChild(ck);lc.appendChild(document.createTextNode(' 🏠 Banda de la casa (reserva semanal): su horario no vence solo y puedes reagendar sin tope'));fm.appendChild(lc);f.appendChild(fm);
   var acc=el_('div','fila');acc.style.marginTop='10px';
-  acc.appendChild(btn('Guardar',function guardarCli(forzar){if(typeof forzar!=='boolean')forzar=false;google.script.run.withSuccessHandler(function(){d.hidden=true;aviso('Cliente guardado');cargarJor()}).withFailureHandler(function(e){var m=e.message||'Error';if(/SIMILAR:/.test(m)){confirmarSN(m.replace(/^.*SIMILAR: ?/,'')+' Si es el mismo, mejor cancela y usa «Fusionar»; si es otro, guarda igual.',function(){guardarCli(true)},'Es otro, guardar')}else aviso(m)}).adminGuardarCliente({forzar:forzar,clave:x.telefono||'',nombre:v.nombre,apellido:v.apellido,correo:v.correo,banda:v.banda,telefono:v.telefono,enlace:v.enlace,casa:v.casa})}));
-  if(x.telefono)acc.appendChild(btnDel('Eliminar','¿Quitar a '+(x.banda||x.contacto)+' de la base de clientes? Sus reservas anteriores se conservan.',function(){google.script.run.withSuccessHandler(function(){d.hidden=true;aviso('Cliente eliminado');cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminEliminarCliente(x.telefono)}));
+  acc.appendChild(btn('Guardar',function guardarCli(forzar){if(typeof forzar!=='boolean')forzar=false;RUN.withSuccessHandler(function(){d.hidden=true;aviso('Cliente guardado');cargarJor()}).withFailureHandler(function(e){var m=e.message||'Error';if(/SIMILAR:/.test(m)){confirmarSN(m.replace(/^.*SIMILAR: ?/,'')+' Si es el mismo, mejor cancela y usa «Fusionar»; si es otro, guarda igual.',function(){guardarCli(true)},'Es otro, guardar')}else aviso(m)}).adminGuardarCliente({forzar:forzar,clave:x.telefono||'',nombre:v.nombre,apellido:v.apellido,correo:v.correo,banda:v.banda,telefono:v.telefono,enlace:v.enlace,casa:v.casa})}));
+  if(x.telefono)acc.appendChild(btnDel('Eliminar','¿Quitar a '+(x.banda||x.contacto)+' de la base de clientes? Sus reservas anteriores se conservan.',function(){RUN.withSuccessHandler(function(){d.hidden=true;aviso('Cliente eliminado');cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminEliminarCliente(x.telefono)}));
   if(x.telefono)acc.appendChild(btn('🧩 Fusionar con otro…',function(){elegirFusion(x)},'sec'));
   acc.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
 }
@@ -1620,7 +1635,7 @@ function importarCli(){
   acc.appendChild(btn('Importar',function(){
     var filas=ta.value.split('\n').map(function(l){return l.split(';')}).filter(function(c){return c.length>=3&&c[0].trim()}).map(function(c){var p=c[0].trim().split(/\s+/),ap=p.length>1?p.pop():'';return{nombre:p.join(' '),apellido:ap,banda:c[1].trim(),telefono:c[2].trim()}});
     if(!filas.length){aviso('No hay líneas válidas.');return}
-    google.script.run.withSuccessHandler(function(r){d.hidden=true;aviso(r.agregados+' clientes agregados'+(r.omitidos.length?' · '+r.omitidos.length+' omitidos: '+r.omitidos.slice(0,3).join(' | '):''));cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminImportarClientes(filas)}));
+    RUN.withSuccessHandler(function(r){d.hidden=true;aviso(r.agregados+' clientes agregados'+(r.omitidos.length?' · '+r.omitidos.length+' omitidos: '+r.omitidos.slice(0,3).join(' | '):''));cargarJor()}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminImportarClientes(filas)}));
   acc.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
 }
 $('cli-import').onclick=function(){if(JOR)importarCli()};
