@@ -674,23 +674,24 @@ t('las horas que Sheets guarda como hora (fecha 1899) se muestran HH:mm y cuenta
   assert.strictEqual(C.horaCelda_(''), '');
 });
 
+const fNA = diaLibre(18, 4, 10);
 t('«No asiste» cobra $5.000 por hora reservada, haya abono o no, y aparece en el resumen contable', () => {
-  const r = g.post(sol({ fecha: sumar(f3, 14), inicio: 18, horas: 2, telefono: '56933334444', banda: 'Faltones', nombre: 'Pedro Soto', correo: 'p@p.cl' })); assert.ok(r.ok, JSON.stringify(r));
+  const r = g.post(sol({ fecha: fNA, inicio: 18, horas: 2, telefono: '56933334444', banda: 'Faltones', nombre: 'Pedro Soto', correo: 'p@p.cl' })); assert.ok(r.ok, JSON.stringify(r));
   g.admin('adminCambiarEstado', r.codigo, 'No asiste');
   const f = g.hoja('Reservas').find((x) => x[0] === r.codigo);
   assert.strictEqual(Number(f[C.RES.retenido - 1]), 10000, 'retenido 2 h x 5.000 aunque no haya abono');
-  const c = g.admin('adminResumenContable', 'mes', sumar(f3, 14).slice(0, 7));
+  const c = g.admin('adminResumenContable', 'mes', fNA.slice(0, 7));
   assert.ok(c.sala.retenidos >= 10000);
 });
 t('ajustar una reserva: descuento, total final, finalizar y balance coherente', () => {
-  const r = g.post(sol({ fecha: sumar(f3, 14), inicio: 20, horas: 2, telefono: '56944445555', banda: 'Descuentos', nombre: 'Rita Mora', correo: 'r@r.cl' })); assert.ok(r.ok, JSON.stringify(r));
+  const r = g.post(sol({ fecha: fNA, inicio: 20, horas: 2, telefono: '56944445555', banda: 'Descuentos', nombre: 'Rita Mora', correo: 'r@r.cl' })); assert.ok(r.ok, JSON.stringify(r));
   g.admin('adminCambiarEstado', r.codigo, 'Reservado (con abono)');
   g.admin('adminAjustarReserva', r.codigo, { descuento: 5000, nota: 'Cliente frecuente', finalizar: true });
   let x = g.admin('adminJornadas').reservas.find((q) => q.codigo === r.codigo);
   assert.strictEqual(x.estado, 'Finalizada'); assert.strictEqual(x.ajuste, 5000); assert.strictEqual(x.total, x.totalOriginal - 5000);
   g.admin('adminAjustarReserva', r.codigo, { totalFinal: x.totalOriginal - 12000, nota: 'Ajuste' });
   x = g.admin('adminJornadas').reservas.find((q) => q.codigo === r.codigo); assert.strictEqual(x.ajuste, 12000);
-  const c = g.admin('adminResumenContable', 'mes', sumar(f3, 14).slice(0, 7)); const d = c.detalle.find((q) => q.codigo === r.codigo);
+  const c = g.admin('adminResumenContable', 'mes', fNA.slice(0, 7)); const d = c.detalle.find((q) => q.codigo === r.codigo);
   assert.strictEqual(d.total, x.totalOriginal - 12000, 'el resumen contable usa el total ajustado');
   assert.throws(() => g.admin('adminAjustarReserva', r.codigo, { descuento: 99999999 }));
   g.admin('adminAjustarReserva', r.codigo, { descuento: 0 }); x = g.admin('adminJornadas').reservas.find((q) => q.codigo === r.codigo); assert.strictEqual(x.total, x.totalOriginal, 'quitar el ajuste restaura el total');
@@ -928,7 +929,7 @@ t('banda de la casa: su reserva sin abono no vence sola y reagenda sin tope; las
   assert.ok(g.admin('adminJornadas').clientes.find((c) => c.telefono === '56933330001').casa, 'queda marcada como casa');
 });
 t('una reserva anulada que se reactiva con abono vuelve a ocupar el horario (y no se pisa si otro lo tomó)', () => {
-  const dia = hab(8);
+  const dia = diaLibre(21, 2, 8);
   const r = g.post(sol({ fecha: dia, inicio: 21, horas: 2, telefono: '56955556666', banda: 'Reactivada', nombre: 'Diego B', correo: 'd@d.cl' })); assert.ok(r.ok, JSON.stringify(r));
   g.admin('adminCambiarEstado', r.codigo, 'Anulada');
   let libres = g.get({ accion: 'disponibilidad', fecha: dia }).libres;
