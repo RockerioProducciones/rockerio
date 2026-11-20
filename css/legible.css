@@ -108,3 +108,20 @@ html[data-tema="rockerio"] :is(#produccion,#nosotros,#galeria,#cotizar){--hl:239
 /* Menú superior con todas las secciones, en el mismo orden que las tarjetas */
 .top nav{gap:.3rem .62rem;flex:1;justify-content:flex-end}.top nav a{font-size:.72rem;letter-spacing:.02em;white-space:nowrap}
 .top nav a[aria-current="page"]{color:var(--oro)}.top nav a[aria-current="page"]::after{transform:scaleX(1)}
+
+/* ---------- Portada: collage de fondo por defecto + logo grande + medidores LED ---------- */
+html .hero,html.rd .hero,html[data-tema] .hero{
+  background:linear-gradient(180deg,rgba(0,0,0,.12) 0%,rgba(0,0,0,.38) 55%,rgba(0,0,0,.82) 100%),var(--portada-url,url(../assets/portada-collage.jpg)) center/cover no-repeat #0a0a0a!important;
+  min-height:clamp(380px,62vh,640px)!important;display:grid;align-content:center;justify-items:center;padding:28px 16px 22px!important}
+html .hero-marca{display:none!important}
+html .hero-in{align-items:center;gap:.7rem}
+html .hero-logo,html.rd .hero-logo,html[data-tema] .hero-logo{content:normal!important;width:min(720px,88%)!important;max-width:none!important;height:auto;background:none!important;border:0!important;padding:0!important;border-radius:0!important;box-shadow:none!important;
+  filter:drop-shadow(0 6px 22px rgba(0,0,0,.85)) drop-shadow(0 0 40px rgba(0,0,0,.6))!important;animation:none!important}
+html .hero h1{text-shadow:0 3px 18px #000,0 0 30px rgba(0,0,0,.7)!important;margin:.1rem 0 0!important}
+html .hero p{text-shadow:0 2px 12px #000!important;color:#f1ece0!important}
+.hero-vu{display:block;width:min(520px,80%);height:auto;aspect-ratio:640/84;margin:.4rem auto 0;filter:drop-shadow(0 4px 14px rgba(0,0,0,.7))}
+.hero-eq{display:none!important}
+@media(max-width:699px){html .hero,html.rd .hero{min-height:clamp(300px,52vh,420px)!important;padding:18px 12px 16px!important}
+  html .hero-logo,html.rd .hero-logo{width:min(560px,94%)!important}.hero-vu{width:86%}}
+html .hero-logo,html.rd .hero-logo,html[data-tema] .hero-logo{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;mix-blend-mode:normal!important;opacity:1!important;outline:0!important}
+html .hero h1,html.rd .hero h1,html[data-tema="rockerio"][lang] .hero h1{background:none!important;-webkit-text-fill-color:#fff!important;color:#fff!important;font-size:clamp(2rem,7vw,3.8rem)!important}
