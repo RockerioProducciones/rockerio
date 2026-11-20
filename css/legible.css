@@ -125,3 +125,15 @@ html .hero p{text-shadow:0 2px 12px #000!important;color:#f1ece0!important}
   html .hero-logo,html.rd .hero-logo{width:min(560px,94%)!important}.hero-vu{width:86%}}
 html .hero-logo,html.rd .hero-logo,html[data-tema] .hero-logo{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;mix-blend-mode:normal!important;opacity:1!important;outline:0!important}
 html .hero h1,html.rd .hero h1,html[data-tema="rockerio"][lang] .hero h1{background:none!important;-webkit-text-fill-color:#fff!important;color:#fff!important;font-size:clamp(2rem,7vw,3.8rem)!important}
+
+/* Cabecera: solo la calavera (sin el texto), del mismo color que el logo de cada tema */
+html .top .marca img{content:url(../assets/marca/calavera-dorado.png)!important;height:50px!important;width:auto!important}
+html.rd.rd[data-tema="medianoche"] .top .marca img{content:url(../assets/marca/calavera-blanco.png)!important}
+html.rd.rd[data-tema="vino"] .top .marca img{content:url(../assets/marca/calavera-rojo.png)!important}
+html.rd.rd[data-tema="bosque"] .top .marca img{content:url(../assets/marca/calavera-blanco.png)!important}
+html.rd.rd[data-tema="cobre"] .top .marca img{content:url(../assets/marca/calavera-rojo.png)!important}
+html.rd.rd[data-tema="grafito"] .top .marca img{content:url(../assets/marca/calavera-blanco.png)!important}
+html.rd.rd[data-tema="azufre"] .top .marca img{content:url(../assets/marca/calavera-dorado.png)!important}
+html.rd.rd[data-tema="abismo"] .top .marca img{content:url(../assets/marca/calavera-dorado.png)!important}
+html.rd.rd[data-tema="ciruela"] .top .marca img{content:url(../assets/marca/calavera-blanco.png)!important}
+html.rd.rd[data-tema="carbon"] .top .marca img{content:url(../assets/marca/calavera-blanco.png)!important}

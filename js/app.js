@@ -29,7 +29,7 @@
     var tx = sitio.textos || {}, ft = sitio.fotos || {};
     [].forEach.call(document.querySelectorAll('[data-ed]'), function (e) { var v = tx[e.getAttribute('data-ed')]; if (typeof v === 'string' && v) conNegritas(e, v); });
     try { if (typeof pintarArriendos === 'function' && $('arriendo-lista')) pintarArriendos(); } catch (e) { /* las fotos originales siguen */ }
-    [].forEach.call(document.querySelectorAll('[data-ed-foto]'), function (e) { var v = ft[e.getAttribute('data-ed-foto')]; if (typeof v === 'string' && /^(https:\/\/|assets\/)/.test(v)) e.src = v; });
+    [].forEach.call(document.querySelectorAll('[data-ed-foto]'), function (e) { var v = ft[e.getAttribute('data-ed-foto')]; if (e.classList.contains('hero-logo')) return; /* el logo de la portada es siempre el blanco sin fondo */ if (typeof v === 'string' && /^(https:\/\/|assets\/)/.test(v)) e.src = v; });
     try { // portada elegida: se recuerda en el equipo para que la próxima visita cargue directo, sin mostrar otra antes
       if (typeof ft.portada === 'string' && /^https:\/\/[^\s"'()\\]+$/.test(ft.portada)) { document.documentElement.style.setProperty('--portada-url', 'url("' + ft.portada + '")'); localStorage.setItem('rk-portada', ft.portada); }
       else { document.documentElement.style.removeProperty('--portada-url'); localStorage.removeItem('rk-portada'); }
