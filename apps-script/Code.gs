@@ -524,6 +524,7 @@ function liberarVencidas_(cfg) {
     if (estadoNorm_(r[RES.estado - 1]) !== EST.SIN_ABONO) return;
     var creada = r[RES.creada - 1];
     if (!(creada instanceof Date) || creada.getTime() > limite) return;
+    if (String(r[RES.plan - 1])) return; // las sesiones de un plan no se sueltan de a una: el plan se confirma o se anula completo
     if (esCasa_(String(r[RES.telefono - 1]), r[RES.banda - 1])) return; // banda de la casa: su horario semanal no vence solo; lo confirmas tú
     if (String(r[RES.pago - 1]) === PAGO_MANUAL || /^Reserva manual/.test(String(r[RES.comentarios - 1]))) return; // la ingresaste tú: nunca se anula sola
     if (String(r[RES.pago - 1]) === PAGO_COMPROBANTE) {

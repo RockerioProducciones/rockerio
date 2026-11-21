@@ -114,7 +114,7 @@ function leerPlanes_() {
     sr.getRange(2, 1, m - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r) {
       var pl = String(r[RES.plan - 1]);
       if (!pl) return;
-      (ses[pl] = ses[pl] || []).push({ codigo: String(r[RES.codigo - 1]), fecha: aFechaIso_(r[RES.fecha - 1]), inicio: horaCelda_(r[RES.inicio - 1]), fin: horaCelda_(r[RES.fin - 1]), estado: estadoNorm_(r[RES.estado - 1]) });
+      (ses[pl] = ses[pl] || []).push({ codigo: String(r[RES.codigo - 1]), fecha: aFechaIso_(r[RES.fecha - 1]), inicio: horaCelda_(r[RES.inicio - 1]), fin: horaCelda_(r[RES.fin - 1]), estado: estadoNorm_(r[RES.estado - 1]), sinPago: String(r[RES.pago - 1]) === PAGO_MANUAL });
     });
   }
   sp.getRange(2, 1, n - 1, PLAN_COLS).getValues().forEach(function (r) {
@@ -123,10 +123,42 @@ function leerPlanes_() {
     out.push({
       codigo: String(r[0]), plan: String(r[2]), horas: Number(r[3]), banda: String(r[4]), contacto: String(r[5]), telefono: String(r[6]),
       correo: String(r[7]), total: Number(r[8]) || 0, pagado: String(r[9]) === 'SI', sesiones: lista,
+      dias: (r[1] instanceof Date) ? Math.floor((Date.now() - r[1].getTime()) / 86400000) : 0,
+      sinPago: lista.some(function (x) { return x.sinPago; }),
       activas: lista.filter(function (x) { return x.estado !== EST.ANULADA; }).length
     });
   });
   return out.reverse();
+}
+
+/** Anula las sesiones aún activas de un plan (libera sus horarios y los borra del calendario). */
+function adminAnularPlan(codigo) {
+  exigirAdmin_();
+  return conBloqueo_(function () {
+    var ss = abrirBd_(), sp = ss.getSheetByName(HOJAS.planes), sr = ss.getSheetByName(HOJAS.reservas);
+    if (!filaPorTexto_(sp, codigo, 1)) throw new Error('Plan no encontrado.');
+    var m = sr.getLastRow(), n = 0;
+    if (m > 1) sr.getRange(2, 1, m - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r, i) {
+      var est = estadoNorm_(r[RES.estado - 1]);
+      if (String(r[RES.plan - 1]) !== String(codigo) || (est !== EST.SIN_ABONO && est !== EST.CON_ABONO)) return; // las ya realizadas o cerradas no se tocan
+      sr.getRange(i + 2, RES.estado).setValue(EST.ANULADA); sincronizarEstado_(sr, i + 2); n++;
+    });
+    return adminResumen();
+  });
+}
+
+/** Banda amiga / pago después: el plan queda confirmado (sus horarios no vencen solos) sin darlo por pagado. */
+function adminPlanSinPago(codigo) {
+  exigirAdmin_();
+  return conBloqueo_(function () {
+    var ss = abrirBd_(), sp = ss.getSheetByName(HOJAS.planes), sr = ss.getSheetByName(HOJAS.reservas);
+    if (!filaPorTexto_(sp, codigo, 1)) throw new Error('Plan no encontrado.');
+    var m = sr.getLastRow();
+    if (m > 1) sr.getRange(2, 1, m - 1, ENCABEZADO_RESERVAS.length).getValues().forEach(function (r, i) {
+      if (String(r[RES.plan - 1]) === String(codigo) && estadoNorm_(r[RES.estado - 1]) === EST.SIN_ABONO) sr.getRange(i + 2, RES.pago).setValue(PAGO_MANUAL);
+    });
+    return adminResumen();
+  });
 }
 
 function infoPlanDe_(fila, cfg) { return Reglas.planInfo(cfg, Number(fila[PL.horas - 1]) === 3 ? 'plan12' : 'plan8'); }

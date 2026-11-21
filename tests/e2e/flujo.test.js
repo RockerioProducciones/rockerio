@@ -220,6 +220,20 @@ t('plan de 8 horas: 4 sesiones, $112.000, pendiente de pago, y se confirma desde
   const sesiones = g.hoja('Reservas').filter((x) => String(x[C.RES.plan - 1]) === cod); assert.strictEqual(sesiones.length, 4); assert.ok(sesiones.every((x) => x[RES('estado')] === 'Reservado (con abono)'));
 });
 
+t('plan: «confirmar sin pago» y «anular plan»; las sesiones de un plan no se sueltan solas', () => {
+  const ds = []; let off = 6; for (let i = 0; i < 4; i++) { let d = diaLibre(20, 2, off); while (ds.includes(d)) d = sumar(d, 1); ds.push(d); off += 2; }
+  const r = g.post({ accion: 'plan', tipo: 'plan8', sesiones: ds.map((f) => ({ fecha: f, inicio: 20 })), banda: 'Amigos', nombre: 'Luz Test', telefono: '56966554433', correo: 'l@t.cl', tyc: true }); assert.ok(r.ok, JSON.stringify(r));
+  const cod = r.codigo, ses = () => g.hoja('Reservas').filter((x) => String(x[C.RES.plan - 1]) === cod);
+  assert.strictEqual(ses().length, 4);
+  g.avanzar(26 * 60 * 1000); C.liberarPendientes(); // con «liberar solo» activo, un plan no se suelta de a una sesión
+  assert.ok(ses().every((x) => x[RES('estado')] !== 'Anulada'), 'el plan sigue completo');
+  g.admin('adminPlanSinPago', cod);
+  assert.ok(ses().every((x) => x[C.RES.pago - 1] === 'MANUAL'), 'sesiones marcadas como confirmadas sin pago');
+  const pl = g.admin('adminResumen').planes.filter((x) => x.codigo === cod)[0]; assert.ok(pl && !pl.pagado && pl.sinPago, 'figura sin pagar pero acordado');
+  g.admin('adminAnularPlan', cod);
+  assert.ok(ses().every((x) => x[RES('estado')] === 'Anulada'), 'las 4 sesiones anuladas');
+  const libre = g.post({ accion: 'reservar', servicio: 'ensayo', fecha: ds[0], inicio: 20, horas: 2, banda: 'Otra', nombre: 'Otro T', telefono: '56911110000', correo: 'o@t.cl', tyc: true }); assert.ok(libre.ok, 'el horario volvió a quedar libre: ' + JSON.stringify(libre));
+});
 console.log('\n== 9. Tienda, ventas y socios ==');
 let tok;
 t('producto nuevo en música: guardar, ver en sitio, vender en efectivo descuenta stock', () => {

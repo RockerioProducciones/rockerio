@@ -1058,10 +1058,12 @@ $('prg').onclick=function(){ejecutar('adminGuardarPresentacion',$('prt').value,$
 function pintarPlanes(ps){var c=$('pls');c.textContent='';$('sinpl').textContent=ps.length?'':'Aún no hay planes.';
   ps.forEach(function(p){var d=caja();
     d.appendChild(par(p.plan+' · '+p.banda+' · '+p.contacto+' · +'+p.telefono+' · '+clp(p.total)+' · '+p.codigo,'font-weight:700'));
-    var cuota=par('Cuota '+p.activas+' de 4 · '+(p.pagado?'Pagado':'Sin pagar'),'margin:2px 0;color:'+(p.pagado?'#4ade80':'#FCC631'));d.appendChild(cuota);
+    var cuota=par('Cuota '+p.activas+' de 4 · '+(p.pagado?'Pagado':(p.sinPago?'Confirmado sin pago (acordado)':'Sin pagar'+(p.activas&&p.dias>=3?' · ⏳ hace '+p.dias+' días':''))),'margin:2px 0;color:'+(p.pagado?'#4ade80':'#FCC631'));d.appendChild(cuota);
     p.sesiones.forEach(function(s){d.appendChild(par('• '+s.fecha+' '+s.inicio+'–'+s.fin+' · '+s.estado+' ('+s.codigo+')','color:#b5afa6;font-size:.9em'))});
     var f=document.createElement('div');f.className='fila';f.style.marginTop='6px';
     f.appendChild(btn(p.pagado?'Marcar sin pagar':'Marcar pagado',function(){ejecutar('adminPlanPagado',p.codigo,!p.pagado)},p.pagado?'sec':''));
+    if(!p.pagado&&!p.sinPago&&p.activas)f.appendChild(btn('Confirmar sin pago',function(){if(confirm('¿Confirmar este plan sin pago (acordado)? Las sesiones quedan guardadas y no se darán por pagadas.'))ejecutar('adminPlanSinPago',p.codigo)},'sec'));
+    if(p.activas)f.appendChild(btn('Anular plan',function(){if(confirm('¿Anular este plan? Se liberan sus sesiones pendientes y se borran del calendario. Las ya realizadas no se tocan.'))ejecutar('adminAnularPlan',p.codigo)},'sec'));
     if(p.activas<4){var fe=document.createElement('input');fe.type='date';var se=document.createElement('select');se.innerHTML='<option value="">Hora…</option>';
       fe.onchange=function(){se.textContent='';RUN.withSuccessHandler(function(r){se.innerHTML='<option value="">'+(r.inicios.length?'Hora…':'Sin horarios')+'</option>';r.inicios.forEach(function(h){var o=document.createElement('option');o.value=h;o.textContent=h+':00 a '+(h+p.horas)+':00';se.appendChild(o)})}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminDisponibilidad(fe.value,p.horas)};
       f.appendChild(fe);f.appendChild(se);f.appendChild(btn('Agregar sesión',function(){if(!fe.value||se.value==='')return aviso('Elige fecha y hora.');ejecutar('adminAgendarSesion',p.codigo,fe.value,se.value)}))}
