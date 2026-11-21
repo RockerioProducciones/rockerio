@@ -892,7 +892,7 @@ t('«Mantener 12 h»: el horario sin abono no vence antes de ese plazo', () => {
   assert.throws(() => g.admin('adminMantenerHorario', 'RP-NOEXISTE'), /No se encontró/);
 });
 t('reagendar nunca va al pasado ni fuera del horario de atención (ni con la excepción del límite)', () => {
-  let dia = sumar(f3, 9); while ([4, 6, 0].indexOf(new Date(dia + 'T12:00:00Z').getUTCDay()) >= 0) dia = sumar(dia, 1);
+  const dia = diaLibre(21, 1, 9);
   const r = g.post(sol({ fecha: dia, inicio: 21, horas: 1, telefono: '56922223333', banda: 'Mueve', nombre: 'Tito R', correo: 't@t.cl' })); assert.ok(r.ok, JSON.stringify(r));
   assert.throws(() => g.admin('adminReagendar', r.codigo, sumar(hoy, -2), 18, true), /FECHA/);
   assert.throws(() => g.admin('adminReagendar', r.codigo, dia, 3, true), /FUERA_HORARIO/);

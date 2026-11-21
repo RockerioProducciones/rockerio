@@ -42,13 +42,13 @@
       RK.calendario({ cont: $('plan-cal'), hoy: hoy, dias: agenda, horas: function () { return plan.horasPorSesion; }, elegida: function () { return fecha; },
         deshabilitada: function (f) { return sel.some(function (s) { return s.fecha === f; }); }, alElegir: function (f) { fecha = f; pintar(); } });
       var h = $('plan-horas'); h.textContent = '';
-      if (fecha) RK.bloques(h, agenda[fecha].libres, plan.horasPorSesion, function (ini) { sel.push({ fecha: fecha, inicio: ini }); sel.sort(function (a, b) { return a.fecha < b.fecha ? -1 : 1; }); fecha = null; pintar(); }, null, agenda[fecha].abiertas);
+      if (fecha) RK.bloques(h, agenda[fecha].libres, plan.horasPorSesion, function (ini) { sel.push({ fecha: fecha, inicio: ini }); sel.sort(function (a, b) { return a.fecha < b.fecha ? -1 : 1; }); fecha = null; $('plan-cal')._sem = undefined; pintar(); (sel.length === plan.sesiones ? $('f-plan') : $('plan-cal')).scrollIntoView({ behavior: 'smooth', block: 'start' }); }, null, agenda[fecha].abiertas);
       else h.appendChild(el('p', 'nota', 'Elige un día para ver los horarios de la sesión ' + (sel.length + 1) + '.'));
     }
     var ul = $('plan-lista'); ul.textContent = '';
     sel.forEach(function (s, i) {
       var li = el('li', '', 'Sesión ' + (i + 1) + ': ' + R.fechaLarga(s.fecha) + ', ' + R.horaTxt(s.inicio) + ' a ' + R.horaTxt(s.inicio + plan.horasPorSesion) + ' ');
-      var q = el('button', 'btn chico', 'Quitar'); q.type = 'button'; q.addEventListener('click', function () { sel.splice(i, 1); pintar(); }); li.appendChild(q); ul.appendChild(li);
+      var q = el('button', 'btn chico', 'Quitar'); q.type = 'button'; q.addEventListener('click', function () { sel.splice(i, 1); $('plan-cal')._sem = undefined; pintar(); }); li.appendChild(q); ul.appendChild(li);
     });
   }
 
