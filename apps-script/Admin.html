@@ -377,6 +377,7 @@ section.tab-off{display:none!important}
 <section><h2>Reservas</h2><div id="pend"></div></section>
 <section><h2>Planes mensuales</h2>
 <p style="color:#b5afa6;margin:0 0 .5em">Un plan son 4 sesiones. Si el cliente lo compra en el sitio, sus 4 sesiones llegan solas. Si lo vendes tú, créalo aquí («0 de 4») y ve agregando las fechas.</p>
+<div class="fila"><input id="plbus" list="pl-lista" placeholder="🔍 Buscar cliente existente (banda, nombre o teléfono)" style="flex:1 1 100%;min-width:220px" autocomplete="off"><datalist id="pl-lista"></datalist></div>
 <div class="fila"><select id="plt"><option value="plan8">Plan 8 horas (4 × 2 h)</option><option value="plan12">Plan 12 horas (4 × 3 h)</option></select>
 <input id="plb" placeholder="Banda" maxlength="60" style="width:140px"><input id="plc" placeholder="Contacto" maxlength="60" style="width:140px">
 <input id="plf" placeholder="WhatsApp" style="width:130px"><input id="ple" placeholder="Correo" style="flex:1;min-width:150px"><label><input type="checkbox" id="plp"> Ya pagó</label><button id="plg">Crear plan</button></div>
@@ -1065,6 +1066,10 @@ function pintarPlanes(ps){var c=$('pls');c.textContent='';$('sinpl').textContent
       fe.onchange=function(){se.textContent='';RUN.withSuccessHandler(function(r){se.innerHTML='<option value="">'+(r.inicios.length?'Hora…':'Sin horarios')+'</option>';r.inicios.forEach(function(h){var o=document.createElement('option');o.value=h;o.textContent=h+':00 a '+(h+p.horas)+':00';se.appendChild(o)})}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminDisponibilidad(fe.value,p.horas)};
       f.appendChild(fe);f.appendChild(se);f.appendChild(btn('Agregar sesión',function(){if(!fe.value||se.value==='')return aviso('Elige fecha y hora.');ejecutar('adminAgendarSesion',p.codigo,fe.value,se.value)}))}
     d.appendChild(f);c.appendChild(d)})}
+function plEtq(x){return (x.banda||'(sin banda)')+' · '+x.contacto+' · +'+x.telefono}
+function plLista(){var dl=$('pl-lista');if(!dl)return;dl.textContent='';(JOR.clientes||[]).forEach(function(x){var o=document.createElement('option');o.value=plEtq(x);dl.appendChild(o)})}
+$('plbus').onfocus=plLista;
+$('plbus').onchange=function(){var v=$('plbus').value,x=(JOR.clientes||[]).filter(function(c){return plEtq(c)===v})[0];if(x){$('plb').value=x.banda||'';$('plc').value=x.contacto||'';$('plf').value=/^MAN-/.test(x.telefono)?'':'+'+x.telefono;$('ple').value=x.correo||'';$('plbus').value=''}};
 $('plg').onclick=function(){ejecutar('adminCrearPlan',{tipo:$('plt').value,banda:$('plb').value,contacto:$('plc').value,telefono:$('plf').value,correo:$('ple').value,pagado:$('plp').checked});['plb','plc','plf','ple'].forEach(function(i){$(i).value=''});$('plp').checked=false};
 function pintarExtra(d){
   pintarPlanes(d.planes||[]);pintarPend();
