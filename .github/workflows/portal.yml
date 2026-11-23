@@ -4,6 +4,9 @@ on:
     branches: [main]
     paths: ['apps-script/**']
   workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
 jobs:
   desplegar:
     runs-on: ubuntu-latest
@@ -27,3 +30,9 @@ jobs:
           clasp version "auto ${{ github.sha }}" | tee v.txt
           V=$(grep -o '[0-9]\+' v.txt | tail -1)
           for ID in ${{ vars.DEPLOY_ID_PUBLICO }} ${{ vars.DEPLOY_ID_ADMIN }}; do clasp deploy -i "$ID" -V "$V" -d "auto $V"; done
+      - name: Si algo falló, dejar un aviso visible (GitHub lo envía por correo)
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create --repo "${{ github.repository }}" --title "⚠ No se pudo publicar el portal ($(date +%F))" --body "La publicación automática del portal (Apps Script) falló. El sitio puede verse actualizado, pero el portal quedó en la versión anterior. Revisa el detalle en: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}. Causas comunes: pruebas que fallaron (no se publica nada) o la autorización de Google (CLASPRC_JSON) vencida."

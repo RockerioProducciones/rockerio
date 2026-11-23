@@ -17,16 +17,16 @@
 <link rel="icon" href="assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=202611231705">
-<link rel="stylesheet" href="css/temas.css?v=202611231705">
-<link rel="stylesheet" href="css/movil.css?v=202611231705">
-<link rel="stylesheet" href="css/clasico.css?v=202611231705">
-<link rel="stylesheet" href="css/pulido.css?v=202611231705">
-<link rel="stylesheet" href="css/produccion.css?v=202611231705">
-<link rel="stylesheet" href="css/legible.css?v=202611231705">
+<link rel="stylesheet" href="css/styles.css?v=202611231712">
+<link rel="stylesheet" href="css/temas.css?v=202611231712">
+<link rel="stylesheet" href="css/movil.css?v=202611231712">
+<link rel="stylesheet" href="css/clasico.css?v=202611231712">
+<link rel="stylesheet" href="css/pulido.css?v=202611231712">
+<link rel="stylesheet" href="css/produccion.css?v=202611231712">
+<link rel="stylesheet" href="css/legible.css?v=202611231712">
 <script>(function(){try{var q=/[?&]rediseno=(\d)/.exec(location.search);if(q)localStorage.setItem('rk-rd',q[1]);if(localStorage.getItem('rk-rd')!=='0'){document.documentElement.classList.add('rd');['css/rediseno.css','https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap'].forEach(function(h){var l=document.createElement('link');l.rel='stylesheet';l.href=h;document.head.appendChild(l)})}}catch(e){}})()</script>
 <script>try{var _p=localStorage.getItem("rk-portada");if(/^https:\/\/[^\s"'()\\]+$/.test(_p||""))document.documentElement.style.setProperty("--portada-url","url(\""+_p+"\")")}catch(e){}</script>
-<script src="js/tema.js?v=202611231705"></script><script src="js/teclado.js?v=202611231705" defer></script>
+<script src="js/tema.js?v=202611231712"></script><script src="js/teclado.js?v=202611231712" defer></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;800&family=Nunito:wght@400;700&family=Space+Mono:wght@400;700&family=Archivo+Black&family=Bebas+Neue&family=Big+Shoulders+Display:wght@800;900&family=Poppins:wght@400;600&display=swap"></head>
 <body>
 <div id="aviso" class="aviso" hidden></div>
@@ -324,6 +324,26 @@
   <p class="vv-cta"><a id="vivo-wsp" class="btn" href="#" target="_blank" rel="noopener">Consultar por WhatsApp</a> <a class="btn sec" href="#ficha" data-ed="vivo.ficha" data-ed-l="En vivo: botón ficha técnica">Ver ficha técnica de la sala</a></p>
 </section>
 
+<section id="privacidad" class="sec"><h2>Privacidad y datos personales</h2>
+  <div class="reglamento">
+    <p><small>Última actualización: 23 de noviembre de 2026.</small></p>
+    <h3>¿Quién cuida tus datos?</h3>
+    <p>Rockerío Producciones (Juan Carlos Retamal González), sala de ensayo y estudio de grabación en Quinta Normal, Santiago.</p>
+    <h3>¿Qué datos guardamos?</h3>
+    <p>Los que escribes al reservar o escribirnos: nombre, nombre de tu banda o proyecto, teléfono (WhatsApp), correo y los comentarios que nos dejes. También guardamos tus reservas, pagos y, si los usamos para tu proyecto, los enlaces a los archivos que compartes con nosotros.</p>
+    <h3>¿Para qué los usamos?</h3>
+    <p>Solo para gestionar tus reservas y planes, confirmarte horarios, enviarte recordatorios y el material de tu sesión, cobrar y llevar nuestra contabilidad. No vendemos ni cedemos tus datos a terceros con fines comerciales.</p>
+    <h3>¿Dónde se guardan?</h3>
+    <p>En herramientas de Google (hoja de cálculo, calendario y Drive) de nuestra cuenta de administración, protegidas con acceso privado. Si pagas en línea, el pago lo procesa Mercado Pago; nosotros no vemos ni guardamos los datos de tu tarjeta. Para escribirte usamos WhatsApp y correo.</p>
+    <h3>En tu propio celular</h3>
+    <p>Para que no tengas que escribir todo de nuevo, este sitio recuerda en <b>tu dispositivo</b> tu nombre, teléfono y correo, y tus preferencias de diseño. Esa información no sale de tu celular y puedes borrarla desde la configuración de tu navegador.</p>
+    <h3>¿Cuánto tiempo los guardamos?</h3>
+    <p>Mientras seas cliente o sea necesario por razones de contabilidad. Si dejas de trabajar con nosotros, puedes pedir que los borremos.</p>
+    <h3>Tus derechos</h3>
+    <p>Puedes pedirnos ver tus datos, corregirlos, que los eliminemos o que dejemos de usarlos. Escríbenos por WhatsApp o por el correo que aparece en la sección Contacto y lo resolvemos a la brevedad.</p>
+  </div>
+</section>
+
 <section id="reglamento" class="sec"><h2>Reglamento interno</h2><div id="reglamento-in" class="reglamento"></div></section>
 
 <section id="galeria" class="sec"><h2>Galería</h2><div id="galeria-info"></div><div id="galeria-car" class="carr-caja"></div><div class="playlist caja" data-playlist hidden></div><div id="galeria-in" class="galeria"></div></section>
@@ -359,16 +379,16 @@
 </section>
 </main>
 
-<footer><p class="pie-chips"><span class="chip-ok">● Agenda oficial Rockerío conectada</span></p><img src="assets/marcas/calavera.png" alt="ROCKERÍO Producciones"> <span id="pie"></span></footer>
+<footer><p class="pie-chips"><span class="chip-ok">● Agenda oficial Rockerío conectada</span></p><img src="assets/marcas/calavera.png" alt="ROCKERÍO Producciones"> <span id="pie"></span> · <a href="#privacidad" data-vista="privacidad">Privacidad</a></footer>
 
-<script src="js/config.js?v=202611231705"></script>
-<script src="js/reglas.js?v=202611231705"></script>
-<script src="js/app.js?v=202611231705"></script>
-<script src="js/planes.js?v=202611231705"></script>
-<script src="js/mezclador.js?v=202611231705"></script>
-<script src="js/contenido.js?v=202611231705"></script>
-<script src="js/pasos.js?v=202611231705"></script>
-<script src="js/vu.js?v=202611231705" defer></script><script src="js/inicio.js?v=202611231705" defer></script><script src="js/vistas.js?v=202611231705"></script><script src="js/visitas.js?v=202611231705" defer></script>
+<script src="js/config.js?v=202611231712"></script>
+<script src="js/reglas.js?v=202611231712"></script>
+<script src="js/app.js?v=202611231712"></script>
+<script src="js/planes.js?v=202611231712"></script>
+<script src="js/mezclador.js?v=202611231712"></script>
+<script src="js/contenido.js?v=202611231712"></script>
+<script src="js/pasos.js?v=202611231712"></script>
+<script src="js/vu.js?v=202611231712" defer></script><script src="js/inicio.js?v=202611231712" defer></script><script src="js/vistas.js?v=202611231712"></script><script src="js/visitas.js?v=202611231712" defer></script>
 <script>(function(){var h=document.querySelector(".hero-marca");if(!h||matchMedia("(prefers-reduced-motion:reduce)").matches)return;addEventListener("scroll",function(){h.style.setProperty("--par",Math.min(scrollY*.12,60)+"px")},{passive:true})})();</script>
 </body>
 </html>

@@ -1051,5 +1051,10 @@ t('el portal anota en una hoja los guardados que fallan o se reintentan', () => 
   g.admin('adminRegistrarError', 'adminGuardarCliente', 'El sistema está ocupado. Intenta de nuevo.', 2, 'iPhone Safari');
   const fila = g.hoja('ErroresPortal').slice(-1)[0]; assert.ok(fila && /ocupado/.test(fila[2]) && fila[1] === 'adminGuardarCliente' && fila[3] === 2);
 });
+t('revisión nocturna: avisa si quedan pocos correos o hay muchos errores de guardado; si todo está bien, no molesta', () => {
+  g.estado.correos.length = 0; assert.strictEqual(C.vigilarLimites(), 0); assert.strictEqual(g.estado.correos.length, 0);
+  for (let i = 0; i < 5; i++) g.admin('adminRegistrarError', 'adminGuardarCliente', 'prueba ' + i, 1, 'test');
+  assert.strictEqual(C.vigilarLimites(), 1); assert.ok(g.estado.correos.some((c) => /revisión nocturna/.test(c.subject)));
+});
 
 console.log('\n' + ok + ' pasos correctos, ' + fallas + ' con falla.');

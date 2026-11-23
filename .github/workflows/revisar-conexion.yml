@@ -1,0 +1,31 @@
+name: Revisar conexión con Google (semanal)
+# Cada lunes comprueba que la autorización que usa el despliegue automático siga vigente.
+# Si venció, deja un aviso (GitHub lo envía por correo) antes de que falle una publicación importante.
+on:
+  schedule:
+    - cron: '17 12 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+jobs:
+  revisar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm install -g @google/clasp@2
+      - name: Credenciales
+        run: echo '${{ secrets.CLASPRC_JSON }}' > ~/.clasprc.json
+      - name: Comprobar acceso al proyecto
+        run: |
+          cd apps-script
+          echo '{"scriptId":"${{ vars.SCRIPT_ID }}","rootDir":"."}' > .clasp.json
+          clasp deployments
+      - name: Si falló, dejar un aviso visible
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create --repo "${{ github.repository }}" --title "⚠ La conexión con Google del despliegue automático necesita renovarse" --body "La revisión semanal no pudo entrar al proyecto de Apps Script. Hay que volver a autorizar clasp y actualizar el secreto CLASPRC_JSON. Detalle: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

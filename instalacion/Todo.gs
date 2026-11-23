@@ -1341,6 +1341,9 @@ function asegurarEsquema_(ss) {
     if (!props.getProperty('MIG_AVISOS_1')) { // avisos por correo: diario (pendientes de pago) y semanal (ingresos por cuenta)
       try { asegurarAvisos_(); props.setProperty('MIG_AVISOS_1', '1'); } catch (e) { /* se reintenta en la próxima carga */ }
     }
+    if (!props.getProperty('MIG_LIMITES_1')) { // revisión nocturna de límites de Google y errores del portal
+      try { asegurarAvisos_(); props.setProperty('MIG_LIMITES_1', '1'); } catch (e) { /* se reintenta en la próxima carga */ }
+    }
     if (!props.getProperty('MIG_HONOR_1')) {
       var hc = ss.getSheetByName(HOJAS.config), nh = hc ? hc.getLastRow() : 0;
       if (nh > 1) {
@@ -5479,7 +5482,24 @@ function resumenSemanal() {
 function asegurarAvisos_() {
   var hay = {}; ScriptApp.getProjectTriggers().forEach(function (t) { hay[t.getHandlerFunction()] = true; });
   if (!hay.avisoPorAbonar) ScriptApp.newTrigger('avisoPorAbonar').timeBased().everyDays(1).atHour(9).create();
+  if (!hay.vigilarLimites) ScriptApp.newTrigger('vigilarLimites').timeBased().everyDays(1).atHour(20).create();
   if (!hay.resumenSemanal) ScriptApp.newTrigger('resumenSemanal').timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(8).create();
+}
+
+/** Cada noche: avisa si quedan pocos correos del día en la cuenta de Google o si el portal anotó varios errores de guardado. Solo lee; no cambia datos. */
+function vigilarLimites() {
+  var avisos = [];
+  try { var q = MailApp.getRemainingDailyQuota(); if (q < 30) avisos.push('Quedan solo ' + q + ' correos disponibles hoy en la cuenta de Google (el tope diario es ~100). Los avisos automáticos podrían dejar de enviarse.'); } catch (e) { /* sin dato */ }
+  try {
+    var sh = abrirBd_().getSheetByName('ErroresPortal'), n = sh ? sh.getLastRow() : 0;
+    if (n > 1) {
+      var desde = Utilities.formatDate(new Date(Date.now() - 24 * 3600000), 'America/Santiago', 'yyyy-MM-dd HH:mm:ss');
+      var recientes = sh.getRange(2, 1, n - 1, 3).getValues().filter(function (r) { return String(r[0]) >= desde; });
+      if (recientes.length >= 5) avisos.push('El portal anotó ' + recientes.length + ' errores o reintentos de guardado en las últimas 24 horas. Última: ' + recientes[recientes.length - 1][1] + ' — ' + recientes[recientes.length - 1][2] + '. Detalle en la pestaña «ErroresPortal» del Sheet.');
+    }
+  } catch (e2) { /* sin dato */ }
+  if (avisos.length) avisarAdmin_('Rockerío · revisión nocturna', avisos.join('\n\n'));
+  return avisos.length;
 }
 
 /* ===== Organizar ===== */

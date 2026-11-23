@@ -50,3 +50,22 @@ Además hay dos portales aparte: uno para el colega ProAudix y otro de agenda pa
 ## Qué hace falta para operarlo
 
 Solo una cuenta Google (con verificación en dos pasos activada), el dominio del sitio y revisar el portal a diario: reservas por confirmar, cobros pendientes y sesiones por cerrar. El portal indica con avisos qué requiere atención.
+
+## Novedades de noviembre de 2026
+
+- **Celular:** un solo menú, la barra inferior (Reservar, Producción, Ficha técnica, Planes, Tienda, Cuadro de honor y «Más»), siempre visible.
+- **Teléfonos:** se acomodan solos a celular chileno (569 + 8 dígitos); los números extranjeros se aceptan solo si se activa en Configuración. Los nombres de personas quedan con mayúsculas bien puestas.
+- **Clientes:** «Revisar datos» muestra teléfonos por corregir, correos que parecen mal escritos y posibles clientes repetidos (se unen a mano con «Fusionar»); vista de banda con varios integrantes; el teléfono de una ficha se puede corregir y arrastra sus reservas y planes.
+- **Planes mensuales:** botón «Enviar confirmación» por WhatsApp con las 4 fechas, condiciones de cambio y enlace al sitio (el texto se edita en Configuración).
+- **Bandas de la casa (🏠):** reservan sin abono («pagas en sala»), sin tope de pendientes, y nada se libera solo.
+- **Estados en el calendario:** verde claro = abono pagado; verde oscuro = finalizada y cobrada.
+- **Guardados que fallan:** el portal reintenta solo si el sistema está ocupado y anota cada error en la pestaña «ErroresPortal» del Sheet.
+
+## Seguridad y mantenimiento (lista de revisión)
+
+1. **Cuenta de Google del dueño** (de ella cuelga todo): activar la verificación en dos pasos, guardar los códigos de recuperación y tener un teléfono o correo de recuperación al día. Es lo más importante.
+2. **Avisos automáticos:** cada noche (20:00) el sistema revisa los límites de correo de Google y los errores del portal y avisa por correo solo si hay algo que mirar. Cada lunes, GitHub comprueba que la conexión del despliegue automático siga vigente; si falla, deja un aviso (llega por correo) en la pestaña «Issues» del repositorio. Lo mismo si una publicación del portal falla.
+3. **Respaldos:** copia diaria automática y puntos de restauración (ramas `estable-…` y `respaldo-…`). Antes de cambios grandes se crea uno nuevo.
+4. **Pruebas en dispositivos reales** tras cambios visuales: iPhone (Safari), un Android, y reservar con el teclado abierto (barra inferior, botón «Siguiente»).
+5. **Datos personales:** el sitio tiene una página «Privacidad» (enlace al pie) con un texto base. Conviene que lo revise un abogado o asesor, sobre todo ante la nueva ley chilena de protección de datos personales (verificar su fecha de entrada en vigencia).
+6. **Pendientes de configuración del dueño:** Mercado Pago (para confirmar abonos solos), audios del catálogo de micrófonos, activar «Rockerío en vivo», y comparar el Balance del Sheet con el del portal.

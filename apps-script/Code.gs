@@ -737,6 +737,9 @@ function asegurarEsquema_(ss) {
     if (!props.getProperty('MIG_AVISOS_1')) { // avisos por correo: diario (pendientes de pago) y semanal (ingresos por cuenta)
       try { asegurarAvisos_(); props.setProperty('MIG_AVISOS_1', '1'); } catch (e) { /* se reintenta en la próxima carga */ }
     }
+    if (!props.getProperty('MIG_LIMITES_1')) { // revisión nocturna de límites de Google y errores del portal
+      try { asegurarAvisos_(); props.setProperty('MIG_LIMITES_1', '1'); } catch (e) { /* se reintenta en la próxima carga */ }
+    }
     if (!props.getProperty('MIG_HONOR_1')) {
       var hc = ss.getSheetByName(HOJAS.config), nh = hc ? hc.getLastRow() : 0;
       if (nh > 1) {
