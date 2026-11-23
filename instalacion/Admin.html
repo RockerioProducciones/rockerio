@@ -1631,6 +1631,15 @@ function panelRevisar(c){
   box.appendChild(el_('h4','','Teléfonos por corregir ('+malos.length+')'));
   if(!malos.length)box.appendChild(par('Todos los teléfonos son celulares de Chile válidos ✔','color:#4ade80'));
   malos.forEach(function(x){var f=el_('div','fila');f.style.cssText='align-items:center;margin:.2rem 0';f.appendChild(el_('span','',(x.banda||'(sin banda)')+' · '+(x.contacto||'')+' · +'+x.telefono));f.appendChild(btn('Editar',function(){formCli(x)},'sec'));box.appendChild(f)});
+  var DOM=['gmail.com','hotmail.com','outlook.com','yahoo.com','yahoo.es','icloud.com','live.com','hotmail.es','outlook.es','protonmail.com','uc.cl','uchile.cl','usach.cl','gmail.cl'];
+  function dist(a,b){var m=[],i,j;for(i=0;i<=a.length;i++){m[i]=[i]}for(j=1;j<=b.length;j++)m[0][j]=j;for(i=1;i<=a.length;i++)for(j=1;j<=b.length;j++)m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return m[a.length][b.length]}
+  function sugerido(c){var e=String(c||'').toLowerCase().trim(),a=e.lastIndexOf('@');if(a<1)return'';var dm=e.slice(a+1);if(DOM.indexOf(dm)>=0)return'';
+    for(var i=0;i<DOM.length;i++){if(dist(dm,DOM[i])<=2&&dm.length>=7)return e.slice(0,a+1)+DOM[i]}
+    if(/\.(con|cim|cm|comm|co|vom|xom)$/.test(dm))return e.slice(0,a+1)+dm.replace(/\.[a-z]+$/,'.com');return''}
+  var malC=L.map(function(x){return{x:x,s:sugerido(x.correo)}}).filter(function(o){return o.s});
+  box.appendChild(el_('h4','','Correos que parecen mal escritos ('+malC.length+')'));
+  if(!malC.length)box.appendChild(par('No encontré correos sospechosos ✔','color:#4ade80'));
+  malC.forEach(function(o){var f=el_('div','fila');f.style.cssText='align-items:center;margin:.2rem 0';f.appendChild(el_('span','',(o.x.banda||'(sin banda)')+' · '+(o.x.contacto||'')+' · '+o.x.correo+'  →  ¿'+o.s+'?'));f.appendChild(btn('Editar',function(){formCli(o.x)},'sec'));box.appendChild(f)});
   var gr={};function ag(k,x){if(!k)return;(gr[k]=gr[k]||[]);if(gr[k].indexOf(x)<0)gr[k].push(x)}
   L.forEach(function(x){var nom=sinTilde((x.nombre||'')+' '+(x.apellido||'')),nom2=sinTilde(x.contacto);var n=nom.split(' ').length>=2&&nom.length>5?nom:(nom2.split(' ').length>=2&&nom2.length>5?nom2:'');if(n)ag('Mismo nombre: '+n,x);
     if(x.correo)ag('Mismo correo: '+String(x.correo).toLowerCase().trim(),x);var d=String(x.telefono||'').replace(/\D/g,'');if(!/^MAN-/.test(x.telefono)&&d.length>=8)ag('Mismo teléfono (últimos 8): '+d.slice(-8),x)});
