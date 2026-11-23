@@ -156,6 +156,16 @@ html.rd.rd[data-tema="carbon"] .top .marca img{content:url(../assets/marca/calav
 }
 @media(max-width:699px){
   #barra-app a,#barra-app button{text-transform:none!important;letter-spacing:0!important;font-size:.66rem!important;font-family:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  body[data-vista=reservar] #barra-app{display:none}
-  body[data-vista=reservar]{padding-bottom:0}
+}
+
+/* Celular: un solo menú (la barra inferior, siempre presente). Se quitan las tarjetas/botones repetidos de arriba. */
+@media(max-width:699px){
+  :root{--barra:58px}
+  #menu,.top nav{display:none!important}
+  #barra-app{height:calc(var(--barra) + env(safe-area-inset-bottom));box-sizing:border-box;padding:6px 4px 0}
+  body{padding-bottom:calc(var(--barra) + env(safe-area-inset-bottom))!important}
+  .wiz-acc{bottom:calc(var(--barra) + env(safe-area-inset-bottom))!important;padding-bottom:.7rem!important}
+  body.escribiendo .wiz-acc{bottom:0!important}
+  .hero .btn{display:inline-flex!important}
+  .vista-barra{top:0!important}
 }
