@@ -244,6 +244,21 @@ t('avisos por correo: pendientes de pago (diario) y resumen semanal por cuenta, 
   g.estado.correos.length = 0; C.resumenSemanal(); const rs = g.estado.correos[0]; assert.ok(rs && /Sala de ensayo/.test(rs.body) && /Tienda de música/.test(rs.body) && /Bebestibles/.test(rs.body), 'resumen con cuentas separadas');
   g.admin('adminGuardarAjustes', { liberarSolo: 'SI' });
 });
+t('ordenar el Drive: vista previa sin cambios y luego mueve todo a una carpeta, sin borrar', () => {
+  const movidos = [], mk = (id, n) => ({ getId: () => id, getName: () => n, getParents: () => ({ hasNext: () => false }), moveTo: (c) => { movidos.push(n + ' -> ' + c.getName()); } });
+  const hoja = mk('SHEETX', 'Rockerío · Base de datos'), cr = mk('F1', 'Rockerío · Respaldos'), propio = mk('F2', 'Mis fotos de familia'), carpNueva = Object.assign(mk('NUEVA', 'Rockerio Producciones cl'), { getUrl: () => 'u' });
+  const it = (l) => { let i = 0; return { hasNext: () => i < l.length, next: () => l[i++] }; };
+  const antes = C.DriveApp; let creadas = 0;
+  C.DriveApp = { getFileById: () => hoja, getFolderById: () => { throw new Error('no existe'); }, getRootFolder: () => ({ getFolders: () => it([cr, propio]), getFiles: () => it([]), getFoldersByName: () => it([]) }), createFolder: () => { creadas++; return carpNueva; } };
+  g.estado.props.SHEET_ID = g.estado.props.SHEET_ID || 'SHEETX';
+  const vp = g.admin('adminDriveVistaPrevia'); assert.ok(vp.items.length === 2 && !vp.items.some((x) => /familia/.test(x)), JSON.stringify(vp)); assert.strictEqual(movidos.length, 0, 'la vista previa no mueve nada'); assert.strictEqual(creadas, 0);
+  const r = g.admin('adminDriveOrganizar'); assert.strictEqual(r.movidos, 2); assert.ok(movidos.every((x) => /Rockerio Producciones cl/.test(x)) && !movidos.some((x) => /familia/.test(x)), 'solo lo del sitio');
+  C.DriveApp = antes; delete g.estado.props.DRIVE_CARPETA_ID;
+});
+t('mensajes de WhatsApp: los textos originales traen sus emoticones (para detectar los que los perdieron)', () => {
+  const w = g.admin('adminResumen').wa; assert.ok(w.originales && /\p{Extended_Pictographic}/u.test(w.originales.msgRecordatorio) && /\p{Extended_Pictographic}/u.test(w.originales.msgConfirmacion));
+  const url = 'https://wa.me/56911112222?text=' + encodeURIComponent(w.plantillas.msgConfirmacion); assert.ok(/%F0%9F%A4%98/.test(url), 'el emoticón viaja bien codificado (UTF-8)');
+});
 console.log('\n== 9. Tienda, ventas y socios ==');
 let tok;
 t('producto nuevo en música: guardar, ver en sitio, vender en efectivo descuenta stock', () => {

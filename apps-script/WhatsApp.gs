@@ -113,6 +113,7 @@ function enviarRecordatorios() {
 function waDatos_() {
   var cfg = getCfg_();
   return { plantillas: { msgRecordatorio: cfg.msgRecordatorio, msgConfirmacion: cfg.msgConfirmacion, msgCobroAbono: cfg.msgCobroAbono, msgGracias: cfg.msgGracias, msgResena: cfg.msgResena, msgDescarga: cfg.msgDescarga, msgHonor: cfg.msgHonor },
+    originales: (function () { var d = Reglas.normalizarConfig({}), o = {}; CLAVES_MENSAJES.forEach(function (k) { o[k] = d[k]; }); return o; })(),
     negocio: cfg.nombreNegocio, direccion: cfg.direccion, horasAnulacion: cfg.horasAnulacion, sitio: cfg.sitioUrl, auto: cfg.waAutoActivo,
     tieneToken: !!PropertiesService.getScriptProperties().getProperty('WA_TOKEN') };
 }

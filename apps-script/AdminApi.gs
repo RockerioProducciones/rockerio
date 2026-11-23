@@ -256,7 +256,7 @@ function respaldar() {
   try {
     var props = PropertiesService.getScriptProperties();
     var it = DriveApp.getFoldersByName(CARPETA_RESPALDOS);
-    var carpeta = it.hasNext() ? it.next() : DriveApp.createFolder(CARPETA_RESPALDOS);
+    var carpeta = it.hasNext() ? it.next() : crearCarpeta_(CARPETA_RESPALDOS);
     var hoy = ahoraChile_().fecha;
     var copia = DriveApp.getFileById(props.getProperty('SHEET_ID')).makeCopy('Respaldo ' + hoy + ' · Rockerío', carpeta);
     var archivos = [], f = carpeta.getFiles();
@@ -319,7 +319,7 @@ function adminListarCambios() {
 
 function carpetaRespaldos_() {
   var it = DriveApp.getFoldersByName(CARPETA_RESPALDOS);
-  return it.hasNext() ? it.next() : DriveApp.createFolder(CARPETA_RESPALDOS);
+  return it.hasNext() ? it.next() : crearCarpeta_(CARPETA_RESPALDOS);
 }
 
 /** Lista las copias disponibles (más nuevas primero). */

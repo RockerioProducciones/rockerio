@@ -369,7 +369,7 @@ var CARPETA_LOGOS = 'Rockerío · Logos de bandas', CARPETA_AUDIOS = 'Rockerío 
 
 function carpetaDrive_(nombre) {
   var it = DriveApp.getFoldersByName(nombre);
-  return it.hasNext() ? it.next() : DriveApp.createFolder(nombre);
+  return it.hasNext() ? it.next() : crearCarpeta_(nombre);
 }
 /** Decodifica base64 (con o sin prefijo data:) y valida el tamaño máximo en bytes. */
 function decodificar_(b64, maxBytes) {
