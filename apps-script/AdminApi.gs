@@ -457,6 +457,18 @@ function adminGuardarCliente(d) {
     } else {
       f = fila + 2;
       if (tel && /^MAN-/.test(clave)) sh.getRange(f, 1).setNumberFormat('@').setValue(tel);
+      else if (tel && tel !== clave) { // corrige el teléfono: la ficha, sus reservas y sus planes pasan al número nuevo
+        sh.getRange(f, 1).setNumberFormat('@').setValue(tel);
+        var ss2 = abrirBd_(), sr2 = ss2.getSheetByName(HOJAS.reservas), nr2 = sr2.getLastRow(), cambiadas = 0;
+        if (nr2 > 1) sr2.getRange(2, RES.telefono, nr2 - 1, 1).getValues().forEach(function (r, i) {
+          if (String(r[0]) === clave) { sr2.getRange(i + 2, RES.telefono).setNumberFormat('@').setValue(tel); cambiadas++; }
+        });
+        var sp2 = ss2.getSheetByName(HOJAS.planes), np2 = sp2 ? sp2.getLastRow() : 0;
+        if (np2 > 1) sp2.getRange(2, 7, np2 - 1, 1).getValues().forEach(function (r, i) {
+          if (String(r[0]) === clave) sp2.getRange(i + 2, 7).setNumberFormat('@').setValue(tel);
+        });
+        registrarCambio_('Teléfono de cliente corregido', banda, clave, tel + ' (' + cambiadas + ' reservas)');
+      }
     }
     sh.getRange(f, 2).setValue(textoSeguro_(correo));
     sh.getRange(f, 3).setValue(textoSeguro_(banda));

@@ -1808,7 +1808,7 @@ function formCli(x){
   var f=el_('div','ficha-j');f.appendChild(el_('h3','',x.telefono?'Editar cliente':'Nuevo cliente'));
   var fm=el_('div','rm-form'),v={nombre:x.nombre||'',apellido:x.apellido||'',correo:x.correo||'',banda:x.banda||'',telefono:/^MAN-/.test(x.telefono||'')?'':(x.telefono||''),enlace:x.enlace||'',casa:!!x.casa};
   function campo(k,et,tipo,full,ph,dis){var l=el_('label',full?'full':'');l.appendChild(document.createTextNode(et));var i=document.createElement('input');i.type=tipo||'text';i.value=v[k];if(ph)i.placeholder=ph;if(dis)i.disabled=true;i.oninput=function(){v[k]=i.value};l.appendChild(i);fm.appendChild(l)}
-  campo('nombre','Nombre *');campo('apellido','Apellido');campo('correo','Correo','email');campo('telefono','Teléfono (WhatsApp)','tel',false,'+56 9 1234 5678',!!x.telefono&&!/^MAN-/.test(x.telefono));
+  campo('nombre','Nombre *');campo('apellido','Apellido');campo('correo','Correo','email');campo('telefono','Teléfono (WhatsApp)','tel',false,'+56 9 1234 5678');
   campo('banda','Banda o proyecto *','text',true);campo('enlace','Enlace de Google Drive','url',true,'https://drive.google.com/…');
   var lc=el_('label','full chk');var ck=document.createElement('input');ck.type='checkbox';ck.checked=v.casa;ck.onchange=function(){v.casa=ck.checked};lc.appendChild(ck);lc.appendChild(document.createTextNode(' 🏠 Banda de la casa (reserva semanal): su horario no vence solo y puedes reagendar sin tope'));fm.appendChild(lc);f.appendChild(fm);
   var acc=el_('div','fila');acc.style.marginTop='10px';

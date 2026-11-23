@@ -440,6 +440,13 @@ t('cliente: valida datos, rechaza duplicados y enlaces que no son de Drive', () 
   assert.throws(() => g.admin('adminGuardarCliente', { nombre: 'A', banda: 'X', enlace: 'https://evil.com/x' }), /Drive/);
   assert.throws(() => g.admin('adminGuardarCliente', { nombre: 'A', banda: 'X', telefono: '+56 9 7777 6666' }), /Ya existe/);
 });
+t('corregir el teléfono de un cliente existente: cambia la ficha y no queda el número viejo', () => {
+  g.admin('adminGuardarCliente', { clave: '', nombre: 'Mal', apellido: 'Fono', correo: 'mal@fono.cl', banda: 'Fono Malo', telefono: '+56 9 4444 3333' });
+  g.admin('adminGuardarCliente', { clave: '56944443333', nombre: 'Mal', apellido: 'Fono', correo: 'mal@fono.cl', banda: 'Fono Malo', telefono: '+569 9 4444 3377' });
+  const cs = g.admin('adminJornadas').clientes.filter((x) => x.banda === 'Fono Malo');
+  assert.strictEqual(cs.length, 1); assert.strictEqual(cs[0].telefono, '56944443377');
+  g.admin('adminEliminarCliente', '56944443377');
+});
 t('cliente sin teléfono recibe clave interna y se puede editar y eliminar', () => {
   g.admin('adminGuardarCliente', { nombre: 'Sin', apellido: 'Fono', correo: 'sin@fono.cl', banda: 'Sin Telefono' });
   let c = g.admin('adminJornadas').clientes.find((x) => x.banda === 'Sin Telefono'); assert.ok(c && /^MAN-/.test(c.telefono)); claveMan = c.telefono;
