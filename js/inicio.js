@@ -60,8 +60,10 @@
     [].forEach.call(bar.querySelectorAll('a'), function (a) { if (a.getAttribute('data-bar') === v) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
   }
   new MutationObserver(activa).observe(document.body, { attributes: true, attributeFilter: ['data-vista'] }); activa();
-  document.addEventListener('focusin', function (e) { if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) && e.target.type !== 'radio' && e.target.type !== 'checkbox') document.body.classList.add('escribiendo'); });
-  document.addEventListener('focusout', function () { document.body.classList.remove('escribiendo'); });
+  var tEsc = 0;
+  document.addEventListener('focusin', function (e) { if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) && e.target.type !== 'radio' && e.target.type !== 'checkbox') { clearTimeout(tEsc); document.body.classList.add('escribiendo'); } });
+  /* se espera un instante al salir del campo: si no, al tocar «Siguiente» la barra reaparece y mueve el botón justo antes de soltar el dedo (el toque se pierde) */
+  document.addEventListener('focusout', function () { clearTimeout(tEsc); tEsc = setTimeout(function () { document.body.classList.remove('escribiendo'); }, 450); });
 
   /* 3 · «Reservar de nuevo»: los datos de contacto se recuerdan SOLO en el dispositivo del cliente (no se envían a ningún lado) */
   (function () {

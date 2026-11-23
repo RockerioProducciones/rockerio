@@ -11,7 +11,7 @@ const { sembrar } = require('./demo.js');
   ok(await p.locator('.tarjeta:visible').count() >= 8 || await p.locator('#barra-app:visible').count() === 1, 'inicio muestra tarjetas o barra inferior');
   ok(!(await p.locator('#planes').isVisible()), 'las otras secciones no se ven en el inicio');
   g.ctx.ponerConfig_({ pagoTransferencia: 'SI', datosTransferencia: 'DATOS DE TRANSFERENCIA MERCADOPAGO ======================= Juan Carlos Retamal González RUT: 165925513 Mercado Pago Cuenta Vista Número de cuenta: 1031162619 rockerioestudio@gmail.com' });
-  await p.click('.tarjeta.principal'); await p.waitForTimeout(300);
+  await p.click('#barra-app a[data-bar=reservar]'); await p.waitForTimeout(300);
   ok(await p.locator('#paso-servicio').isVisible() && !(await p.locator('#paso-fecha').isVisible()), 'paso 1 visible y nada más');
   await p.screenshot({ path: '2-paso1.png' });
   await p.click('#wiz-sig'); await p.waitForTimeout(400);
@@ -56,7 +56,7 @@ const { sembrar } = require('./demo.js');
   ok(!!g.hoja('Reservas').find((r) => String(r[C()]) === '56977771234'), 'la reserva quedó en la hoja');
   ok(g.estado.eventos.some((e) => /Banda E2E/.test(e.titulo)), 'y en el calendario');
   // volver al inicio
-  await p.click('.volver'); await p.waitForTimeout(300); ok(await p.locator('.menu').isVisible(), 'botón Inicio vuelve al menú');
+  await p.click('.volver'); await p.waitForTimeout(300); ok(await p.evaluate(() => document.body.getAttribute('data-vista') === 'inicio') && await p.locator('#barra-app').isVisible(), 'botón Inicio vuelve al inicio (con la barra inferior)');
   // otras vistas
   for (const [id, sel] of [['ficha', '#ficha-in .card'], ['galeria', '#galeria-car .fo-it img'], ['tienda', '#tienda-in'], ['reglamento', '#reglamento-in'], ['planes', '#plan-cards'], ['cotizar', '#f-cot'], ['contacto', '#wsp']]) {
     await p.goto('http://localhost:8099/#' + id); await p.waitForTimeout(500);

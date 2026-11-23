@@ -506,7 +506,10 @@ var RUN=(function(){var real=google.script.run,n=0,errs=0,tmr=null,t0=0,pill=nul
     if(k==='withSuccessHandler')return function(f){return chain(f,fail,uo)};
     if(k==='withFailureHandler')return function(f){return chain(ok,f,uo)};
     if(k==='withUserObject')return function(o){return chain(ok,fail,o)};
-    return function(){var a=arguments;begin();var r=real.withSuccessHandler(function(res,u){end(false);if(ok)ok.call(uo,res,u)}).withFailureHandler(function(e,u){end(true);if(fail)fail.call(uo,e,u);else aviso((e&&e.message)||'Error')});if(uo!==undefined)r=r.withUserObject(uo);r[k].apply(r,a)}}})}
+    return function(){var a=arguments;begin();(function intento(n1){var r=real.withSuccessHandler(function(res,u){end(false);if(ok)ok.call(uo,res,u)}).withFailureHandler(function(e,u){
+      /* «Sistema ocupado» = el cambio NO se alcanzó a hacer (otra tarea tenía el candado): se reintenta solo, sin duplicar nada */
+      if(n1<3&&e&&/ocupado|mucha actividad/i.test(e.message||'')){setTimeout(function(){intento(n1+1)},2000+n1*1500);return}
+      end(true);if(fail)fail.call(uo,e,u);else aviso((e&&e.message)||'Error')});if(uo!==undefined)r=r.withUserObject(uo);r[k].apply(r,a)})(0)}}})}
   return chain(null,null,undefined)})();
 function aviso(t){var m=$('msg');m.textContent=t;m.style.display=t?'block':'none';if(t)setTimeout(function(){m.style.display='none'},6000)}
 function pintarParcial(r){if(r&&r.parcial&&ultimo){ultimo.productos=r.productos;ultimo.bebestibles=r.bebestibles;ultimo.ventas=r.ventas;pintarCatalogos(ultimo);RES_VIEJO=true;clearTimeout(RES_T);RES_T=setTimeout(refrescarResumen,15000)}else pintar(r)}
