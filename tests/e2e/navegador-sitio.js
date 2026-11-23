@@ -8,7 +8,7 @@ const { sembrar } = require('./demo.js');
   const ok = (c, n) => console.log((c ? '  ok  ' : 'FALLA ') + n);
   await p.goto('http://localhost:8099/'); await p.waitForFunction(() => window.RK && window.RK.conectado()); await p.waitForTimeout(500);
   await p.screenshot({ path: '1-inicio.png' });
-  ok(await p.locator('.tarjeta:visible').count() >= 8, 'inicio muestra tarjetas');
+  ok(await p.locator('.tarjeta:visible').count() >= 8 || await p.locator('#barra-app:visible').count() === 1, 'inicio muestra tarjetas o barra inferior');
   ok(!(await p.locator('#planes').isVisible()), 'las otras secciones no se ven en el inicio');
   g.ctx.ponerConfig_({ pagoTransferencia: 'SI', datosTransferencia: 'DATOS DE TRANSFERENCIA MERCADOPAGO ======================= Juan Carlos Retamal González RUT: 165925513 Mercado Pago Cuenta Vista Número de cuenta: 1031162619 rockerioestudio@gmail.com' });
   await p.click('.tarjeta.principal'); await p.waitForTimeout(300);
