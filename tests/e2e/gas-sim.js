@@ -101,6 +101,7 @@ function crear() {
   ctx.ContentService = { MimeType: { JSON: 'json' }, createTextOutput: (t) => ({ t, setMimeType() { return this; }, getContent() { return this.t; }, getContentText() { return this.t; } }) };
   ctx.HtmlService = { createHtmlOutput: (t) => ({ t, setTitle() { return this; }, addMetaTag() { return this; }, getContent() { return this.t; } }), createHtmlOutputFromFile: () => ({ setTitle() { return this; }, addMetaTag() { return this; }, getContent: () => 'ADMIN' }) };
   ctx.ScriptApp = {
+    WeekDay: { MONDAY: 'MONDAY' },
     getProjectTriggers: () => estado.triggers.slice(), deleteTrigger: (t) => { estado.triggers = estado.triggers.filter((x) => x !== t); },
     newTrigger: (fn) => { const t = { fn, getHandlerFunction: () => fn }; const b = new Proxy({}, { get: (_, k) => (k === 'create' ? () => { estado.triggers.push(t); return t; } : () => b) }); return b; },
   };
@@ -113,7 +114,7 @@ function crear() {
   ctx.__ahora = () => Date.now() + desfase;
   vm.runInContext(`(function(){ var Orig = Date; function F(a,b,c,d,e,f,g){ var n=arguments.length; if(n===0) return new Orig(__ahora()); if(n===1) return new Orig(a); return new Orig(a,b,c||1,d||0,e||0,f||0,g||0);} F.prototype=Orig.prototype; F.UTC=Orig.UTC; F.parse=Orig.parse; F.now=function(){return __ahora();}; Date=F; })()`, ctx);
   const dir = path.join(__dirname, '../../apps-script');
-  ['Reglas', 'Code', 'AdminApi', 'Contenido', 'Planes', 'Ventas', 'Socios', 'Contabilidad', 'Ajustes', 'WhatsApp', 'Sitio', 'Pagos', 'Visitas'].forEach((f) => vm.runInContext(fs.readFileSync(path.join(dir, f + '.gs'), 'utf8'), ctx, { filename: f + '.gs' }));
+  ['Reglas', 'Code', 'AdminApi', 'Contenido', 'Planes', 'Ventas', 'Socios', 'Contabilidad', 'Ajustes', 'WhatsApp', 'Sitio', 'Pagos', 'Visitas', 'Avisos'].forEach((f) => vm.runInContext(fs.readFileSync(path.join(dir, f + '.gs'), 'utf8'), ctx, { filename: f + '.gs' }));
   const J = (o) => JSON.parse(JSON.stringify(o));
   const api = {
     ctx, estado, cal, ss,

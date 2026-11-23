@@ -234,6 +234,16 @@ t('plan: «confirmar sin pago» y «anular plan»; las sesiones de un plan no se
   assert.ok(ses().every((x) => x[RES('estado')] === 'Anulada'), 'las 4 sesiones anuladas');
   const libre = g.post({ accion: 'reservar', servicio: 'ensayo', fecha: ds[0], inicio: 20, horas: 2, banda: 'Otra', nombre: 'Otro T', telefono: '56911110000', correo: 'o@t.cl', tyc: true }); assert.ok(libre.ok, 'el horario volvió a quedar libre: ' + JSON.stringify(libre));
 });
+t('avisos por correo: pendientes de pago (diario) y resumen semanal por cuenta, sin cambiar datos', () => {
+  g.estado.correos.length = 0;
+  const rv = g.post(sol({ fecha: diaLibre(15, 1, 20), inicio: 15, horas: 1, telefono: '56933445566', banda: 'Pendientes', nombre: 'Pía Test', correo: 'p@t.cl' })); assert.ok(rv.ok, JSON.stringify(rv));
+  C.avisoPorAbonar(); assert.strictEqual(g.estado.correos.filter((m) => /pendiente/.test(m.subject)).length, 0, 'reserva reciente: aún no avisa');
+  g.avanzar(25 * 3600000);
+  g.admin('adminGuardarAjustes', { liberarSolo: 'NO' });
+  C.avisoPorAbonar(); const av = g.estado.correos.filter((m) => /pendiente/.test(m.subject)); assert.strictEqual(av.length, 1, 'un solo correo'); assert.ok(/Pendientes/.test(av[0].body), 'lista la banda');
+  g.estado.correos.length = 0; C.resumenSemanal(); const rs = g.estado.correos[0]; assert.ok(rs && /Sala de ensayo/.test(rs.body) && /Tienda de música/.test(rs.body) && /Bebestibles/.test(rs.body), 'resumen con cuentas separadas');
+  g.admin('adminGuardarAjustes', { liberarSolo: 'SI' });
+});
 console.log('\n== 9. Tienda, ventas y socios ==');
 let tok;
 t('producto nuevo en música: guardar, ver en sitio, vender en efectivo descuenta stock', () => {

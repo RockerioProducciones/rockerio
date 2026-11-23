@@ -275,6 +275,10 @@ function rangoPeriodo_(periodo, ref) {
 /** periodo = 'semana' | 'mes'; ref = fecha (semana) o AAAA-MM (mes). Devuelve todos los números del período. */
 function adminResumenContable(periodo, ref) {
   exigirAdmin_();
+  return resumenContable_(periodo, ref);
+}
+
+function resumenContable_(periodo, ref) {
   var cfg = getCfg_(), R = rangoPeriodo_(periodo, ref), ss = abrirBd_();
   var fee = Number(cfg.noAsisteCobroPorHora) || 0;
   var sala = { sesiones: 0, horas: 0, base: 0, extras: 0, video: 0, retenidos: 0, total: 0 };

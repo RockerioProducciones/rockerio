@@ -729,6 +729,9 @@ function asegurarEsquema_(ss) {
       }
       props.setProperty('MIG_BAL_EST_1', '1');
     }
+    if (!props.getProperty('MIG_AVISOS_1')) { // avisos por correo: diario (pendientes de pago) y semanal (ingresos por cuenta)
+      try { asegurarAvisos_(); props.setProperty('MIG_AVISOS_1', '1'); } catch (e) { /* se reintenta en la próxima carga */ }
+    }
     if (!props.getProperty('MIG_HONOR_1')) {
       var hc = ss.getSheetByName(HOJAS.config), nh = hc ? hc.getLastRow() : 0;
       if (nh > 1) {
@@ -804,13 +807,14 @@ function instalar() {
   }
 
   ScriptApp.getProjectTriggers().forEach(function (t) {
-    if (['liberarPendientes', 'alEditar', 'respaldar', 'cerrarMesAnterior', 'enviarRecordatorios'].indexOf(t.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(t);
+    if (['liberarPendientes', 'alEditar', 'respaldar', 'cerrarMesAnterior', 'enviarRecordatorios', 'avisoPorAbonar', 'resumenSemanal'].indexOf(t.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(t);
   });
   ScriptApp.newTrigger('liberarPendientes').timeBased().everyMinutes(5).create();
   ScriptApp.newTrigger('respaldar').timeBased().everyDays(1).atHour(3).create();
   ScriptApp.newTrigger('alEditar').forSpreadsheet(ss).onEdit().create();
   ScriptApp.newTrigger('enviarRecordatorios').timeBased().everyDays(1).atHour(18).create();
   ScriptApp.newTrigger('cerrarMesAnterior').timeBased().onMonthDay(1).atHour(4).create();
+  asegurarAvisos_();
   prepararSocios_();
 
   var msg = 'Instalación lista.\nHoja de datos: ' + ss.getUrl() +
