@@ -167,5 +167,6 @@ html.rd.rd[data-tema="carbon"] .top .marca img{content:url(../assets/marca/calav
   .wiz-acc{bottom:calc(var(--barra) + env(safe-area-inset-bottom))!important;padding-bottom:.7rem!important}
   body.escribiendo .wiz-acc{bottom:0!important}
   .hero .btn{display:inline-flex!important}
-  .vista-barra{top:0!important}
+  .vista-barra{top:64px!important}
+  .wiz-barra{top:111px!important}
 }
