@@ -170,3 +170,12 @@ html.rd.rd[data-tema="carbon"] .top .marca img{content:url(../assets/marca/calav
   .vista-barra{top:64px!important}
   .wiz-barra{top:111px!important}
 }
+
+/* Barra inferior con 6 secciones fijas + Más: textos en dos líneas, iconos algo más chicos */
+@media(max-width:699px){
+  :root{--barra:64px}
+  #barra-app{padding:5px 2px 0}
+  #barra-app a,#barra-app button{font-size:.58rem!important;line-height:1.1!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;padding:2px 1px!important;word-break:normal;hyphens:none}
+  #barra-app i{font-size:1.2rem!important;line-height:1.25!important}
+}
+@media(max-width:359px){#barra-app a,#barra-app button{font-size:.5rem!important}#barra-app i{font-size:1.05rem!important}}

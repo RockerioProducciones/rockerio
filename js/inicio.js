@@ -23,7 +23,7 @@
   });
 
   /* 2 · Barra inferior (solo celular; el CSS la oculta en pantallas grandes) */
-  var PRINCIPALES = [['reservar', '📅', 'Reservar'], ['nosotros', '🎚️', 'Producción'], ['planes', '🏷️', 'Planes'], ['tienda', '🛍️', 'Tienda']];
+  var PRINCIPALES = [['reservar', '📅', 'Reservar'], ['nosotros', '🎚️', 'Producción'], ['ficha', '🎛️', 'Ficha técnica'], ['planes', '🏷️', 'Planes'], ['tienda', '🛍️', 'Tienda'], ['bandas', '🏅', 'Cuadro de honor']];
   var bar = document.createElement('nav'); bar.id = 'barra-app'; bar.setAttribute('aria-label', 'Secciones principales');
   PRINCIPALES.forEach(function (p) {
     var a = document.createElement('a'); a.href = '#' + p[0]; a.setAttribute('data-bar', p[0]);
