@@ -46,7 +46,7 @@
       ? pedir(API + '?accion=config').then(function (d) {
           if (!d.ok) throw new Error('config');
           conexion = true; if (d.ahora) ahora = d.ahora;
-          cfg = R.normalizarConfig(d.config); if (window.RKTema) window.RKTema.defecto(cfg.tema); sitio = d.sitio || {}; try { aplicarSitio(); } catch (e) { /* el sitio sigue con su contenido original */ } return d.tienda;
+          cfg = R.normalizarConfig(d.config); R.permitirExtranjeros(cfg.permitirExtranjeros); window.RK_EXT = cfg.permitirExtranjeros === true; if (window.RKTema) window.RKTema.defecto(cfg.tema); sitio = d.sitio || {}; try { aplicarSitio(); } catch (e) { /* el sitio sigue con su contenido original */ } return d.tienda;
         }).catch(function () { conexion = false; return null; })
       : Promise.resolve(null);
     return Promise.all([conf, tienda]).then(function (r) { pintarTienda(r[0] && r[0].length ? r[0] : r[1]); });

@@ -28,12 +28,15 @@
   var PRE = '+569 ';
   function limpio(v) {
     var d = String(v || '').replace(/\D/g, '');
-    if (d.indexOf('569') === 0) d = d.slice(3); else if (d.indexOf('56') === 0) d = d.slice(2).replace(/^9/, '');
+    d = d.replace(/^0+/, '');
+    if (d.indexOf('569') === 0) d = d.slice(3); else if (d.indexOf('56') === 0) d = d.slice(2);
+    if (d.length > 8 && d.charAt(0) === '9') d = d.slice(1); /* escribió el 9 otra vez: «+569 9 1234 5678» */
     return d.slice(0, 8);
   }
   function formato(d) { return PRE + (d.length > 4 ? d.slice(0, 4) + ' ' + d.slice(4) : d); }
   function arreglar(e) {
     var c = e.target || e; if (!c || c.type !== 'tel') return;
+    if (window.RK_EXT && /^\s*\+(?!56)/.test(c.value)) return; /* número de otro país (si la configuración lo permite) */
     var v = formato(limpio(c.value));
     if (c.value !== v) { c.value = v; try { c.setSelectionRange(v.length, v.length); } catch (x) { /* sin cursor */ } }
   }

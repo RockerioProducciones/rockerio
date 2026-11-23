@@ -267,3 +267,15 @@ t('plan rechaza menos de 4 sesiones, días repetidos, horas ocupadas y fechas fu
 });
 
 console.log('\n' + ok + ' pruebas correctas' + (process.exitCode ? ', con fallas.' : '.'));
+
+t('teléfono: cualquier forma de escribir un celular chileno queda como 569 + 8 dígitos', () => {
+  ['+569 1234 5678', '+569 9 1234 5678', '9 1234 5678', '12345678', '+56 9 1234 5678', '0912345678'].forEach((x) => {
+    assert.strictEqual(R.normalizarTelefono(x), '56912345678', x); assert.ok(R.telefonoValido(R.normalizarTelefono(x)), x);
+  });
+  assert.ok(!R.telefonoValido(R.normalizarTelefono('+1 555 123 4567')), 'extranjero apagado por defecto');
+  R.permitirExtranjeros(true); assert.ok(R.telefonoValido(R.normalizarTelefono('+1 555 123 4567'))); R.permitirExtranjeros(false);
+});
+t('nombre propio: mayúsculas bien puestas', () => {
+  assert.strictEqual(R.nombrePropio('carlos HIGUERA  vargas'), 'Carlos Higuera Vargas');
+  assert.strictEqual(R.nombrePropio('maría de la fuente'), 'María de la Fuente');
+});

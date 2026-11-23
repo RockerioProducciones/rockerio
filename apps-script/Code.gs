@@ -113,6 +113,7 @@ function doPost(e) {
     var cuerpo = (e && e.postData && e.postData.contents) || '';
     if (cuerpo.length > 600000) return json_({ ok: false, codigo: 'DATOS', error: 'Solicitud demasiado grande.' });
     var sol = JSON.parse(cuerpo);
+    getCfg_(); // deja lista la regla de teléfonos (¿se aceptan números extranjeros?)
     if (e && e.parameter && e.parameter.mp) return json_(mpWebhook_(e.parameter, sol)); // aviso de Mercado Pago
     if (cuerpo.length > 8000 && sol.accion !== 'honor') return json_({ ok: false, codigo: 'DATOS', error: 'Solicitud demasiado grande.' });
     switch (sol.accion) {
@@ -154,7 +155,9 @@ function getCfg_() {
     raw = leerConfigCruda_();
     try { cache.put('cfgraw', JSON.stringify(raw), 120); } catch (e) { /* demasiado grande: sin caché */ }
   }
-  return Reglas.normalizarConfig(raw);
+  var cfgN = Reglas.normalizarConfig(raw);
+  Reglas.permitirExtranjeros(cfgN.permitirExtranjeros);
+  return cfgN;
 }
 
 function leerConfigCruda_() {
@@ -873,6 +876,7 @@ function prepararConfig_(ss) {
     ['anticipacionMinHoras', d.anticipacionMinHoras, 'Horas de anticipación mínima para reservar en línea.'],
     ['anticipacionMaxDias', d.anticipacionMaxDias, 'Hasta cuántos días hacia adelante se puede reservar.'],
     ['planMaxDias', d.planMaxDias, 'Hasta cuántos días adelante se pueden agendar las 4 sesiones de un plan mensual.'],
+    ['permitirExtranjeros', d.permitirExtranjeros ? 'SI' : 'NO', 'SI o NO. NO (por defecto): solo se aceptan celulares de Chile (+569). SI: también números de otros países.'],
     ['liberarSolo', d.liberarSolo ? 'SI' : 'NO', 'SI o NO. NO (recomendado): una reserva sin abono queda guardada hasta que la confirmes o anules, y nadie más puede tomar ese horario. SI: se anula sola pasados los minutos de «minutosReserva».'],
     ['minutosReserva', d.minutosReserva, 'Minutos que el horario queda tomado esperando el abono (entre 5 y 180). Pasado ese tiempo se libera solo y el cliente ve una cuenta regresiva.'],
     ['horasAnulacion', d.horasAnulacion, 'Horas de anticipación para anular o reagendar.'],

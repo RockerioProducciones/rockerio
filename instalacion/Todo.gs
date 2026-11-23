@@ -98,6 +98,7 @@ var Reglas = (function () {
     anticipacionMinHoras: 4,
     anticipacionMaxDias: 21,      // se puede reservar desde hoy hasta 21 días después
     planMaxDias: 35,              // los planes mensuales pueden agendar sus 4 sesiones hasta 35 días adelante
+    permitirExtranjeros: false,   // NO: solo celulares de Chile (+569). SI: también se aceptan números de otros países
     liberarSolo: false,           // NO: el horario sin abono queda guardado hasta que lo confirmes o anules; SI: se libera solo tras minutosReserva
     minutosReserva: 20,           // minutos que el horario queda tomado esperando el abono; luego se libera solo (5 a 180)
     horasAnulacion: 24,
@@ -237,6 +238,7 @@ var Reglas = (function () {
     ['verProduccion', 'verFicha', 'verPlanes', 'verGaleria', 'verEvaluaciones', 'verProaudix', 'verContacto', 'verTienda', 'verHonor', 'verCotizar', 'verReglamento', 'verVivo'].forEach(function (k) { c[k] = aBool(raw[k], d[k]); });
     c.visitasActivo = aBool(raw.visitasActivo, d.visitasActivo);
     c.liberarSolo = aBool(raw.liberarSolo, d.liberarSolo);
+    c.permitirExtranjeros = aBool(raw.permitirExtranjeros, d.permitirExtranjeros);
     ['colorEnsayo', 'colorEstudio', 'colorPlan8', 'colorPlan12', 'colorVivo', 'colorBloqueo'].forEach(function (k) { var t = String(raw[k] === undefined || raw[k] === null ? '' : raw[k]).trim().toLowerCase(); c[k] = /^#[0-9a-f]{6}$/.test(t) ? t : d[k]; });
     c.vivoDias = VIVO_DIAS[aTexto(raw.vivoDias, d.vivoDias)] ? aTexto(raw.vivoDias, d.vivoDias) : d.vivoDias;
     c.vivoPrecio = Math.max(0, Math.round(aNumero(raw.vivoPrecio, d.vivoPrecio)));
@@ -403,13 +405,28 @@ var Reglas = (function () {
       .slice(0, max);
   }
 
+  /* Celulares de Chile: sin importar cómo se escriba (+569 1234 5678, 9 1234 5678, +569 9 1234 5678, 1234 5678…) queda 569 + 8 dígitos. */
+  var EXTRANJEROS = false;
+  function permitirExtranjeros(b) { EXTRANJEROS = b === true; }
   function normalizarTelefono(v) {
-    var s = String(v || '').replace(/\D/g, '');
-    if (s.length === 9 && s.charAt(0) === '9') s = '56' + s;
+    var s = String(v || '').replace(/\D/g, '').replace(/^00/, '');
+    if (s.length >= 8 && /^(?:569|56|9|0)*$/.test(s.slice(0, -8))) return '569' + s.slice(-8);
     return s;
   }
+  function telefonoValido(s) {
+    s = String(s || '');
+    if (/^569\d{8}$/.test(s)) return true;
+    return EXTRANJEROS && /^\d{8,15}$/.test(s) && s.indexOf('56') !== 0;
+  }
 
-  function telefonoValido(s) { return /^\d{8,15}$/.test(s); }
+  /* Nombre de persona: «carlos HIGUERA  de la fuente» → «Carlos Higuera de la Fuente». */
+  function nombrePropio(v) {
+    var peq = { de: 1, del: 1, la: 1, las: 1, los: 1, y: 1, e: 1, van: 1, von: 1, da: 1, di: 1 };
+    return String(v || '').replace(/\s+/g, ' ').trim().toLowerCase().split(' ').map(function (p, i) {
+      if (i > 0 && peq[p]) return p;
+      return p.replace(/(^|[-'’])(\p{L})/gu, function (m, a, b) { return a + b.toUpperCase(); });
+    }).join(' ');
+  }
   function correoValido(s) { return /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,}$/.test(s) && s.length <= 254; }
 
   /* ---------- planes mensuales ---------- */
@@ -468,7 +485,7 @@ var Reglas = (function () {
       video: sol.video === true || sol.video === 'true',
       raw: sol.raw === true || sol.raw === 'true',
       banda: limpiar(sol.banda, 60),
-      nombre: limpiar(sol.nombre, 60),
+      nombre: nombrePropio(limpiar(sol.nombre, 60)),
       telefono: normalizarTelefono(sol.telefono),
       correo: limpiar(sol.correo, 120).toLowerCase(),
       zurdo: sol.zurdo === true || sol.zurdo === 'true',
@@ -577,7 +594,7 @@ var Reglas = (function () {
     normalizarConfig: normalizarConfig, limitesHoras: limitesHoras, addonsPermitidos: addonsPermitidos, videoPermitido: videoPermitido,
     calcularPrecio: calcularPrecio, grabacionIncluidaMin: grabacionIncluidaMin, llenarPlantilla: llenarPlantilla, tarifaConveniente: tarifaConveniente, minutosTxt: minutosTxt,
     horasAbiertas: horasAbiertas, horasLibres: horasLibres, inicios: inicios, planInfo: planInfo, validarPlan: validarPlan, finPlan: finPlan, diasPlan: diasPlan,
-    normalizarTelefono: normalizarTelefono, correoValido: correoValido, telefonoValido: telefonoValido,
+    normalizarTelefono: normalizarTelefono, permitirExtranjeros: permitirExtranjeros, nombrePropio: nombrePropio, correoValido: correoValido, telefonoValido: telefonoValido,
     validarDatos: validarDatos, validarSolicitud: validarSolicitud, resumenTexto: resumenTexto, ahoraChile: ahoraChile
   };
 })();
@@ -700,6 +717,7 @@ function doPost(e) {
     var cuerpo = (e && e.postData && e.postData.contents) || '';
     if (cuerpo.length > 600000) return json_({ ok: false, codigo: 'DATOS', error: 'Solicitud demasiado grande.' });
     var sol = JSON.parse(cuerpo);
+    getCfg_(); // deja lista la regla de teléfonos (¿se aceptan números extranjeros?)
     if (e && e.parameter && e.parameter.mp) return json_(mpWebhook_(e.parameter, sol)); // aviso de Mercado Pago
     if (cuerpo.length > 8000 && sol.accion !== 'honor') return json_({ ok: false, codigo: 'DATOS', error: 'Solicitud demasiado grande.' });
     switch (sol.accion) {
@@ -741,7 +759,9 @@ function getCfg_() {
     raw = leerConfigCruda_();
     try { cache.put('cfgraw', JSON.stringify(raw), 120); } catch (e) { /* demasiado grande: sin caché */ }
   }
-  return Reglas.normalizarConfig(raw);
+  var cfgN = Reglas.normalizarConfig(raw);
+  Reglas.permitirExtranjeros(cfgN.permitirExtranjeros);
+  return cfgN;
 }
 
 function leerConfigCruda_() {
@@ -1460,6 +1480,7 @@ function prepararConfig_(ss) {
     ['anticipacionMinHoras', d.anticipacionMinHoras, 'Horas de anticipación mínima para reservar en línea.'],
     ['anticipacionMaxDias', d.anticipacionMaxDias, 'Hasta cuántos días hacia adelante se puede reservar.'],
     ['planMaxDias', d.planMaxDias, 'Hasta cuántos días adelante se pueden agendar las 4 sesiones de un plan mensual.'],
+    ['permitirExtranjeros', d.permitirExtranjeros ? 'SI' : 'NO', 'SI o NO. NO (por defecto): solo se aceptan celulares de Chile (+569). SI: también números de otros países.'],
     ['liberarSolo', d.liberarSolo ? 'SI' : 'NO', 'SI o NO. NO (recomendado): una reserva sin abono queda guardada hasta que la confirmes o anules, y nadie más puede tomar ese horario. SI: se anula sola pasados los minutos de «minutosReserva».'],
     ['minutosReserva', d.minutosReserva, 'Minutos que el horario queda tomado esperando el abono (entre 5 y 180). Pasado ese tiempo se libera solo y el cliente ve una cuenta regresiva.'],
     ['horasAnulacion', d.horasAnulacion, 'Horas de anticipación para anular o reagendar.'],
@@ -4594,6 +4615,7 @@ var ESQUEMA = [
   ['anticipacionMinHoras', 'Anticipación mínima (horas)', 'num', 'Reglas de reserva', 'Con cuántas horas de anticipación como mínimo se puede reservar.', 168],
   ['anticipacionMaxDias', 'Reservar hasta (días hacia adelante)', 'num', 'Reglas de reserva', 'Cuántos días hacia adelante muestra el calendario.', 120],
   ['planMaxDias', 'Sesiones de plan hasta (días)', 'num', 'Reglas de reserva', 'Hasta cuántos días hacia adelante se pueden agendar las 4 sesiones de un plan.', 180],
+  ['permitirExtranjeros', 'Aceptar teléfonos de otros países', 'sino', 'Reglas de reserva', 'NO = solo celulares de Chile (+569), así no entran números mal escritos (recomendado). SI = también se aceptan números extranjeros.'],
   ['liberarSolo', 'Liberar sola la reserva sin abono', 'sino', 'Reglas de reserva', 'NO = el horario queda guardado hasta que tú lo confirmes o lo anules: nadie más puede tomarlo (recomendado). SI = se libera solo pasados los minutos de abajo.'],
   ['minutosReserva', 'Minutos que se guarda el horario', 'num', 'Reglas de reserva', 'Tiempo que el horario queda tomado esperando el abono (5 a 180). Luego se libera solo.', 180],
   ['horasAnulacion', 'Horas mínimas para anular', 'num', 'Reglas de reserva', 'Anular con al menos estas horas devuelve el abono (menos la retención).', 168],

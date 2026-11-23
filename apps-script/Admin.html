@@ -1618,10 +1618,29 @@ function listaHis(){
   t.appendChild(tb);c.appendChild(t);if(l.length>300)c.appendChild(par('Se muestran las 300 más recientes de '+l.length+'. Usa el buscador para acotar.','color:#b5afa6'));if(!l.length)c.appendChild(par('No hay reservas con ese filtro.','color:#b5afa6'));
 }
 function pintarCliJor(){
-  var bar=$('jbarra');bar.textContent='';var q=document.createElement('input');q.placeholder='Buscar por cliente, banda, correo o teléfono';q.value=jbusca;q.style.cssText='flex:1;min-width:220px';q.oninput=function(){jbusca=q.value;listaCli()};bar.appendChild(q);listaCli();
+  var bar=$('jbarra');bar.textContent='';var q=document.createElement('input');q.placeholder='Buscar por cliente, banda, correo o teléfono';q.value=jbusca;q.style.cssText='flex:1;min-width:220px';q.oninput=function(){jbusca=q.value;listaCli()};bar.appendChild(q);bar.appendChild(btn('🔎 Revisar datos',function(){jrev=!jrev;listaCli()},'sec'));listaCli();
 }
+var jrev=false;
+function sinTilde(t){return String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim()}
+/* Revisión de datos de clientes (solo lectura): teléfonos que no sirven para WhatsApp y posibles clientes repetidos. Nada se borra ni se une solo. */
+function panelRevisar(c){
+  var L=(JOR.clientes||[]),box=el_('div','');box.style.cssText='border:1px solid var(--borde);border-radius:12px;padding:.8rem;margin:.6rem 0;background:rgba(0,0,0,.25)';
+  var malos=L.filter(function(x){return x.telefono&&!/^MAN-/.test(x.telefono)&&!/^569\d{8}$/.test(String(x.telefono))});
+  box.appendChild(el_('h4','','Teléfonos por corregir ('+malos.length+')'));
+  if(!malos.length)box.appendChild(par('Todos los teléfonos son celulares de Chile válidos ✔','color:#4ade80'));
+  malos.forEach(function(x){var f=el_('div','fila');f.style.cssText='align-items:center;margin:.2rem 0';f.appendChild(el_('span','',(x.banda||'(sin banda)')+' · '+(x.contacto||'')+' · +'+x.telefono));f.appendChild(btn('Editar',function(){formCli(x)},'sec'));box.appendChild(f)});
+  var gr={};function ag(k,x){if(!k)return;(gr[k]=gr[k]||[]);if(gr[k].indexOf(x)<0)gr[k].push(x)}
+  L.forEach(function(x){var nom=sinTilde((x.nombre||'')+' '+(x.apellido||'')),nom2=sinTilde(x.contacto);var n=nom.split(' ').length>=2&&nom.length>5?nom:(nom2.split(' ').length>=2&&nom2.length>5?nom2:'');if(n)ag('Mismo nombre: '+n,x);
+    if(x.correo)ag('Mismo correo: '+String(x.correo).toLowerCase().trim(),x);var d=String(x.telefono||'').replace(/\D/g,'');if(!/^MAN-/.test(x.telefono)&&d.length>=8)ag('Mismo teléfono (últimos 8): '+d.slice(-8),x)});
+  var gs=Object.keys(gr).filter(function(k){return gr[k].length>1});
+  box.appendChild(el_('h4','','Posibles clientes repetidos ('+gs.length+')'));
+  if(!gs.length)box.appendChild(par('No encontré clientes que parezcan repetidos ✔','color:#4ade80'));
+  gs.forEach(function(k){var b=el_('div','');b.style.cssText='margin:.5rem 0;padding:.4rem .6rem;border-left:3px solid #FCC631';b.appendChild(el_('b','',k));
+    gr[k].forEach(function(x){var f=el_('div','fila');f.style.cssText='align-items:center;margin:.2rem 0';f.appendChild(el_('span','',(x.casa?'🏠 ':'')+(x.banda||'(sin banda)')+' · '+(x.contacto||'')+' · '+(/^MAN-/.test(x.telefono)?'sin teléfono':'+'+x.telefono)+(x.correo?' · '+x.correo:'')));f.appendChild(btn('Editar',function(){formCli(x)},'sec'));b.appendChild(f)});box.appendChild(b)});
+  box.appendChild(par('Para unir dos fichas, corrige el teléfono o los datos con «Editar» en la que está mal. No se borra nada automáticamente.','color:#b5afa6;font-size:.85em'));
+  c.appendChild(box)}
 function listaCli(){
-  var c=$('jcli');c.textContent='';var q=jbusca.trim().toLowerCase(),g=el_('div','tarjetas-c');
+  var c=$('jcli');c.textContent='';if(jrev)panelRevisar(c);var q=jbusca.trim().toLowerCase(),g=el_('div','tarjetas-c');
   (JOR.clientes||[]).filter(function(x){return!q||(x.banda+' '+x.contacto+' '+x.nombre+' '+x.apellido+' '+x.telefono+' '+x.correo+' '+(x.enlace||'')).toLowerCase().indexOf(q)>=0}).forEach(function(x){
     var k=el_('div','cli');k.appendChild(el_('b','',(x.casa?'🏠 ':'')+(x.banda||'(sin banda)')));k.appendChild(el_('small','',x.contacto));k.appendChild(el_('small','',/^MAN-/.test(x.telefono)?'Sin teléfono':'+'+x.telefono));if(x.correo)k.appendChild(el_('small','',x.correo));
     if(x.noAsiste){var rb=el_('small','',reincTxt(x.telefono));rb.style.cssText='color:'+(x.noAsiste>=2?'#ff5a5f':'#FCC631')+';font-weight:700';k.appendChild(rb)}
