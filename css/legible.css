@@ -137,3 +137,25 @@ html.rd.rd[data-tema="azufre"] .top .marca img{content:url(../assets/marca/calav
 html.rd.rd[data-tema="abismo"] .top .marca img{content:url(../assets/marca/calavera-dorado.png)!important}
 html.rd.rd[data-tema="ciruela"] .top .marca img{content:url(../assets/marca/calavera-blanco.png)!important}
 html.rd.rd[data-tema="carbon"] .top .marca img{content:url(../assets/marca/calavera-blanco.png)!important}
+
+/* ---------- Atajo en la portada y barra inferior tipo app (celular) ---------- */
+.chips span[role=button]{transition:transform .12s,box-shadow .12s}.chips span[role=button]:active{transform:scale(.96)}
+#barra-app,#barra-mas{display:none}
+@media(max-width:699px){
+  #barra-app{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:60;background:rgba(10,10,10,.96);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid #333;padding:6px 4px calc(8px + env(safe-area-inset-bottom))}
+  #barra-app a,#barra-app button{flex:1;min-width:0;text-align:center;font:600 .64rem/1.2 inherit;color:#a8a39a;background:none;border:0;padding:4px 0;text-decoration:none;-webkit-tap-highlight-color:transparent}
+  #barra-app i{display:block;font-style:normal;font-size:1.35rem;line-height:1.3}
+  #barra-app [aria-current=page]{color:var(--oro,#f5b82e)}
+  body{padding-bottom:calc(66px + env(safe-area-inset-bottom))}
+  body.escribiendo #barra-app{display:none}
+  #barra-mas:not([hidden]){display:flex;position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.6);align-items:flex-end}
+  .bm-in{width:100%;background:#151515;border-radius:20px 20px 0 0;border-top:2px solid var(--oro,#f5b82e);padding:14px 14px calc(76px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:75vh;overflow:auto}
+  .bm-in b{grid-column:1/-1;color:var(--oro,#f5b82e);letter-spacing:1px;font-size:.8rem;text-transform:uppercase}
+  .bm-in a{display:flex;align-items:center;gap:8px;padding:13px 12px;border-radius:12px;background:#1f1f1f;border:1px solid #333;color:#f1ece0;text-decoration:none;font-weight:600;font-size:.9rem}
+  .bm-in a i{font-style:normal;font-size:1.2rem}
+}
+@media(max-width:699px){
+  #barra-app a,#barra-app button{text-transform:none!important;letter-spacing:0!important;font-size:.66rem!important;font-family:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body[data-vista=reservar] #barra-app{display:none}
+  body[data-vista=reservar]{padding-bottom:0}
+}
