@@ -56,9 +56,16 @@
     if (msg) { var s = document.createElement('small'); s.className = 'campo-error'; s.textContent = msg; input.parentNode.appendChild(s); }
     return !msg;
   }
+  /* mensaje de teléfono que dice qué falta (en vez de solo «no válido») */
+  function msgTel(v) {
+    var d = String(v || '').replace(/\D/g, '').replace(/^(?:569|56)/, '');
+    if (!d.length) return 'Escribe tu WhatsApp, por ejemplo +56 9 1234 5678.';
+    if (d.length < 8) { var f = 8 - d.length; return 'Te ' + (f === 1 ? 'falta 1 dígito' : 'faltan ' + f + ' dígitos') + ': después del +56 9 van 8 números (ej. 1234 5678).'; }
+    return 'Escribe un celular chileno válido, por ejemplo +56 9 1234 5678.';
+  }
   function revisar(input) {
     var v = input.value.trim();
-    if (input.type === 'tel') return marcar(input, v && !R.telefonoValido(R.normalizarTelefono(v)) ? 'Escribe un teléfono válido, por ejemplo +56 9 1234 5678.' : '');
+    if (input.type === 'tel') return marcar(input, v && !R.telefonoValido(R.normalizarTelefono(v)) ? msgTel(v) : '');
     if (input.type === 'email') return marcar(input, v && !R.correoValido(v.toLowerCase()) ? 'Escribe un correo válido, por ejemplo nombre@correo.cl.' : '');
     return true;
   }
@@ -66,7 +73,7 @@
     var ok = true;
     [['banda', 'Escribe el nombre de tu banda o proyecto.'], ['nombre', 'Escribe tu nombre.']].forEach(function (c) { var i = $(c[0]); if (!marcar(i, i.value.trim().length < 2 ? c[1] : '')) ok = false; });
     var t = $('telefono'), e = $('correo');
-    if (!marcar(t, !R.telefonoValido(R.normalizarTelefono(t.value)) ? 'Escribe un teléfono válido, por ejemplo +56 9 1234 5678.' : '')) ok = false;
+    if (!marcar(t, !R.telefonoValido(R.normalizarTelefono(t.value)) ? msgTel(t.value) : '')) ok = false;
     if (!marcar(e, !R.correoValido(e.value.trim().toLowerCase()) ? 'Escribe un correo válido, por ejemplo nombre@correo.cl.' : '')) ok = false;
     if (!ok) { var m = form.querySelector('.invalido'); if (m) m.focus(); }
     return ok;

@@ -321,7 +321,8 @@ function reservar_(sol) {
     var ocupadas = fechaOk ? horasOcupadas_(sol.fecha, cfg) : [];
     v = Reglas.validarSolicitud(cfg, ahoraChile_(), sol, ocupadas);
     if (!v.ok) return { ok: false, codigo: v.codigo, error: v.error };
-    if (pendientesDe_(v.datos.telefono) >= MAX_PENDIENTES_POR_TELEFONO) {
+    var esDeCasa = esCasa_(v.datos.telefono, v.datos.banda); // bandas de la casa: reservan sin abono y sin tope de pendientes
+    if (!esDeCasa && pendientesDe_(v.datos.telefono) >= MAX_PENDIENTES_POR_TELEFONO) {
       return { ok: false, codigo: 'TASA', error: 'Ya tienes reservas pendientes de abono. Escríbenos por WhatsApp para confirmarlas.' };
     }
 
@@ -372,6 +373,7 @@ function reservar_(sol) {
       ok: true,
       codigo: codigo,
       estado: EST.SIN_ABONO,
+      casa: esDeCasa,
       resumen: {
         servicio: d.servicio, fecha: d.fecha, inicio: d.inicio, fin: v.fin, horas: d.horas, banda: d.banda,
         total: v.calculo.total, abono: v.calculo.abono, saldo: v.calculo.saldo, grabacionMin: v.grabacionMin

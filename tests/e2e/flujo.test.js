@@ -136,7 +136,8 @@ t('cambiar el tema queda guardado y llega al sitio público', () => {
 console.log('\n== 6. Día de la sesión: recordatorio, finalización y reseña ==');
 let codM;
 t('reserva para mañana, abono confirmado y recordatorio automático de WhatsApp', () => {
-  const r = g.post(sol({ fecha: manana, inicio: 21, horas: 1, telefono: '56922221111', banda: 'Mañaneros', nombre: 'Dani Vega', correo: 'd@d.cl' })); assert.ok(r.ok, JSON.stringify(r)); codM = r.codigo;
+  const m2 = sumar(C.ahoraChile_().fecha, 1); // «mañana» según el reloj de la simulación en este momento (otras pruebas lo adelantan y, tarde en el día, cruza la medianoche)
+  const r = g.post(sol({ fecha: m2, inicio: 21, horas: 1, telefono: '56922221111', banda: 'Mañaneros', nombre: 'Dani Vega', correo: 'd@d.cl' })); assert.ok(r.ok, JSON.stringify(r)); codM = r.codigo;
   g.admin('adminCambiarEstado', codM, 'Reservado (con abono)');
   const aj = g.admin('adminResumen').ajustes, v = {}; aj.forEach((c) => { v[c.clave] = c.valor; });
   g.admin('adminGuardarAjustes', Object.assign({}, v, { waAutoActivo: 'SI', waPhoneId: '123456789012', waPlantillaRecordatorio: 'recordatorio_reserva' }));
@@ -1039,5 +1040,16 @@ t('reincidentes: se cuentan los «No asiste» por cliente; adicional sobre reser
   x = g.admin('adminJornadas').reservas.find((y) => y.codigo === q.codigo); assert.ok(x.cobro, 'la diferencia queda por cobrar');
 });
 
+t('banda de la casa: la reserva avisa «pagas en sala» y no choca con el tope de pendientes; las demás no', () => {
+  const d2 = diaLibre(14, 1, 12), d3 = diaLibre(15, 1, 13), d4 = diaLibre(16, 1, 14), d5 = diaLibre(17, 1, 15);
+  const base = { telefono: '56933330001', banda: 'Casa Semanal', nombre: 'Rex Z', correo: 'casa.sem@r.cl', horas: 1 };
+  const rs = [[d2, 14], [d3, 15], [d4, 16], [d5, 17]].map((x) => g.post(sol(Object.assign({ fecha: x[0], inicio: x[1] }, base))));
+  rs.forEach((r) => { assert.ok(r.ok, JSON.stringify(r)); assert.strictEqual(r.casa, true); });
+  const o = g.post(sol({ fecha: diaLibre(18, 1, 16), inicio: 18, horas: 1, telefono: '56933330077', banda: 'Visita', nombre: 'Ana V', correo: 'v@v.cl' })); assert.ok(o.ok && o.casa === false);
+});
+t('el portal anota en una hoja los guardados que fallan o se reintentan', () => {
+  g.admin('adminRegistrarError', 'adminGuardarCliente', 'El sistema está ocupado. Intenta de nuevo.', 2, 'iPhone Safari');
+  const fila = g.hoja('ErroresPortal').slice(-1)[0]; assert.ok(fila && /ocupado/.test(fila[2]) && fila[1] === 'adminGuardarCliente' && fila[3] === 2);
+});
 
 console.log('\n' + ok + ' pasos correctos, ' + fallas + ' con falla.');

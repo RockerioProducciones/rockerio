@@ -502,13 +502,16 @@ var RUN=(function(){var real=google.script.run,n=0,errs=0,tmr=null,t0=0,pill=nul
   function end(err){n=Math.max(0,n-1);if(err)errs++;if(n)return;var s=((Date.now()-t0)/1000).toFixed(1).replace('.',',');
     if(errs)ui('⚠ No se pudo guardar — revisa el aviso','g-err');else ui('✔ Guardado ('+s+' s)','g-ok');
     clearTimeout(tmr);tmr=setTimeout(function(){if(pill&&!n)pill.style.display='none'},errs?7000:2200)}
+  /* deja constancia (hoja «ErroresPortal» del Sheet) de lo que falló, para poder encontrar la causa */
+  function bitacora(fn,msg,intentos){try{real.withSuccessHandler(function(){}).withFailureHandler(function(){}).adminRegistrarError(fn,msg,intentos,(navigator.userAgent||'').slice(0,110))}catch(x){}}
   function chain(ok,fail,uo){return new Proxy({},{get:function(_,k){
     if(k==='withSuccessHandler')return function(f){return chain(f,fail,uo)};
     if(k==='withFailureHandler')return function(f){return chain(ok,f,uo)};
     if(k==='withUserObject')return function(o){return chain(ok,fail,o)};
     return function(){var a=arguments;begin();(function intento(n1){var r=real.withSuccessHandler(function(res,u){end(false);if(ok)ok.call(uo,res,u)}).withFailureHandler(function(e,u){
       /* «Sistema ocupado» = el cambio NO se alcanzó a hacer (otra tarea tenía el candado): se reintenta solo, sin duplicar nada */
-      if(n1<3&&e&&/ocupado|mucha actividad/i.test(e.message||'')){setTimeout(function(){intento(n1+1)},2000+n1*1500);return}
+      if(n1<3&&e&&/ocupado|mucha actividad/i.test(e.message||'')){bitacora(k,'(reintento) '+(e.message||''),n1+1);setTimeout(function(){intento(n1+1)},2000+n1*1500);return}
+      if(k!=='adminRegistrarError')bitacora(k,(e&&e.message)||'Error sin texto',n1+1);
       end(true);if(fail)fail.call(uo,e,u);else aviso((e&&e.message)||'Error')});if(uo!==undefined)r=r.withUserObject(uo);r[k].apply(r,a)})(0)}}})}
   return chain(null,null,undefined)})();
 function aviso(t){var m=$('msg');m.textContent=t;m.style.display=t?'block':'none';if(t)setTimeout(function(){m.style.display='none'},6000)}

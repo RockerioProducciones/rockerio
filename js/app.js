@@ -533,6 +533,12 @@
     var res = el('div', 'ro-det'); o.lineas.forEach(function (l) { res.appendChild(el('p', '', l)); }); box.appendChild(res);
     var tm = el('div', 'ro-abono'); var ta = el('div'); ta.appendChild(el('b', '', 'Abona ' + R.clp(o.monto) + ' para confirmar tu horario')); ta.appendChild(el('small', '', cfg.liberarSolo ? 'Tu horario queda tomado por ' + o.pago.minutosReserva + ' minutos; si no llega el abono, se libera solo.' : 'Tu horario queda guardado a tu nombre. Cuando abones, avísanos con el comprobante para confirmarlo.')); tm.appendChild(ta); tm.appendChild(el('b', 'v', R.clp(o.monto))); box.appendChild(tm);
     var bts = el('div', 'ro-bts'); box.appendChild(bts);
+    if (o.casa) { /* banda de la casa: horario reservado, se paga en sala */
+      ta.firstChild.textContent = '🏠 Banda de la casa: tu horario quedó reservado'; ta.lastChild.textContent = 'Pagas en sala, como siempre. Si necesitas cambiar o anular, escríbenos por WhatsApp.';
+      if (tm.children.length > 1) tm.removeChild(tm.lastChild); /* sin monto de abono */
+      cupo.hidden = true; var wc = el('a', 'ro-b ro-wsp', '📲 Avisar por WhatsApp'); wc.href = wspUrl(o.whatsapp); wc.target = '_blank'; wc.rel = 'noopener'; bts.appendChild(wc);
+      box.scrollIntoView({ behavior: 'smooth', block: 'center' }); return;
+    }
     if (o.pago.link) { var p = el('a', 'ro-b ro-azul', '💳 Pagar abono en línea (instantáneo)'); p.href = o.pago.link; p.target = '_blank'; p.rel = 'noopener'; bts.appendChild(p); }
     if (o.pago.mp && o.pagar) {
       var pm = el('button', 'ro-b ro-azul', '💳 Pagar con Mercado Pago (se confirma sola)'); pm.type = 'button';
@@ -644,7 +650,7 @@
     mostrarPago({
       box: $('listo'), titulo: '¡Reserva registrada! Código #' + d.codigo.replace('RP-', ''),
       lineas: [R.fechaLarga(r.fecha) + ', ' + R.horaTxt(r.inicio) + ' a ' + R.horaTxt(r.fin) + '. Total ' + R.clp(r.total) + '.'],
-      monto: r.abono, pago: d.pago, whatsapp: d.whatsapp || ('Hola, quiero confirmar mi reserva ' + d.codigo),
+      monto: r.abono, casa: d.casa === true, pago: d.pago, whatsapp: d.whatsapp || ('Hola, quiero confirmar mi reserva ' + d.codigo),
       pagar: ultimoTel ? { codigo: d.codigo, telefono: ultimoTel } : null
     });
     $('form').hidden = true; $('tu-reserva').hidden = true;

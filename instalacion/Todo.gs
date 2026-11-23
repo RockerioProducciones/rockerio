@@ -925,7 +925,8 @@ function reservar_(sol) {
     var ocupadas = fechaOk ? horasOcupadas_(sol.fecha, cfg) : [];
     v = Reglas.validarSolicitud(cfg, ahoraChile_(), sol, ocupadas);
     if (!v.ok) return { ok: false, codigo: v.codigo, error: v.error };
-    if (pendientesDe_(v.datos.telefono) >= MAX_PENDIENTES_POR_TELEFONO) {
+    var esDeCasa = esCasa_(v.datos.telefono, v.datos.banda); // bandas de la casa: reservan sin abono y sin tope de pendientes
+    if (!esDeCasa && pendientesDe_(v.datos.telefono) >= MAX_PENDIENTES_POR_TELEFONO) {
       return { ok: false, codigo: 'TASA', error: 'Ya tienes reservas pendientes de abono. Escríbenos por WhatsApp para confirmarlas.' };
     }
 
@@ -976,6 +977,7 @@ function reservar_(sol) {
       ok: true,
       codigo: codigo,
       estado: EST.SIN_ABONO,
+      casa: esDeCasa,
       resumen: {
         servicio: d.servicio, fecha: d.fecha, inicio: d.inicio, fin: v.fin, horas: d.horas, banda: d.banda,
         total: v.calculo.total, abono: v.calculo.abono, saldo: v.calculo.saldo, grabacionMin: v.grabacionMin
@@ -2042,6 +2044,20 @@ function registrarCambio_(tipo, detalle, antes, ahora) {
     var n = sh.getLastRow();
     if (n > CAMBIOS_MAX + 1) sh.deleteRows(2, n - CAMBIOS_MAX - 1);
   } catch (err) { console.error('registrarCambio_: ' + err); }
+}
+
+/** El portal avisa aquí cuando un guardado falla o necesita reintentarse, para saber con exactitud qué pasó. Sin candado, para no sumar espera. */
+function adminRegistrarError(accion, mensaje, intentos, dispositivo) {
+  exigirAdmin_();
+  try {
+    var ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty('SHEET_ID')), sh = ss.getSheetByName('ErroresPortal');
+    if (!sh) { sh = ss.insertSheet('ErroresPortal'); sh.getRange(1, 1, 1, 5).setValues([['Fecha', 'Acción', 'Qué pasó', 'Intentos', 'Dispositivo']]).setFontWeight('bold'); sh.setFrozenRows(1); }
+    var rec = function (v, n) { return String(v === undefined || v === null ? '' : v).slice(0, n || 300); };
+    sh.appendRow([Utilities.formatDate(new Date(), 'America/Santiago', 'yyyy-MM-dd HH:mm:ss'), rec(accion, 60), rec(mensaje, 600), Number(intentos) || 1, rec(dispositivo, 120)]);
+    var n = sh.getLastRow();
+    if (n > 301) sh.deleteRows(2, n - 301);
+  } catch (err) { console.error('adminRegistrarError: ' + err); }
+  return true;
 }
 
 function adminListarCambios() {

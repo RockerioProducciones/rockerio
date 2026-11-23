@@ -308,6 +308,20 @@ function registrarCambio_(tipo, detalle, antes, ahora) {
   } catch (err) { console.error('registrarCambio_: ' + err); }
 }
 
+/** El portal avisa aquí cuando un guardado falla o necesita reintentarse, para saber con exactitud qué pasó. Sin candado, para no sumar espera. */
+function adminRegistrarError(accion, mensaje, intentos, dispositivo) {
+  exigirAdmin_();
+  try {
+    var ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty('SHEET_ID')), sh = ss.getSheetByName('ErroresPortal');
+    if (!sh) { sh = ss.insertSheet('ErroresPortal'); sh.getRange(1, 1, 1, 5).setValues([['Fecha', 'Acción', 'Qué pasó', 'Intentos', 'Dispositivo']]).setFontWeight('bold'); sh.setFrozenRows(1); }
+    var rec = function (v, n) { return String(v === undefined || v === null ? '' : v).slice(0, n || 300); };
+    sh.appendRow([Utilities.formatDate(new Date(), 'America/Santiago', 'yyyy-MM-dd HH:mm:ss'), rec(accion, 60), rec(mensaje, 600), Number(intentos) || 1, rec(dispositivo, 120)]);
+    var n = sh.getLastRow();
+    if (n > 301) sh.deleteRows(2, n - 301);
+  } catch (err) { console.error('adminRegistrarError: ' + err); }
+  return true;
+}
+
 function adminListarCambios() {
   exigirAdmin_();
   var sh = abrirBd_().getSheetByName('Cambios'), n = sh ? sh.getLastRow() : 0;
