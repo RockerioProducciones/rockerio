@@ -14,8 +14,8 @@ t('llenarPlantilla reemplaza claves y deja las desconocidas', () => {
   assert.strictEqual(R.llenarPlantilla('Hola {nombre}, {x} y {saldo}', { nombre: 'Ana', saldo: '1000 pesos' }), 'Hola Ana, {x} y 1000 pesos');
 });
 t('las 7 plantillas por defecto existen y usan solo claves conocidas', () => {
-  const ok_ = ['nombre', 'banda', 'servicio', 'fecha', 'hora', 'fin', 'codigo', 'total', 'abono', 'saldo', 'direccion', 'negocio', 'sitio', 'horasAnulacion', 'enlaceDescarga', 'enlaceResena', 'enlaceHonor'];
-  ['msgRecordatorio', 'msgConfirmacion', 'msgCobroAbono', 'msgGracias', 'msgResena', 'msgDescarga', 'msgHonor'].forEach((k) => {
+  const ok_ = ['nombre', 'banda', 'servicio', 'fecha', 'hora', 'fin', 'codigo', 'total', 'abono', 'saldo', 'direccion', 'negocio', 'sitio', 'horasAnulacion', 'enlaceDescarga', 'enlaceResena', 'enlaceHonor', 'plan', 'fechas'];
+  ['msgRecordatorio', 'msgConfirmacion', 'msgCobroAbono', 'msgGracias', 'msgResena', 'msgDescarga', 'msgHonor', 'msgPlan'].forEach((k) => {
     assert.ok(cfgBase[k].length > 20);
     (cfgBase[k].match(/\{(\w+)\}/g) || []).forEach((m) => assert.ok(ok_.includes(m.slice(1, -1)), k + ' usa ' + m));
   });

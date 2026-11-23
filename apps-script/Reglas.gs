@@ -45,6 +45,7 @@ var Reglas = (function () {
     msgGracias: "Hola {nombre} 🎸 ¡Gracias por venir a {negocio}! Esperamos que la sesión haya estado genial. Cuando quieran volver, reservar con un poco de anticipación nos ayuda a mantener la agenda fluida y a tener espacio para todas las bandas. Y si te das un minuto para dejarnos una reseña, nos ayuda un mundo: {sitio} 🤘",
     msgResena: "Hola {nombre} 🤘 ¡Qué bueno haber tenido a {banda} en {negocio}! Si tienes un minutito, cuéntanos cómo les fue: tu opinión ayuda a otras bandas a decidirse y a nosotros a mejorar. Puedes dejarla aquí: {enlaceResena} ¡Mil gracias! 🙌",
     msgDescarga: "Hola {nombre} 🎧 ¡Ya está listo el material de {banda}! Lo puedes descargar aquí: {enlaceDescarga} Si algo no abre o necesitas otro formato, escríbenos y lo resolvemos. ¡Ojalá lo disfruten harto! 🤘",
+    msgPlan: "Hola {nombre} 🤘 ¡Gracias por abonar tu {plan} de {banda}! Tu plan quedó confirmado. Este es el detalle de tus 4 jornadas:\n{fechas}\nCada fecha se puede mover hasta con {horasAnulacion} horas de anticipación, para respetar y favorecer el funcionamiento de la agenda. Estamos en {direccion}. Para cualquier duda o consulta, escríbenos por este WhatsApp. ¡Nos vemos pronto! 🎶",
     msgHonor: "Hola {nombre} 🤘 ¡Nos encantó tener a {banda} en {negocio}! Nos gustaría que formaran parte de nuestro Cuadro de Honor, un espacio para mostrar a las bandas que pasan por aquí. Si se animan, es un formulario cortito: {enlaceHonor} ¡Gracias por la buena onda!",
     waAutoActivo: false,          // SI = el recordatorio del día anterior se envía solo por la API de WhatsApp Business (requiere cuenta Meta)
     waPhoneId: '',                // ID del número de WhatsApp Business (no es el teléfono)
@@ -218,7 +219,7 @@ var Reglas = (function () {
     c.reservasActivas = aBool(raw.reservasActivas, d.reservasActivas);
     c.avisoBanner = aTexto(raw.avisoBanner, d.avisoBanner);
     c.tarifaConveniente = aBool(raw.tarifaConveniente, d.tarifaConveniente);
-    ['msgRecordatorio', 'msgConfirmacion', 'msgCobroAbono', 'msgGracias', 'msgResena', 'msgDescarga', 'msgHonor'].forEach(function (k) { c[k] = aTexto(raw[k], d[k]) || d[k]; });
+    ['msgRecordatorio', 'msgConfirmacion', 'msgCobroAbono', 'msgGracias', 'msgResena', 'msgDescarga', 'msgHonor', 'msgPlan'].forEach(function (k) { c[k] = aTexto(raw[k], d[k]) || d[k]; });
     c.waAutoActivo = aBool(raw.waAutoActivo, d.waAutoActivo);
     ['waPhoneId', 'waPlantillaRecordatorio', 'waIdioma', 'waVersion'].forEach(function (k) { c[k] = aTexto(raw[k], d[k]); });
     c.reglamento = aTexto(raw.reglamento, d.reglamento) || d.reglamento;

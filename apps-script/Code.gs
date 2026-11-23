@@ -898,6 +898,7 @@ function prepararConfig_(ss) {
     ['msgGracias', d.msgGracias, 'Texto de agradecimiento después de la sesión.'],
     ['msgResena', d.msgResena, 'Texto para pedir una reseña. {enlaceResena} lleva al formulario del sitio.'],
     ['msgDescarga', d.msgDescarga, 'Texto para enviar el enlace de descarga del material. {enlaceDescarga} es la carpeta de la banda.'],
+    ['msgPlan', d.msgPlan, 'Texto de confirmación de un plan mensual pagado. {fechas} es la lista de las 4 jornadas, {plan} el nombre del plan.'],
     ['msgHonor', d.msgHonor, 'Texto de invitación al Cuadro de Honor. {enlaceHonor} lleva al formulario del sitio.'],
     ['waAutoActivo', 'NO', 'SI = el recordatorio del día anterior se envía solo por la API de WhatsApp Business (requiere cuenta de Meta, plantilla aprobada y token). Ver portal > Mensajes de WhatsApp.'],
     ['waPhoneId', '', 'ID del número de WhatsApp Business (en Meta, no es el teléfono).'],
