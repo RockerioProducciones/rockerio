@@ -1418,6 +1418,9 @@ function pintarStats(){
   var c=$('jstats');c.textContent='';var rs=(JOR.reservas||[]).filter(function(r){return r.estado!=='Anulada'});
   var f=JOR.hoy,hoy=rs.filter(function(r){return r.fecha===f}).length,sin=rs.filter(function(r){return r.estado==='Reservado (sin abono)'&&r.fecha>=f}).length,con=rs.filter(function(r){return r.estado==='Reservado (con abono)'&&r.fecha>=f}).length;
   [['Sesiones hoy',hoy,'#e39a2d'],['Sin abono (atención)',sin,'#ff5a5f'],['Abonadas / confirmadas',con,'#4ade80'],['Total en sistema',rs.length,'#60a5fa']].forEach(function(x){var d=el_('div','jst');d.style.setProperty('--c',x[2]);d.appendChild(el_('small','',x[0]));d.appendChild(el_('b','',String(x[1])));c.appendChild(d)});
+  var ses=rs.filter(function(r){return r.fecha===f}).sort(function(a,b){return String(a.inicio)<String(b.inicio)?-1:1});
+  if(ses.length){var h=el_('div','jst');h.style.cssText='flex:1 1 100%;--c:#e39a2d;text-align:left';h.appendChild(el_('small','','Hoy en sala'));
+    ses.forEach(function(r){var l=el_('div','',String(r.inicio).slice(0,5)+'–'+String(r.fin).slice(0,5)+' · '+r.banda+' · '+r.servicio+(r.estado==='Reservado (sin abono)'?' · ⚠ sin abono':''));l.style.cssText='font-size:.9rem;margin-top:3px';h.appendChild(l)});c.appendChild(h)}
 }
 function filtrado(r){var q=jbusca.trim().toLowerCase();return(!jfEstado||r.estado===jfEstado)&&(!jfServ||claseServ(r)===jfServ)&&(!q||(r.banda+' '+r.contacto+' '+r.telefono+' '+r.codigo).toLowerCase().indexOf(q)>=0)}
 function pintarCalJor(){
