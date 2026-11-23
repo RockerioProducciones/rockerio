@@ -1656,14 +1656,26 @@ function listaCli(){
     if(x.proxima)k.appendChild(el_('small','','Próxima: '+x.proxima));else if(x.ultima)k.appendChild(el_('small','','Última: '+x.ultima));
     var w=el_('a','wa','WhatsApp');if(/^MAN-/.test(x.telefono))w.style.display='none';w.href='https://wa.me/'+String(x.telefono).replace(/\D/g,'');w.target='_blank';w.rel='noopener';w.onclick=function(e){e.stopPropagation()};k.appendChild(w);
     if(!/^MAN-/.test(x.telefono)){var cx={contacto:x.contacto,banda:x.banda,telefono:x.telefono,get enlace(){return x.enlace}};var wb=waBotones(cx,['msgDescarga','msgResena','msgHonor']);wb.style.marginTop='.4rem';k.appendChild(wb)}
-    var det=btn('Ver jornadas',function(){fichaCli(x)},'sec');det.style.marginTop='.4rem';k.appendChild(det);var ed=btn('Editar',function(){formCli(x)},'sec');ed.style.margin='.4rem 0 0 .3rem';k.appendChild(ed);var nr=btn('+ Reserva',function(){abrirRM({banda:x.banda,nombre:x.contacto,telefono:/^MAN-/.test(x.telefono)?'':x.telefono,correo:x.correo})},'sec');nr.style.margin='.4rem 0 0 .3rem';k.appendChild(nr);
+    var det=btn('Ver jornadas',function(){fichaCli(x)},'sec');det.style.marginTop='.4rem';k.appendChild(det);var ed=btn('Editar',function(){formCli(x)},'sec');ed.style.margin='.4rem 0 0 .3rem';k.appendChild(ed);var nin=integrantes(x).length;if(nin>1){var bb=btn('👥 Banda ('+nin+')',function(){fichaBanda(x)},'sec');bb.style.margin='.4rem 0 0 .3rem';k.appendChild(bb)}var nr=btn('+ Reserva',function(){abrirRM({banda:x.banda,nombre:x.contacto,telefono:/^MAN-/.test(x.telefono)?'':x.telefono,correo:x.correo})},'sec');nr.style.margin='.4rem 0 0 .3rem';k.appendChild(nr);
     g.appendChild(k)});
   c.appendChild(g);if(!g.firstChild)c.appendChild(par('Sin clientes todavía.','color:#b5afa6'));
   avisoDuplicados(c);
 }
 
 /* ---------- Fusionar clientes repetidos ---------- */
-var FUS_IGN={};
+var FUS_IGN={};try{FUS_IGN=JSON.parse(localStorage.getItem('rk-fus-ign')||'{}')||{}}catch(e){FUS_IGN={}}
+function guardaIgn(){try{localStorage.setItem('rk-fus-ign',JSON.stringify(FUS_IGN))}catch(e){}}
+/* Integrantes de una misma banda: se agrupan en una vista de banda, cada uno conserva su ficha. */
+function claveBanda(x){return sinTilde(x.banda)}
+function integrantes(x){var k=claveBanda(x);return k?(JOR.clientes||[]).filter(function(c){return claveBanda(c)===k}):[x]}
+function fichaBanda(x){
+  var m=integrantes(x),d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);
+  var f=el_('div','ficha-j');f.appendChild(el_('h3','','👥 '+(x.banda||'(sin banda)')));f.appendChild(el_('div','sub',m.length+' integrante'+(m.length===1?'':'s')+' · cada uno conserva su ficha, teléfono y reservas'));
+  var tj=0,tf=0,tg=0;m.forEach(function(c){tj+=c.jornadas||0;tf+=c.finalizadas||0;tg+=c.gastado||0});
+  var tot=el_('div','tot');[['Jornadas',tj],['Finalizadas',tf],['Gastado',clp(tg)]].forEach(function(y){var e=el_('div');e.appendChild(el_('b','',y[1]));e.appendChild(document.createTextNode(' '+y[0]));tot.appendChild(e)});f.appendChild(tot);
+  m.forEach(function(c){var l=el_('div','pend-c');var i=el_('div','pi');i.appendChild(el_('b','',c.contacto||'(sin nombre)'));i.appendChild(el_('small','',(/^MAN-/.test(c.telefono)?'sin teléfono':'+'+c.telefono)+(c.correo?' · '+c.correo:'')+' · '+(c.jornadas||0)+' reservas'));l.appendChild(i);
+    var a=el_('div','fila');a.appendChild(btn('Ver jornadas',function(){fichaCli(c)},'sec'));if(!/^MAN-/.test(c.telefono)){var w=el_('a','sec','WhatsApp');w.href='https://wa.me/'+String(c.telefono).replace(/\D/g,'');w.target='_blank';w.rel='noopener';w.style.cssText='border:1px solid var(--borde);color:var(--oro)';a.appendChild(w)}l.appendChild(a);f.appendChild(l)});
+  f.appendChild(btn('Cerrar',function(){d.hidden=true},'sec'));d.appendChild(f)}
 function reincTxt(t){var c=(JOR.clientes||[]).filter(function(x){return x.telefono===t})[0],n=c?c.noAsiste||0:0;return n?'⚠️ No asistió '+n+(n===1?' vez':' veces')+(n>=2?' · conviene pedir abono':''):''}
 function cliPor(t){return(JOR.clientes||[]).filter(function(c){return c.telefono===t})[0]}
 function modalFusion(claves,motivo){
@@ -1677,7 +1689,7 @@ function modalFusion(claves,motivo){
   var acc=el_('div','fila');acc.style.marginTop='10px';
   acc.appendChild(btn('Fusionar',function(){var o=cs.map(function(c){return c.telefono}).filter(function(t){return t!==keep});var k=cliPor(keep);
     confirmarSN('¿Fusionar '+o.length+' cliente'+(o.length>1?'s':'')+' en «'+(k.banda||k.contacto)+'»? Sus reservas pasan a ese cliente. No se puede deshacer.',function(){jrun('adminFusionarClientes',keep,o);d.hidden=true;aviso('Clientes fusionados ✔')},'Sí, fusionar')}));
-  if(motivo)acc.appendChild(btn('No son iguales',function(){FUS_IGN[claves.slice().sort().join('|')]=1;d.hidden=true;pintarCliJor()},'sec'));
+  if(motivo)acc.appendChild(btn('No son iguales',function(){FUS_IGN[claves.slice().sort().join('|')]=1;guardaIgn();d.hidden=true;pintarCliJor()},'sec'));
   acc.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
 }
 function elegirFusion(x){
