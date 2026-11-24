@@ -83,13 +83,14 @@ const { sembrar } = require('./demo.js');
             // mismo día: otra hora
             await destino.d.click(); await p.waitForSelector('#jdia .ses');
             const antes = g.admin('adminJornadas').reservas.find((r) => r.codigo === cand.codigo);
-            await p.locator('#jdia .ses').first().dispatchEvent('dragstart', { dataTransfer: await p.evaluateHandle(() => new DataTransfer()) });
-            await p.waitForSelector('#jslots .slot'); const slot = p.locator('#jslots .slot').first(); const hTxt = (await slot.textContent()).trim();
-            await slot.dispatchEvent('drop', { dataTransfer: await p.evaluateHandle(() => new DataTransfer()) });
+            await p.waitForSelector('#jdia .tl-r.mv'); await p.locator('#jdia .tl-r.mv').first().scrollIntoViewIfNeeded(); const bx = await p.locator('#jdia .tl-r.mv').first().boundingBox();
+            const horasAb = (J0.abiertas || {})[destino.f] || []; const aIni = parseInt(antes.inicio, 10); const hrs = Number(antes.horas) || 1;
+            const objetivo = horasAb.filter((x) => x !== aIni && horasAb.includes(x + hrs - 1))[0];
+            await p.mouse.move(bx.x + 40, bx.y + 10); await p.mouse.down(); await p.mouse.move(bx.x + 40, bx.y + 10 + (objetivo - aIni) * 44, { steps: 8 }); await p.mouse.up(); 
             await p.waitForSelector('.conf'); ok(/Mover la reserva/.test(await p.locator('.conf p').innerText()), 'mismo día: pide confirmar');
             await p.locator('.conf button', { hasText: 'Sí, mover' }).click(); await p.waitForTimeout(400);
             const desp = g.admin('adminJornadas').reservas.find((r) => r.codigo === cand.codigo);
-            ok(parseInt(desp.inicio, 10) === parseInt(hTxt, 10) && desp.fecha === antes.fecha, 'mismo día: la reserva cambió de hora');
+            ok(parseInt(desp.inicio, 10) === objetivo && desp.fecha === antes.fecha, 'mismo día: la reserva cambió de hora');
           }
         }
       }

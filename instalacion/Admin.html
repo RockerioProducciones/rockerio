@@ -359,6 +359,7 @@ section.tab-off{display:none!important}
 @media(max-width:600px){.vs-grid{grid-template-columns:1fr}.vs-fila{grid-template-columns:minmax(110px,46%) 1fr auto}}
 .ev.arr{opacity:.45}.dia.arr-s{outline:2px dashed #e39a2d;outline-offset:-2px}@media(min-width:700px){.ev[draggable=true]{cursor:grab}}
 .slots{border:1px dashed #e39a2d;border-radius:10px;padding:8px;margin:6px 0}.slots-t{font-size:.85rem;color:#b5afa6;margin-bottom:6px}.slots-f{display:flex;flex-wrap:wrap;gap:6px}.slot{padding:8px 12px;border:1px solid #555;border-radius:8px;min-width:58px;text-align:center}.slot.on{background:#e39a2d;color:#000}
+.tl{margin:8px 0 12px}.tl-t{font-size:.82rem;color:#b5afa6;margin-bottom:6px}.tl-c{position:relative;margin-left:52px;border-left:1px solid #555;user-select:none;-webkit-user-select:none}.tl-h{position:absolute;left:-52px;right:0;height:44px;border-top:1px solid #333;font-size:.75rem;color:#b5afa6}.tl-h span{position:absolute;left:0;top:2px}.tl-h.cerr{background:repeating-linear-gradient(45deg,#161616,#161616 6px,#1d1d1d 6px,#1d1d1d 12px)}.tl-b{position:absolute;left:4px;right:4px;border-radius:8px;padding:4px 8px;font-size:.8rem;background:repeating-linear-gradient(45deg,#3a1d1d,#3a1d1d 6px,#2c1515 6px,#2c1515 12px);color:#e9b3b3;overflow:hidden}.tl-r{position:absolute;left:6px;right:6px;border-radius:8px;padding:4px 8px;overflow:hidden;font-size:.82rem;color:#fff;background:color-mix(in srgb,var(--c) 38%,#111);border-left:5px solid var(--c);z-index:2;cursor:pointer}.tl-r.sin{border-style:dashed none dashed solid}.tl-r.mv{cursor:grab;touch-action:none}.tl-r.arrastrando{cursor:grabbing;z-index:5;box-shadow:0 6px 18px rgba(0,0,0,.5)}.tl-r.buena{outline:2px solid #4ade80}.tl-r.mala{outline:2px solid #ff5a5f}
 </style></head><body>
 <div class="cab"><h1>Portal de control <small>· Rockerío Producciones</small><span class="badge-adm">ADMIN</span></h1><div class="cab-acc"><a id="ver-sitio" href="#" target="_blank" rel="noopener" hidden>Ver sitio público ↗</a><button type="button" id="campana" title="Pendientes">🔔<i id="campana-n" hidden></i></button></div></div>
 <div id="msg"></div>
@@ -1467,7 +1468,7 @@ function pintarCalJor(){
     var cel=el_('div','dia'+(f===JOR.hoy?' hoy':'')+(f===jsel?' sel':''));var n=el_('div','n');n.appendChild(el_('span','',String(d)));var mas=el_('button','mas-b','＋');mas.type='button';mas.title='Agendar reserva este día';mas.onclick=function(ev){ev.stopPropagation();abrirRM({fecha:f})};n.appendChild(mas);cel.appendChild(n);
     var mz=mezclaDia(rs,bq);mz.slice(0,4).forEach(function(i){cel.appendChild(i.b?chipBloq(i.b):chipEv(i.r))});if(mz.length>4)cel.appendChild(el_('div','mas','+ '+(mz.length-4)+' más'));
     var pts=el_('div','pts');bq.slice(0,1).forEach(function(){var p=el_('i','');p.style.background='var(--k-bloq)';pts.appendChild(p)});rs.slice(0,6).forEach(function(r){var p=el_('i','');p.style.background='var(--k-'+claseServ(r)+')';var g=marcaEst(r);if(g)p.className='st-'+g[0];pts.appendChild(p)});cel.appendChild(pts);
-    cel.onclick=function(){jsel=f;pintarCalJor()};cel.ondragover=function(ev){if(ARR){ev.preventDefault();cel.classList.add('arr-s')}};cel.ondragleave=function(){cel.classList.remove('arr-s')};cel.ondrop=function(ev){ev.preventDefault();cel.classList.remove('arr-s');soltarEn(f)};g.appendChild(cel);
+    cel.dataset.f=f;cel.onclick=function(){jsel=f;pintarCalJor()};cel.ondragover=function(ev){if(ARR){ev.preventDefault();cel.classList.add('arr-s')}};cel.ondragleave=function(){cel.classList.remove('arr-s')};cel.ondrop=function(ev){ev.preventDefault();cel.classList.remove('arr-s');soltarEn(f)};g.appendChild(cel);
   })(d)}
   c.appendChild(g);var pd=el_('div','panel-dia');pd.id='jdia';c.appendChild(pd);diaJor(jsel||JOR.hoy);
 }
@@ -1519,6 +1520,42 @@ function horaEn(r,f,ini){ARR=null;var hr=Number(r.horas)||1,sl=document.getEleme
   var max=JOR.maxReag||2,lim=(r.reag||0)>=max;
   function ir(exc){RUN.withSuccessHandler(function(rr){pintar(rr);cargarJor();aviso('Reserva movida ✔')}).withFailureHandler(function(e){var m=e.message||'Error';if(/LIMITE/.test(m)&&!exc)confirmarSN(m.replace(/^.*LIMITE:\s*/,'')+' ¿Hacer una excepción y mover igual?',function(){ir(true)},'Sí, hacer excepción');else aviso(m.replace(/^.*(CHOQUE|LIMITE|FUERA_HORARIO|FECHA):\s*/,''))}).adminReagendar(r.codigo,f,ini,!!exc)}
   confirmarSN('¿Mover la reserva de '+r.banda+' ('+r.fechaTxt+') de '+r.inicio+'–'+r.fin+' a '+ini+':00–'+(ini+hr)+':00?'+(lim?' (ya usó sus reagendamientos: será una excepción)':''),function(){ir(lim)},'Sí, mover')}
+var TLH=44;
+function tlDia(h,f){
+  var ab=(JOR.abiertas||{})[f]||null,rs=deDia(f).filter(function(r){return r.estado!=='Anulada'}),ini=24,fin=0;
+  if(ab&&ab.length){ini=Math.min.apply(null,ab);fin=Math.max.apply(null,ab)+1}
+  rs.forEach(function(r){var a=parseInt(r.inicio,10);ini=Math.min(ini,a);fin=Math.max(fin,a+(Number(r.horas)||1))});
+  if(ini>=fin)return;
+  var mov=window.innerWidth>=700,w=el_('div','tl');
+  w.appendChild(el_('div','tl-t',mov?'Vista por horas · arrastra una reserva hacia arriba o abajo para cambiarle la hora; arrástrala sobre otro día del calendario para cambiarla de día.':'Vista por horas'));
+  var cu=el_('div','tl-c');cu.style.height=((fin-ini)*TLH)+'px';
+  for(var hh=ini;hh<fin;hh++){var rw=el_('div','tl-h'+(ab&&ab.indexOf(hh)<0?' cerr':''),'');rw.style.top=((hh-ini)*TLH)+'px';rw.appendChild(el_('span','',hh+':00'));cu.appendChild(rw)}
+  var dia=(JOR.inhabiles||[]).some(function(x){return x.fecha===f});
+  var bl=[];(JOR.bloqueos||[]).forEach(function(b){if(b.fecha===f)bl.push([b.desde===''?0:Number(b.desde),b.hasta===''?24:Number(b.hasta),b.motivo||'Bloqueo'])});if(dia)bl.push([0,24,'Día inhabilitado']);
+  bl.forEach(function(b){var a=Math.max(b[0],ini),z=Math.min(b[1],fin);if(z<=a)return;var d=el_('div','tl-b','🔒 '+b[2]);d.style.top=((a-ini)*TLH)+'px';d.style.height=((z-a)*TLH-2)+'px';cu.appendChild(d)});
+  rs.forEach(function(r){
+    var a=parseInt(r.inicio,10),hr=Number(r.horas)||1,vig=r.estado==='Reservado (sin abono)'||r.estado==='Reservado (con abono)',cl=claseServ(r);
+    var c=el_('div','tl-r'+(r.estado==='Reservado (sin abono)'?' sin':'')+(vig&&mov?' mv':''));c.style.setProperty('--c','var(--k-'+cl+')');
+    c.style.top=((a-ini)*TLH)+'px';c.style.height=(hr*TLH-2)+'px';
+    var et=el_('b','',r.inicio+'–'+r.fin);c.appendChild(et);c.appendChild(document.createTextNode(' '+r.banda+(r.contacto?' · '+r.contacto:'')+' · '+r.servicio));
+    if(!vig||!mov){c.onclick=function(){fichaJor(r)};cu.appendChild(c);return}
+    var st=null,libres=libresPara(f,hr,r.codigo).filter(function(x){return dentroHorario(f,x,hr)}),nuevo=a,sobre=null,mv=false;
+    function mark(fc){if(sobre===fc)return;[].forEach.call(document.querySelectorAll('.dia.arr-s'),function(x){x.classList.remove('arr-s')});sobre=fc;if(fc){var cc=document.querySelector('.cuad .dia[data-f="'+fc+'"]');if(cc)cc.classList.add('arr-s')}}
+    c.onpointerdown=function(ev){if(ev.button>0)return;st={y:ev.clientY};mv=false;try{c.setPointerCapture(ev.pointerId)}catch(e){}c.classList.add('arrastrando')};
+    c.onpointermove=function(ev){if(!st)return;var dy=ev.clientY-st.y;if(Math.abs(dy)>4)mv=true;if(!mv)return;
+      var el=document.elementFromPoint(ev.clientX,ev.clientY),dc=el&&el.closest?el.closest('.cuad .dia[data-f]'):null,fc=dc&&dc.dataset.f!==f?dc.dataset.f:null;mark(fc);
+      if(fc){c.style.top=((a-ini)*TLH)+'px';et.textContent='→ '+fc.split('-').reverse().join('/')+' · '+r.inicio+'–'+r.fin;c.classList.remove('mala');c.classList.add('buena');nuevo=a;return}
+      var n=Math.round((a-ini)+dy/TLH);n=Math.max(0,Math.min(fin-ini-hr,n));nuevo=ini+n;c.style.top=(n*TLH)+'px';
+      var ok=nuevo===a||libres.indexOf(nuevo)>=0;c.classList.toggle('buena',ok&&nuevo!==a);c.classList.toggle('mala',!ok);et.textContent=nuevo+':00–'+(nuevo+hr)+':00'+(ok?'':' · no disponible')};
+    c.onpointerup=function(ev){if(!st)return;st=null;c.classList.remove('arrastrando');try{c.releasePointerCapture(ev.pointerId)}catch(e){}var fc=sobre;mark(null);
+      if(!mv){fichaJor(r);return}
+      if(fc){ARR=r;diaJor(f);soltarEn(fc);return}
+      if(nuevo===a){diaJor(f);return}
+      if(libres.indexOf(nuevo)<0){aviso('Ese horario no está libre o está fuera del horario de atención.');diaJor(f);return}
+      diaJor(f);horaEn(r,f,nuevo)};
+    c.onpointercancel=function(){st=null;mark(null);diaJor(f)};
+    cu.appendChild(c)});
+  w.appendChild(cu);h.insertBefore(w,h.firstChild.nextSibling)}
 function diaJor(f){
   var p=$('jdia');if(!p)return;p.textContent='';var rs=deDia(f).filter(filtrado),bq=bloqDia(f);
   var h=el_('div','agenda-d');var cab=el_('div','dia-cab');cab.appendChild(el_('h4','',R_fecha(f)));cab.appendChild(el_('span','selinfo',rs.length+(rs.length===1?' sesión':' sesiones')));cab.appendChild(btn('＋ Agendar',function(){abrirRM({fecha:f})},'sec'));cab.appendChild(btn('🔒 Bloquear',function(){formBloq(f)},'sec'));h.appendChild(cab);
@@ -1534,11 +1571,8 @@ function diaJor(f){
     if(r.pago==='COMPROBANTE'&&r.estado==='Reservado (sin abono)')ac.appendChild(btn('Confirmar abono',function(){confirmarSN('¿Confirmas que el abono de '+r.banda+' ya llegó?',function(){jrun('adminCambiarEstado',r.codigo,'Reservado (con abono)')},'Sí, confirmar')}));
     if(r.estado==='Reservado (sin abono)'&&r.pago!=='COMPROBANTE'&&r.pago!=='MANUAL'&&!/^Reserva manual/.test(r.comentarios||''))ac.appendChild(btn('Mantener 12 h',function(){confirmarSN('¿Ya tienes el comprobante de '+r.banda+'? El horario se guarda 12 horas más mientras confirmas el abono.',function(){jrun('adminMantenerHorario',r.codigo)},'Sí, mantener')},'sec'));
     if(r.estado==='Reservado (sin abono)'||r.estado==='Reservado (con abono)')ac.appendChild(btn('Finalizar',function(){formAjuste(r,true)}));
-    k.appendChild(ac);
-    if(window.innerWidth>=700&&(r.estado==='Reservado (sin abono)'||r.estado==='Reservado (con abono)')){k.draggable=true;k.title='Arrastra para cambiar la hora de este día';
-      k.ondragstart=function(ev){try{ev.dataTransfer.setData('text/plain',r.codigo);ev.dataTransfer.effectAllowed='move'}catch(e){}ARR=r;setTimeout(function(){mostrarSlots(h,r,f)},0)};
-      k.ondragend=function(){ARR=null;var sl=document.getElementById('jslots');if(sl)sl.remove()}}
-    h.appendChild(k)};
+    k.appendChild(ac);h.appendChild(k)};
+   tlDia(h,f);
    mezclaDia(rs,bq).forEach(function(i){if(i.b)fb(i.b);else fr(i.r)});
   p.appendChild(h);
 }
