@@ -80,6 +80,16 @@ const { sembrar } = require('./demo.js');
             ok(g.admin('adminJornadas').reservas.find((r) => r.codigo === cand.codigo).fecha === cand.fecha, 'con «No» no se mueve nada');
             await chip.dragTo(destino.d); await p.waitForSelector('.conf'); await p.locator('.conf button', { hasText: 'Sí, mover' }).click(); await p.waitForTimeout(400);
             ok(g.admin('adminJornadas').reservas.find((r) => r.codigo === cand.codigo).fecha === destino.f, 'con «Sí» la reserva queda en el nuevo día');
+            // mismo día: otra hora
+            await destino.d.click(); await p.waitForSelector('#jdia .ses');
+            const antes = g.admin('adminJornadas').reservas.find((r) => r.codigo === cand.codigo);
+            await p.locator('#jdia .ses').first().dispatchEvent('dragstart', { dataTransfer: await p.evaluateHandle(() => new DataTransfer()) });
+            await p.waitForSelector('#jslots .slot'); const slot = p.locator('#jslots .slot').first(); const hTxt = (await slot.textContent()).trim();
+            await slot.dispatchEvent('drop', { dataTransfer: await p.evaluateHandle(() => new DataTransfer()) });
+            await p.waitForSelector('.conf'); ok(/Mover la reserva/.test(await p.locator('.conf p').innerText()), 'mismo día: pide confirmar');
+            await p.locator('.conf button', { hasText: 'Sí, mover' }).click(); await p.waitForTimeout(400);
+            const desp = g.admin('adminJornadas').reservas.find((r) => r.codigo === cand.codigo);
+            ok(parseInt(desp.inicio, 10) === parseInt(hTxt, 10) && desp.fecha === antes.fecha, 'mismo día: la reserva cambió de hora');
           }
         }
       }

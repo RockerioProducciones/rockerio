@@ -2638,7 +2638,8 @@ function adminJornadas() {
     if (r.fecha && r.fecha >= hoy && (!c.proxima || r.fecha < c.proxima)) c.proxima = r.fecha;
   });
   var clientes = Object.keys(porTel).map(function (t) { return porTel[t]; }).sort(function (a, b) { return b.jornadas - a.jornadas || (a.banda < b.banda ? -1 : 1); });
-  return { hoy: hoy, reservas: reservas, bloqueos: bloqueos, inhabiles: inhabiles, clientes: clientes, similares: agruparSimilares_(cl), estados: ESTADOS, wa: waDatos_(), maxReag: getCfg_().reagendoCambios, vivo: { dias: (Reglas.VIVO_DIAS[getCfg_().vivoDias] || [5, 6]), diasTxt: getCfg_().vivoDias, desde: getCfg_().vivoDesde, hasta: getCfg_().vivoHasta, precio: getCfg_().vivoPrecio }, precios: { raw: getCfg_().precioRaw, video: getCfg_().precioVideo, equipo: getCfg_().precioExtraEquipo, equipoModo: getCfg_().extraModo } };
+  var abiertas = {}; try { var cfgA = getCfg_(); for (var dA = 0; dA < 150; dA++) { var fA = Reglas.sumarDias ? Reglas.sumarDias(hoy, dA) : null; if (fA) abiertas[fA] = Reglas.horasAbiertas(cfgA, fA); } } catch (eA) { abiertas = {}; }
+  return { hoy: hoy, abiertas: abiertas, reservas: reservas, bloqueos: bloqueos, inhabiles: inhabiles, clientes: clientes, similares: agruparSimilares_(cl), estados: ESTADOS, wa: waDatos_(), maxReag: getCfg_().reagendoCambios, vivo: { dias: (Reglas.VIVO_DIAS[getCfg_().vivoDias] || [5, 6]), diasTxt: getCfg_().vivoDias, desde: getCfg_().vivoDesde, hasta: getCfg_().vivoHasta, precio: getCfg_().vivoPrecio }, precios: { raw: getCfg_().precioRaw, video: getCfg_().precioVideo, equipo: getCfg_().precioExtraEquipo, equipoModo: getCfg_().extraModo } };
 }
 
 

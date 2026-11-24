@@ -358,6 +358,7 @@ section.tab-off{display:none!important}
 .vs-vacio{color:var(--mut);padding:1rem 0;text-align:center}.vs-pie{color:var(--mut);font-size:.78rem;margin-top:1rem;line-height:1.5}.vs-pie code{background:#1f1d1b;padding:.05rem .3rem;border-radius:4px}
 @media(max-width:600px){.vs-grid{grid-template-columns:1fr}.vs-fila{grid-template-columns:minmax(110px,46%) 1fr auto}}
 .ev.arr{opacity:.45}.dia.arr-s{outline:2px dashed #e39a2d;outline-offset:-2px}@media(min-width:700px){.ev[draggable=true]{cursor:grab}}
+.slots{border:1px dashed #e39a2d;border-radius:10px;padding:8px;margin:6px 0}.slots-t{font-size:.85rem;color:#b5afa6;margin-bottom:6px}.slots-f{display:flex;flex-wrap:wrap;gap:6px}.slot{padding:8px 12px;border:1px solid #555;border-radius:8px;min-width:58px;text-align:center}.slot.on{background:#e39a2d;color:#000}
 </style></head><body>
 <div class="cab"><h1>Portal de control <small>· Rockerío Producciones</small><span class="badge-adm">ADMIN</span></h1><div class="cab-acc"><a id="ver-sitio" href="#" target="_blank" rel="noopener" hidden>Ver sitio público ↗</a><button type="button" id="campana" title="Pendientes">🔔<i id="campana-n" hidden></i></button></div></div>
 <div id="msg"></div>
@@ -1509,6 +1510,15 @@ function formBloq(fecha){
   var acc=el_('div','fila');acc.style.marginTop='10px';acc.appendChild(btn('🔒 Bloquear',function(){RUN.withSuccessHandler(function(rr){d.hidden=true;pintar(rr);cargarJor();aviso('Bloqueo guardado ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminBloquear(i1.value,s1.value,s2.value,i3.value)}));acc.appendChild(btn('Cancelar',function(){d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f);
 }
 function R_fecha(f){var d=new Date(f+'T12:00:00Z'),n=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];return n[d.getUTCDay()]+' '+Number(f.slice(8))+' de '+mesTxt(f.slice(0,7)).split(' ')[0].toLowerCase()}
+function mostrarSlots(h,r,f){var o=document.getElementById('jslots');if(o)o.remove();var hr=Number(r.horas)||1,ini=parseInt(r.inicio,10),lb=libresPara(f,hr,r.codigo).filter(function(x){return x!==ini&&dentroHorario(f,x,hr)});
+  var w=el_('div','slots');w.id='jslots';w.appendChild(el_('div','slots-t',lb.length?'Suelta aquí para cambiar la hora de inicio (solo horas libres):':'No hay otra hora libre este día para esta reserva.'));
+  var fl=el_('div','slots-f');lb.forEach(function(x){var b=el_('div','slot',x+':00');b.ondragover=function(ev){ev.preventDefault();b.classList.add('on')};b.ondragleave=function(){b.classList.remove('on')};b.ondrop=function(ev){ev.preventDefault();b.classList.remove('on');horaEn(r,f,x)};fl.appendChild(b)});w.appendChild(fl);h.insertBefore(w,h.firstChild.nextSibling)}
+function dentroHorario(f,x,hr){var ab=(JOR.abiertas||{})[f];if(!ab)return true;for(var k=x;k<x+hr;k++)if(ab.indexOf(k)<0)return false;return true}
+function horaEn(r,f,ini){ARR=null;var hr=Number(r.horas)||1,sl=document.getElementById('jslots');if(sl)sl.remove();
+  if(libresPara(f,hr,r.codigo).indexOf(ini)<0){aviso('Ese horario ya no está libre.');return}
+  var max=JOR.maxReag||2,lim=(r.reag||0)>=max;
+  function ir(exc){RUN.withSuccessHandler(function(rr){pintar(rr);cargarJor();aviso('Reserva movida ✔')}).withFailureHandler(function(e){var m=e.message||'Error';if(/LIMITE/.test(m)&&!exc)confirmarSN(m.replace(/^.*LIMITE:\s*/,'')+' ¿Hacer una excepción y mover igual?',function(){ir(true)},'Sí, hacer excepción');else aviso(m.replace(/^.*(CHOQUE|LIMITE|FUERA_HORARIO|FECHA):\s*/,''))}).adminReagendar(r.codigo,f,ini,!!exc)}
+  confirmarSN('¿Mover la reserva de '+r.banda+' ('+r.fechaTxt+') de '+r.inicio+'–'+r.fin+' a '+ini+':00–'+(ini+hr)+':00?'+(lim?' (ya usó sus reagendamientos: será una excepción)':''),function(){ir(lim)},'Sí, mover')}
 function diaJor(f){
   var p=$('jdia');if(!p)return;p.textContent='';var rs=deDia(f).filter(filtrado),bq=bloqDia(f);
   var h=el_('div','agenda-d');var cab=el_('div','dia-cab');cab.appendChild(el_('h4','',R_fecha(f)));cab.appendChild(el_('span','selinfo',rs.length+(rs.length===1?' sesión':' sesiones')));cab.appendChild(btn('＋ Agendar',function(){abrirRM({fecha:f})},'sec'));cab.appendChild(btn('🔒 Bloquear',function(){formBloq(f)},'sec'));h.appendChild(cab);
@@ -1524,7 +1534,11 @@ function diaJor(f){
     if(r.pago==='COMPROBANTE'&&r.estado==='Reservado (sin abono)')ac.appendChild(btn('Confirmar abono',function(){confirmarSN('¿Confirmas que el abono de '+r.banda+' ya llegó?',function(){jrun('adminCambiarEstado',r.codigo,'Reservado (con abono)')},'Sí, confirmar')}));
     if(r.estado==='Reservado (sin abono)'&&r.pago!=='COMPROBANTE'&&r.pago!=='MANUAL'&&!/^Reserva manual/.test(r.comentarios||''))ac.appendChild(btn('Mantener 12 h',function(){confirmarSN('¿Ya tienes el comprobante de '+r.banda+'? El horario se guarda 12 horas más mientras confirmas el abono.',function(){jrun('adminMantenerHorario',r.codigo)},'Sí, mantener')},'sec'));
     if(r.estado==='Reservado (sin abono)'||r.estado==='Reservado (con abono)')ac.appendChild(btn('Finalizar',function(){formAjuste(r,true)}));
-    k.appendChild(ac);h.appendChild(k)};
+    k.appendChild(ac);
+    if(window.innerWidth>=700&&(r.estado==='Reservado (sin abono)'||r.estado==='Reservado (con abono)')){k.draggable=true;k.title='Arrastra para cambiar la hora de este día';
+      k.ondragstart=function(ev){try{ev.dataTransfer.setData('text/plain',r.codigo);ev.dataTransfer.effectAllowed='move'}catch(e){}ARR=r;setTimeout(function(){mostrarSlots(h,r,f)},0)};
+      k.ondragend=function(){ARR=null;var sl=document.getElementById('jslots');if(sl)sl.remove()}}
+    h.appendChild(k)};
    mezclaDia(rs,bq).forEach(function(i){if(i.b)fb(i.b);else fr(i.r)});
   p.appendChild(h);
 }
