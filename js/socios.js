@@ -60,22 +60,54 @@
     TABS.forEach(function (x) { $('v-' + x[0]).hidden = x[0] !== vista; });
     if (vista === 'agenda') pintarAgenda(); else if (vista === 'historial') pintarHistorial(); else pintarCatalogo(vista);
   }
-  var amesAg = '', selDia = '';
+  var amesAg = '', selDia = '', vistaAg = 'sem', semAg = '';
+  function sumD(f, n) { var d = new Date(f + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+  function lunesDe(f) { var d = new Date(f + 'T12:00:00Z'); return sumD(f, -((d.getUTCDay() + 6) % 7)); }
+  var SHS = 40;
   var MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
   var COL0 = { ens: '#f5b400', est: '#ef4444', p8: '#3b82f6', p12: '#a855f7', vivo: '#06b6d4', bloq: '#8a8581' };
   function colorEv(x) { var c = (datos && datos.colores) || {}, k = x.cl || (x.estado === 'Bloqueo' ? 'bloq' : /grab|estudio/i.test(x.servicio) ? 'est' : 'ens'); return /^#[0-9a-f]{6}$/i.test(c[k] || '') ? c[k] : COL0[k]; }
   function marcaEv(x) { return x.estado === 'Finalizada' ? (x.porCobrar ? ['pc', '$'] : ['ok', '✔']) : x.estado === 'No asiste' ? ['no', '✕'] : null; }
+  function semanaSoc(por, hoy) {
+    var dias = []; for (var i = 0; i < 7; i++) dias.push(sumD(semAg, i));
+    var ini = 24, fin = 0;
+    dias.forEach(function (f) { (por[f] || []).forEach(function (x) { if (x.estado === 'Bloqueo') return; var a = Math.floor(hDec(x.inicio)), z = Math.ceil(hDec(x.fin)); ini = Math.min(ini, a); fin = Math.max(fin, z); }); });
+    ini = Math.min(ini, 10); fin = Math.max(fin, 22); if (fin <= ini) fin = ini + 1;
+    var DS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'], w = el('div', 'sm'), cab = el('div', 'sm-cab'); cab.appendChild(el('div'));
+    dias.forEach(function (f, k) { var h = el('div', 'sm-h' + (f === hoy ? ' hoy' : '') + (f === selDia ? ' sel' : '')); h.appendChild(el('span', '', DS[k])); h.appendChild(el('b', '', String(Number(f.slice(8))))); h.onclick = function () { selDia = f; pintarAgenda(); }; cab.appendChild(h); });
+    w.appendChild(cab);
+    var cu = el('div', 'sm-c'), hc = el('div', 'sm-hr'); hc.style.height = ((fin - ini) * SHS) + 'px';
+    for (var hh = ini; hh < fin; hh++) { var l = el('div', '', hh + ':00'); l.style.top = ((hh - ini) * SHS) + 'px'; hc.appendChild(l); } cu.appendChild(hc);
+    dias.forEach(function (f) {
+      var col = el('div', 'sm-d' + (f === hoy ? ' hoy' : '')); col.style.height = ((fin - ini) * SHS) + 'px';
+      for (var hh = ini; hh < fin; hh++) { var ln = el('div', 'sm-l'); ln.style.top = ((hh - ini) * SHS) + 'px'; col.appendChild(ln); }
+      col.onclick = function (ev) { if (ev.target === col || /sm-l/.test(ev.target.className)) { selDia = f; pintarAgenda(); } };
+      (por[f] || []).forEach(function (x) {
+        var blq = x.estado === 'Bloqueo', a = blq ? (x.inicio ? hDec(x.inicio) : ini) : hDec(x.inicio), z = blq ? (x.fin ? hDec(x.fin) : fin) : hDec(x.fin);
+        a = Math.max(a, ini); z = Math.min(z, fin); if (z <= a) return;
+        var c = el('div', 'sm-r' + (blq ? ' bq' : '')); c.style.setProperty('--c', colorEv(x)); c.style.top = ((a - ini) * SHS) + 'px'; c.style.height = ((z - a) * SHS - 2) + 'px';
+        c.appendChild(el('b', '', blq ? '🔒' : x.inicio.replace(':00', '') + '–' + x.fin.replace(':00', ''))); c.appendChild(el('div', 'sm-n', x.banda)); if (z - a >= 2 && !blq) c.appendChild(el('div', 'sm-n s', x.servicio));
+        var mk = marcaEv(x); if (mk) { c.classList.add('sm-' + mk[0]); c.appendChild(el('i', 'mk ' + mk[0], mk[1])); }
+        c.onclick = function (ev) { ev.stopPropagation(); selDia = f; pintarAgenda(); setTimeout(function () { var d = document.querySelector('.ag-det'); if (d && d.scrollIntoView) d.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 50); };
+        col.appendChild(c);
+      });
+      cu.appendChild(col);
+    });
+    w.appendChild(cu); return w;
+  }
   function pintarAgenda() {
     var s = $('v-agenda'); s.textContent = '';
-    var hoy = datos.ahora.fecha; if (!amesAg) amesAg = hoy.slice(0, 7); if (!selDia) selDia = hoy;
+    var hoy = datos.ahora.fecha; if (!amesAg) amesAg = hoy.slice(0, 7); if (!selDia) selDia = hoy; var SEM = vistaAg === 'sem'; if (!semAg) semAg = lunesDe(selDia);
     var y = Number(amesAg.slice(0, 4)), m = Number(amesAg.slice(5, 7));
-    var cab = el('div', 'ag-cab'); cab.appendChild(el('h2', '', MESES[m - 1] + ' ' + y));
-    var nv = el('div', 'ag-nav'); function ir(k) { var yy = y, mm = m + k; if (mm < 1) { mm = 12; yy--; } if (mm > 12) { mm = 1; yy++; } amesAg = yy + '-' + String(mm).padStart(2, '0'); pintarAgenda(); }
-    [['‹', function () { ir(-1); }], ['Hoy', function () { amesAg = hoy.slice(0, 7); selDia = hoy; pintarAgenda(); }], ['›', function () { ir(1); }]].forEach(function (x) { var b = el('button', 'pb sec', x[0]); b.onclick = x[1]; nv.appendChild(b); });
+    var MS = MESES.map(function (x) { return x.toLowerCase(); }), zz = sumD(semAg, 6);
+    var cab = el('div', 'ag-cab'); cab.appendChild(el('h2', '', SEM ? 'Semana del ' + Number(semAg.slice(8)) + ' de ' + MS[Number(semAg.slice(5, 7)) - 1] + ' al ' + Number(zz.slice(8)) + ' de ' + MS[Number(zz.slice(5, 7)) - 1] : MESES[m - 1] + ' ' + y));
+    var nv = el('div', 'ag-nav'); function ir(k) { if (SEM) { semAg = sumD(semAg, 7 * k); selDia = semAg; amesAg = semAg.slice(0, 7); pintarAgenda(); return; } var yy = y, mm = m + k; if (mm < 1) { mm = 12; yy--; } if (mm > 12) { mm = 1; yy++; } amesAg = yy + '-' + String(mm).padStart(2, '0'); pintarAgenda(); }
+    [['Mes', function () { vistaAg = 'mes'; amesAg = selDia.slice(0, 7); pintarAgenda(); }, SEM ? 'sec' : ''], ['Semana', function () { vistaAg = 'sem'; semAg = lunesDe(selDia); pintarAgenda(); }, SEM ? '' : 'sec'], ['‹', function () { ir(-1); }, 'sec'], ['Hoy', function () { amesAg = hoy.slice(0, 7); selDia = hoy; semAg = lunesDe(hoy); pintarAgenda(); }, 'sec'], ['›', function () { ir(1); }, 'sec']].forEach(function (x) { var b = el('button', 'pb ' + x[2], x[0]); b.type = 'button'; b.onclick = x[1]; nv.appendChild(b); });
     cab.appendChild(nv); s.appendChild(cab);
-    s.appendChild(el('p', 'sub', 'Agenda oficial del estudio. Solo lectura: toca un día para ver sus sesiones.'));
+    s.appendChild(el('p', 'sub', 'Agenda oficial del estudio. Solo lectura: toca un bloque o un día para ver sus sesiones.'));
     var ley = el('div', 'ag-ley'); [['Sala de ensayo', colorEv({ cl: 'ens' })], ['Estudio de grabación', colorEv({ cl: 'est' })], ['Plan mensual 8 h', colorEv({ cl: 'p8' })], ['Plan mensual 12 h', colorEv({ cl: 'p12' })], ['Rockerío en vivo', colorEv({ cl: 'vivo' })], ['Bloqueo', colorEv({ cl: 'bloq' })]].forEach(function (x) { var e = el('span', '', x[0]); e.style.setProperty('--c', x[1]); ley.appendChild(e); }); s.appendChild(ley);
     var por = {}; datos.agenda.forEach(function (x) { (por[x.fecha] = por[x.fecha] || []).push(x); });
+    if (SEM) { s.appendChild(semanaSoc(por, hoy)); } else {
     var g = el('div', 'ag-grid');
     [['Lunes', 'Lun'], ['Martes', 'Mar'], ['Miércoles', 'Mié'], ['Jueves', 'Jue'], ['Viernes', 'Vie'], ['Sábado', 'Sáb'], ['Domingo', 'Dom']].forEach(function (d) { var e = el('div', 'ag-dow'); e.appendChild(el('span', 'f', d[0])); e.appendChild(el('span', 'a', d[1])); g.appendChild(e); });
     var off = (new Date(Date.UTC(y, m - 1, 1)).getUTCDay() + 6) % 7, nd = new Date(Date.UTC(y, m, 0)).getUTCDate();
@@ -88,7 +120,7 @@
       var pts = el('span', 'ag-pts'); ev.slice(0, 6).forEach(function (x) { var p = el('i'), mk = marcaEv(x); p.style.background = colorEv(x); if (mk) p.className = 'st-' + mk[0]; pts.appendChild(p); }); c.appendChild(pts);
       c.onclick = function () { selDia = f; pintarAgenda(); }; g.appendChild(c);
     })(d);
-    s.appendChild(g);
+    s.appendChild(g); }
     var ev = (por[selDia] || []).slice().sort(function (a, b) { return a.inicio < b.inicio ? -1 : 1; }), det = el('div', 'ag-det');
     det.appendChild(el('h3', '', R.fechaLarga(selDia) + ' · ' + ev.length + (ev.length === 1 ? ' sesión' : ' sesiones')));
     if (!ev.length) det.appendChild(el('p', 'sub', 'Sin reservas ni bloqueos este día.'));
