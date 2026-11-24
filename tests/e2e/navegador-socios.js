@@ -1,0 +1,22 @@
+const { chromium } = require('playwright');
+const { iniciar } = require('./servidor.js');
+const { sembrar } = require('./demo.js');
+(async () => {
+  const g = sembrar(); const { srv } = await iniciar(8096, g);
+  const s = g.admin('adminCrearSocio', 'Jaime Encina'); const tok = s.socios[0].token;
+  const b = await chromium.launch(); const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const p = await ctx.newPage(); const errs = []; p.on('pageerror', (e) => errs.push(e.message));
+  const ok = (c, n) => console.log((c ? '  ok  ' : 'FALLA ') + n);
+  await p.goto('http://localhost:8096/socios.html?t=' + tok); await p.waitForTimeout(800);
+  await p.locator('#tabs button', { hasText: 'Tienda de música' }).click(); await p.waitForTimeout(300);
+  await p.screenshot({ path: 'socios-tienda.png' });
+  await p.locator('text=Ernie Ball Power').first().click(); await p.waitForTimeout(200);
+  await p.locator('.pos-nota select').first().selectOption('SUELTA'); await p.locator('button', { hasText: 'Efectivo' }).click();
+  await p.locator('.pos-ok').click();
+  await p.waitForSelector('#guarda', { state: 'visible', timeout: 4000 });
+  ok(/Guardando|Guardado/.test(await p.locator('#guarda').innerText()), 'aparece «Guardando…/Guardado» al aplicar cambios');
+  await p.waitForFunction(() => /Guardado/.test(document.getElementById('guarda').textContent), null, { timeout: 5000 });
+  ok(true, 'termina en «Guardado (x s)»');
+  ok(errs.length === 0, 'sin errores JS ' + errs.join('|'));
+  await b.close(); srv.close();
+})();

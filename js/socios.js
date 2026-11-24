@@ -16,9 +16,25 @@
     if (!token) token = localStorage.getItem(CLAVE_LS) || '';
   } catch (e) { token = ''; }
 
+  /* Indicador de guardado (igual que en el portal de administración): «Guardando…» al instante y «Guardado» con el tiempo. */
+  var pill = null, pTmr = null;
+  function indicador(txt, cls) {
+    if (!pill) {
+      var st = document.createElement('style');
+      st.textContent = '#guarda{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:60;padding:9px 16px;border-radius:999px;font-weight:700;font-size:.95rem;box-shadow:0 8px 24px rgba(0,0,0,.55);pointer-events:none;border:1px solid transparent;display:none;max-width:92vw;text-align:center}#guarda.g-ocu{background:#1b1710;color:#ffd166;border-color:#ffd166}#guarda.g-ok{background:#0f2a1a;color:#4ade80;border-color:#4ade80}#guarda.g-err{background:#2a1010;color:#ff8a8a;border-color:#ff5a5f}';
+      document.head.appendChild(st); pill = document.createElement('div'); pill.id = 'guarda'; pill.setAttribute('role', 'status'); document.body.appendChild(pill);
+    }
+    pill.className = cls; pill.textContent = txt; pill.style.display = 'block';
+  }
   function post(accion, cuerpo) {
     cuerpo.accion = accion; cuerpo.t = token;
-    return fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(cuerpo) }).then(function (r) { return r.json(); });
+    var t0 = Date.now(); clearTimeout(pTmr); indicador('⏳ Guardando…', 'g-ocu');
+    function fin(bien) {
+      var seg = ((Date.now() - t0) / 1000).toFixed(1).replace('.', ',');
+      indicador(bien ? '✔ Guardado (' + seg + ' s)' : '⚠ No se pudo guardar — revisa el aviso', bien ? 'g-ok' : 'g-err');
+      clearTimeout(pTmr); pTmr = setTimeout(function () { if (pill) pill.style.display = 'none'; }, bien ? 2200 : 7000);
+    }
+    return fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(cuerpo) }).then(function (r) { return r.json(); }).then(function (d) { fin(!(d && d.ok === false)); return d; }, function (e) { fin(false); throw e; });
   }
   function cargar() {
     return fetch(API + '?accion=socios&t=' + encodeURIComponent(token) + (mes ? '&mes=' + encodeURIComponent(mes) : '')).then(function (r) { return r.json(); }).then(function (d) {
