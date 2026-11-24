@@ -179,3 +179,5 @@ html.rd.rd[data-tema="carbon"] .top .marca img{content:url(../assets/marca/calav
   #barra-app i{font-size:1.2rem!important;line-height:1.25!important}
 }
 @media(max-width:359px){#barra-app a,#barra-app button{font-size:.5rem!important}#barra-app i{font-size:1.05rem!important}}
+/* Celular: el selector de tema queda cómodo de tocar y bien separado de la barra inferior (16px evita que el iPhone haga zoom al abrirlo) */
+@media(max-width:699px){.selector-tema{font-size:16px!important;padding:.6rem 1.1rem!important;margin:1.1rem auto 1.6rem!important;min-width:12rem;text-align:center;position:static!important;display:block!important}}
