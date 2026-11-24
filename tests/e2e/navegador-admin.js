@@ -64,7 +64,7 @@ const { sembrar } = require('./demo.js');
       await p.click('.area[data-p=jornadas]'); await p.locator('#jtabs button[data-v=cob]').click(); await p.waitForTimeout(300); ok(await p.locator('section[data-jt=cob]').first().isVisible() && await p.locator('section[data-jt=cob]').count() >= 3 && !(await p.locator('section[data-jt=sol]').first().isVisible()), 'pestaña Cobros y planes dentro de Reservas y jornadas'); ok((await p.locator('#pend').innerText()).length > 10, 'Pendientes muestra por cobrar o todo al día'); await p.screenshot({ path: 'j-pendientes.png', fullPage: true }); await p.locator('#jtabs button[data-v=sol]').click(); await p.waitForTimeout(200); ok(await p.locator('section[data-jt=sol]').first().isVisible() && await p.locator('section[data-jt=sol]').count() >= 3 && !(await p.locator('section[data-jt=cob]').first().isVisible()), 'pestaña Solicitudes dentro de Reservas y jornadas'); await p.locator('#jtabs button[data-v=cob]').click(); await p.waitForTimeout(200);
       ok(await p.locator('#res select', { hasText: 'WhatsApp' }).count() > 0, 'selector WhatsApp por reserva');
       // ---- Reservas y jornadas ----
-      await p.click('.area[data-p=jornadas]'); await p.locator('#jtabs button[data-v=cal]').click(); await p.waitForSelector('.cuad .dia:not(.vacio)'); await p.waitForTimeout(300);
+      await p.click('.area[data-p=jornadas]'); await p.locator('#jtabs button[data-v=cal]').click(); if (await p.locator('.jnav button', { hasText: /^Mes$/ }).count()) await p.locator('.jnav button', { hasText: /^Mes$/ }).click(); await p.waitForSelector('.cuad .dia:not(.vacio)'); await p.waitForTimeout(300);
       ok(await p.locator('.area').first().getAttribute('data-p') === 'jornadas', 'Reservas y jornadas es la primera tarjeta');
       ok(await p.locator('.cuad .ev:not(.bloq)').count() >= 2, 'el calendario muestra jornadas con banda y horario');
       { // arrastrar y soltar una reserva a otro día (escritorio)
@@ -91,6 +91,22 @@ const { sembrar } = require('./demo.js');
             await p.locator('.conf button', { hasText: 'Sí, mover' }).click(); await p.waitForTimeout(400);
             const desp = g.admin('adminJornadas').reservas.find((r) => r.codigo === cand.codigo);
             ok(parseInt(desp.inicio, 10) === objetivo && desp.fecha === antes.fecha, 'mismo día: la reserva cambió de hora');
+            // vista semanal estilo Google: arrastrar a otro día y otra hora
+            if (await p.locator('.jnav button', { hasText: /^Semana$/ }).count()) {
+              await p.locator('.jnav button', { hasText: /^Semana$/ }).click(); await p.waitForSelector('.sem .sem-r.mv');
+              const Jx = g.admin('adminJornadas'); const rv = Jx.reservas.find((r) => r.codigo === cand.codigo); const hrx = Number(rv.horas) || 1, ix = parseInt(rv.inicio, 10);
+              const colOrig = p.locator('.sem-d[data-f="' + rv.fecha + '"]'); await colOrig.scrollIntoViewIfNeeded();
+              const tarj = colOrig.locator('.sem-r.mv', { hasText: rv.banda }).first(); const b0 = await tarj.boundingBox();
+              const fdest = [1, 2, 3].map((n) => { const d = new Date(rv.fecha + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - n); return d.toISOString().slice(0, 10); }).find((f) => f > Jx.hoy && (Jx.abiertas[f] || []).length && !Jx.reservas.some((o) => o.fecha === f && o.estado !== 'Anulada') && !Jx.bloqueos.some((b) => b.fecha === f));
+              if (fdest) {
+                const cd = await p.locator('.sem-d[data-f="' + fdest + '"]').boundingBox(); const hx = (Jx.abiertas[fdest] || []).filter((x) => (Jx.abiertas[fdest]).includes(x + hrx - 1))[0];
+                await p.mouse.move(b0.x + 30, b0.y + 10); await p.mouse.down(); await p.mouse.move(cd.x + 30, b0.y + 10 + (hx - ix) * 40, { steps: 10 }); await p.mouse.up();
+                await p.waitForSelector('.conf'); ok(/Mover la reserva/.test(await p.locator('.conf p').innerText()), 'semana: arrastrar a otro día y hora pide confirmar');
+                await p.locator('.conf button', { hasText: 'Sí, mover' }).click(); await p.waitForTimeout(400);
+                const dx2 = g.admin('adminJornadas').reservas.find((r) => r.codigo === cand.codigo); ok(dx2.fecha === fdest && parseInt(dx2.inicio, 10) === hx, 'semana: la reserva quedó en el día y hora nuevos');
+              }
+              await p.locator('.jnav button', { hasText: /^Mes$/ }).click(); await p.waitForTimeout(200);
+            }
           }
         }
       }
