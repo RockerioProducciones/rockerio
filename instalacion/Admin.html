@@ -361,6 +361,7 @@ section.tab-off{display:none!important}
 .slots{border:1px dashed #e39a2d;border-radius:10px;padding:8px;margin:6px 0}.slots-t{font-size:.85rem;color:#b5afa6;margin-bottom:6px}.slots-f{display:flex;flex-wrap:wrap;gap:6px}.slot{padding:8px 12px;border:1px solid #555;border-radius:8px;min-width:58px;text-align:center}.slot.on{background:#e39a2d;color:#000}
 .tl{margin:8px 0 12px}.tl-t{font-size:.82rem;color:#b5afa6;margin-bottom:6px}.tl-c{position:relative;margin-left:52px;border-left:1px solid #555;user-select:none;-webkit-user-select:none}.tl-h{position:absolute;left:-52px;right:0;height:44px;border-top:1px solid #333;font-size:.75rem;color:#b5afa6}.tl-h span{position:absolute;left:0;top:2px}.tl-h.cerr{background:repeating-linear-gradient(45deg,#161616,#161616 6px,#1d1d1d 6px,#1d1d1d 12px)}.tl-b{position:absolute;left:4px;right:4px;border-radius:8px;padding:4px 8px;font-size:.8rem;background:repeating-linear-gradient(45deg,#3a1d1d,#3a1d1d 6px,#2c1515 6px,#2c1515 12px);color:#e9b3b3;overflow:hidden}.tl-r{position:absolute;left:6px;right:6px;border-radius:8px;padding:4px 8px;overflow:hidden;font-size:.82rem;color:#fff;background:color-mix(in srgb,var(--c) 38%,#111);border-left:5px solid var(--c);z-index:2;cursor:pointer}.tl-r.sin{border-style:dashed none dashed solid}.tl-r.mv{cursor:grab;touch-action:none}.tl-r.arrastrando{cursor:grabbing;z-index:5;box-shadow:0 6px 18px rgba(0,0,0,.5)}.tl-r.buena{outline:2px solid #4ade80}.tl-r.mala{outline:2px solid #ff5a5f}
 .sem{overflow-x:auto;border:1px solid #333;border-radius:10px}.sem-cab{display:grid;grid-template-columns:52px repeat(7,minmax(0,1fr));background:#111;border-bottom:1px solid #333}.sem-h{text-align:center;padding:6px 0;cursor:pointer;font-size:.8rem;color:#b5afa6}.sem-h b{display:block;font-size:1.15rem;color:#fff}.sem-h.hoy b{color:#e39a2d}.sem-h.sel{background:#1d1d1d}.sem-c{display:grid;grid-template-columns:52px repeat(7,minmax(0,1fr));position:relative}.sem-hr{position:relative}.sem-hr div{position:absolute;right:6px;font-size:.7rem;color:#b5afa6;transform:translateY(-.5em)}.sem-d{position:relative;border-left:1px solid #333}.sem-d.hoy{background:#16140e}.sem-l{position:absolute;left:0;right:0;height:40px;border-top:1px solid #262626}.sem-l.cerr{background:repeating-linear-gradient(45deg,#141414,#141414 6px,#1b1b1b 6px,#1b1b1b 12px)}.sem-b{position:absolute;left:2px;right:2px;border-radius:6px;padding:2px 5px;font-size:.7rem;background:repeating-linear-gradient(45deg,#3a1d1d,#3a1d1d 6px,#2c1515 6px,#2c1515 12px);color:#e9b3b3;overflow:hidden}.sem-r{position:absolute;left:3px;right:3px;border-radius:6px;padding:2px 6px;overflow:hidden;font-size:.74rem;line-height:1.25;color:#fff;background:color-mix(in srgb,var(--c) 40%,#111);border-left:4px solid var(--c);z-index:2;cursor:pointer;user-select:none;-webkit-user-select:none}.sem-r.sin{border-style:dashed none dashed solid}.sem-r.mv{cursor:grab;touch-action:none}.sem-r.arrastrando{cursor:grabbing;z-index:9;box-shadow:0 6px 18px rgba(0,0,0,.55);overflow:visible}.sem-r.buena{outline:2px solid #4ade80}.sem-r.mala{outline:2px solid #ff5a5f}.sem-n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sem-n.s{opacity:.75}
+.sem-r .mk{position:absolute;right:3px;top:3px;min-width:15px;height:15px;border-radius:50%;font:800 .62rem/15px Inter,sans-serif;text-align:center;color:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.5);font-style:normal}.sem-r .mk.ok{background:#16a34a}.sem-r .mk.no{background:#ec4899}.sem-r .mk.pc{background:#f59e0b;color:#111}.sem-con,.sem-fin{border-right:4px solid #22c55e}.sem-noa{border-right:4px solid #ec4899}.sem-fin,.sem-noa{padding-right:20px}.sem-anu{opacity:.5}@media(max-width:699px){.sem-cab,.sem-c{grid-template-columns:34px repeat(7,minmax(0,1fr))}.sem-hr div{font-size:.6rem;right:3px}.sem-h{font-size:.65rem}.sem-h b{font-size:.95rem}.sem-r{left:1px;right:1px;padding:1px 2px;font-size:.6rem;line-height:1.15;border-left-width:3px}.sem-r b{display:block;font-size:.62rem}.sem-n{white-space:nowrap}.sem-n.s{display:none}.sem-r .mk{right:1px;top:1px;min-width:12px;height:12px;font-size:.5rem;line-height:12px}.sem-fin,.sem-noa{padding-right:13px}.sem-con,.sem-fin{border-right-width:3px}.sem-noa{border-right-width:3px}}
 </style></head><body>
 <div class="cab"><h1>Portal de control <small>· Rockerío Producciones</small><span class="badge-adm">ADMIN</span></h1><div class="cab-acc"><a id="ver-sitio" href="#" target="_blank" rel="noopener" hidden>Ver sitio público ↗</a><button type="button" id="campana" title="Pendientes">🔔<i id="campana-n" hidden></i></button></div></div>
 <div id="msg"></div>
@@ -1447,7 +1448,7 @@ function pintarStats(){
 }
 function filtrado(r){var q=jbusca.trim().toLowerCase();return(!jfEstado||r.estado===jfEstado)&&(!jfServ||claseServ(r)===jfServ)&&(!q||(r.banda+' '+r.contacto+' '+r.telefono+' '+r.codigo).toLowerCase().indexOf(q)>=0)}
 function esAncha(){return window.innerWidth>=700}
-function vistaSem(){return esAncha()&&(jvista||'sem')==='sem'}
+function vistaSem(){return (jvista||'sem')==='sem'}
 function sumDias(f,n){var d=new Date(f+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)}
 function lunesDe(f){var d=new Date(f+'T12:00:00Z');return sumDias(f,-((d.getUTCDay()+6)%7))}
 function semTxt(l){var z=sumDias(l,6),M=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];return 'Semana del '+Number(l.slice(8))+' de '+M[Number(l.slice(5,7))-1]+' al '+Number(z.slice(8))+' de '+M[Number(z.slice(5,7))-1]+' '+z.slice(0,4)}
@@ -1475,11 +1476,12 @@ function semanaGrid(){
   w.appendChild(cu);return w}
 function tarjetaSem(r,f,ini,fin,cols,ci){
   var a=parseInt(r.inicio,10),hr=Number(r.horas)||1,vig=r.estado==='Reservado (sin abono)'||r.estado==='Reservado (con abono)',cl=claseServ(r);
-  var c=el_('div','sem-r'+(r.estado==='Reservado (sin abono)'?' sin':'')+(vig?' mv':''));c.style.setProperty('--c','var(--k-'+cl+')');
+  var c=el_('div','sem-r'+(r.estado==='Reservado (sin abono)'?' sin':'')+(vig&&esAncha()?' mv':'')+' sem-'+(CLASE_EST[r.estado]||''));c.style.setProperty('--c','var(--k-'+cl+')');
   c.style.top=((a-ini)*SH)+'px';c.style.height=(hr*SH-2)+'px';
   var et=el_('b','',r.inicio.replace(':00','')+'–'+r.fin.replace(':00',''));c.appendChild(et);c.appendChild(el_('div','sem-n',r.banda));if(hr>=2)c.appendChild(el_('div','sem-n s',r.servicio));
+  var mk=marcaEst(r);if(mk&&mk[0]!=='ab')c.appendChild(el_('i','mk '+mk[0],mk[1]));
   c.title=r.banda+' · '+r.contacto+' · '+r.estado;
-  if(!vig){c.onclick=function(ev){ev.stopPropagation();fichaJor(r)};return c}
+  if(!vig||!esAncha()){c.onclick=function(ev){ev.stopPropagation();fichaJor(r)};return c}
   var st=null,mv=false,tf=f,tn=a,ok0=true,cache={};
   function libresDe(fx){if(!cache[fx])cache[fx]=libresPara(fx,hr,r.codigo).filter(function(x){return dentroHorario(fx,x,hr)});return cache[fx]}
   c.onpointerdown=function(ev){if(ev.button>0)return;ev.stopPropagation();st={x:ev.clientX,y:ev.clientY};mv=false;try{c.setPointerCapture(ev.pointerId)}catch(e){}};
@@ -1509,7 +1511,7 @@ function pintarCalJor(){
   var cab=el_('div','jcab');var tt=el_('div','jtit');tt.appendChild(el_('h3','','📅 '+(vistaSem()&&jsem?semTxt(jsem):mesTxt(jmes))));tt.appendChild(el_('span','jbadge','Agenda oficial del estudio'));cab.appendChild(tt);
   var SEM=vistaSem();if(SEM&&!jsem)jsem=lunesDe(jsel||JOR.hoy);
   var nv=el_('div','jnav');
-  if(esAncha()){nv.appendChild(btn('Mes',function(){jvista='mes';pintarJor()},SEM?'sec':''));nv.appendChild(btn('Semana',function(){jvista='sem';jsem=lunesDe(jsel||JOR.hoy);pintarJor()},SEM?'':'sec'))}
+  if(true){nv.appendChild(btn('Mes',function(){jvista='mes';pintarJor()},SEM?'sec':''));nv.appendChild(btn('Semana',function(){jvista='sem';jsem=lunesDe(jsel||JOR.hoy);pintarJor()},SEM?'':'sec'))}
   nv.appendChild(btn('Ir a hoy',function(){jmes=JOR.hoy.slice(0,7);jsel=JOR.hoy;jsem=lunesDe(JOR.hoy);pintarJor()},'sec'));
   nv.appendChild(btn('‹',function(){if(SEM){jsem=sumDias(jsem,-7);jsel=jsem;jmes=jsem.slice(0,7)}else{jmes=sumMes(jmes,-1);jsel=null}pintarJor()},'sec'));nv.appendChild(btn('›',function(){if(SEM){jsem=sumDias(jsem,7);jsel=jsem;jmes=jsem.slice(0,7)}else{jmes=sumMes(jmes,1);jsel=null}pintarJor()},'sec'));
   var sf=jsel||JOR.hoy;nv.appendChild(btn('＋ Agendar reserva ('+sf.slice(8)+' / '+sf.slice(5,7)+' / '+sf.slice(0,4)+')',function(){abrirRM({fecha:sf})}));cab.appendChild(nv);c.appendChild(cab);
@@ -1517,7 +1519,7 @@ function pintarCalJor(){
   var ley=el_('div','leyj');[['Sala de ensayo','var(--k-ens)'],['Estudio de grabación','var(--k-est)'],['Plan mensual 8 h','var(--k-p8)'],['Plan mensual 12 h','var(--k-p12)'],['Rockerío en vivo','var(--k-vivo)'],['Bloqueo / mantención','var(--k-bloq)'],['Borde punteado = sin abono','#555'],['Barra verde al costado = con abono (con ✔ = finalizada)','#22c55e'],['✔ verde claro = abono pagado','#4ade80'],['✔ Finalizada y cobrada','#16a34a'],['$ Finalizada con saldo por cobrar','#f59e0b'],['✕ No asistió (se retiene el abono)','#ec4899'],['En el celular: barra = sesión (color del servicio); extremo verde, naranja o rosado = su estado','#777']].forEach(function(x){var s=el_('span','',x[0]);s.style.setProperty('--c',x[1]);ley.appendChild(s)});
   var lb=el_('label','chk-anu');var ck=document.createElement('input');ck.type='checkbox';ck.checked=jAnu;ck.onchange=function(){jAnu=ck.checked;pintarJor()};lb.appendChild(ck);lb.appendChild(document.createTextNode(' Mostrar anuladas'));ley.appendChild(lb);
   var si=el_('span','jsel','Día seleccionado: ');si.style.setProperty('--c','transparent');si.appendChild(el_('b','',(jsel||JOR.hoy).split('-').reverse().join(' / ')));ley.appendChild(si);c.appendChild(ley);
-  if(SEM){c.appendChild(semanaGrid());var pd0=el_('div','panel-dia');pd0.id='jdia';c.appendChild(pd0);diaJor(jsel||JOR.hoy);return}
+  if(SEM){c.appendChild(semanaGrid());var pd0=el_('div','panel-dia');pd0.id='jdia';c.appendChild(pd0);diaJor(jsel||JOR.hoy);c.appendChild(ley);return}
   var g=el_('div','cuad');[['Lunes','Lun'],['Martes','Mar'],['Miércoles','Mié'],['Jueves','Jue'],['Viernes','Vie'],['Sábado','Sáb'],['Domingo','Dom']].forEach(function(d){var e=el_('div','dow');e.appendChild(el_('span','full',d[0]));e.appendChild(el_('span','abr',d[1]));g.appendChild(e)});
   var y=Number(jmes.slice(0,4)),m=Number(jmes.slice(5,7)),pri=new Date(Date.UTC(y,m-1,1)),off=(pri.getUTCDay()+6)%7,dias=new Date(Date.UTC(y,m,0)).getUTCDate();
   for(var i=0;i<off;i++)g.appendChild(el_('div','dia vacio'));
@@ -1631,7 +1633,6 @@ function diaJor(f){
     if(r.estado==='Reservado (sin abono)'&&r.pago!=='COMPROBANTE'&&r.pago!=='MANUAL'&&!/^Reserva manual/.test(r.comentarios||''))ac.appendChild(btn('Mantener 12 h',function(){confirmarSN('¿Ya tienes el comprobante de '+r.banda+'? El horario se guarda 12 horas más mientras confirmas el abono.',function(){jrun('adminMantenerHorario',r.codigo)},'Sí, mantener')},'sec'));
     if(r.estado==='Reservado (sin abono)'||r.estado==='Reservado (con abono)')ac.appendChild(btn('Finalizar',function(){formAjuste(r,true)}));
     k.appendChild(ac);h.appendChild(k)};
-   tlDia(h,f);
    mezclaDia(rs,bq).forEach(function(i){if(i.b)fb(i.b);else fr(i.r)});
   p.appendChild(h);
 }
