@@ -357,6 +357,7 @@ section.tab-off{display:none!important}
 .vs-dona{display:flex;gap:14px;align-items:center;flex-wrap:wrap}.vs-dona .anillo{width:110px;height:110px;border-radius:50%;flex:0 0 auto;position:relative}.vs-dona .anillo::after{content:"";position:absolute;inset:22px;border-radius:50%;background:#121110}.vs-leyenda{display:grid;gap:.3rem;font-size:.85rem}.vs-leyenda span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--c);margin-right:.45rem}
 .vs-vacio{color:var(--mut);padding:1rem 0;text-align:center}.vs-pie{color:var(--mut);font-size:.78rem;margin-top:1rem;line-height:1.5}.vs-pie code{background:#1f1d1b;padding:.05rem .3rem;border-radius:4px}
 @media(max-width:600px){.vs-grid{grid-template-columns:1fr}.vs-fila{grid-template-columns:minmax(110px,46%) 1fr auto}}
+.ev.arr{opacity:.45}.dia.arr-s{outline:2px dashed #e39a2d;outline-offset:-2px}@media(min-width:700px){.ev[draggable=true]{cursor:grab}}
 </style></head><body>
 <div class="cab"><h1>Portal de control <small>· Rockerío Producciones</small><span class="badge-adm">ADMIN</span></h1><div class="cab-acc"><a id="ver-sitio" href="#" target="_blank" rel="noopener" hidden>Ver sitio público ↗</a><button type="button" id="campana" title="Pendientes">🔔<i id="campana-n" hidden></i></button></div></div>
 <div id="msg"></div>
@@ -1409,7 +1410,14 @@ function bloqDia(f){var o=[];(JOR.bloqueos||[]).forEach(function(b){if(b.fecha==
 function el_(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!==undefined)e.textContent=x;return e}
 function marcaEst(r){return r.estado==='Finalizada'?(r.cobro&&!r.cortesia&&r.saldo>0?['pc','$']:['ok','✔']):r.estado==='No asiste'?['no','✕']:r.estado==='Reservado (con abono)'?['ab','✔']:null}
 function chipEv(r){var b=el_('button','ev '+(CLASE_EST[r.estado]||'')+' '+'sv-'+claseServ(r));b.type='button';var h=el_('b','',r.inicio.replace(':00','')+'–'+r.fin.replace(':00','')+' ');b.appendChild(h);b.appendChild(document.createTextNode(r.banda+(r.extras||r.video||r.raw?' +':'')));var mk=null;if(r.estado==='Finalizada'){mk=el_('i','mk '+(r.cobro&&!r.cortesia&&r.saldo>0?'pc':'ok'),r.cobro&&!r.cortesia&&r.saldo>0?'$':'✔')}else if(r.estado==='No asiste')mk=el_('i','mk no','✕');if(mk)b.appendChild(mk);
-  b.title=r.banda+' · '+r.contacto+' · '+r.estado+(r.estado==='Finalizada'?(r.cobro&&!r.cortesia&&r.saldo>0?' · saldo por cobrar':' · cobrada'):r.estado==='No asiste'?' · no asistió (retención del abono)':'');b.onclick=function(ev){ev.stopPropagation();fichaJor(r)};return b}
+  b.title=r.banda+' · '+r.contacto+' · '+r.estado+(r.estado==='Finalizada'?(r.cobro&&!r.cortesia&&r.saldo>0?' · saldo por cobrar':' · cobrada'):r.estado==='No asiste'?' · no asistió (retención del abono)':'');b.onclick=function(ev){ev.stopPropagation();fichaJor(r)};if(window.innerWidth>=700&&(r.estado==='Reservado (sin abono)'||r.estado==='Reservado (con abono)')){b.draggable=true;b.ondragstart=function(ev){try{ev.dataTransfer.setData('text/plain',r.codigo);ev.dataTransfer.effectAllowed='move'}catch(e){}ARR=r;b.classList.add('arr')};b.ondragend=function(){b.classList.remove('arr');ARR=null}}return b}
+var ARR=null;
+function soltarEn(f){var r=ARR;ARR=null;if(!r||f===r.fecha)return;var ini=parseInt(r.inicio,10),h=Number(r.horas)||1,lb=libresPara(f,h,r.codigo);
+  if(f<JOR.hoy){aviso('No se puede mover a un día pasado.');return}
+  if(lb.indexOf(ini)<0){aviso('Ese día el horario '+r.inicio+'–'+r.fin+' no está libre. Se abre el reagendar para elegir otra hora.');formReag(r);return}
+  var max=JOR.maxReag||2,lim=(r.reag||0)>=max;
+  function ir(exc){RUN.withSuccessHandler(function(rr){pintar(rr);cargarJor();aviso('Reserva movida ✔')}).withFailureHandler(function(e){var m=e.message||'Error';if(/LIMITE/.test(m)&&!exc)confirmarSN(m.replace(/^.*LIMITE:\s*/,'')+' ¿Hacer una excepción y mover igual?',function(){ir(true)},'Sí, hacer excepción');else aviso(m.replace(/^.*(CHOQUE|LIMITE|FUERA_HORARIO|FECHA):\s*/,''))}).adminReagendar(r.codigo,f,ini,!!exc)}
+  confirmarSN('¿Mover la reserva de '+r.banda+' del '+r.fechaTxt+' al '+f.split('-').reverse().join('/')+', de '+r.inicio+' a '+r.fin+'?'+(lim?' (ya usó sus reagendamientos: será una excepción)':''),function(){ir(lim)},'Sí, mover')}
 function minDe(h){var m=String(h||'').match(/^(\d{1,2}):?(\d{2})?/);return m?Number(m[1])*60+Number(m[2]||0):0}
 function mezclaDia(rs,bq){var o=[];bq.forEach(function(x){o.push({t:x.t||0,b:x})});rs.forEach(function(r){o.push({t:minDe(r.inicio),r:r})});return o.sort(function(a,b){return a.t-b.t||(a.b?-1:1)})}
 function chipBloq(x){var b=el_('div','ev bloq','🔒 '+x.txt);b.title=x.txt;return b}
@@ -1458,7 +1466,7 @@ function pintarCalJor(){
     var cel=el_('div','dia'+(f===JOR.hoy?' hoy':'')+(f===jsel?' sel':''));var n=el_('div','n');n.appendChild(el_('span','',String(d)));var mas=el_('button','mas-b','＋');mas.type='button';mas.title='Agendar reserva este día';mas.onclick=function(ev){ev.stopPropagation();abrirRM({fecha:f})};n.appendChild(mas);cel.appendChild(n);
     var mz=mezclaDia(rs,bq);mz.slice(0,4).forEach(function(i){cel.appendChild(i.b?chipBloq(i.b):chipEv(i.r))});if(mz.length>4)cel.appendChild(el_('div','mas','+ '+(mz.length-4)+' más'));
     var pts=el_('div','pts');bq.slice(0,1).forEach(function(){var p=el_('i','');p.style.background='var(--k-bloq)';pts.appendChild(p)});rs.slice(0,6).forEach(function(r){var p=el_('i','');p.style.background='var(--k-'+claseServ(r)+')';var g=marcaEst(r);if(g)p.className='st-'+g[0];pts.appendChild(p)});cel.appendChild(pts);
-    cel.onclick=function(){jsel=f;pintarCalJor()};g.appendChild(cel);
+    cel.onclick=function(){jsel=f;pintarCalJor()};cel.ondragover=function(ev){if(ARR){ev.preventDefault();cel.classList.add('arr-s')}};cel.ondragleave=function(){cel.classList.remove('arr-s')};cel.ondrop=function(ev){ev.preventDefault();cel.classList.remove('arr-s');soltarEn(f)};g.appendChild(cel);
   })(d)}
   c.appendChild(g);var pd=el_('div','panel-dia');pd.id='jdia';c.appendChild(pd);diaJor(jsel||JOR.hoy);
 }

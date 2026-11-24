@@ -67,6 +67,22 @@ const { sembrar } = require('./demo.js');
       await p.click('.area[data-p=jornadas]'); await p.locator('#jtabs button[data-v=cal]').click(); await p.waitForSelector('.cuad .dia:not(.vacio)'); await p.waitForTimeout(300);
       ok(await p.locator('.area').first().getAttribute('data-p') === 'jornadas', 'Reservas y jornadas es la primera tarjeta');
       ok(await p.locator('.cuad .ev:not(.bloq)').count() >= 2, 'el calendario muestra jornadas con banda y horario');
+      { // arrastrar y soltar una reserva a otro día (escritorio)
+        const J0 = g.admin('adminJornadas'); const hoyJ = J0.hoy;
+        const cand = J0.reservas.find((r) => (r.estado === 'Reservado (sin abono)' || r.estado === 'Reservado (con abono)') && r.fecha > hoyJ && r.fecha.slice(0, 7) === hoyJ.slice(0, 7) && !J0.reservas.some((o) => o !== r && o.fecha > r.fecha && false));
+        if (cand && await p.evaluate(() => window.innerWidth) >= 700) {
+          const dias = await p.locator('.cuad .dia:not(.vacio)').all(); let destino = null;
+          for (const d of dias) { const n = Number((await d.locator('.n span').first().textContent()).trim()); const f = hoyJ.slice(0, 7) + '-' + String(n).padStart(2, '0'); if (f > cand.fecha && !J0.reservas.some((o) => o.fecha === f && o.estado !== 'Anulada') && !J0.bloqueos.some((b) => b.fecha === f)) { destino = { d, f }; break; } }
+          if (destino) {
+            const chip = p.locator('.cuad .ev:not(.bloq)', { hasText: cand.banda }).first();
+            await chip.dragTo(destino.d); await p.waitForSelector('.conf'); ok(/Mover la reserva/.test(await p.locator('.conf p').innerText()), 'al soltar pide confirmar (Sí/No)');
+            await p.locator('.conf button', { hasText: 'No' }).click(); await p.waitForTimeout(150);
+            ok(g.admin('adminJornadas').reservas.find((r) => r.codigo === cand.codigo).fecha === cand.fecha, 'con «No» no se mueve nada');
+            await chip.dragTo(destino.d); await p.waitForSelector('.conf'); await p.locator('.conf button', { hasText: 'Sí, mover' }).click(); await p.waitForTimeout(400);
+            ok(g.admin('adminJornadas').reservas.find((r) => r.codigo === cand.codigo).fecha === destino.f, 'con «Sí» la reserva queda en el nuevo día');
+          }
+        }
+      }
       await p.screenshot({ path: 'j-calendario.png', fullPage: true });
       await p.locator('.cuad .ev:not(.bloq)').first().click(); await p.waitForSelector('.ficha-j');
       const ft = await p.locator('.ficha-j').innerText(); ok(/WhatsApp/.test(ft) && /Saldo/.test(ft) && /@/.test(ft), 'la ficha de la jornada muestra contacto, correo y montos');
