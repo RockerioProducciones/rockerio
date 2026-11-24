@@ -1004,6 +1004,13 @@ t('adicionales con un clic: agregar y quitar bajo/video/material ajusta total y 
   g.admin('adminCambiarEstado', r.codigo, 'Anulada');
   assert.throws(() => g.admin('adminCambiarAdicionales', r.codigo, { video: true }));
 });
+t('adicionales: los equipos de arriendo también se agregan en estudio de grabación (por hora)', () => {
+  const r = g.post(sol({ servicio: 'grabacion', fecha: habLibre(12, 2, 9), inicio: 12, horas: 2, telefono: '56977775555', banda: 'Graba con bajo', nombre: 'Rita Pons', correo: 'r@p.cl' })); assert.ok(r.ok, JSON.stringify(r));
+  const ver = () => g.admin('adminJornadas').reservas.find((q) => q.codigo === r.codigo); const t0 = ver().total;
+  g.admin('adminCambiarAdicionales', r.codigo, { equipos: ['Bajo eléctrico Epiphone Thunderbird Pro IV', 'Set de platos Kingdo SN8 (B8)'] });
+  assert.strictEqual(ver().total - t0, 2 * 2 * g.admin('adminJornadas').precios.equipo, 'dos equipos × 2 horas');
+  g.admin('adminCambiarAdicionales', r.codigo, { equipos: [] }); assert.strictEqual(ver().total, t0);
+});
 
 t('clientes repetidos: se detectan, avisan al crear y se fusionan pasando sus reservas', () => {
   g.admin('adminGuardarCliente', { clave: '', nombre: 'Sandra', apellido: 'Rios', banda: 'Banda Sismo', telefono: '+56 9 7171 1111' });

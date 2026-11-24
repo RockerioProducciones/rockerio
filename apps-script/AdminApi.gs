@@ -649,11 +649,11 @@ function adminCambiarAdicionales(codigo, d) {
     var est = estadoNorm_(r[RES.estado - 1]);
     if (est === EST.NO_ASISTE || est === EST.ANULADA) throw new Error('Esta reserva está cerrada: no admite cambios de adicionales.');
     if (r[RES.cortesia - 1] === 'SI') throw new Error('Es una cortesía: no admite cambios de adicionales.');
-    var horas = Number(r[RES.horas - 1]) || 1, esEnsayo = String(r[RES.servicio - 1]) === ETIQUETA_SERVICIO.ensayo;
+    var horas = Number(r[RES.horas - 1]) || 1, esEnsayo = String(r[RES.servicio - 1]) === ETIQUETA_SERVICIO.ensayo || String(r[RES.servicio - 1]) === ETIQUETA_SERVICIO.grabacion;
     var delta = 0, partes = [];
     // equipos de arriendo (solo sala de ensayo)
     if (d.equipos !== undefined) {
-      if (!esEnsayo) throw new Error('Los equipos de arriendo son solo para la sala de ensayo.');
+      if (!esEnsayo) throw new Error('Los equipos de arriendo se agregan en sala de ensayo y estudio de grabación.');
       var nuevos = [];
       (d.equipos || []).forEach(function (n) { n = String(n); if (EQUIPOS_ARRIENDO_.indexOf(n) >= 0 && nuevos.indexOf(n) < 0) nuevos.push(n); });
       var antes = Number(r[RES.extras - 1]) || 0, unidad = cfg.precioExtraEquipo * (cfg.extraModo === 'hora' ? horas : 1), dEq = (nuevos.length - antes) * unidad;

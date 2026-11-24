@@ -1669,7 +1669,7 @@ function fichaJor(r){
       f.appendChild(el_('h5','','Adicionales · toca para agregar o quitar'));var ac2=el_('div','ad-chips');
       var P=JOR.precios||{},unidad=(P.equipo||0)*(P.equipoModo==='hora'?r.horas:1),act=equiposDe(r);
       function chipAd(txt,on,precio,fn){var b=el_('button','ad'+(on?' on':''),(on?'✔ ':'+ ')+txt+(precio?' · '+(on?'':'+')+clp(precio):''));b.type='button';b.onclick=fn;ac2.appendChild(b)}
-      if(r.servicio==='Ensayo')ARRIENDOS_RM.forEach(function(n){var sn=n.split(':')[0],on=act.indexOf(n)>=0;
+      if(/ensayo|grab/i.test(r.servicio))ARRIENDOS_RM.forEach(function(n){var sn=n.split(':')[0],on=act.indexOf(n)>=0;
         chipAd(sn.replace(/ \(.*\)$/,''),on,unidad,function(){confirmaAd(r,(on?-1:1)*unidad,function(){var nuevos=act.filter(function(q){return q!==n}).map(function(q){return q.split(':')[0]});if(!on)nuevos.push(sn);
           jrunFicha(r.codigo,'adminCambiarAdicionales',[r.codigo,{equipos:nuevos}],function(x){return (on?'Quitado: ':'Agregado: ')+sn.replace(/ \(.*\)$/,'')+(x?' · nuevo total '+clp(x.total)+' · saldo '+clp(x.saldo):'')})})})});
       chipAd('Video GoPro',!!r.video,P.video,function(){confirmaAd(r,(r.video?-1:1)*(P.video||0),function(){jrunFicha(r.codigo,'adminCambiarAdicionales',[r.codigo,{video:!r.video}],function(x){return (r.video?'Video quitado':'Video agregado')+(x?' · nuevo total '+clp(x.total)+' · saldo '+clp(x.saldo):'')})})});
