@@ -222,7 +222,7 @@ t('plan de 8 horas: 4 sesiones, $112.000, pendiente de pago, y se confirma desde
 });
 
 t('plan: «confirmar sin pago» y «anular plan»; las sesiones de un plan no se sueltan solas', () => {
-  const ds = []; let off = 6; for (let i = 0; i < 4; i++) { let d = diaLibre(20, 2, off); while (ds.includes(d)) d = sumar(d, 1); ds.push(d); off += 2; }
+  const ds = []; let off = 6; for (let i = 0; i < 4; i++) { const d = diaLibre(20, 2, off); ds.push(d); for (let k = off; k < 90; k++) if (sumar(hoy, k) === d) { off = k + 2; break; } }
   const r = g.post({ accion: 'plan', tipo: 'plan8', sesiones: ds.map((f) => ({ fecha: f, inicio: 20 })), banda: 'Amigos', nombre: 'Luz Test', telefono: '56966554433', correo: 'l@t.cl', tyc: true }); assert.ok(r.ok, JSON.stringify(r));
   const cod = r.codigo, ses = () => g.hoja('Reservas').filter((x) => String(x[C.RES.plan - 1]) === cod);
   assert.strictEqual(ses().length, 4);
@@ -237,7 +237,7 @@ t('plan: «confirmar sin pago» y «anular plan»; las sesiones de un plan no se
 });
 t('avisos por correo: pendientes de pago (diario) y resumen semanal por cuenta, sin cambiar datos', () => {
   g.estado.correos.length = 0;
-  const rv = g.post(sol({ fecha: diaLibre(15, 1, 20), inicio: 15, horas: 1, telefono: '56933445566', banda: 'Pendientes', nombre: 'Pía Test', correo: 'p@t.cl' })); assert.ok(rv.ok, JSON.stringify(rv));
+  const rv = g.post(sol({ fecha: diaLibre(13, 1, 21), inicio: 13, horas: 1, telefono: '56933445566', banda: 'Pendientes', nombre: 'Pía Test', correo: 'p@t.cl' })); assert.ok(rv.ok, JSON.stringify(rv));
   C.avisoPorAbonar(); assert.strictEqual(g.estado.correos.filter((m) => /pendiente/.test(m.subject)).length, 0, 'reserva reciente: aún no avisa');
   g.avanzar(25 * 3600000);
   g.admin('adminGuardarAjustes', { liberarSolo: 'NO' });
