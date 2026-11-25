@@ -187,7 +187,7 @@ var Reglas = (function () {
   function fechaLarga(iso) {
     var p = iso.split('-');
     var meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-    return DIAS[diaSemana(iso)] + ' ' + (+p[2]) + ' de ' + meses[+p[1] - 1];
+    return DIAS[diaSemana(iso)] + ' ' + p[2] + '/' + p[1] + '/' + p[0]; /* día/mes/año */
   }
 
   /** "09:00-14:00", "9 a 14" -> [9, 14]. Los minutos se ignoran: la agenda trabaja por hora. */

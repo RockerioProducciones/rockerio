@@ -71,7 +71,7 @@
     var ant = el('button', 'sem-b', '‹'); ant.type = 'button'; ant.setAttribute('aria-label', 'Semana anterior'); ant.disabled = idx === 0; ant.addEventListener('click', function () { c._sem = idx - 1; calendario(o); });
     var sig = el('button', 'sem-b', '›'); sig.type = 'button'; sig.setAttribute('aria-label', 'Semana siguiente'); sig.disabled = idx >= lunes.length - 1; sig.addEventListener('click', function () { c._sem = idx + 1; calendario(o); });
     var m0 = MESES[Number(l0.slice(5, 7)) - 1], m6 = MESES[Number(l6.slice(5, 7)) - 1];
-    nav.appendChild(ant); nav.appendChild(el('div', 'sem-tit', Number(l0.slice(8)) + (m0 !== m6 ? ' ' + m0 : '') + ' – ' + Number(l6.slice(8)) + ' ' + m6 + ' ' + l6.slice(0, 4))); nav.appendChild(sig);
+    nav.appendChild(ant); nav.appendChild(el('div', 'sem-tit', l0.slice(8) + '/' + l0.slice(5, 7) + '/' + l0.slice(0, 4) + ' – ' + l6.slice(8) + '/' + l6.slice(5, 7) + '/' + l6.slice(0, 4))); nav.appendChild(sig);
     c.appendChild(nav);
     var g = el('div', 'sem-grid'); var DS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
     for (var d = 0; d < 7; d++) (function (d) {

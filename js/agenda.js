@@ -15,7 +15,8 @@
     try { hoy = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Santiago' }).format(new Date()); } catch (x) { /* aproximación */ }
     var horas = Math.min(Math.max(2, lim.min), lim.max), selec = '';
     var lunes = R.sumarDias(hoy, -((R.diaSemana(hoy) + 6) % 7)), domingo = R.sumarDias(lunes, 6), sigLunes = R.sumarDias(lunes, 7), finCal = R.sumarDias(sigLunes, 27);
-    function dTxt(f) { return DOWL[(R.diaSemana(f) + 6) % 7].replace(/^./, function (c) { return c.toUpperCase(); }) + ' ' + (+f.slice(8)); }
+    function dmy(f) { return f.slice(8) + '/' + f.slice(5, 7) + '/' + f.slice(0, 4); }
+    function dTxt(f) { return R.fechaLarga(f); }
     function inicios(f) { /* bloques seguidos que no se pisan: 18–20, 20–22… (la hora exacta se puede ajustar al reservar) */
       var x = d.dias[f], r = [], fin = -1; if (!x) return r;
       R.inicios(x.libres, horas).sort(function (a, b) { return a - b; }).forEach(function (h) { if (h >= fin) { r.push(h); fin = h + horas; } }); return r; }
@@ -31,7 +32,7 @@
     var boxHoy = el('section', 'dp-hoy'), boxSem = el('section', 'dp-sem'), boxCal = el('section', 'dp-calbox');
     function pintarHoy() {
       boxHoy.textContent = ''; var x = d.dias[hoy], ini = inicios(hoy);
-      var c = el('div', 'dp-card dp-grande' + (ini.length ? ' ok' : '')); var cab = el('div', 'dp-cab'); cab.appendChild(el('b', '', 'Hoy')); cab.appendChild(el('span', '', dTxt(hoy) + ' de ' + MESL[+hoy.slice(5, 7) - 1])); c.appendChild(cab);
+      var c = el('div', 'dp-card dp-grande' + (ini.length ? ' ok' : '')); var cab = el('div', 'dp-cab'); cab.appendChild(el('b', '', 'Hoy')); cab.appendChild(el('span', '', R.fechaLarga(hoy))); c.appendChild(cab);
       if (!x || !x.abiertas.length) c.appendChild(el('p', 'dp-vacio', 'Hoy estamos cerrados.'));
       else if (!ini.length) c.appendChild(el('p', 'dp-vacio', x.libres.length ? 'No quedan bloques de ' + horasTxt() + ' hoy. Prueba con menos horas.' : 'Hoy ya no quedan horarios.'));
       else { var bs = el('div', 'dp-bs'); ini.forEach(function (h) { bs.appendChild(liga(hoy, h)); }); c.appendChild(bs); }
@@ -53,7 +54,7 @@
     /* ---- PRÓXIMAS 4 SEMANAS ---- */
     function pintarCal() {
       boxCal.textContent = ''; boxCal.appendChild(el('h2', 'dp-h2', 'Próximas 4 semanas'));
-      boxCal.appendChild(el('p', 'dp-rango', 'Del ' + (+sigLunes.slice(8)) + ' de ' + MESL[+sigLunes.slice(5, 7) - 1] + ' al ' + (+finCal.slice(8)) + ' de ' + MESL[+finCal.slice(5, 7) - 1] + '. Toca un día para ver sus horarios.'));
+      boxCal.appendChild(el('p', 'dp-rango', 'Del ' + dmy(sigLunes) + ' al ' + dmy(finCal) + '. Toca un día para ver sus horarios.'));
       var cal = el('div', 'dp-cal'), sem = el('div', 'dp-sm'); DOW.forEach(function (n) { sem.appendChild(el('b', '', n)); }); cal.appendChild(sem);
       var fila; for (var f = sigLunes; f <= finCal; f = R.sumarDias(f, 1)) {
         if (R.diaSemana(f) === 1) { fila = el('div', 'dp-fl'); cal.appendChild(fila); }
@@ -70,7 +71,7 @@
     }
     function pintarDetalle() {
       var det = document.getElementById('dp-det'); if (!det) return; det.textContent = ''; if (!selec) { det.hidden = true; return; } det.hidden = false;
-      var ini = inicios(selec); det.appendChild(el('h3', '', dTxt(selec) + ' de ' + MESL[+selec.slice(5, 7) - 1]));
+      var ini = inicios(selec); det.appendChild(el('h3', '', R.fechaLarga(selec)));
       if (!ini.length) { det.appendChild(el('p', 'dp-vacio', 'No quedan bloques de ' + horasTxt() + ' este día.')); return; }
       var bs = el('div', 'dp-bs'); ini.forEach(function (h) { bs.appendChild(liga(selec, h)); }); det.appendChild(bs);
     }

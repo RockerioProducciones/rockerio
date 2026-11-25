@@ -100,7 +100,7 @@
     var hoy = datos.ahora.fecha; if (!amesAg) amesAg = hoy.slice(0, 7); if (!selDia) selDia = hoy; var SEM = vistaAg === 'sem'; if (!semAg) semAg = lunesDe(selDia);
     var y = Number(amesAg.slice(0, 4)), m = Number(amesAg.slice(5, 7));
     var MS = MESES.map(function (x) { return x.toLowerCase(); }), zz = sumD(semAg, 6);
-    var cab = el('div', 'ag-cab'); cab.appendChild(el('h2', '', SEM ? 'Semana del ' + Number(semAg.slice(8)) + ' de ' + MS[Number(semAg.slice(5, 7)) - 1] + ' al ' + Number(zz.slice(8)) + ' de ' + MS[Number(zz.slice(5, 7)) - 1] : MESES[m - 1] + ' ' + y));
+    var cab = el('div', 'ag-cab'); cab.appendChild(el('h2', '', SEM ? 'Semana del ' + semAg.slice(8) + '/' + semAg.slice(5, 7) + '/' + semAg.slice(0, 4) + ' al ' + zz.slice(8) + '/' + zz.slice(5, 7) + '/' + zz.slice(0, 4) : MESES[m - 1] + ' ' + y));
     var nv = el('div', 'ag-nav'); function ir(k) { if (SEM) { semAg = sumD(semAg, 7 * k); selDia = semAg; amesAg = semAg.slice(0, 7); pintarAgenda(); return; } var yy = y, mm = m + k; if (mm < 1) { mm = 12; yy--; } if (mm > 12) { mm = 1; yy++; } amesAg = yy + '-' + String(mm).padStart(2, '0'); pintarAgenda(); }
     [['Mes', function () { vistaAg = 'mes'; amesAg = selDia.slice(0, 7); pintarAgenda(); }, SEM ? 'sec' : ''], ['Semana', function () { vistaAg = 'sem'; semAg = lunesDe(selDia); pintarAgenda(); }, SEM ? '' : 'sec'], ['‹', function () { ir(-1); }, 'sec'], ['Hoy', function () { amesAg = hoy.slice(0, 7); selDia = hoy; semAg = lunesDe(hoy); pintarAgenda(); }, 'sec'], ['›', function () { ir(1); }, 'sec']].forEach(function (x) { var b = el('button', 'pb ' + x[2], x[0]); b.type = 'button'; b.onclick = x[1]; nv.appendChild(b); });
     cab.appendChild(nv); s.appendChild(cab);
