@@ -267,20 +267,20 @@
   }
   /** Pestaña «Ensayo grabado»: qué se graba según las horas, datos técnicos, recorrido de la señal y una sesión en vivo para escuchar. */
   function pintarEnsayoGrabado(panel, ir) {
-    var hero = el('div', 'eg-hero'); hero.appendChild(el('div', 'eg-kick', '🎙️ Incluido en tu ensayo'));
-    hero.appendChild(el('h3', '', 'Tu ensayo queda grabado'));
-    hero.appendChild(el('p', 'sub', 'Desde las 2 horas, parte de tu sesión se graba en multipista y se mezcla. Mezclado y masterizado durante la sesión: te llevas tu música sonando como disco, el mismo día.'));
+    var hero = el('div', 'eg-hero'); hero.appendChild(el('div', 'eg-kick', '🎙️ Dentro de tu jornada'));
+    hero.appendChild(el('h3', '', 'Parte de tu jornada queda grabada'));
+    hero.appendChild(el('p', 'sub', 'Desde las 2 horas, una parte de tu jornada se graba en multipista y se mezcla, y te la entregamos al terminar. La grabación va dentro del tiempo que reservas: no se suma.'));
     hero.appendChild(infografia([['🎚️', 'Multipista', 'cada instrumento en su pista'], ['💿', 'WAV', '24 bits · 48 kHz'], ['🎙️', 'Micrófonos', 'de nivel profesional'], ['🎛️', 'Midas M32', 'consola digital']]));
     panel.appendChild(hero);
     /* tabla según las horas (sale de tu configuración, no se escribe a mano) */
     var cl = Object.keys(cfg.escala || {}).map(Number), mx = Math.min(6, Math.max(5, cl.length ? Math.max.apply(null, cl) : 5)), t = el('div', 'eg-tabla'), cab = el('div', 'eg-fila eg-cab');
-    ['Tu ensayo', 'Ensayas', 'Grabado y mezclado'].forEach(function (x) { cab.appendChild(el('span', '', x)); }); t.appendChild(cab);
+    ['Reservas', 'Ensayo', 'Grabación (dentro)'].forEach(function (x) { cab.appendChild(el('span', '', x)); }); t.appendChild(cab);
     for (var h = 1; h <= mx; h++) {
       var gm = R.grabacionIncluidaMin(cfg, 'ensayo', h), f = el('div', 'eg-fila' + (gm ? ' ok' : ''));
       f.appendChild(el('b', '', h + (h === 1 ? ' hora' : ' horas'))); f.appendChild(el('span', '', gm ? R.minutosTxt(h * 60 - gm) : R.minutosTxt(h * 60))); f.appendChild(el('span', 'eg-gr', gm ? '🎙️ ' + R.minutosTxt(gm) : 'No incluye')); t.appendChild(f);
     }
-    var cj = el('div', 'caja eg-caja'); cj.appendChild(el('h3', '', 'Cuánto se graba según tu ensayo')); cj.appendChild(t);
-    cj.appendChild(el('p', 'nota', 'Con más de ' + mx + ' horas, sumas 1 hora más de grabación por cada hora extra. Si quieres, también te llevas el material en bruto (las pistas sin mezclar); lo eliges al reservar.')); panel.appendChild(cj);
+    var cj = el('div', 'caja eg-caja'); cj.appendChild(el('h3', '', 'Cómo se reparte tu jornada')); cj.appendChild(t);
+    cj.appendChild(el('p', 'nota', 'Todo ocurre dentro de las horas que reservas: por ejemplo, 2 horas = 1 h 30 min de ensayo + 30 min grabados, no 2 h de ensayo más 30 min. Con más de ' + mx + ' horas, cada hora extra se graba completa. El material en bruto (pistas sin mezclar) es opcional y se elige al reservar.')); panel.appendChild(cj);
     /* recorrido de la señal */
     var rc = el('div', 'caja eg-caja'); rc.appendChild(el('h3', '', 'Cómo se graba tu ensayo')); var pasos = el('ol', 'eg-pasos');
     [['Captura', 'Micrófonos profesionales en cada instrumento y voz.', 'microfonos', 'Ver micrófonos'], ['Consola', 'Midas M32 y DL32: cada instrumento sale a su propio canal.', 'control', 'Ver sala de control'], ['Grabación', 'LUNA en Mac mini M4, en WAV 24 bits y 48 kHz, multipista.', 'estacion', 'Ver computador y DAW'], ['Entrega en el acto', 'Mezclamos mientras grabamos, con premezcla, mezcla y master ya armados. Al terminar la jornada exportamos el WAV y te lo enviamos por Google Drive, a la carpeta de tu banda. Si quieres, también las pistas en bruto.', '', '']].forEach(function (p) {
@@ -330,7 +330,7 @@
       (s.bloques || []).forEach(function (b) {
         var c = el('div', 'card'); c.appendChild(el('h3', '', b.titulo)); var ul = el('ul');
         b.items.forEach(function (i) {
-          if (i === '{escala}') { Object.keys(cfg.escala || {}).sort(function (x, y) { return x - y; }).forEach(function (h) { ul.appendChild(el('li', '', 'Bloque de ' + h + ' hrs: incluye hasta ' + R.minutosTxt(cfg.escala[h]) + ' de grabación')); }); return; }
+          if (i === '{escala}') { Object.keys(cfg.escala || {}).sort(function (x, y) { return x - y; }).forEach(function (h) { ul.appendChild(el('li', '', h + ' horas = ' + R.minutosTxt(h * 60 - cfg.escala[h]) + ' de ensayo + ' + R.minutosTxt(cfg.escala[h]) + ' grabados (dentro del mismo tiempo)')); }); return; }
           ul.appendChild(el('li', '', i.replace(/\{(\w+)\}/g, function (m, k) { return v[k] !== undefined ? v[k] : m; })));
         });
         if (/software|plugin/i.test(b.titulo) && b.items.every(function (i) { return i.length <= 48 && i.indexOf('{') < 0; })) { var cs = el('div', 'chips-sw'); b.items.forEach(function (i) { cs.appendChild(el('span', '', i)); }); c.appendChild(cs); c.className += ' card-sw'; g.appendChild(c); return; }
@@ -438,10 +438,10 @@
     var ai = $('aviso-incl'), gm = R.grabacionIncluidaMin(cfg, S.servicio, S.horas); ai.textContent = '';
     if (S.servicio === 'ensayo') {
       ai.hidden = false; ai.classList.add('eg-aviso');
-      ai.appendChild(el('b', '', gm ? '🎙️ ¡Tu ensayo incluye ' + R.minutosTxt(gm) + ' de grabación mezclada!' : '🎙️ Desde 2 horas tu ensayo queda grabado'));
-      ai.appendChild(el('span', '', gm ? ' Multipista WAV 24 bits / 48 kHz, con micrófonos profesionales.' : ' Con 1 hora no incluye grabación; súmale una hora y te llevas tu música mezclada.'));
+      ai.appendChild(el('b', '', gm ? '🎙️ Dentro de tus ' + S.horas + ' horas: ' + R.minutosTxt(S.horas * 60 - gm) + ' de ensayo + ' + R.minutosTxt(gm) + ' grabados y mezclados.' : '🎙️ Desde 2 horas, parte de tu jornada se graba'));
+      ai.appendChild(el('span', '', gm ? ' La grabación va dentro del tiempo reservado, no se suma. WAV 24 bits / 48 kHz, micrófonos profesionales.' : ' Con 1 hora no incluye grabación. Con 2 horas o más, parte del mismo tiempo se graba y se mezcla.'));
       var tb = el('div', 'eg-mini');
-      for (var hh = 2; hh <= 5; hh++) { var gg = R.grabacionIncluidaMin(cfg, 'ensayo', hh), ce = el('span', hh === S.horas ? 'on' : ''); ce.appendChild(el('i', '', hh + ' h')); ce.appendChild(el('em', '', '🎙️ ' + R.minutosTxt(gg))); tb.appendChild(ce); }
+      for (var hh = 2; hh <= 5; hh++) { var gg = R.grabacionIncluidaMin(cfg, 'ensayo', hh), ce = el('span', hh === S.horas ? 'on' : ''); ce.appendChild(el('i', '', hh + ' h')); ce.appendChild(el('em', '', R.minutosTxt(hh * 60 - gg) + ' + 🎙️ ' + R.minutosTxt(gg))); tb.appendChild(ce); }
       ai.appendChild(tb);
     }
     else ai.hidden = true;
@@ -544,7 +544,7 @@
       if (p.video && s.video && R.videoPermitido(cfg, S.servicio, S.horas)) linea('🎥 Grabación en video GoPro Hero 13', p.video);
       if (p.raw && s.raw && ok) linea('💾 Material en bruto multitrack', p.raw);
       if (p.horasConveniente) its.appendChild(el('div', 'nota ahorro', '✔ Tarifa conveniente aplicada en ' + p.horasConveniente + (p.horasConveniente === 1 ? ' hora' : ' horas') + ' (ahorras ' + R.clp(p.ahorro) + ').'));
-      if (g) its.appendChild(el('div', 'nota ahorro', '🎙️ Incluye ' + R.minutosTxt(g) + ' de grabación con mezcla.'));
+      if (g) its.appendChild(el('div', 'nota ahorro', '🎙️ Dentro de tus ' + hrs + ': ' + R.minutosTxt(S.horas * 60 - g) + ' de ensayo + ' + R.minutosTxt(g) + ' grabados y mezclados.'));
       var t1 = el('div', 'ro-tot'); t1.appendChild(el('span', '', 'Total de la sesión:')); t1.appendChild(el('b', '', R.clp(p.total))); tot.appendChild(t1);
       var t2 = el('div', 'ro-abono'); var t2a = el('div'); t2a.appendChild(el('b', '', 'Abono requerido (' + R.clp(cfg.abonoPorHora) + ' / hr):')); t2a.appendChild(el('small', '', '(' + R.clp(cfg.abonoPorHora) + ' x ' + S.horas + (S.horas === 1 ? ' hora' : ' horas') + ' para confirmar en agenda oficial)')); t2.appendChild(t2a); t2.appendChild(el('b', 'v', R.clp(p.abono))); tot.appendChild(t2);
       var t3 = el('div', 'ro-saldo'); var t3a = el('div'); t3a.appendChild(el('b', '', 'Saldo restante a pagar en sala:')); t3a.appendChild(el('small', '', '(Se cancela presencialmente al ingresar a tu jornada)')); t3.appendChild(t3a); t3.appendChild(el('b', 'v', R.clp(p.saldo))); tot.appendChild(t3);

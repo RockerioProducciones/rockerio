@@ -78,7 +78,7 @@
 
     cont.textContent = ''; var cols = el('div', 'dp-cols'), izq = el('div', 'dp-izq'), der = el('div', 'dp-der');
     var inc = el('p', 'dp-inc'); dur.appendChild(inc);
-    function pintarInc() { var g = 0; try { g = cfgP ? R.grabacionIncluidaMin(cfgP, 'ensayo', horas) : 0; } catch (x) { g = 0; } inc.hidden = !g; inc.textContent = g ? '🎙️ Incluye ' + R.minutosTxt(g) + ' de grabación mezclada' : ''; }
+    function pintarInc() { var g = 0; try { g = cfgP ? R.grabacionIncluidaMin(cfgP, 'ensayo', horas) : 0; } catch (x) { g = 0; } inc.hidden = !g; inc.textContent = g ? '🎙️ Dentro de tus ' + horas + ' horas: ' + R.minutosTxt(horas * 60 - g) + ' de ensayo + ' + R.minutosTxt(g) + ' grabados' : ''; }
     cont.appendChild(dur); izq.appendChild(boxHoy); izq.appendChild(boxSem); der.appendChild(boxCal); cols.appendChild(izq); cols.appendChild(der); cont.appendChild(cols);
     cont.appendChild(el('p', 'dp-nota', 'Se actualiza al instante con cada reserva.'));
     pintarTodo();

@@ -13,7 +13,7 @@
       c.appendChild(el('h3', '', p.nombre)); c.appendChild(el('p', 'tr-monto', R.clp(p.precio)));
       var g = R.grabacionIncluidaMin(cfg, 'ensayo', p.horasPorSesion), normal = p.sesiones * p.horasPorSesion * cfg.precioEnsayoHora, ul = el('ul', 'plan-lista-b');
       [p.sesiones + ' ensayos de ' + p.horasPorSesion + ' horas, ' + (p.sesiones * p.horasPorSesion) + ' horas en total',
-        g ? 'Incluye ' + R.minutosTxt(g) + ' de grabación con mezcla en cada ensayo' : '',
+        g ? 'En cada ensayo de ' + p.horasPorSesion + ' horas, ' + R.minutosTxt(g) + ' se graban y mezclan (dentro del mismo tiempo)' : '',
         'Sala acondicionada con backline completo',
         'Úsalas este mes o el siguiente; cambios hasta ' + cfg.horasAnulacion + ' h antes',
         normal > p.precio ? 'Ahorras ' + R.clp(normal - p.precio) + ' frente a reservar suelto' : ''
