@@ -1,7 +1,5 @@
-/* Disponibilidad pública: HOY, ESTA SEMANA y PRÓXIMAS 4 SEMANAS. Fondo claro cálido, libres en verde, no disponible tenue. */
-:root{--dp-p:#37332f;--dp-p2:#2f2c29;--dp-l:rgba(255,255,255,.13);--dp-v:#3ddc84}
-html body{background:radial-gradient(900px 380px at 50% -60px,color-mix(in srgb,var(--oro) 22%,transparent),transparent 70%),linear-gradient(180deg,#3a3632 0,#2b2825 520px,#262421 100%) fixed!important}
-html body::before{background:none!important}
+/* Disponibilidad pública: HOY, ESTA SEMANA y PRÓXIMAS 4 SEMANAS. Fondo oscuro como el resto del sitio, libres en verde, no disponible tenue. */
+:root{--dp-p:rgba(18,17,16,.82);--dp-p2:rgba(10,10,9,.7);--dp-l:rgba(255,255,255,.13);--dp-v:#3ddc84}
 .pg.disp{max-width:1180px!important;width:100%;margin:0 auto;padding-bottom:4.5rem}
 .disp .marca{display:flex;justify-content:center;margin:.3rem 0 .2rem}.disp .marca img{height:48px}
 .disp h1{text-align:center;font-family:Oswald,sans-serif;text-transform:uppercase;font-size:clamp(2rem,6vw,3.2rem);letter-spacing:.12em;margin:.25em 0 .1em;color:var(--oro);text-shadow:0 2px 18px color-mix(in srgb,var(--oro) 30%,transparent)}
