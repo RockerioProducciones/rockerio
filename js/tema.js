@@ -5,16 +5,19 @@
   var BASE = '';
   function crudo() { try { return localStorage.getItem(CLAVE) || ''; } catch (e) { return ''; } }
   /* La elección del visitante se guarda junto al tema por defecto vigente: si el dueño cambia el tema, la elección vieja deja de mandar. */
-  function leer() { var c = crudo().split('|'); if (BASE && c[1] !== undefined && c[1] !== BASE) return ''; return c[0] || ''; }
+  function leer() { var c = crudo().split('|'); if (c[1] === '?' || c[1] === '') return c[0] || ''; if (BASE && c[1] !== undefined && c[1] !== BASE) return ''; return c[0] || ''; }
   function poner(t) { if (valido(t)) document.documentElement.setAttribute('data-tema', t); }
-  function guardar(t) { try { localStorage.setItem(CLAVE, t + '|' + BASE); } catch (e) { /* sin almacenamiento */ } }
+  function guardar(t) { try { localStorage.setItem(CLAVE, t + '|' + (BASE || '?')); } catch (e) { /* sin almacenamiento */ } }
   var elegido = leer();
   poner(valido(elegido) ? elegido : 'rockerio');
   var sel;
   window.RKTema = {
     lista: TEMAS,
     /** Tema por defecto del sitio (viene de la configuración); no pisa la elección de la persona. */
-    defecto: function (t) { if (!valido(t)) return; BASE = t; var c = crudo().split('|'); if (c[1] !== undefined && c[1] !== t) { try { localStorage.removeItem(CLAVE); } catch (e) { /* nada */ } } if (!valido(leer())) { poner(t); if (sel) sel.value = t; } },
+    defecto: function (t) { if (!valido(t)) return; BASE = t; var c = crudo().split('|');
+      /* La elección se hizo antes de que llegara la configuración: se conserva y se asocia a este tema por defecto. */
+      if (c[0] && (c[1] === '?' || c[1] === '')) { try { localStorage.setItem(CLAVE, c[0] + '|' + t); } catch (e) { /* nada */ } c = crudo().split('|'); }
+      if (c[1] !== undefined && c[1] !== t) { try { localStorage.removeItem(CLAVE); } catch (e) { /* nada */ } } if (!valido(leer())) { poner(t); if (sel) sel.value = t; } },
     selector: function () {
       if (sel) return;
       sel = document.createElement('select'); sel.className = 'selector-tema'; sel.setAttribute('aria-label', 'Cambiar tema');
