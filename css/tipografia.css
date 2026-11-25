@@ -1,0 +1,9 @@
+/* Tipografía única para todo Rockerío: Oswald (títulos) + Inter (textos). Los temas cambian colores y formas, no las letras. */
+html,html[data-tema],html.rd[data-tema],html.rd.rd[data-tema]{--f-t:Oswald,Impact,sans-serif!important;--f-b:Inter,system-ui,sans-serif!important}
+html body,html[data-tema] body{font-family:Inter,system-ui,sans-serif!important}
+html h1,html h2,html h3,html legend,html .btn,html nav a,html .barra a,html .marca-t{font-family:Oswald,Impact,sans-serif!important}
+html button,html input,html select,html textarea{font-family:inherit}
+html .btn,html button.btn{font-family:Oswald,Impact,sans-serif!important}
+/* Calaverita al pie de los portales */
+.pie-marca{display:flex;align-items:center;justify-content:center;gap:.6rem;margin:2rem auto 5rem;opacity:.75;font:700 .85rem Oswald,Impact,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--oro,#FCC631)}
+.pie-marca img{height:38px;width:auto}

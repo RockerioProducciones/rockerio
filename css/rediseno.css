@@ -6,7 +6,7 @@ html.rd{
   --velo:rgba(0,0,0,.9);--top-a:rgba(0,0,0,.7);--txt:#f5f3ef;--mut:#a3a0a8;
   --rd-r:20px;--rd-rs:12px;--rd-vidrio:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
   --rd-linea:color-mix(in srgb,var(--oro) 38%,transparent);--rd-glow:0 0 0 1px color-mix(in srgb,var(--oro) 55%,transparent),0 14px 44px color-mix(in srgb,var(--oro) 14%,transparent);
-  --f-t:'Space Grotesk',Inter,system-ui,sans-serif;--f-b:Inter,system-ui,sans-serif;--tt:none;--ls:-.02em;--r:20px;--r-s:12px;--sh:none;--bw:1px;
+  --f-t:Oswald,Impact,sans-serif;--f-b:Inter,system-ui,sans-serif;--tt:none;--ls:-.02em;--r:20px;--r-s:12px;--sh:none;--bw:1px;
 }
 /* Los 10 temas: siempre sobre negro; cada uno solo cambia el color de acento */
 html.rd[data-tema="rockerio"]{--oro:#FCC631;--rojo:#D81D23}
@@ -159,7 +159,7 @@ html.rd .btn.sec-b{background:rgba(255,255,255,.07);color:var(--txt);box-shadow:
 html.rd .wizard .tu-reserva,html .wizard .tu-reserva{position:relative!important;top:auto!important;bottom:auto!important}
 /* >>> TEMAS ELABORADOS */
 /* ===== 9 TEMAS ELABORADOS (solo estética): siempre fondo de rocas y negro; cada uno con su acento, su logo y su acabado ===== */
-html.rd.rd[data-tema="medianoche"]{--oro:#4da3ff;--oro2:#22d3ee;--rojo:#ff4f9a;--hl:77,163,255;--hl2:34,211,238;--rd-r:18px;--rd-rs:10px;--r:18px;--r-s:10px;--f-t:'Space Grotesk',Inter,sans-serif;--tt:none;--ls:-.02em}
+html.rd.rd[data-tema="medianoche"]{--oro:#4da3ff;--oro2:#22d3ee;--rojo:#ff4f9a;--hl:77,163,255;--hl2:34,211,238;--rd-r:18px;--rd-rs:10px;--r:18px;--r-s:10px;--f-t:Oswald,Impact,sans-serif;--tt:none;--ls:-.02em}
 html.rd.rd[data-tema="medianoche"] .marca img,html.rd.rd[data-tema="medianoche"] .hero-logo[src$="logo-horizontal-dorado.png"]{content:url(../assets/marca/logo-horizontal-blanco.png)}
 html.rd.rd[data-tema="medianoche"] body::before{background:radial-gradient(900px 520px at 50% -8%,rgba(77,163,255,.16),transparent 70%),linear-gradient(rgba(0,0,0,.42),rgba(0,0,0,.7)),url(../assets/marca/textura-fondo.jpg) center/cover no-repeat!important}
 html.rd.rd[data-tema="medianoche"] h1,html.rd.rd[data-tema="medianoche"] h2,html.rd.rd[data-tema="medianoche"] h3,html.rd.rd[data-tema="medianoche"] legend,html.rd.rd[data-tema="medianoche"] .tarjeta b,html.rd.rd[data-tema="medianoche"] .wiz-titulo,html.rd.rd[data-tema="medianoche"] .ro-titulo{font-family:var(--f-t);text-transform:var(--tt);letter-spacing:var(--ls)}
@@ -189,7 +189,7 @@ html.rd.rd[data-tema="bosque"] .hero h1{background:linear-gradient(180deg,#fff 3
 html.rd.rd[data-tema="bosque"] .hero-logo{box-shadow:0 0 0 1px rgba(52,211,153,.35),0 20px 60px rgba(52,211,153,.22)}
 html.rd.rd[data-tema="bosque"] .tarjeta,html.rd.rd[data-tema="bosque"] :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card){border-radius:var(--rd-r)}
 html.rd.rd[data-tema="bosque"] .tarjeta:hover{border-color:#34d399;box-shadow:0 0 0 1px #34d399,0 14px 40px rgba(52,211,153,.22)}
-html.rd.rd[data-tema="cobre"]{--oro:#ff8a3d;--oro2:#f2b35a;--rojo:#d6361e;--hl:255,138,61;--hl2:242,179,90;--rd-r:8px;--rd-rs:5px;--r:8px;--r-s:5px;--f-t:'Bebas Neue',Oswald,Impact,sans-serif;--tt:uppercase;--ls:.07em}
+html.rd.rd[data-tema="cobre"]{--oro:#ff8a3d;--oro2:#f2b35a;--rojo:#d6361e;--hl:255,138,61;--hl2:242,179,90;--rd-r:8px;--rd-rs:5px;--r:8px;--r-s:5px;--f-t:Oswald,Impact,sans-serif;--tt:uppercase;--ls:.07em}
 html.rd.rd[data-tema="cobre"] .marca img,html.rd.rd[data-tema="cobre"] .hero-logo[src$="logo-horizontal-dorado.png"]{content:url(../assets/marca/logo-horizontal-rojo.png)}
 html.rd.rd[data-tema="cobre"] body::before{background:radial-gradient(900px 520px at 50% -8%,rgba(255,138,61,.16),transparent 70%),linear-gradient(rgba(0,0,0,.42),rgba(0,0,0,.7)),url(../assets/marca/textura-fondo.jpg) center/cover no-repeat!important}
 html.rd.rd[data-tema="cobre"] h1,html.rd.rd[data-tema="cobre"] h2,html.rd.rd[data-tema="cobre"] h3,html.rd.rd[data-tema="cobre"] legend,html.rd.rd[data-tema="cobre"] .tarjeta b,html.rd.rd[data-tema="cobre"] .wiz-titulo,html.rd.rd[data-tema="cobre"] .ro-titulo{font-family:var(--f-t);text-transform:var(--tt);letter-spacing:var(--ls)}
@@ -199,7 +199,7 @@ html.rd.rd[data-tema="cobre"] .hero h1{background:linear-gradient(180deg,#fff 30
 html.rd.rd[data-tema="cobre"] .hero-logo{box-shadow:0 0 0 1px rgba(255,138,61,.35),0 20px 60px rgba(255,138,61,.22)}
 html.rd.rd[data-tema="cobre"] .tarjeta,html.rd.rd[data-tema="cobre"] :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card){border-radius:var(--rd-r)}
 html.rd.rd[data-tema="cobre"] .tarjeta:hover{border-color:#ff8a3d;box-shadow:0 0 0 1px #ff8a3d,0 14px 40px rgba(255,138,61,.22)}
-html.rd.rd[data-tema="grafito"]{--oro:#b7c58a;--oro2:#7f9060;--rojo:#e8803a;--hl:183,197,138;--hl2:127,144,96;--rd-r:2px;--rd-rs:2px;--r:2px;--r-s:2px;--f-t:'Big Shoulders Display',Oswald,Impact,sans-serif;--tt:uppercase;--ls:.05em}
+html.rd.rd[data-tema="grafito"]{--oro:#b7c58a;--oro2:#7f9060;--rojo:#e8803a;--hl:183,197,138;--hl2:127,144,96;--rd-r:2px;--rd-rs:2px;--r:2px;--r-s:2px;--f-t:Oswald,Impact,sans-serif;--tt:uppercase;--ls:.05em}
 html.rd.rd[data-tema="grafito"] .marca img,html.rd.rd[data-tema="grafito"] .hero-logo[src$="logo-horizontal-dorado.png"]{content:url(../assets/marca/logo-horizontal-blanco.png)}
 html.rd.rd[data-tema="grafito"] body::before{background:radial-gradient(900px 520px at 50% -8%,rgba(183,197,138,.16),transparent 70%),linear-gradient(rgba(0,0,0,.42),rgba(0,0,0,.7)),url(../assets/marca/textura-fondo.jpg) center/cover no-repeat!important}
 html.rd.rd[data-tema="grafito"] h1,html.rd.rd[data-tema="grafito"] h2,html.rd.rd[data-tema="grafito"] h3,html.rd.rd[data-tema="grafito"] legend,html.rd.rd[data-tema="grafito"] .tarjeta b,html.rd.rd[data-tema="grafito"] .wiz-titulo,html.rd.rd[data-tema="grafito"] .ro-titulo{font-family:var(--f-t);text-transform:var(--tt);letter-spacing:var(--ls)}
@@ -229,7 +229,7 @@ html.rd.rd[data-tema="abismo"] .hero h1{background:linear-gradient(180deg,#fff 3
 html.rd.rd[data-tema="abismo"] .hero-logo{box-shadow:0 0 0 1px rgba(167,139,250,.35),0 20px 60px rgba(167,139,250,.22)}
 html.rd.rd[data-tema="abismo"] .tarjeta,html.rd.rd[data-tema="abismo"] :is(.caja,.ex-card,.prod-bloque,.honor-card,.mic-it,.fo-it,.pa-bloque,.card){border-radius:var(--rd-r)}
 html.rd.rd[data-tema="abismo"] .tarjeta:hover{border-color:#a78bfa;box-shadow:0 0 0 1px #a78bfa,0 14px 40px rgba(167,139,250,.22)}
-html.rd.rd[data-tema="ciruela"]{--oro:#ff2d95;--oro2:#ff7ac0;--rojo:#ff4d4d;--hl:255,45,149;--hl2:255,122,192;--rd-r:6px;--rd-rs:4px;--r:6px;--r-s:4px;--f-t:'Big Shoulders Display',Oswald,Impact,sans-serif;--tt:uppercase;--ls:.03em}
+html.rd.rd[data-tema="ciruela"]{--oro:#ff2d95;--oro2:#ff7ac0;--rojo:#ff4d4d;--hl:255,45,149;--hl2:255,122,192;--rd-r:6px;--rd-rs:4px;--r:6px;--r-s:4px;--f-t:Oswald,Impact,sans-serif;--tt:uppercase;--ls:.03em}
 html.rd.rd[data-tema="ciruela"] .marca img,html.rd.rd[data-tema="ciruela"] .hero-logo[src$="logo-horizontal-dorado.png"]{content:url(../assets/marca/logo-horizontal-blanco.png)}
 html.rd.rd[data-tema="ciruela"] body::before{background:radial-gradient(900px 520px at 50% -8%,rgba(255,45,149,.16),transparent 70%),linear-gradient(rgba(0,0,0,.42),rgba(0,0,0,.7)),url(../assets/marca/textura-fondo.jpg) center/cover no-repeat!important}
 html.rd.rd[data-tema="ciruela"] h1,html.rd.rd[data-tema="ciruela"] h2,html.rd.rd[data-tema="ciruela"] h3,html.rd.rd[data-tema="ciruela"] legend,html.rd.rd[data-tema="ciruela"] .tarjeta b,html.rd.rd[data-tema="ciruela"] .wiz-titulo,html.rd.rd[data-tema="ciruela"] .ro-titulo{font-family:var(--f-t);text-transform:var(--tt);letter-spacing:var(--ls)}

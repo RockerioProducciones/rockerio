@@ -97,11 +97,11 @@ footer img{opacity:.85}
 .menu .tarjeta.principal::before,.menu .tarjeta[aria-current=page]::before{background:#1a1204}
 
 /* tipografía de marca (solo tema Rockerío) y logo como protagonista */
-html[data-tema="rockerio"][lang] h1,html[data-tema="rockerio"][lang] .sec h2,html[data-tema="rockerio"][lang] .wiz-titulo,html[data-tema="rockerio"][lang] .honor-cab h3{font-family:'Bebas Neue',Impact,'Arial Narrow',sans-serif;font-weight:400;letter-spacing:.06em}
+html[data-tema="rockerio"][lang] h1,html[data-tema="rockerio"][lang] .sec h2,html[data-tema="rockerio"][lang] .wiz-titulo,html[data-tema="rockerio"][lang] .honor-cab h3{font-family:Oswald,Impact,sans-serif;font-weight:400;letter-spacing:.06em}
 html[data-tema="rockerio"][lang] .hero h1{font-size:clamp(3rem,10vw,5.2rem);letter-spacing:.07em;text-shadow:none;background:linear-gradient(180deg,#fff 30%,#f0e2bd 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 4px 18px rgba(0,0,0,.7))}
 html[data-tema="rockerio"][lang] .sec h2{font-size:2.5rem}
 @supports(font-size-adjust:.5){html[data-tema="rockerio"][lang] .tarjeta b{font-size-adjust:.5}}
-html[data-tema="rockerio"][lang] .tarjeta b{font-family:'Bebas Neue',Impact,'Arial Narrow',sans-serif;font-weight:400;font-size:.95rem;letter-spacing:.06em}
+html[data-tema="rockerio"][lang] .tarjeta b{font-family:Oswald,Impact,sans-serif;font-weight:400;font-size:.95rem;letter-spacing:.06em}
 /* ecualizador animado tras el título */
 .hero-eq{display:flex;align-items:flex-end;justify-content:center;gap:5px;height:54px;margin:.2rem auto 0;opacity:.9}
 .hero-eq i{display:block;width:5px;height:100%;border-radius:3px;background:linear-gradient(180deg,var(--oro),color-mix(in srgb,var(--oro) 20%,transparent));transform-origin:bottom;transform:scaleY(.25);box-shadow:0 0 10px color-mix(in srgb,var(--oro) 45%,transparent)}
@@ -153,7 +153,7 @@ body:not([data-vista]) .menu>.tarjeta b,body[data-vista="inicio"] .menu>.tarjeta
 .ficha-hero::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.35) 40%,rgba(0,0,0,.88) 100%)}
 .ficha-hero .ficha-cab{margin:0;align-items:flex-end}
 .ficha-hero .ficha-cab h3{font-size:clamp(2rem,5vw,3.2rem);line-height:1;color:#fff;text-shadow:0 3px 22px rgba(0,0,0,.8);letter-spacing:.04em;text-transform:uppercase}
-html[data-tema="rockerio"][lang] .ficha-hero .ficha-cab h3{font-family:'Bebas Neue',Impact,'Arial Narrow',sans-serif;font-weight:400;font-size:clamp(2.4rem,6vw,3.8rem)}
+html[data-tema="rockerio"][lang] .ficha-hero .ficha-cab h3{font-family:Oswald,Impact,sans-serif;font-weight:400;font-size:clamp(2.4rem,6vw,3.8rem)}
 .ficha-hero .ficha-cab .sub{color:#e6e0d4;text-shadow:0 2px 12px rgba(0,0,0,.8);max-width:640px;font-size:1rem}
 .ficha-hero .ficha-ico{width:62px;height:62px;font-size:2rem;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-color:var(--oro)}
 .ficha-hero .info-stats{margin:0;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.6rem;cursor:default}
@@ -219,7 +219,7 @@ body.con-vistas[data-vista]:not([data-vista="inicio"]) .menu .tarjeta{padding:.4
 /* ===== Evaluaciones: a la vista ===== */
 .eva-cab{display:grid;grid-template-columns:auto 1fr;gap:1.4rem;align-items:center;padding:1.4rem 1.6rem;margin:1rem 0;border-radius:20px;border:1px solid color-mix(in srgb,var(--oro) 45%,var(--borde));background:radial-gradient(ellipse at 0% 0%,color-mix(in srgb,var(--oro) 14%,transparent),transparent 60%),var(--panel);box-shadow:0 12px 34px rgba(0,0,0,.35)}
 .eva-prom{text-align:center;min-width:150px}
-.eva-prom b{display:block;font-size:3.4rem;line-height:1;color:var(--oro);font-family:'Bebas Neue',Impact,'Arial Narrow',sans-serif;font-weight:400;letter-spacing:.03em}
+.eva-prom b{display:block;font-size:3.4rem;line-height:1;color:var(--oro);font-family:Oswald,Impact,sans-serif;font-weight:400;letter-spacing:.03em}
 .eva-st{font-size:1.3rem;letter-spacing:.12em;display:block;margin:.2rem 0}
 .eva-prom .sub{font-size:.8rem;margin:0}
 .eva-inv h3{margin:0 0 .3rem;font-size:1.3rem;color:var(--txt);text-transform:uppercase;letter-spacing:.05em}
