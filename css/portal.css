@@ -59,8 +59,8 @@
 .ag-it{display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-left:4px solid var(--c);background:rgba(0,0,0,.25);border-radius:8px;padding:.5rem .7rem;margin:.4rem 0}.ag-it b{color:var(--oro)}.ag-it span:nth-of-type(1){flex:1}.ag-it .st{font-size:.72rem;color:var(--mut)}
 @media(max-width:700px){.ag-cab h2{font-size:1.4rem}.ag-dow .f{display:none}.ag-dow .a{display:inline}.ag-dia{min-height:58px;padding:3px}.ag-ev,.ag-mas{display:none}.ag-pts{display:flex}.ag-grid{gap:3px}}
 html{color-scheme:dark}
-body{background:linear-gradient(color-mix(in srgb,var(--bg2) 80%,transparent),color-mix(in srgb,var(--bg2) 93%,transparent)),var(--bg2) url(../assets/marca/textura-fondo.jpg) center/cover fixed}
-body::before{background:none!important}
+body{background:#000}
+html body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(rgba(0,0,0,.42),rgba(0,0,0,.68)),url(../assets/marca/textura-fondo.jpg) center/cover no-repeat!important}
 .pg{max-width:min(1500px,100%)!important}
 .login-clave{display:flex;flex-direction:column;gap:10px;max-width:360px;margin:1.2rem auto;padding:1.2rem;border:1px solid var(--borde);border-radius:16px;background:var(--panel)}
 .login-clave input{font-size:1.2rem;padding:.7rem;border-radius:10px;border:1px solid var(--borde);background:var(--bg2);color:var(--txt)}
