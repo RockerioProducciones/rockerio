@@ -554,7 +554,7 @@ var Reglas = (function () {
     if (d.video) l.push('Video GoPro: sí');
     if (d.raw) l.push('Material en bruto: sí');
     if (c.horasConveniente) l.push('Tarifa conveniente de lunes a viernes aplicada en ' + c.horasConveniente + (c.horasConveniente === 1 ? ' hora' : ' horas'));
-    if (r.grabacionMin) l.push('Incluye ' + minutosTxt(r.grabacionMin) + ' de grabación');
+    if (r.grabacionMin) l.push('Incluye ' + minutosTxt(r.grabacionMin) + ' de grabación, dentro del tiempo reservado (no se suma)');
     l.push('Total: ' + clp(c.total) + ' | Abono: ' + clp(c.abono) + ' | Saldo en sala: ' + clp(c.saldo));
     return l.join('\n');
   }
@@ -1006,7 +1006,7 @@ function descripcionEvento_(cfg, v, codigo) {
   if (d.extras) l.push('Equipo extra: ' + d.extras);
   if (d.video) l.push('Video GoPro: sí');
   if (d.raw) l.push('Material en bruto: sí');
-  if (v.grabacionMin) l.push('Grabación incluida: ' + Reglas.minutosTxt(v.grabacionMin));
+  if (v.grabacionMin) l.push('Grabación incluida: ' + Reglas.minutosTxt(v.grabacionMin) + ' (dentro del tiempo reservado, no se suma)');
   l.push('Baterista zurdo: ' + (d.zurdo ? 'sí' : 'no'), 'Micrófonos de voz: ' + d.voces);
   if (d.comentario) l.push('Comentarios: ' + d.comentario);
   l.push('Total ' + Reglas.clp(c.total) + ' · Abono ' + Reglas.clp(c.abono) + ' · Saldo ' + Reglas.clp(c.saldo));

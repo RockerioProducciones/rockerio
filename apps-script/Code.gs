@@ -402,7 +402,7 @@ function descripcionEvento_(cfg, v, codigo) {
   if (d.extras) l.push('Equipo extra: ' + d.extras);
   if (d.video) l.push('Video GoPro: sí');
   if (d.raw) l.push('Material en bruto: sí');
-  if (v.grabacionMin) l.push('Grabación incluida: ' + Reglas.minutosTxt(v.grabacionMin));
+  if (v.grabacionMin) l.push('Grabación incluida: ' + Reglas.minutosTxt(v.grabacionMin) + ' (dentro del tiempo reservado, no se suma)');
   l.push('Baterista zurdo: ' + (d.zurdo ? 'sí' : 'no'), 'Micrófonos de voz: ' + d.voces);
   if (d.comentario) l.push('Comentarios: ' + d.comentario);
   l.push('Total ' + Reglas.clp(c.total) + ' · Abono ' + Reglas.clp(c.abono) + ' · Saldo ' + Reglas.clp(c.saldo));

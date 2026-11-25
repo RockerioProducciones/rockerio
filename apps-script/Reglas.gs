@@ -551,7 +551,7 @@ var Reglas = (function () {
     if (d.video) l.push('Video GoPro: sí');
     if (d.raw) l.push('Material en bruto: sí');
     if (c.horasConveniente) l.push('Tarifa conveniente de lunes a viernes aplicada en ' + c.horasConveniente + (c.horasConveniente === 1 ? ' hora' : ' horas'));
-    if (r.grabacionMin) l.push('Incluye ' + minutosTxt(r.grabacionMin) + ' de grabación');
+    if (r.grabacionMin) l.push('Incluye ' + minutosTxt(r.grabacionMin) + ' de grabación, dentro del tiempo reservado (no se suma)');
     l.push('Total: ' + clp(c.total) + ' | Abono: ' + clp(c.abono) + ' | Saldo en sala: ' + clp(c.saldo));
     return l.join('\n');
   }
