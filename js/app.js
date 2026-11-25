@@ -269,7 +269,7 @@
   function pintarEnsayoGrabado(panel, ir) {
     var hero = el('div', 'eg-hero'); hero.appendChild(el('div', 'eg-kick', '🎙️ Incluido en tu ensayo'));
     hero.appendChild(el('h3', '', 'Tu ensayo queda grabado'));
-    hero.appendChild(el('p', 'sub', 'Desde las 2 horas, parte de tu sesión se graba en multipista y se mezcla. Te llevas tu música sonando como disco.'));
+    hero.appendChild(el('p', 'sub', 'Desde las 2 horas, parte de tu sesión se graba en multipista y se mezcla. Mezclado y masterizado durante la sesión: te llevas tu música sonando como disco, el mismo día.'));
     hero.appendChild(infografia([['🎚️', 'Multipista', 'cada instrumento en su pista'], ['💿', 'WAV', '24 bits · 48 kHz'], ['🎙️', 'Micrófonos', 'de nivel profesional'], ['🎛️', 'Midas M32', 'consola digital']]));
     panel.appendChild(hero);
     /* tabla según las horas (sale de tu configuración, no se escribe a mano) */
@@ -283,7 +283,7 @@
     cj.appendChild(el('p', 'nota', 'Con más de ' + mx + ' horas, sumas 1 hora más de grabación por cada hora extra. Si quieres, también te llevas el material en bruto (las pistas sin mezclar); lo eliges al reservar.')); panel.appendChild(cj);
     /* recorrido de la señal */
     var rc = el('div', 'caja eg-caja'); rc.appendChild(el('h3', '', 'Cómo se graba tu ensayo')); var pasos = el('ol', 'eg-pasos');
-    [['Captura', 'Micrófonos profesionales en cada instrumento y voz.', 'microfonos', 'Ver micrófonos'], ['Consola', 'Midas M32 y DL32: cada instrumento sale a su propio canal.', 'control', 'Ver sala de control'], ['Grabación', 'LUNA en Mac mini M4, en WAV 24 bits y 48 kHz, multipista.', 'estacion', 'Ver computador y DAW'], ['Entrega', 'Tu ensayo mezclado; y, si lo pides, las pistas en bruto.', '', '']].forEach(function (p) {
+    [['Captura', 'Micrófonos profesionales en cada instrumento y voz.', 'microfonos', 'Ver micrófonos'], ['Consola', 'Midas M32 y DL32: cada instrumento sale a su propio canal.', 'control', 'Ver sala de control'], ['Grabación', 'LUNA en Mac mini M4, en WAV 24 bits y 48 kHz, multipista.', 'estacion', 'Ver computador y DAW'], ['Entrega en el acto', 'Mezclamos mientras grabamos, con premezcla, mezcla y master ya armados. Al terminar la jornada exportamos el WAV y te lo enviamos por Google Drive, a la carpeta de tu banda. Si quieres, también las pistas en bruto.', '', '']].forEach(function (p) {
       var li = el('li'); li.appendChild(el('b', '', p[0])); li.appendChild(el('span', '', p[1]));
       if (p[2]) { var b = el('button', 'eg-ver', p[3] + ' ›'); b.type = 'button'; b.addEventListener('click', function () { ir(p[2]); var tb = document.querySelector('.ficha-tabs'); if (tb && tb.scrollIntoView) tb.scrollIntoView({ block: 'nearest' }); }); li.appendChild(b); }
       pasos.appendChild(li);
