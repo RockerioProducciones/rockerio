@@ -16,8 +16,10 @@
     var horas = Math.min(Math.max(2, lim.min), lim.max), selec = '';
     var lunes = R.sumarDias(hoy, -((R.diaSemana(hoy) + 6) % 7)), domingo = R.sumarDias(lunes, 6), sigLunes = R.sumarDias(lunes, 7), finCal = R.sumarDias(sigLunes, 27);
     function dTxt(f) { return DOWL[(R.diaSemana(f) + 6) % 7].replace(/^./, function (c) { return c.toUpperCase(); }) + ' ' + (+f.slice(8)); }
-    function inicios(f) { var x = d.dias[f]; return x ? R.inicios(x.libres, horas) : []; }
-    function liga(f, h) { var a = el('a', 'dp-b', R.horaTxt(h)); a.href = 'index.html?f=' + f + '&h=' + h + '&d=' + horas + '#reservar'; a.setAttribute('aria-label', 'Reservar ' + R.fechaLarga(f) + ' de ' + R.horaTxt(h) + ' a ' + R.horaTxt(h + horas)); return a; }
+    function inicios(f) { /* bloques seguidos que no se pisan: 18–20, 20–22… (la hora exacta se puede ajustar al reservar) */
+      var x = d.dias[f], r = [], fin = -1; if (!x) return r;
+      R.inicios(x.libres, horas).sort(function (a, b) { return a - b; }).forEach(function (h) { if (h >= fin) { r.push(h); fin = h + horas; } }); return r; }
+    function liga(f, h) { var a = el('a', 'dp-b', R.horaTxt(h) + ' – ' + R.horaTxt(h + horas)); a.href = 'index.html?f=' + f + '&h=' + h + '&d=' + horas + '#reservar'; a.setAttribute('aria-label', 'Reservar ' + R.fechaLarga(f) + ' de ' + R.horaTxt(h) + ' a ' + R.horaTxt(h + horas)); return a; }
     function mas(n, f) { var m = el('button', 'dp-mas', '+' + n + ' más'); m.type = 'button'; m.onclick = function () { selec = f; pintarDetalle(); var e = document.getElementById('dp-det'); if (e) e.scrollIntoView({ behavior: 'smooth', block: 'center' }); }; return m; }
     function horasTxt() { return horas + (horas === 1 ? ' hora' : ' horas'); }
 
