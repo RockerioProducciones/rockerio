@@ -64,3 +64,50 @@ body{background:radial-gradient(1000px 500px at 50% -10%,rgba(252,198,49,.08),tr
 .dp-hs .dp-b{min-height:44px}
 .dp-pie{margin:.7rem 0 0;color:var(--mut);font-size:.78rem}
 @media(max-width:480px){.dp-fil{flex-wrap:wrap}.dp-fd{flex-basis:100%}}
+
+/* ===== Nueva cara (solo estética; mismas funciones). Tipo «entrada de concierto» con luz de escenario. ===== */
+body{background:radial-gradient(900px 420px at 50% -80px,color-mix(in srgb,var(--oro) 20%,transparent),transparent 70%),radial-gradient(600px 300px at 100% 40%,color-mix(in srgb,var(--oro) 6%,transparent),transparent 70%),var(--bg)}
+.disp h1{font-size:clamp(2.1rem,6vw,3.4rem);letter-spacing:.14em;margin:.25em 0 .1em;background:linear-gradient(180deg,#fff2c2,var(--oro) 55%,#c98f12);-webkit-background-clip:text;background-clip:text;color:transparent;display:flex;align-items:center;justify-content:center;gap:.7em}
+.disp h1::before,.disp h1::after{content:"";height:2px;width:clamp(28px,9vw,120px);background:linear-gradient(90deg,transparent,var(--oro))}.disp h1::after{transform:scaleX(-1)}
+.disp .sub{font-size:.95rem;max-width:56ch;margin-bottom:1.6rem}
+/* duración: control segmentado */
+.dp-dur{border:0;background:none;padding:0;margin-bottom:1.4rem;flex-direction:column;align-items:flex-start;gap:.5rem}
+.dp-q{font:600 .75rem Inter,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
+.dp-chips{display:inline-flex;gap:0;padding:4px;border:1px solid var(--borde);border-radius:999px;background:rgba(0,0,0,.35);flex-wrap:wrap}
+.dp-chip{border:0;background:transparent;border-radius:999px;min-height:42px;padding:.5rem 1.05rem;color:var(--mut);font-weight:600}
+.dp-chip.on{background:var(--oro);color:#1c1b1a;box-shadow:0 4px 14px color-mix(in srgb,var(--oro) 35%,transparent)}
+/* títulos de sección */
+.dp-h2{font-size:.8rem;letter-spacing:.28em;color:var(--oro);display:flex;align-items:center;gap:.8rem}.dp-h2::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--borde),transparent)}
+.dp-h3{letter-spacing:.24em;margin:1.5rem 0 .4rem}
+/* Hoy / Mañana: entradas con talón */
+.dp-t{display:grid;grid-template-columns:9.4rem 1fr;align-items:center;padding:0;border:1px solid color-mix(in srgb,var(--oro) 35%,var(--borde));border-radius:18px;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.05),rgba(0,0,0,.35));box-shadow:0 14px 34px rgba(0,0,0,.35);position:relative}
+.dp-t+.dp-t{margin-top:0}
+.dp-tc{flex-direction:column;align-items:flex-start;justify-content:center;gap:.2rem;margin:0;padding:1rem 1rem 1rem 1.1rem;height:100%;box-sizing:border-box;background:linear-gradient(180deg,color-mix(in srgb,var(--oro) 22%,transparent),color-mix(in srgb,var(--oro) 6%,transparent));border-right:2px dashed color-mix(in srgb,var(--oro) 45%,transparent)}
+.dp-tc b{font-size:1.6rem;line-height:1;letter-spacing:.06em}.dp-tc span{font-size:.8rem;letter-spacing:.06em}
+.dp-t::before,.dp-t::after{content:"";position:absolute;left:calc(9.4rem - 9px);width:18px;height:18px;border-radius:50%;background:var(--bg);z-index:1}.dp-t::before{top:-9px}.dp-t::after{bottom:-9px}
+.dp-t>.dp-bs,.dp-t>.dp-vacio{padding:.9rem 1rem}
+/* horarios: anillos dorados */
+.dp-b,.dp-mas{border:1.5px solid color-mix(in srgb,var(--oro) 70%,transparent);background:rgba(0,0,0,.3);color:var(--txt);border-radius:999px;min-width:68px;font-weight:700;letter-spacing:.02em}
+.dp-b:hover,.dp-b:focus-visible{background:var(--oro);color:#1c1b1a;border-color:var(--oro);box-shadow:0 6px 18px color-mix(in srgb,var(--oro) 35%,transparent)}
+.dp-mas{border-style:dashed;border-color:var(--borde);color:var(--mut)}
+/* próximos días: lista limpia */
+.dp-lista{border:0;background:none;border-radius:0}
+.dp-fil{padding:.7rem 0;border-bottom:1px solid var(--borde);gap:1rem}.dp-fil:last-child{border-bottom:0}
+.dp-fd{flex:0 0 4.8rem;font-size:1.05rem;color:var(--txt)}
+/* calendario: baldosas sobrias con punto de estado */
+.dp-cal{background:rgba(0,0,0,.28);border-radius:20px;padding:.9rem;box-shadow:none}
+.dp-d{background:rgba(255,255,255,.03)!important;border:1px solid transparent!important;border-radius:14px;min-height:78px;opacity:1}
+.dp-d .t{font-weight:500;color:var(--mut)!important}
+.dp-d .bar{height:4px}
+.dp-d.libre,.dp-d.poco,.dp-d.lleno,.dp-d.cerrado{background:rgba(255,255,255,.035)!important}
+.dp-d.libre:hover,.dp-d.poco:hover{background:rgba(255,255,255,.08)!important;border-color:var(--borde)!important}
+.dp-d.lleno{opacity:.5}.dp-d.cerrado{opacity:.28}
+.dp-d.sel{background:color-mix(in srgb,var(--oro) 14%,transparent)!important;border-color:var(--oro)!important;box-shadow:none;transform:none}
+.dp-d.hoy .n{color:var(--oro)}
+.dp-d.hoy::after{top:-6px}
+/* detalle del día */
+.dp-det{border-radius:20px;border:1px solid var(--borde);background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(0,0,0,.3))}
+.dp-det h2{font-size:1.5rem;letter-spacing:.02em}
+.dp-h.ocupada{opacity:.4}
+.dp-pie,.dp-nota{font-size:.78rem}
+@media(max-width:480px){.dp-t{grid-template-columns:1fr}.dp-tc{flex-direction:row;align-items:baseline;justify-content:space-between;border-right:0;border-bottom:2px dashed color-mix(in srgb,var(--oro) 45%,transparent);padding:.8rem 1rem}.dp-t::before,.dp-t::after{display:none}.dp-chips{width:100%;justify-content:space-between}.dp-chip{padding:.5rem .35rem;font-size:.8rem;flex:1 1 auto;white-space:nowrap}.dp-fd{flex-basis:100%}}

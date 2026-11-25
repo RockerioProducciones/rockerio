@@ -63,7 +63,7 @@
       if (!x.abiertas.length) { det.appendChild(el('p', 'res', 'Cerrado este día.')); return; }
       det.appendChild(el('p', 'res', ini.length ? 'Toca la hora en que quieres empezar (' + horas + (horas === 1 ? ' hora' : ' horas') + ').' : x.libres.length ? 'No quedan bloques de ' + horas + (horas === 1 ? ' hora' : ' horas') + ' este día. Prueba con menos horas.' : 'Sin cupo este día.'));
       var hs = el('div', 'dp-hs'); x.abiertas.forEach(function (h) { hs.appendChild(okI[h] ? liga(f, h) : el('span', 'dp-h ' + (libres[h] ? 'suelta' : 'ocupada'), R.horaTxt(h))); }); det.appendChild(hs);
-      det.appendChild(el('p', 'dp-pie', 'Verde: puedes empezar a esa hora. Tachado: ocupado.'));
+      det.appendChild(el('p', 'dp-pie', 'Con borde dorado: puedes empezar a esa hora. Tachado: ocupado.'));
     }
     var ini0 = R.sumarDias(fechas[0], -((R.diaSemana(fechas[0]) + 6) % 7)), fin = fechas[fechas.length - 1], f = ini0, fila;
     function cel(f) {
