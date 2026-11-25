@@ -17,6 +17,9 @@ const { sembrar } = require('./demo.js');
     chk(await p.locator('.dp-hoy .dp-b, .dp-sem .dp-b').count() > 0, nom + ': muestra horarios próximos');
     await p.locator('.dp-chip', { hasText: '3 horas' }).click(); chk(/d=3/.test(await p.locator('.dp-b').first().getAttribute('href')), nom + ': la duración elegida viaja en el enlace');
     await p.locator('.dp-chip', { hasText: '2 horas' }).click();
+    const ver = p.locator('.dp-ver').first();
+    if (await ver.count()) { const ex = ver.locator('xpath=following-sibling::div[contains(@class,"dp-otras")]').first(); chk(!(await ex.isVisible()), nom + ': «Ver otras horas» empieza cerrado'); await ver.click(); chk(await ex.isVisible() && await ex.locator('.dp-b2').count() > 0, nom + ': «Ver otras horas» muestra las horas intermedias'); await ver.click(); }
+    chk(await p.locator('.dp-share').count() === 1, nom + ': botón compartir disponibilidad');
     const lk = p.locator('.dp-b').first(); const hr = await lk.getAttribute('href'); await lk.click(); await p.waitForSelector('#wiz-chip', { timeout: 15000 }); await p.waitForTimeout(1500);
     const f = /f=([\d-]+)&h=(\d+)/.exec(hr); chk(/17|18|19|20|21|09|1\d:00|:00/.test(await p.locator('#wiz-chip').innerText()) && (await p.locator('#wiz-chip').innerText()).includes(String(+f[1].slice(8))), nom + ': al tocar un horario abre reservar con día y hora ya elegidos');
     chk(await p.locator('#paso-datos').isVisible(), nom + ': y salta directo a «Tus datos»');

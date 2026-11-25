@@ -21,6 +21,16 @@
       var x = d.dias[f], r = [], fin = -1; if (!x) return r;
       R.inicios(x.libres, horas).sort(function (a, b) { return a - b; }).forEach(function (h) { if (h >= fin) { r.push(h); fin = h + horas; } }); return r; }
     function liga(f, h) { var a = el('a', 'dp-b', R.horaTxt(h) + ' – ' + R.horaTxt(h + horas)); a.href = 'index.html?f=' + f + '&h=' + h + '&d=' + horas + '#reservar'; a.setAttribute('aria-label', 'Reservar ' + R.fechaLarga(f) + ' de ' + R.horaTxt(h) + ' a ' + R.horaTxt(h + horas)); return a; }
+    /* pinta los bloques seguidos y, aparte, un enlace discreto para ver el resto de horas de inicio posibles (18–20 aunque ya haya 17–19) */
+    function bloques(bs, f, ini) {
+      ini.forEach(function (h) { bs.appendChild(liga(f, h)); });
+      var x = d.dias[f], todas = x ? R.inicios(x.libres, horas).sort(function (a, b) { return a - b; }) : [], otras = todas.filter(function (h) { return ini.indexOf(h) < 0; });
+      if (!otras.length) return;
+      var ex = el('div', 'dp-bs dp-otras'); ex.hidden = true; otras.forEach(function (h) { var a = liga(f, h); a.className = 'dp-b dp-b2'; ex.appendChild(a); });
+      var t = el('button', 'dp-ver', 'Ver otras horas'); t.type = 'button'; t.setAttribute('aria-expanded', 'false');
+      t.onclick = function () { ex.hidden = !ex.hidden; t.textContent = ex.hidden ? 'Ver otras horas' : 'Ocultar otras horas'; t.setAttribute('aria-expanded', ex.hidden ? 'false' : 'true'); };
+      bs.parentNode ? (bs.parentNode.appendChild(t), bs.parentNode.appendChild(ex)) : (bs._t = t, bs._ex = ex);
+    }
     function mas(n, f) { var m = el('button', 'dp-mas', '+' + n + ' más'); m.type = 'button'; m.onclick = function () { selec = f; pintarDetalle(); var e = document.getElementById('dp-det'); if (e) e.scrollIntoView({ behavior: 'smooth', block: 'center' }); }; return m; }
     function horasTxt() { return horas + (horas === 1 ? ' hora' : ' horas'); }
 
@@ -35,7 +45,7 @@
       var c = el('div', 'dp-card dp-grande' + (ini.length ? ' ok' : '')); var cab = el('div', 'dp-cab'); cab.appendChild(el('b', '', 'Hoy')); cab.appendChild(el('span', '', R.fechaLarga(hoy))); c.appendChild(cab);
       if (!x || !x.abiertas.length) c.appendChild(el('p', 'dp-vacio', 'Hoy estamos cerrados.'));
       else if (!ini.length) c.appendChild(el('p', 'dp-vacio', x.libres.length ? 'No quedan bloques de ' + horasTxt() + ' hoy. Prueba con menos horas.' : 'Hoy ya no quedan horarios.'));
-      else { var bs = el('div', 'dp-bs'); ini.forEach(function (h) { bs.appendChild(liga(hoy, h)); }); c.appendChild(bs); }
+      else { var bs = el('div', 'dp-bs'); c.appendChild(bs); bloques(bs, hoy, ini); }
       boxHoy.appendChild(c);
     }
     /* ---- ESTA SEMANA (los días que faltan hasta el domingo) ---- */
@@ -47,7 +57,7 @@
         r.appendChild(el('span', 'dp-fd', dTxt(f)));
         if (!x.abiertas.length) r.appendChild(el('span', 'dp-nada', 'Cerrado'));
         else if (!ini.length) r.appendChild(el('span', 'dp-nada', x.libres.length ? 'Sin bloques de ' + horasTxt() : 'Sin cupo'));
-        else { var bs = el('div', 'dp-bs'); ini.forEach(function (h) { bs.appendChild(liga(f, h)); }); r.appendChild(bs); }
+        else { var bs = el('div', 'dp-bs'); r.appendChild(bs); bloques(bs, f, ini); }
         boxSem.appendChild(r);
       });
     }
@@ -73,13 +83,20 @@
       var det = document.getElementById('dp-det'); if (!det) return; det.textContent = ''; if (!selec) { det.hidden = true; return; } det.hidden = false;
       var ini = inicios(selec); det.appendChild(el('h3', '', R.fechaLarga(selec)));
       if (!ini.length) { det.appendChild(el('p', 'dp-vacio', 'No quedan bloques de ' + horasTxt() + ' este día.')); return; }
-      var bs = el('div', 'dp-bs'); ini.forEach(function (h) { bs.appendChild(liga(selec, h)); }); det.appendChild(bs);
+      var bs = el('div', 'dp-bs'); det.appendChild(bs); bloques(bs, selec, ini);
     }
     function pintarTodo() { pintarDur(); pintarHoy(); pintarSem(); pintarCal(); pintarDetalle(); }
 
     cont.textContent = ''; var cols = el('div', 'dp-cols'), izq = el('div', 'dp-izq'), der = el('div', 'dp-der');
     var inc = el('p', 'dp-inc'); dur.appendChild(inc);
     function pintarInc() { var g = 0; try { g = cfgP ? R.grabacionIncluidaMin(cfgP, 'ensayo', horas) : 0; } catch (x) { g = 0; } inc.hidden = !g; inc.textContent = g ? '🎙️ Dentro de tus ' + horas + ' horas: ' + R.minutosTxt(horas * 60 - g) + ' de ensayo + ' + R.minutosTxt(g) + ' grabados' : ''; }
+    var URL_D = 'https://rockerioproducciones.cl/disponibilidad', TXT_D = 'Mira los horarios libres de Rockerío Producciones (sala de ensayo y estudio, Quinta Normal):';
+    var cp = el('button', 'dp-share', '📤 Compartir disponibilidad'); cp.type = 'button';
+    cp.onclick = function () {
+      if (navigator.share) { navigator.share({ title: 'Disponibilidad · Rockerío Producciones', text: TXT_D, url: URL_D }).catch(function () {}); return; }
+      window.open('https://wa.me/?text=' + encodeURIComponent(TXT_D + ' ' + URL_D), '_blank', 'noopener');
+    };
+    dur.appendChild(cp);
     cont.appendChild(dur); izq.appendChild(boxHoy); izq.appendChild(boxSem); der.appendChild(boxCal); cols.appendChild(izq); cols.appendChild(der); cont.appendChild(cols);
     cont.appendChild(el('p', 'dp-nota', 'Se actualiza al instante con cada reserva.'));
     pintarTodo();
