@@ -17,20 +17,10 @@
     var lunes = R.sumarDias(hoy, -((R.diaSemana(hoy) + 6) % 7)), domingo = R.sumarDias(lunes, 6), sigLunes = R.sumarDias(lunes, 7), finCal = R.sumarDias(sigLunes, 27);
     function dmy(f) { return f.slice(8) + '/' + f.slice(5, 7) + '/' + f.slice(0, 4); }
     function dTxt(f) { return R.fechaLarga(f); }
-    function inicios(f) { /* bloques seguidos que no se pisan: 18–20, 20–22… (la hora exacta se puede ajustar al reservar) */
-      var x = d.dias[f], r = [], fin = -1; if (!x) return r;
-      R.inicios(x.libres, horas).sort(function (a, b) { return a - b; }).forEach(function (h) { if (h >= fin) { r.push(h); fin = h + horas; } }); return r; }
+    function inicios(f) { var x = d.dias[f]; return x ? R.inicios(x.libres, horas).sort(function (a, b) { return a - b; }) : []; }
     function liga(f, h) { var a = el('a', 'dp-b', R.horaTxt(h) + ' – ' + R.horaTxt(h + horas)); a.href = 'index.html?f=' + f + '&h=' + h + '&d=' + horas + '#reservar'; a.setAttribute('aria-label', 'Reservar ' + R.fechaLarga(f) + ' de ' + R.horaTxt(h) + ' a ' + R.horaTxt(h + horas)); return a; }
-    /* pinta los bloques seguidos y, aparte, un enlace discreto para ver el resto de horas de inicio posibles (18–20 aunque ya haya 17–19) */
-    function bloques(bs, f, ini) {
-      ini.forEach(function (h) { bs.appendChild(liga(f, h)); });
-      var x = d.dias[f], todas = x ? R.inicios(x.libres, horas).sort(function (a, b) { return a - b; }) : [], otras = todas.filter(function (h) { return ini.indexOf(h) < 0; });
-      if (!otras.length) return;
-      var ex = el('div', 'dp-bs dp-otras'); ex.hidden = true; otras.forEach(function (h) { var a = liga(f, h); a.className = 'dp-b dp-b2'; ex.appendChild(a); });
-      var t = el('button', 'dp-ver', 'Ver otras horas'); t.type = 'button'; t.setAttribute('aria-expanded', 'false');
-      t.onclick = function () { ex.hidden = !ex.hidden; t.textContent = ex.hidden ? 'Ver otras horas' : 'Ocultar otras horas'; t.setAttribute('aria-expanded', ex.hidden ? 'false' : 'true'); };
-      bs.parentNode ? (bs.parentNode.appendChild(t), bs.parentNode.appendChild(ex)) : (bs._t = t, bs._ex = ex);
-    }
+    /* todas las horas de inicio posibles para la duración elegida (17–19, 18–20, 19–21…) */
+    function bloques(bs, f, ini) { ini.forEach(function (h) { bs.appendChild(liga(f, h)); }); }
     function mas(n, f) { var m = el('button', 'dp-mas', '+' + n + ' más'); m.type = 'button'; m.onclick = function () { selec = f; pintarDetalle(); var e = document.getElementById('dp-det'); if (e) e.scrollIntoView({ behavior: 'smooth', block: 'center' }); }; return m; }
     function horasTxt() { return horas + (horas === 1 ? ' hora' : ' horas'); }
 
