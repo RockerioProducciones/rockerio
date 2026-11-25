@@ -58,7 +58,7 @@ const { sembrar } = require('./demo.js');
   // volver al inicio
   await p.click('.volver'); await p.waitForTimeout(300); ok(await p.evaluate(() => document.body.getAttribute('data-vista') === 'inicio') && await p.locator('#barra-app').isVisible(), 'botón Inicio vuelve al inicio (con la barra inferior)');
   // otras vistas
-  for (const [id, sel] of [['ficha', '#ficha-in .card'], ['galeria', '#galeria-car .fo-it img'], ['tienda', '#tienda-in'], ['reglamento', '#reglamento-in'], ['planes', '#plan-cards'], ['cotizar', '#f-cot'], ['contacto', '#wsp']]) {
+  for (const [id, sel] of [['ficha', '#ficha-in .ficha-panel'], ['galeria', '#galeria-car .fo-it img'], ['tienda', '#tienda-in'], ['reglamento', '#reglamento-in'], ['planes', '#plan-cards'], ['cotizar', '#f-cot'], ['contacto', '#wsp']]) {
     await p.goto('http://localhost:8099/#' + id); await p.waitForTimeout(500);
     ok(await p.locator(sel).first().isVisible(), 'vista ' + id); await p.screenshot({ path: 'v-' + id + '.png' });
   }
@@ -91,6 +91,10 @@ const { sembrar } = require('./demo.js');
   ok(await p.locator('#galeria [data-playlist] iframe').count() === 1, 'reproductor de playlist en Galería');
   await p.goto('http://localhost:8099/#ficha'); await p.waitForTimeout(600);
   { const n = await p.locator('.ficha-tab').count(); ok(n >= 5, n + ' pestañas en la ficha técnica'); }
+  ok(await p.locator('.ficha-tab', { hasText: 'Ensayo grabado' }).count() === 1 && /Tu ensayo queda grabado/.test(await p.textContent('.ficha-panel')) && await p.locator('.eg-fila').count() >= 6, 'ficha: pestaña «Ensayo grabado» primero, con la tabla de horas');
+  ok(/30 min/.test(await p.textContent('.eg-tabla')) && /24 bits/.test(await p.textContent('.ficha-panel')), 'ficha: tabla (2 h = 30 min) y datos técnicos');
+  ok(await p.locator('#ficha-mez-vacio').isVisible(), 'ficha: aviso «muy pronto» mientras no hay sesión en vivo');
+  await p.locator('.ficha-tab', { hasText: 'Sala de ensayo' }).first().click(); await p.waitForTimeout(300);
   ok(await p.locator('.ficha-panel .fo-it').count() >= 2, 'fotos pequeñas con texto en la ficha');
   await p.locator('.ficha-tab', { hasText: 'Computador y DAW' }).click(); await p.waitForTimeout(300);
   ok(/Mac mini M4/.test(await p.textContent('.ficha-panel')) && /LUNA 3\.0/.test(await p.textContent('.ficha-panel')), 'estación de trabajo con Mac mini M4 y LUNA 3.0');

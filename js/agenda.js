@@ -8,9 +8,9 @@
   if (!API) return msg('La agenda aún no está conectada.');
   function pedir(u) { return fetch(u).then(function (r) { return r.json(); }); }
   Promise.all([pedir(API + '?accion=agenda'), pedir(API + '?accion=config').catch(function () { return null; })]).then(function (res) {
-    var d = res[0], lim = { min: 1, max: 4 };
+    var d = res[0], lim = { min: 1, max: 4 }, cfgP = null;
     if (!d.ok) return msg('No pudimos cargar la agenda. Intenta de nuevo.');
-    try { if (res[1] && res[1].ok) { var l = R.limitesHoras(R.normalizarConfig(res[1].config), 'ensayo'); lim = { min: l.min, max: Math.min(l.max, 6) }; } } catch (x) { /* se queda 1–4 */ }
+    try { if (res[1] && res[1].ok) { cfgP = R.normalizarConfig(res[1].config); var l = R.limitesHoras(cfgP, 'ensayo'); lim = { min: l.min, max: Math.min(l.max, 6) }; } } catch (x) { /* se queda 1–4 */ }
     var hoy = new Date(Date.now() - 3 * 3600 * 1000).toISOString().slice(0, 10);
     try { hoy = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Santiago' }).format(new Date()); } catch (x) { /* aproximación */ }
     var horas = Math.min(Math.max(2, lim.min), lim.max), selec = '';
@@ -23,7 +23,7 @@
 
     /* ---- filtro de horas (se conserva) ---- */
     var dur = el('div', 'dp-dur'); dur.appendChild(el('span', 'dp-q', '¿Cuántas horas necesitas?')); var chips = el('div', 'dp-chips'); dur.appendChild(chips);
-    function pintarDur() { chips.textContent = ''; for (var h = lim.min; h <= lim.max; h++) (function (h) { var b = el('button', 'dp-chip' + (h === horas ? ' on' : ''), h + (h === 1 ? ' hora' : ' horas')); b.type = 'button'; b.setAttribute('aria-pressed', h === horas ? 'true' : 'false'); b.onclick = function () { horas = h; pintarTodo(); }; chips.appendChild(b); })(h); }
+    function pintarDur() { pintarInc(); chips.textContent = ''; for (var h = lim.min; h <= lim.max; h++) (function (h) { var b = el('button', 'dp-chip' + (h === horas ? ' on' : ''), h + (h === 1 ? ' hora' : ' horas')); b.type = 'button'; b.setAttribute('aria-pressed', h === horas ? 'true' : 'false'); b.onclick = function () { horas = h; pintarTodo(); }; chips.appendChild(b); })(h); }
 
     /* ---- HOY ---- */
     var boxHoy = el('section', 'dp-hoy'), boxSem = el('section', 'dp-sem'), boxCal = el('section', 'dp-calbox');
@@ -75,6 +75,8 @@
     function pintarTodo() { pintarDur(); pintarHoy(); pintarSem(); pintarCal(); pintarDetalle(); }
 
     cont.textContent = ''; var cols = el('div', 'dp-cols'), izq = el('div', 'dp-izq'), der = el('div', 'dp-der');
+    var inc = el('p', 'dp-inc'); dur.appendChild(inc);
+    function pintarInc() { var g = 0; try { g = cfgP ? R.grabacionIncluidaMin(cfgP, 'ensayo', horas) : 0; } catch (x) { g = 0; } inc.hidden = !g; inc.textContent = g ? '🎙️ Incluye ' + R.minutosTxt(g) + ' de grabación mezclada' : ''; }
     cont.appendChild(dur); izq.appendChild(boxHoy); izq.appendChild(boxSem); der.appendChild(boxCal); cols.appendChild(izq); cols.appendChild(der); cont.appendChild(cols);
     cont.appendChild(el('p', 'dp-nota', 'Se actualiza al instante con cada reserva.'));
     pintarTodo();

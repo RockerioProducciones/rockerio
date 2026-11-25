@@ -265,12 +265,45 @@
     (stats || []).forEach(function (s) { var t = el('div', 'info-st'); t.appendChild(el('span', 'ic', s[0])); t.appendChild(el('b', '', s[1])); t.appendChild(el('small', '', s[2])); g.appendChild(t); });
     return g;
   }
+  /** Pestaña «Ensayo grabado»: qué se graba según las horas, datos técnicos, recorrido de la señal y una sesión en vivo para escuchar. */
+  function pintarEnsayoGrabado(panel, ir) {
+    var hero = el('div', 'eg-hero'); hero.appendChild(el('div', 'eg-kick', '🎙️ Incluido en tu ensayo'));
+    hero.appendChild(el('h3', '', 'Tu ensayo queda grabado'));
+    hero.appendChild(el('p', 'sub', 'Desde las 2 horas, parte de tu sesión se graba en multipista y se mezcla. Te llevas tu música sonando como disco.'));
+    hero.appendChild(infografia([['🎚️', 'Multipista', 'cada instrumento en su pista'], ['💿', 'WAV', '24 bits · 48 kHz'], ['🎙️', 'Micrófonos', 'de nivel profesional'], ['🎛️', 'Midas M32', 'consola digital']]));
+    panel.appendChild(hero);
+    /* tabla según las horas (sale de tu configuración, no se escribe a mano) */
+    var cl = Object.keys(cfg.escala || {}).map(Number), mx = Math.min(6, Math.max(5, cl.length ? Math.max.apply(null, cl) : 5)), t = el('div', 'eg-tabla'), cab = el('div', 'eg-fila eg-cab');
+    ['Tu ensayo', 'Ensayas', 'Grabado y mezclado'].forEach(function (x) { cab.appendChild(el('span', '', x)); }); t.appendChild(cab);
+    for (var h = 1; h <= mx; h++) {
+      var gm = R.grabacionIncluidaMin(cfg, 'ensayo', h), f = el('div', 'eg-fila' + (gm ? ' ok' : ''));
+      f.appendChild(el('b', '', h + (h === 1 ? ' hora' : ' horas'))); f.appendChild(el('span', '', gm ? R.minutosTxt(h * 60 - gm) : R.minutosTxt(h * 60))); f.appendChild(el('span', 'eg-gr', gm ? '🎙️ ' + R.minutosTxt(gm) : 'No incluye')); t.appendChild(f);
+    }
+    var cj = el('div', 'caja eg-caja'); cj.appendChild(el('h3', '', 'Cuánto se graba según tu ensayo')); cj.appendChild(t);
+    cj.appendChild(el('p', 'nota', 'Con más de ' + mx + ' horas, sumas 1 hora más de grabación por cada hora extra. Si quieres, también te llevas el material en bruto (las pistas sin mezclar); lo eliges al reservar.')); panel.appendChild(cj);
+    /* recorrido de la señal */
+    var rc = el('div', 'caja eg-caja'); rc.appendChild(el('h3', '', 'Cómo se graba tu ensayo')); var pasos = el('ol', 'eg-pasos');
+    [['Captura', 'Micrófonos profesionales en cada instrumento y voz.', 'microfonos', 'Ver micrófonos'], ['Consola', 'Midas M32 y DL32: cada instrumento sale a su propio canal.', 'control', 'Ver sala de control'], ['Grabación', 'LUNA en Mac mini M4, en WAV 24 bits y 48 kHz, multipista.', 'estacion', 'Ver computador y DAW'], ['Entrega', 'Tu ensayo mezclado; y, si lo pides, las pistas en bruto.', '', '']].forEach(function (p) {
+      var li = el('li'); li.appendChild(el('b', '', p[0])); li.appendChild(el('span', '', p[1]));
+      if (p[2]) { var b = el('button', 'eg-ver', p[3] + ' ›'); b.type = 'button'; b.addEventListener('click', function () { ir(p[2]); var tb = document.querySelector('.ficha-tabs'); if (tb && tb.scrollIntoView) tb.scrollIntoView({ block: 'nearest' }); }); li.appendChild(b); }
+      pasos.appendChild(li);
+    });
+    rc.appendChild(pasos); panel.appendChild(rc);
+    /* sesión en vivo para escuchar */
+    var es = el('div', 'caja eg-caja'); es.appendChild(el('h3', '', 'Escucha una sesión en vivo, pista por pista'));
+    es.appendChild(el('p', 'sub', 'Batería, bajo, guitarras y voces, en bruto, mezclados y masterizados. Una sesión real grabada aquí.'));
+    var mz = el('div', 'comp-ab mezclador'); mz.id = 'ficha-mez'; mz.hidden = true; es.appendChild(mz);
+    var vac = el('p', 'nota prod-vacio', 'Muy pronto: una sesión en vivo grabada aquí, para que escuches cada instrumento y compares el sonido en bruto, mezclado y masterizado.'); vac.id = 'ficha-mez-vacio'; es.appendChild(vac);
+    panel.appendChild(es); RK.pintarSesionFicha();
+    var cta = el('a', 'btn eg-cta', 'Reservar mi ensayo grabado'); cta.href = '#reservar'; cta.setAttribute('data-vista', 'reservar'); panel.appendChild(cta);
+  }
   var fichaTab = null;
   function pintarFicha() {
     if (!fichaDatos) { dato('ficha', 'data/ficha.json').then(function (d) { fichaDatos = fichaDatos || d; pintarFicha(); }).catch(function () { $('ficha').hidden = true; }); return; }
     var cont = $('ficha-in'); cont.textContent = ''; cont.className = 'ficha-app';
     var v = { precioEnsayoHora: R.clp(cfg.precioEnsayoHora), plan8: R.clp(cfg.plan8), plan12: R.clp(cfg.plan12), abonoPorHora: R.clp(cfg.abonoPorHora), horasAnulacion: cfg.horasAnulacion };
     var secs = (fichaDatos.secciones || []).filter(function (x) { return !(x && (x.escucha || x.id === 'muestras')); }); // «Muestras» ya no va en la ficha: el audio vive en cada micrófono if (!secs.length) { $('ficha').hidden = true; return; }
+    if (!secs.some(function (x) { return x.id === 'ensayo-grabado'; })) secs.unshift({ id: 'ensayo-grabado', icono: '🎙️', titulo: 'Ensayo grabado', custom: true }); // pestaña propia: no depende del contenido editado de la ficha
     if (!fichaTab || !secs.some(function (s) { return s.id === fichaTab; })) fichaTab = secs[0].id;
     var tabs = el('div', 'ficha-tabs'); tabs.setAttribute('role', 'tablist'); cont.appendChild(tabs);
     var panel = el('div', 'ficha-panel'); cont.appendChild(panel);
@@ -280,6 +313,7 @@
       fichaTab = id; ['mics-box', 'escucha-box'].forEach(function (k) { var n = document.getElementById(k); if (n) guarda.appendChild(n); }); panel.textContent = '';
       [].forEach.call(tabs.children, function (b) { b.setAttribute('aria-selected', b.getAttribute('data-id') === id ? 'true' : 'false'); });
       var s = secs.filter(function (x) { return x.id === id; })[0]; if (!s) return;
+      if (s.custom) { pintarEnsayoGrabado(panel, mostrar); return; }
       if (s.mics) { // Microfonía: portada baja y el catálogo enseguida (sin textos, datos ni carrusel aparte)
         var pf = (s.fotos || []).filter(function (f) { return f && f.src; })[0], por = el('div', 'mic-portada' + (pf ? '' : ' sin-foto'));
         if (pf) por.style.backgroundImage = 'url("' + pf.src.replace(/"/g, '') + '")';
@@ -402,8 +436,14 @@
       c.appendChild(b);
     })(h);
     var ai = $('aviso-incl'), gm = R.grabacionIncluidaMin(cfg, S.servicio, S.horas); ai.textContent = '';
-    if (gm) { var t1 = el('b', '', '🎙️ ¡Ya incluyes ' + R.minutosTxt(gm) + ' de grabación con mezcla!'); ai.appendChild(t1); ai.appendChild(el('span', '', ' Por reservar ' + S.horas + ' horas de ensayo puedes usar parte de tu tiempo para llevarte un registro multipista profesional.')); ai.hidden = false; }
-    else if (S.servicio === 'ensayo') { ai.appendChild(el('span', '', '💡 Desde 2 horas de ensayo incluyes minutos de grabación con mezcla: 2 h = 30 min · 3 h = 1 h · 4 h = 2 h · 5 h = 3 h, y así sucesivamente.')); ai.hidden = false; }
+    if (S.servicio === 'ensayo') {
+      ai.hidden = false; ai.classList.add('eg-aviso');
+      ai.appendChild(el('b', '', gm ? '🎙️ ¡Tu ensayo incluye ' + R.minutosTxt(gm) + ' de grabación mezclada!' : '🎙️ Desde 2 horas tu ensayo queda grabado'));
+      ai.appendChild(el('span', '', gm ? ' Multipista WAV 24 bits / 48 kHz, con micrófonos profesionales.' : ' Con 1 hora no incluye grabación; súmale una hora y te llevas tu música mezclada.'));
+      var tb = el('div', 'eg-mini');
+      for (var hh = 2; hh <= 5; hh++) { var gg = R.grabacionIncluidaMin(cfg, 'ensayo', hh), ce = el('span', hh === S.horas ? 'on' : ''); ce.appendChild(el('i', '', hh + ' h')); ce.appendChild(el('em', '', '🎙️ ' + R.minutosTxt(gg))); tb.appendChild(ce); }
+      ai.appendChild(tb);
+    }
     else ai.hidden = true;
     pintarArriendos();
     var ens = S.servicio === 'ensayo', addOk = R.addonsPermitidos(cfg, S.servicio, S.horas);
@@ -674,6 +714,7 @@
   }
 
   window.RK = {
+    pintarSesionFicha: function () { if (RK.mezclador && document.getElementById('ficha-mez') && window.RK.sesionesVivo) RK.mezclador(window.RK.sesionesVivo, 'ficha-mez', 'ficha-mez-vacio', { kick: 'Sesión en vivo · Prueba tú mismo', tit: 'Tu ensayo, pista por pista', sub: 'Un tramo de una sesión grabada aquí. Escucha cada instrumento solo o sin él, y alterna entre en bruto, mezcla y master.' }); },
     visor: visor, cfg: function () { return cfg; }, micsCatalogo: function () { return dato('microfonos', 'data/microfonos.json').catch(function () { return []; }); }, wsp: wspUrl, el: el, pedir: pedir, api: API, calendario: calendario, bloques: bloques,
     estado: function () { return S; }, traerAgenda: traerAgenda, mostrarPago: mostrarPago, conectado: function () { return conexion; }, ahora: function () { return ahora; }
   };

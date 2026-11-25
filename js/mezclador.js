@@ -211,13 +211,14 @@
     });
   }
 
-  function mezclador(grupos) {
-    var cont = $('mezclador'), vac = $('mezclador-vacio'); if (!cont) return;
+  /* idCont/idVac/txt permiten montar una segunda copia (p. ej. en la ficha técnica) con otros títulos. */
+  function mezclador(grupos, idCont, idVac, txt) {
+    var cont = $(idCont || 'mezclador'), vac = $(idCont ? idVac : 'mezclador-vacio'); if (!cont) return; txt = txt || {};
     var validos = grupos.filter(function (g) { var p = parsear(g); return (p.inst.length || p.completa) && p.etapas.length; });
     cont.textContent = ''; cont.hidden = !validos.length; if (vac) vac.hidden = !!validos.length; if (!validos.length) return;
-    cont.appendChild(el('div', 'comp-kick', 'Mini DAW · Prueba tú mismo'));
-    cont.appendChild(el('h3', 'comp-tit', 'Mezclador de pistas'));
-    cont.appendChild(el('p', 'comp-sub', 'Un tramo de una canción grabada aquí, pista por pista. Escucha cada instrumento solo o sin él, y alterna entre el sonido en bruto, la mezcla y el master para notar qué aporta cada etapa.'));
+    cont.appendChild(el('div', 'comp-kick', txt.kick || 'Mini DAW · Prueba tú mismo'));
+    cont.appendChild(el('h3', 'comp-tit', txt.tit || 'Mezclador de pistas'));
+    cont.appendChild(el('p', 'comp-sub', txt.sub || 'Un tramo de una canción grabada aquí, pista por pista. Escucha cada instrumento solo o sin él, y alterna entre el sonido en bruto, la mezcla y el master para notar qué aporta cada etapa.'));
     var sel = el('div', 'comp-canciones'), cuerpo = el('div', 'mz-cuerpo'); cont.appendChild(sel); cont.appendChild(cuerpo);
     var primera = true;
     function ver(g, b) {

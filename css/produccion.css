@@ -48,3 +48,19 @@
 .mz-pista[hidden]{display:none}.mz-modo{margin-left:0}
 .mz-et.cargando{opacity:.5;cursor:progress}.mz-et.cargando .mz-led{animation:mzpulso 1s infinite alternate}@keyframes mzpulso{to{background:var(--oro)}}
 @media(prefers-reduced-motion:reduce){.mz-et.cargando .mz-led{animation:none}}
+
+/* Ensayo grabado (ficha técnica) y aviso en Reservar */
+.eg-hero{padding:1rem 0 .4rem}.eg-kick{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--oro)}
+.eg-tabla{display:grid;gap:.35rem}.eg-fila{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:.5rem;align-items:center;padding:.55rem .7rem;border-radius:12px;border:1px solid rgba(255,255,255,.1);font-size:.92rem}
+.eg-fila.ok{border-color:var(--oro);background:rgba(227,154,45,.09)}.eg-cab{border:0;font-size:.75rem;opacity:.7;text-transform:uppercase;letter-spacing:.05em}.eg-gr{font-weight:700}
+.eg-pasos{list-style:none;margin:0;padding:0;display:grid;gap:.6rem;counter-reset:eg}.eg-pasos li{counter-increment:eg;display:grid;gap:.15rem;padding:.2rem 0 .2rem 2.3rem;position:relative}
+.eg-pasos li::before{content:counter(eg);position:absolute;left:0;top:.2rem;width:1.7rem;height:1.7rem;border-radius:50%;background:var(--oro);color:#111;font-weight:700;display:grid;place-items:center}
+.eg-ver{justify-self:start;background:none;border:0;color:var(--oro);padding:.2rem 0;font:inherit;font-size:.88rem;cursor:pointer;min-height:36px}
+.eg-caja{margin:1rem 0}.eg-cta{display:block;text-align:center;margin:1rem 0}
+.eg-mini{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;margin-top:.6rem}.eg-mini span{text-align:center;padding:.4rem .2rem;border-radius:10px;border:1px solid rgba(255,255,255,.12);font-size:.8rem}
+.eg-mini span.on{border-color:var(--oro);background:rgba(227,154,45,.18)}.eg-mini i{display:block;font-style:normal;font-weight:700}.eg-mini em{font-style:normal;opacity:.85}
+@media(max-width:480px){.eg-fila{grid-template-columns:.9fr 1fr 1.2fr;font-size:.84rem;padding:.5rem}}
+html body .eg-fila,html body .eg-fila b,html body .eg-fila span{color:#f3ead7!important}
+html body .eg-fila.ok .eg-gr{color:#f5c04a!important}
+html body .eg-cab,html body .eg-cab span{color:rgba(243,234,215,.7)!important}
+html body .eg-mini span,html body .eg-mini i,html body .eg-mini em{color:#f3ead7!important}

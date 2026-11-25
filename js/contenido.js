@@ -201,6 +201,7 @@
     var otros = c.muestras.filter(function (g) { return g.tipo !== 'Micrófono' && g.tipo !== 'Comparador' && g.tipo !== 'Mezclador'; });
     comparador(c.muestras.filter(function (g) { return g.tipo === 'Comparador'; }));
     if (RK.mezclador) RK.mezclador(c.muestras.filter(function (g) { return g.tipo === 'Mezclador'; }));
+    RK.sesionesVivo = c.muestras.filter(function (g) { return g.tipo === 'Mezclador' && /en vivo|ensayo|sesi[oó]n/i.test(g.grupo || ''); }); if (RK.pintarSesionFicha) RK.pintarSesionFicha();
     $('escucha-box').hidden = !otros.length;
     /* El catálogo guardado desde el portal se respeta tal cual (sin rellenar fotos ni textos que se hayan quitado a propósito). */
     RK.micsCatalogo().then(function (cat) { pintarMics(cat || [], mics); });
