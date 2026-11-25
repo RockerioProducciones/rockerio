@@ -656,6 +656,23 @@
     $('form').hidden = true; $('tu-reserva').hidden = true;
   }
 
+  /* Enlace desde «Disponibilidad»: index.html?f=AAAA-MM-DD&h=18&d=2#reservar deja día, hora y duración ya elegidos.
+     Se valida contra la agenda real; si el horario ya no está libre, se abre el asistente normal en «Elige día y horario». */
+  function aplicarSolicitud() {
+    var q = new URLSearchParams(location.search), f = q.get('f'), h = parseInt(q.get('h'), 10), d = parseInt(q.get('d'), 10);
+    if (!f || !/^\d{4}-\d{2}-\d{2}$/.test(f) || isNaN(h)) return;
+    try { history.replaceState(null, '', location.pathname + (location.hash || '#reservar')); } catch (e) { /* sin historial */ }
+    var intentos = 0;
+    (function esperar() {
+      if (!agenda && intentos++ < 25) return setTimeout(esperar, 300);
+      if (!isNaN(d)) { S.horas = d; pintarHoras(); }
+      var ok = agenda && agenda[f] && R.inicios(agenda[f].libres, S.horas).indexOf(h) >= 0 && f >= ahora.fecha;
+      if (ok) { S.fecha = f; S.inicio = h; } else { S.fecha = null; S.inicio = null; }
+      pintarCalendario(); estado();
+      if (window.RK.irPaso) window.RK.irPaso(ok ? 'paso-datos' : 'paso-fecha');
+    })();
+  }
+
   window.RK = {
     visor: visor, cfg: function () { return cfg; }, micsCatalogo: function () { return dato('microfonos', 'data/microfonos.json').catch(function () { return []; }); }, wsp: wspUrl, el: el, pedir: pedir, api: API, calendario: calendario, bloques: bloques,
     estado: function () { return S; }, traerAgenda: traerAgenda, mostrarPago: mostrarPago, conectado: function () { return conexion; }, ahora: function () { return ahora; }
@@ -665,7 +682,7 @@
   /* ---------- arranque ---------- */
   document.addEventListener('DOMContentLoaded', function () {
     pintarFicha(); pintarGaleria(); pintarPlaylist(); pintarConfig(); estado();
-    cargar().then(function () { pintarConfig(); window.RK._listo(); });
+    cargar().then(function () { pintarConfig(); window.RK._listo(); aplicarSolicitud(); });
     document.querySelectorAll('input[name=servicio]').forEach(function (r) {
       r.addEventListener('change', function () { S.servicio = r.value; pintarHoras(); alCambiarDuracion(); });
     });

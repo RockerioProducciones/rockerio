@@ -14,6 +14,12 @@ const { sembrar } = require('./demo.js');
     chk(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), nom + ': sin desborde horizontal');
     chk(errs.length === 0, nom + ': sin errores JS ' + errs.join('|'));
     await p.screenshot({ path: '/tmp/disp-' + nom + '.png', fullPage: true });
+    chk(await p.locator('.dp-t .dp-b').count() > 0, nom + ': muestra lo más próximo (hoy/mañana) con horarios');
+    await p.locator('.dp-chip', { hasText: '3 horas' }).click(); chk(/d=3/.test(await p.locator('.dp-b').first().getAttribute('href')), nom + ': la duración elegida viaja en el enlace');
+    await p.locator('.dp-chip', { hasText: '2 horas' }).click();
+    const lk = p.locator('.dp-b').first(); const hr = await lk.getAttribute('href'); await lk.click(); await p.waitForSelector('#wiz-chip', { timeout: 15000 }); await p.waitForTimeout(1500);
+    const f = /f=([\d-]+)&h=(\d+)/.exec(hr); chk(/17|18|19|20|21|09|1\d:00|:00/.test(await p.locator('#wiz-chip').innerText()) && (await p.locator('#wiz-chip').innerText()).includes(String(+f[1].slice(8))), nom + ': al tocar un horario abre reservar con día y hora ya elegidos');
+    chk(await p.locator('#paso-datos').isVisible(), nom + ': y salta directo a «Tus datos»');
   }
   await b.close(); srv.close(); process.exit(fallas ? 1 : 0);
 })();

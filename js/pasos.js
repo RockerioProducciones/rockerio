@@ -18,6 +18,7 @@
     actual = id; dibujar();
     if (mover) { var b = $('reservar'); if (b && b.scrollIntoView) b.scrollIntoView({ block: 'start' }); }
   }
+  RK.irPaso = function (id) { if (lista().some(function (p) { return p.id === id; })) ir(id, true); };
   function sig(mover) { var l = lista(), i = indice(); if (i < l.length - 1) ir(l[i + 1].id, mover !== false); }
   function atras() { var l = lista(), i = indice(); if (i > 0) ir(l[i - 1].id, true); }
 
