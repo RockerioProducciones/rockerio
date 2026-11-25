@@ -32,7 +32,7 @@
       var c = el('div', 'dp-card dp-grande' + (ini.length ? ' ok' : '')); var cab = el('div', 'dp-cab'); cab.appendChild(el('b', '', 'Hoy')); cab.appendChild(el('span', '', dTxt(hoy) + ' de ' + MESL[+hoy.slice(5, 7) - 1])); c.appendChild(cab);
       if (!x || !x.abiertas.length) c.appendChild(el('p', 'dp-vacio', 'Hoy estamos cerrados.'));
       else if (!ini.length) c.appendChild(el('p', 'dp-vacio', x.libres.length ? 'No quedan bloques de ' + horasTxt() + ' hoy. Prueba con menos horas.' : 'Hoy ya no quedan horarios.'));
-      else { var bs = el('div', 'dp-bs'); ini.slice(0, 8).forEach(function (h) { bs.appendChild(liga(hoy, h)); }); if (ini.length > 8) bs.appendChild(mas(ini.length - 8, hoy)); c.appendChild(bs); }
+      else { var bs = el('div', 'dp-bs'); ini.forEach(function (h) { bs.appendChild(liga(hoy, h)); }); c.appendChild(bs); }
       boxHoy.appendChild(c);
     }
     /* ---- ESTA SEMANA (los días que faltan hasta el domingo) ---- */
@@ -44,7 +44,7 @@
         r.appendChild(el('span', 'dp-fd', dTxt(f)));
         if (!x.abiertas.length) r.appendChild(el('span', 'dp-nada', 'Cerrado'));
         else if (!ini.length) r.appendChild(el('span', 'dp-nada', x.libres.length ? 'Sin bloques de ' + horasTxt() : 'Sin cupo'));
-        else { var bs = el('div', 'dp-bs'); ini.slice(0, 4).forEach(function (h) { bs.appendChild(liga(f, h)); }); if (ini.length > 4) bs.appendChild(mas(ini.length - 4, f)); r.appendChild(bs); }
+        else { var bs = el('div', 'dp-bs'); ini.forEach(function (h) { bs.appendChild(liga(f, h)); }); r.appendChild(bs); }
         boxSem.appendChild(r);
       });
     }
