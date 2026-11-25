@@ -2361,7 +2361,7 @@ function adminEliminarCliente(clave) {
   return conBloqueo_(function () {
     var sh = abrirBd_().getSheetByName(HOJAS.clientes), n = sh.getLastRow(), fila = -1;
     if (n > 1) sh.getRange(2, 1, n - 1, 1).getValues().forEach(function (r, i) { if (String(r[0]) === String(clave)) fila = i + 2; });
-    if (fila < 0) throw new Error('Cliente no encontrado.');
+    if (fila < 0) return { ok: true, yaNoExistia: true }; // ya estaba eliminado (p. ej. un reintento automático tras un corte): no es un error
     sh.deleteRow(fila);
     return { ok: true };
   });

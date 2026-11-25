@@ -453,7 +453,7 @@ t('cliente sin teléfono recibe clave interna y se puede editar y eliminar', () 
   let c = g.admin('adminJornadas').clientes.find((x) => x.banda === 'Sin Telefono'); assert.ok(c && /^MAN-/.test(c.telefono)); claveMan = c.telefono;
   g.admin('adminGuardarCliente', { clave: claveMan, nombre: 'Sin', apellido: 'Fono2', correo: 'sin@fono.cl', banda: 'Sin Telefono', telefono: '+56 9 5555 4444' });
   c = g.admin('adminJornadas').clientes.find((x) => x.banda === 'Sin Telefono'); assert.strictEqual(c.apellido, 'Fono2'); assert.strictEqual(c.telefono, '56955554444');
-  g.admin('adminEliminarCliente', '56955554444');
+  g.admin('adminEliminarCliente', '56955554444'); assert.ok(g.admin('adminEliminarCliente', '56955554444').ok, 'eliminar dos veces no da error');
   assert.ok(!g.admin('adminJornadas').clientes.find((x) => x.banda === 'Sin Telefono'));
 });
 t('el cliente manual aparece enlazado cuando reserva con su teléfono', () => {
