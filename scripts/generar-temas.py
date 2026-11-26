@@ -26,7 +26,6 @@ for k, (n, a, b, on, bg, bg2, pa, bo, tx, mu, giro) in T.items():
         f = f'hue-rotate({giro}deg) saturate(1.2)'
         o.append(f'{S} .top .marca img,{S} .pie-marca img,{S} .cab-logo,{S} .hero-logo,{S} .marca img{{filter:{f}}}')
         # color de cada servicio en Reservar y Disponibilidad: ensayo = color del tema, estudio = su tono hermano, en vivo = blanco
-        o.append(f'{S}{{--sv-e:{a};--sv-t-e:{on};--sv-g:{SG[k]};--sv-t-g:{on};--sv-v:#f4f4f5;--sv-t-v:#111}}')
         # secciones con el color del tema (en vez de un tinte distinto por sección)
         o.append(f'{S} :is(#produccion,#nosotros,#galeria,#cotizar,#planes,#vivo,#proaudix){{--hl:{rgb(a)}}}')
         # botones, pestañas y tarjetas principales
