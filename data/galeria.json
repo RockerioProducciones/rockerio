@@ -19,8 +19,8 @@
  },
  {
   "src": "assets/fotos/control-consola.jpg",
-  "alt": "Consola y monitoreo de campo cercano",
-  "titulo": "Consola y monitoreo de campo cercano",
+  "alt": "Monitoreo de campo cercano",
+  "titulo": "Monitoreo de campo cercano",
   "descripcion": "Control room con monitores Kali Audio LP-8 y subwoofer."
  },
  {
@@ -33,12 +33,12 @@
   "src": "assets/control-room.jpg",
   "alt": "Sala de control del estudio",
   "titulo": "Sala de control del estudio",
-  "descripcion": "Estación de trabajo con Universal Audio LUNA sobre Mac Mini M4."
+  "descripcion": "Estación de trabajo con Universal Audio LUNA sobre Mac mini M4."
  },
  {
   "src": "assets/control-room-2.jpg",
-  "alt": "Consola y monitores del estudio",
-  "titulo": "Consola y monitores del estudio",
+  "alt": "Suma analógica SSL SiX",
+  "titulo": "Suma analógica SSL SiX",
   "descripcion": "Suma análoga SSL SiX y monitoreo de precisión."
  },
  {

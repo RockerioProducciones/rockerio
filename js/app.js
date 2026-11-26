@@ -181,7 +181,7 @@
       lista.forEach(function (x) { if (!/^https:\/\/[^\s"'<>]{4,300}$/.test(x[1] || '')) return; var l = el('a', 'enlace', x[0]); l.href = x[1]; l.target = '_blank'; l.rel = 'noopener'; cont.appendChild(l); });
       cont.hidden = !cont.firstChild;
     };
-    var RED = [['📸', 'Instagram', cfg.redInstagram, 'Instagram'], ['▶️', 'Canal de YouTube', cfg.redYoutube, 'Sesiones y videopodcasts'], ['🎵', 'YouTube Music', cfg.redYoutubeMusic, 'Lista oficial'], ['🌳', 'Linktree', cfg.redLinktree, 'Todos nuestros enlaces'], ['🟣', 'Twitch', cfg.redTwitch, 'Transmisiones en vivo'], ['📘', 'Facebook', cfg.redFacebook, 'Comunidad Rockerío'], ['🎶', 'TikTok', cfg.redTiktok, 'Videos cortos'], ['🎧', 'Spotify', cfg.redSpotify, 'Nuestra música'], ['🌐', 'Sitio web', cfg.sitioWeb, 'Página web']].concat(pares(cfg.enlacesExtra).map(function (x) { return ['🔗', x[0], x[1], 'Enlace']; }));
+    var RED = [['📸', 'Instagram', cfg.redInstagram, 'Fotos y novedades'], ['▶️', 'Canal de YouTube', cfg.redYoutube, 'Sesiones y videopodcasts'], ['🎵', 'YouTube Music', cfg.redYoutubeMusic, 'Lista oficial'], ['🌳', 'Linktree', cfg.redLinktree, 'Todos nuestros enlaces'], ['🟣', 'Twitch', cfg.redTwitch, 'Transmisiones en vivo'], ['📘', 'Facebook', cfg.redFacebook, 'Comunidad Rockerío'], ['🎶', 'TikTok', cfg.redTiktok, 'Videos cortos'], ['🎧', 'Spotify', cfg.redSpotify, 'Nuestra música'], ['🌐', 'Sitio web', cfg.sitioWeb, 'Página web']].concat(pares(cfg.enlacesExtra).map(function (x) { return ['🔗', x[0], x[1], 'Enlace']; }));
     var rc = $('redes'); rc.textContent = '';
     RED.forEach(function (x) { if (!/^https:\/\/[^\s"'<>]{4,300}$/.test(x[2] || '')) return; var l = el('a', 'ct-red'); l.href = x[2]; l.target = '_blank'; l.rel = 'noopener'; l.appendChild(el('span', 'ic', x[0])); var t = el('div'); t.appendChild(el('b', '', x[1])); t.appendChild(el('small', '', x[3])); l.appendChild(t); rc.appendChild(l); });
     rc.hidden = !rc.firstChild;
@@ -280,7 +280,7 @@
       f.appendChild(el('b', '', h + (h === 1 ? ' hora' : ' horas'))); f.appendChild(el('span', '', gm ? R.minutosTxt(h * 60 - gm) : R.minutosTxt(h * 60))); f.appendChild(el('span', 'eg-gr', gm ? '🎙️ ' + R.minutosTxt(gm) : 'No incluye')); t.appendChild(f);
     }
     var cj = el('div', 'caja eg-caja'); cj.appendChild(el('h3', '', 'Cómo se reparte tu jornada')); cj.appendChild(t);
-    cj.appendChild(el('p', 'nota', 'Todo ocurre dentro de las horas que reservas: por ejemplo, 2 horas = 1 h 30 min de ensayo + 30 min grabados, no 2 h de ensayo más 30 min. Con más de ' + mx + ' horas, cada hora extra se graba completa. El material en bruto (pistas sin mezclar) es opcional y se elige al reservar.')); panel.appendChild(cj);
+    cj.appendChild(el('p', 'nota', 'Todo ocurre dentro de las horas que reservas: por ejemplo, 2 horas = 1 h 30 min de ensayo + 30 min grabados. Con más de ' + mx + ' horas, cada hora extra se graba completa. El material en bruto (pistas sin mezclar) es opcional y se elige al reservar.')); panel.appendChild(cj);
     /* recorrido de la señal */
     var rc = el('div', 'caja eg-caja'); rc.appendChild(el('h3', '', 'Cómo se graba tu ensayo')); var pasos = el('ol', 'eg-pasos');
     [['Captura', 'Micrófonos profesionales en cada instrumento y voz.', 'microfonos', 'Ver micrófonos'], ['Consola', 'Midas M32 y DL32: cada instrumento sale a su propio canal.', 'control', 'Ver sala de control'], ['Grabación', 'LUNA en Mac mini M4, en WAV 24 bits y 48 kHz, multipista.', 'estacion', 'Ver computador y DAW'], ['Entrega en el acto', 'Mezclamos mientras grabamos, con premezcla, mezcla y master ya armados. Al terminar la jornada exportamos el WAV y te lo enviamos por Google Drive, a la carpeta de tu banda. Si quieres, también las pistas en bruto.', '', '']].forEach(function (p) {
@@ -439,7 +439,7 @@
     if (S.servicio === 'ensayo') {
       ai.hidden = false; ai.classList.add('eg-aviso');
       ai.appendChild(el('b', '', gm ? '🎙️ Dentro de tus ' + S.horas + ' horas: ' + R.minutosTxt(S.horas * 60 - gm) + ' de ensayo + ' + R.minutosTxt(gm) + ' grabados y mezclados.' : '🎙️ Desde 2 horas, parte de tu jornada se graba'));
-      ai.appendChild(el('span', '', gm ? ' La grabación va dentro del tiempo reservado, no se suma. WAV 24 bits / 48 kHz, micrófonos profesionales.' : ' Con 1 hora no incluye grabación. Con 2 horas o más, parte del mismo tiempo se graba y se mezcla.'));
+      ai.appendChild(el('span', '', gm ? ' Es parte del mismo tiempo, no se suma. WAV 24 bits / 48 kHz, micrófonos profesionales.' : ' Con 1 hora no incluye grabación. Con 2 horas o más, parte del mismo tiempo se graba y se mezcla.'));
       var tb = el('div', 'eg-mini');
       for (var hh = 2; hh <= 5; hh++) { var gg = R.grabacionIncluidaMin(cfg, 'ensayo', hh), ce = el('span', hh === S.horas ? 'on' : ''); ce.appendChild(el('i', '', hh + ' h')); ce.appendChild(el('em', '', R.minutosTxt(hh * 60 - gg) + ' + 🎙️ ' + R.minutosTxt(gg))); tb.appendChild(ce); }
       ai.appendChild(tb);

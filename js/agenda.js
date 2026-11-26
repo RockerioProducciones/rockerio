@@ -58,8 +58,8 @@
     }
     /* ---- PRÓXIMAS 4 SEMANAS ---- */
     function pintarCal() {
-      boxCal.textContent = ''; boxCal.appendChild(el('h2', 'dp-h2', 'Próximas 4 semanas'));
-      boxCal.appendChild(el('p', 'dp-rango', 'Del ' + dmy(sigLunes) + ' al ' + dmy(finCal) + '. Toca un día para ver sus horarios.'));
+      boxCal.textContent = ''; boxCal.appendChild(el('h2', 'dp-h2', 'Calendario'));
+      boxCal.appendChild(el('p', 'dp-rango', 'Del ' + dmy(sigLunes) + ' al ' + dmy(finCal) + '. Toca un día para ver sus horarios.' + (cfgP && cfgP.anticipacionMaxDias ? ' Se puede reservar hasta ' + cfgP.anticipacionMaxDias + ' días adelante.' : '')));
       var cal = el('div', 'dp-cal'), sem = el('div', 'dp-sm'); DOW.forEach(function (n) { sem.appendChild(el('b', '', n)); }); cal.appendChild(sem);
       var fila; for (var f = sigLunes; f <= finCal; f = R.sumarDias(f, 1)) {
         if (R.diaSemana(f) === 1) { fila = el('div', 'dp-fl'); cal.appendChild(fila); }

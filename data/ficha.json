@@ -77,8 +77,7 @@
           "titulo": "Grabación incluida en tu jornada",
           "items": [
             "Desde 2 horas, parte de tu jornada se graba y se mezcla, dentro del mismo tiempo que reservas (ver la pestaña «Ensayo grabado»)",
-            "Es opcional: puedes usar todo el tiempo solo para ensayar",
-            "La grabación va dentro de las horas que reservas: no se suma ni se acumula"
+            "Es opcional: puedes usar todo el tiempo solo para ensayar"
           ]
         },
         {
@@ -168,7 +167,7 @@
           "titulo": "Formato y entrega",
           "items": [
             "Grabación en WAV de alta resolución, 24 bits / 48 kHz",
-            "Al terminar la sesión, el material multipista o la mezcla se envía por enlace directo de Google Drive"
+            "Al terminar la sesión te enviamos la mezcla (y el multipista, si corresponde) por Google Drive, a la carpeta de tu banda"
           ]
         },
         {
@@ -264,7 +263,7 @@
         },
         {
           "src": "assets/control-room-2.jpg",
-          "titulo": "Consola y monitores",
+          "titulo": "Mezcla con técnico",
           "descripcion": "Mezcla con técnico durante toda la sesión."
         }
       ],
@@ -405,7 +404,7 @@
             "Climatización: aire acondicionado para ensayos y grabaciones confortables",
             "Espacios: patio interior para descansar, compartir y despejarse entre sesiones",
             "Conectividad: Wi-Fi de alta velocidad disponible en todo el recinto",
-            "Servicios: estación permanente de té, café y agua purificada a libre disposición",
+            "Servicios: estación permanente de té, café y agua purificada a libre disposición (para tomar en el patio; dentro de la sala no se consumen líquidos)",
             "Estacionamiento: exterior, sujeto a disponibilidad"
           ]
         },
