@@ -2,35 +2,30 @@
    Todos sobre negro con fondo de rocas; solo cambian los colores. */
 html[data-tema="rockerio"]{--bg:#141413;--bg2:#0e0e0d;--panel:#1d1c1b;--panel2:#0e0e0d;--borde:#32302e;--oro:#FCC631;--acc:#FCC631;--oro2:#f0a81c;--rojo:#D81D23;--txt:#f3efe8;--mut:#b5afa6;--on:#1a1405;--velo:rgba(20,20,19,.95);--panel-a:rgba(29,28,27,.92);--top-a:rgba(14,14,13,.95);--hl:252,198,49;--hl2:240,168,28;--glow:rgba(252,198,49,.38);--grad:linear-gradient(135deg,#FCC631,#f0a81c);--r:14px;--r-s:10px;--f-t:Oswald,Impact,sans-serif;--f-b:Inter,system-ui,sans-serif}
 html[data-tema="rojo"]{--bg:#0e0808;--bg2:#080404;--panel:#1a1011;--panel2:#080404;--borde:#3d1d20;--oro:#ff3b3b;--acc:#ff3b3b;--oro2:#ff7a45;--rojo:#ff3b3b;--txt:#f8eceb;--mut:#c6a9a7;--on:#1a0505;--velo:rgba(14,8,8,.95);--panel-a:rgba(26,16,17,.92);--top-a:rgba(8,4,4,.95);--hl:255,59,59;--hl2:255,122,69;--glow:rgba(255,59,59,.38);--grad:linear-gradient(135deg,#ff3b3b,#ff7a45);--r:14px;--r-s:10px;--f-t:Oswald,Impact,sans-serif;--f-b:Inter,system-ui,sans-serif}
-html[data-tema="rojo"] .top .marca img,html[data-tema="rojo"] .pie-marca img,html[data-tema="rojo"] .cab-logo,html[data-tema="rojo"] .hero-logo,html[data-tema="rojo"] .marca img{filter:hue-rotate(-42deg) saturate(1.2)}
 html[data-tema="rojo"] :is(#produccion,#nosotros,#galeria,#cotizar,#planes,#vivo,#proaudix){--hl:255,59,59}
 html[data-tema="rojo"] .btn,html[data-tema="rojo"] button.btn,html[data-tema="rojo"] .tarjeta.principal,html[data-tema="rojo"] .ficha-tab[aria-selected="true"],html[data-tema="rojo"] .hbtn[aria-pressed="true"]{background:var(--grad)!important;color:var(--on)!important;border-color:transparent}
 html[data-tema="rojo"] .hero h1{background:linear-gradient(180deg,#fff 35%,#ff7a45)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important}
 html[data-tema="rojo"] .sec h2::after,html[data-tema="rojo"] .honor-card::after,html[data-tema="rojo"] .cab h1::after{background:var(--grad)!important}
 html[data-tema="rojo"] .hero-logo{box-shadow:none}
 html[data-tema="azul"]{--bg:#080b11;--bg2:#04060a;--panel:#0f1521;--panel2:#04060a;--borde:#1d2d47;--oro:#3b9dff;--acc:#3b9dff;--oro2:#22d3ee;--rojo:#e5484d;--txt:#ecf3ff;--mut:#98abc9;--on:#04121f;--velo:rgba(8,11,17,.95);--panel-a:rgba(15,21,33,.92);--top-a:rgba(4,6,10,.95);--hl:59,157,255;--hl2:34,211,238;--glow:rgba(59,157,255,.38);--grad:linear-gradient(135deg,#3b9dff,#22d3ee);--r:14px;--r-s:10px;--f-t:Oswald,Impact,sans-serif;--f-b:Inter,system-ui,sans-serif}
-html[data-tema="azul"] .top .marca img,html[data-tema="azul"] .pie-marca img,html[data-tema="azul"] .cab-logo,html[data-tema="azul"] .hero-logo,html[data-tema="azul"] .marca img{filter:hue-rotate(165deg) saturate(1.2)}
 html[data-tema="azul"] :is(#produccion,#nosotros,#galeria,#cotizar,#planes,#vivo,#proaudix){--hl:59,157,255}
 html[data-tema="azul"] .btn,html[data-tema="azul"] button.btn,html[data-tema="azul"] .tarjeta.principal,html[data-tema="azul"] .ficha-tab[aria-selected="true"],html[data-tema="azul"] .hbtn[aria-pressed="true"]{background:var(--grad)!important;color:var(--on)!important;border-color:transparent}
 html[data-tema="azul"] .hero h1{background:linear-gradient(180deg,#fff 35%,#22d3ee)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important}
 html[data-tema="azul"] .sec h2::after,html[data-tema="azul"] .honor-card::after,html[data-tema="azul"] .cab h1::after{background:var(--grad)!important}
 html[data-tema="azul"] .hero-logo{box-shadow:none}
 html[data-tema="verde"]{--bg:#07100d;--bg2:#040a08;--panel:#0d1915;--panel2:#040a08;--borde:#173a30;--oro:#19e3b5;--acc:#19e3b5;--oro2:#4ade80;--rojo:#e5484d;--txt:#e9f9f4;--mut:#90b8ab;--on:#03160f;--velo:rgba(7,16,13,.95);--panel-a:rgba(13,25,21,.92);--top-a:rgba(4,10,8,.95);--hl:25,227,181;--hl2:74,222,128;--glow:rgba(25,227,181,.38);--grad:linear-gradient(135deg,#19e3b5,#4ade80);--r:14px;--r-s:10px;--f-t:Oswald,Impact,sans-serif;--f-b:Inter,system-ui,sans-serif}
-html[data-tema="verde"] .top .marca img,html[data-tema="verde"] .pie-marca img,html[data-tema="verde"] .cab-logo,html[data-tema="verde"] .hero-logo,html[data-tema="verde"] .marca img{filter:hue-rotate(115deg) saturate(1.2)}
 html[data-tema="verde"] :is(#produccion,#nosotros,#galeria,#cotizar,#planes,#vivo,#proaudix){--hl:25,227,181}
 html[data-tema="verde"] .btn,html[data-tema="verde"] button.btn,html[data-tema="verde"] .tarjeta.principal,html[data-tema="verde"] .ficha-tab[aria-selected="true"],html[data-tema="verde"] .hbtn[aria-pressed="true"]{background:var(--grad)!important;color:var(--on)!important;border-color:transparent}
 html[data-tema="verde"] .hero h1{background:linear-gradient(180deg,#fff 35%,#4ade80)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important}
 html[data-tema="verde"] .sec h2::after,html[data-tema="verde"] .honor-card::after,html[data-tema="verde"] .cab h1::after{background:var(--grad)!important}
 html[data-tema="verde"] .hero-logo{box-shadow:none}
 html[data-tema="naranjo"]{--bg:#0e0a06;--bg2:#080503;--panel:#1a130b;--panel2:#080503;--borde:#3e2915;--oro:#ff8a1f;--acc:#ff8a1f;--oro2:#ffb347;--rojo:#e5484d;--txt:#fbf0e4;--mut:#c2a88e;--on:#1c0d02;--velo:rgba(14,10,6,.95);--panel-a:rgba(26,19,11,.92);--top-a:rgba(8,5,3,.95);--hl:255,138,31;--hl2:255,179,71;--glow:rgba(255,138,31,.38);--grad:linear-gradient(135deg,#ff8a1f,#ffb347);--r:14px;--r-s:10px;--f-t:Oswald,Impact,sans-serif;--f-b:Inter,system-ui,sans-serif}
-html[data-tema="naranjo"] .top .marca img,html[data-tema="naranjo"] .pie-marca img,html[data-tema="naranjo"] .cab-logo,html[data-tema="naranjo"] .hero-logo,html[data-tema="naranjo"] .marca img{filter:hue-rotate(-17deg) saturate(1.2)}
 html[data-tema="naranjo"] :is(#produccion,#nosotros,#galeria,#cotizar,#planes,#vivo,#proaudix){--hl:255,138,31}
 html[data-tema="naranjo"] .btn,html[data-tema="naranjo"] button.btn,html[data-tema="naranjo"] .tarjeta.principal,html[data-tema="naranjo"] .ficha-tab[aria-selected="true"],html[data-tema="naranjo"] .hbtn[aria-pressed="true"]{background:var(--grad)!important;color:var(--on)!important;border-color:transparent}
 html[data-tema="naranjo"] .hero h1{background:linear-gradient(180deg,#fff 35%,#ffb347)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important}
 html[data-tema="naranjo"] .sec h2::after,html[data-tema="naranjo"] .honor-card::after,html[data-tema="naranjo"] .cab h1::after{background:var(--grad)!important}
 html[data-tema="naranjo"] .hero-logo{box-shadow:none}
 html[data-tema="purpura"]{--bg:#0b0710;--bg2:#06040a;--panel:#161020;--panel2:#06040a;--borde:#35224c;--oro:#a855f7;--acc:#a855f7;--oro2:#e879f9;--rojo:#e5484d;--txt:#f4ecff;--mut:#b09ccb;--on:#12041e;--velo:rgba(11,7,16,.95);--panel-a:rgba(22,16,32,.92);--top-a:rgba(6,4,10,.95);--hl:168,85,247;--hl2:232,121,249;--glow:rgba(168,85,247,.38);--grad:linear-gradient(135deg,#a855f7,#e879f9);--r:14px;--r-s:10px;--f-t:Oswald,Impact,sans-serif;--f-b:Inter,system-ui,sans-serif}
-html[data-tema="purpura"] .top .marca img,html[data-tema="purpura"] .pie-marca img,html[data-tema="purpura"] .cab-logo,html[data-tema="purpura"] .hero-logo,html[data-tema="purpura"] .marca img{filter:hue-rotate(230deg) saturate(1.2)}
 html[data-tema="purpura"] :is(#produccion,#nosotros,#galeria,#cotizar,#planes,#vivo,#proaudix){--hl:168,85,247}
 html[data-tema="purpura"] .btn,html[data-tema="purpura"] button.btn,html[data-tema="purpura"] .tarjeta.principal,html[data-tema="purpura"] .ficha-tab[aria-selected="true"],html[data-tema="purpura"] .hbtn[aria-pressed="true"]{background:var(--grad)!important;color:var(--on)!important;border-color:transparent}
 html[data-tema="purpura"] .hero h1{background:linear-gradient(180deg,#fff 35%,#e879f9)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important}
@@ -43,12 +38,13 @@ html[data-tema] body::after{content:"";position:fixed;inset:-25% -10%;z-index:-1
   animation:rk-aurora 26s ease-in-out infinite alternate;will-change:transform}
 @keyframes rk-aurora{0%{transform:translate3d(-2%,0,0) scale(1)}50%{transform:translate3d(3%,2%,0) scale(1.06)}100%{transform:translate3d(-1%,-2%,0) scale(1.03)}}
 html[data-tema] .hero-logo,html[data-tema] .top .marca img{filter:drop-shadow(0 0 16px rgba(var(--hl),.45))}
+/* Logos del color del tema (amarillo por defecto): js/tema.js crea los filtros #rk-tinte-blanco y #rk-tinte-dorado
+   con el color exacto del tema elegido y recién ahí pone la clase rk-tinte (sin JavaScript el logo queda con su color original).
+   El negro del arte se mantiene negro; lo blanco o dorado toma el color del tema. */
+html.rk-tinte[data-tema] .hero-logo{filter:url(#rk-tinte-blanco) drop-shadow(0 6px 22px rgba(0,0,0,.85)) drop-shadow(0 0 40px rgba(0,0,0,.6))!important}
+html.rk-tinte[data-tema] .pie-marca img{filter:url(#rk-tinte-blanco)!important}
+html.rk-tinte[data-tema] :is(.top .marca img,.marca img,.hero-logo[src*="dorado"]){filter:url(#rk-tinte-dorado) drop-shadow(0 0 16px rgba(var(--hl),.45))!important}
 
-html[data-tema="rojo"] :is(.hero-logo,.top .marca img,.pie-marca img,.marca img){filter:hue-rotate(-42deg) saturate(1.2) drop-shadow(0 0 16px rgba(var(--hl),.5))}
-html[data-tema="azul"] :is(.hero-logo,.top .marca img,.pie-marca img,.marca img){filter:hue-rotate(165deg) saturate(1.2) drop-shadow(0 0 16px rgba(var(--hl),.5))}
-html[data-tema="verde"] :is(.hero-logo,.top .marca img,.pie-marca img,.marca img){filter:hue-rotate(115deg) saturate(1.2) drop-shadow(0 0 16px rgba(var(--hl),.5))}
-html[data-tema="naranjo"] :is(.hero-logo,.top .marca img,.pie-marca img,.marca img){filter:hue-rotate(-17deg) saturate(1.2) drop-shadow(0 0 16px rgba(var(--hl),.5))}
-html[data-tema="purpura"] :is(.hero-logo,.top .marca img,.pie-marca img,.marca img){filter:hue-rotate(230deg) saturate(1.2) drop-shadow(0 0 16px rgba(var(--hl),.5))}
 
 html[data-tema] .btn:hover,html[data-tema] button.btn:hover{box-shadow:0 10px 30px rgba(var(--hl),.42);transform:translateY(-1px)}
 html[data-tema] .btn,html[data-tema] button.btn{position:relative;overflow:hidden;transition:transform .2s ease,box-shadow .25s ease,filter .2s ease}

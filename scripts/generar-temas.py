@@ -22,9 +22,6 @@ for k, (n, a, b, on, bg, bg2, pa, bo, tx, mu, giro) in T.items():
              f'--velo:rgba({rgb(bg)},.95);--panel-a:rgba({rgb(pa)},.92);--top-a:rgba({rgb(bg2)},.95);--hl:{rgb(a)};--hl2:{rgb(b)};--glow:rgba({rgb(a)},.38);'
              f'--grad:linear-gradient(135deg,{a},{b});--r:14px;--r-s:10px;--f-t:Oswald,Impact,sans-serif;--f-b:Inter,system-ui,sans-serif}}')
     if k != 'rockerio':
-        # logo y calavera: el arte dorado se tiñe con el color del tema (el rojo usa su propio arte)
-        f = f'hue-rotate({giro}deg) saturate(1.2)'
-        o.append(f'{S} .top .marca img,{S} .pie-marca img,{S} .cab-logo,{S} .hero-logo,{S} .marca img{{filter:{f}}}')
         # color de cada servicio en Reservar y Disponibilidad: ensayo = color del tema, estudio = su tono hermano, en vivo = blanco
         # secciones con el color del tema (en vez de un tinte distinto por sección)
         o.append(f'{S} :is(#produccion,#nosotros,#galeria,#cotizar,#planes,#vivo,#proaudix){{--hl:{rgb(a)}}}')
@@ -41,8 +38,13 @@ html[data-tema] body::after{content:"";position:fixed;inset:-25% -10%;z-index:-1
   animation:rk-aurora 26s ease-in-out infinite alternate;will-change:transform}
 @keyframes rk-aurora{0%{transform:translate3d(-2%,0,0) scale(1)}50%{transform:translate3d(3%,2%,0) scale(1.06)}100%{transform:translate3d(-1%,-2%,0) scale(1.03)}}
 html[data-tema] .hero-logo,html[data-tema] .top .marca img{filter:drop-shadow(0 0 16px rgba(var(--hl),.45))}
+/* Logos del color del tema (amarillo por defecto): js/tema.js crea los filtros #rk-tinte-blanco y #rk-tinte-dorado
+   con el color exacto del tema elegido y recién ahí pone la clase rk-tinte (sin JavaScript el logo queda con su color original).
+   El negro del arte se mantiene negro; lo blanco o dorado toma el color del tema. */
+html.rk-tinte[data-tema] .hero-logo{filter:url(#rk-tinte-blanco) drop-shadow(0 6px 22px rgba(0,0,0,.85)) drop-shadow(0 0 40px rgba(0,0,0,.6))!important}
+html.rk-tinte[data-tema] .pie-marca img{filter:url(#rk-tinte-blanco)!important}
+html.rk-tinte[data-tema] :is(.top .marca img,.marca img,.hero-logo[src*="dorado"]){filter:url(#rk-tinte-dorado) drop-shadow(0 0 16px rgba(var(--hl),.45))!important}
 ''')
-o.append('\n'.join(f'html[data-tema="{k}"] :is(.hero-logo,.top .marca img,.pie-marca img,.marca img){{filter:hue-rotate({v[10]}deg) saturate(1.2) drop-shadow(0 0 16px rgba(var(--hl),.5))}}' for k, v in T.items() if v[10] is not None))
 o.append('''
 html[data-tema] .btn:hover,html[data-tema] button.btn:hover{box-shadow:0 10px 30px rgba(var(--hl),.42);transform:translateY(-1px)}
 html[data-tema] .btn,html[data-tema] button.btn{position:relative;overflow:hidden;transition:transform .2s ease,box-shadow .25s ease,filter .2s ease}
