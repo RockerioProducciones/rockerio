@@ -301,7 +301,7 @@
   function pintarFicha() {
     if (!fichaDatos) { dato('ficha', 'data/ficha.json').then(function (d) { fichaDatos = fichaDatos || d; pintarFicha(); }).catch(function () { $('ficha').hidden = true; }); return; }
     var cont = $('ficha-in'); cont.textContent = ''; cont.className = 'ficha-app';
-    var v = { precioEnsayoHora: R.clp(cfg.precioEnsayoHora), plan8: R.clp(cfg.plan8), plan12: R.clp(cfg.plan12), abonoPorHora: R.clp(cfg.abonoPorHora), horasAnulacion: cfg.horasAnulacion };
+    var v = { precioEnsayoHora: R.clp(cfg.precioEnsayoHora), plan8: R.clp(cfg.plan8), plan12: R.clp(cfg.plan12), abonoPorHora: R.clp(cfg.abonoPorHora), horasAnulacion: cfg.horasAnulacion, precioExtraEquipo: R.clp(cfg.precioExtraEquipo), precioVideo: R.clp(cfg.precioVideo), precioRaw: R.clp(cfg.precioRaw), precioGrabacionHora: R.clp(cfg.precioGrabacionHora) };
     var secs = (fichaDatos.secciones || []).filter(function (x) { return !(x && (x.escucha || x.id === 'muestras')); }); // «Muestras» ya no va en la ficha: el audio vive en cada micrófono if (!secs.length) { $('ficha').hidden = true; return; }
     if (!secs.some(function (x) { return x.id === 'ensayo-grabado'; })) secs.unshift({ id: 'ensayo-grabado', icono: '🎙️', titulo: 'Ensayo grabado', custom: true }); // pestaña propia: no depende del contenido editado de la ficha
     if (!fichaTab || !secs.some(function (s) { return s.id === fichaTab; })) fichaTab = secs[0].id;
@@ -328,7 +328,7 @@
       if (fts.length > 1) { var cc = el('div', 'carr-caja'); panel.appendChild(cc); listaFotos(cc, fts.slice(1)); }
       var g = el('div', 'grid'); panel.appendChild(g);
       (s.bloques || []).forEach(function (b) {
-        var c = el('div', 'card'); c.appendChild(el('h3', '', b.titulo)); var ul = el('ul');
+        var c = el('div', 'card'); c.appendChild(el('h3', '', String(b.titulo).replace(/\{(\w+)\}/g, function (m, k) { return v[k] !== undefined ? v[k] : m; }))); var ul = el('ul');
         b.items.forEach(function (i) {
           if (i === '{escala}') { Object.keys(cfg.escala || {}).sort(function (x, y) { return x - y; }).forEach(function (h) { ul.appendChild(el('li', '', h + ' horas = ' + R.minutosTxt(h * 60 - cfg.escala[h]) + ' de ensayo + ' + R.minutosTxt(cfg.escala[h]) + ' grabados (dentro del mismo tiempo)')); }); return; }
           ul.appendChild(el('li', '', i.replace(/\{(\w+)\}/g, function (m, k) { return v[k] !== undefined ? v[k] : m; })));

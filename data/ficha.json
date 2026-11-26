@@ -70,19 +70,19 @@
             "In-ears: amplificador Mackie HM-800 con 8 receptores inalámbricos",
             "Audífonos: 6 AKG K92 y 4 Sennheiser HD206",
             "Micrófonos extra: Shure SM58, Beta 58A y PGA81",
-            "Cajas directas Radial (activa) y Alctron (pasiva estéreo), atriles Hercules y cableado completo"
+            "Atriles Hercules y cableado completo (cajas directas: ver Sala de control)"
           ]
         },
         {
-          "titulo": "Grabación multipista incluida",
+          "titulo": "Grabación incluida en tu jornada",
           "items": [
-            "{escala}",
+            "Desde 2 horas, parte de tu jornada se graba y se mezcla, dentro del mismo tiempo que reservas (ver la pestaña «Ensayo grabado»)",
             "Es opcional: puedes usar todo el tiempo solo para ensayar",
-            "El tiempo de grabación no es acumulable"
+            "La grabación va dentro de las horas que reservas: no se suma ni se acumula"
           ]
         },
         {
-          "titulo": "Arriendo de instrumentos y accesorios ($3.000 por hora)",
+          "titulo": "Arriendo de instrumentos y accesorios ({precioExtraEquipo} por hora)",
           "items": [
             "Set de platos Kingdo SN8 B8: Hi-Hat 14”, Crash 16”, Crash 18” y Ride 20”",
             "Guitarra eléctrica Squier Stratocaster Vintage Modified ’70",
@@ -95,8 +95,8 @@
         {
           "titulo": "Registro de tu sesión",
           "items": [
-            "Grabación con video GoPro Hero 13 ($20.000)",
-            "Entrega de material en bruto ($10.000, opcional)"
+            "Grabación con video GoPro Hero 13 ({precioVideo})",
+            "Entrega de material en bruto ({precioRaw}, opcional)"
           ]
         },
         {
@@ -177,7 +177,7 @@
             "Sesiones desde 1 hora: el valor se ajusta a las horas que necesites",
             "Asistencia técnica e ingeniería durante toda la sesión: microfonía, ruteo y toma de sonido",
             "Abono por cada hora reservada para asegurar tu cupo; el saldo se paga al finalizar",
-            "Cambios de fecha u hora con al menos 24 horas de anticipación"
+            "Cambios de fecha u hora con al menos {horasAnulacion} horas de anticipación"
           ]
         }
       ]
@@ -236,9 +236,9 @@
           "monitores Kali LP-8"
         ],
         [
-          "💿",
-          "24 bit",
-          "WAV 48 kHz"
+          "🔌",
+          "DL32",
+          "stagebox 32 entradas"
         ],
         [
           "🎛️",
@@ -270,12 +270,11 @@
       ],
       "bloques": [
         {
-          "titulo": "Sala de control",
+          "titulo": "Consolas y monitores",
           "items": [
             "Consola digital Midas M32 (32 canales / 16 salidas)",
             "Consola análoga SSL SiX: 2 channel strips dedicados para grabación, suma análoga y bus compressor SSL G Series",
-            "Mac Mini M4 (24 GB RAM / 500 GB SSD) con DAW Universal Audio LUNA y paquete completo de plugins Universal Audio y SSL",
-            "Monitores de campo cercano Kali Audio LP-8 (8 pulgadas)"
+              "Monitores de campo cercano Kali Audio LP-8 (8 pulgadas)"
           ]
         },
         {
@@ -332,28 +331,23 @@
       ],
       "bloques": [
         {
-          "titulo": "Hardware y DAW",
+          "titulo": "DAW",
           "items": [
-            "Mac mini M4 · 24 GB de RAM · 500 GB de SSD",
             "Universal Audio LUNA 3.0 como DAW principal, con procesamiento DSP en tiempo real y suma analógica"
           ]
         },
         {
           "titulo": "Software y plugins",
           "items": [
-            "Universal Audio LUNA 3.0",
             "Universal Audio Native",
             "SSL Native",
             "Slate Digital",
             "Soundtoys",
             "iZotope",
             "Eventide",
-            "Neural DSP · Darkglass",
-            "Neural DSP · Archetype Gojira",
-            "Neural DSP · Archetype Nolly",
+            "Neural DSP (Darkglass, Gojira, Nolly)",
             "AmpliTube",
-            "Studer (emulación de cinta)",
-            "Ampex (emulación de cinta)"
+            "Studer y Ampex (emulación de cinta)"
           ]
         },
         {
