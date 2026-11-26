@@ -19,3 +19,11 @@ html .btn,html button.btn{font-family:Oswald,Impact,sans-serif!important}
 .dp-dur{max-width:none!important}
 .wizard fieldset.activo,.wiz-barra{margin-left:0!important;margin-right:0!important}
 .sec .wizard{margin-left:0!important;margin-right:0!important}
+
+/* MÓVIL: selector de color discreto, sin estorbar la barra inferior */
+@media(max-width:699px){
+  footer{padding-bottom:.9rem!important}
+  .selector-tema{display:flex!important;min-width:0!important;width:fit-content!important;margin:.5rem auto 5rem!important;padding:.3rem .7rem!important;gap:.55rem!important;background:transparent!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;opacity:.8}
+  .selector-tema .tema-rot{display:none!important}
+  .tema-dot{width:20px!important;height:20px!important}
+}

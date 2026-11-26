@@ -411,8 +411,8 @@
   function pintarTienda(items) {
     var cont = $('tienda-in'); cont.textContent = '';
     items = (items || []).filter(function (p) { return !/beb/i.test(p.categoria || ''); });
-    if (!items.length) { $('tienda').hidden = true; return; }
     $('tienda').hidden = !cfg.verTienda;
+    if (!items.length) { cont.appendChild(el('p', 'sub', 'Por ahora no hay productos publicados. Consúltanos por WhatsApp y te contamos qué tenemos en sala.')); return; }
     var rejilla = el('div', 'prods tienda-grid'); cont.appendChild(rejilla);
     items.forEach(function (p) {
       var agotado = p.stock === 0, f = el('div', 'prod' + (agotado ? ' agotado' : '') + (p.foto ? ' con-foto' : ''));
