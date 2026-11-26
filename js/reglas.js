@@ -228,7 +228,7 @@ var Reglas = (function () {
     c.contabilidadFormal = aBool(raw.contabilidadFormal, d.contabilidadFormal);
     c.regimen = String(aTexto(raw.regimen, d.regimen)).toUpperCase().replace(/[^A-Z0-9]/g, '') === '14D8' ? '14D8' : '14D3';
     c.sitioUrl = aTexto(raw.sitioUrl, d.sitioUrl).replace(/\/+$/, '');
-    c.tema = aTexto(raw.tema, d.tema) || d.tema;
+    c.tema = canonTema(aTexto(raw.tema, d.tema) || d.tema);
     c.presentacionTitulo = aTexto(raw.presentacionTitulo, d.presentacionTitulo) || d.presentacionTitulo;
     c.presentacion = aTexto(raw.presentacion, d.presentacion);
     ['sitioWeb', 'redInstagram', 'redFacebook', 'redYoutube', 'redTiktok', 'redSpotify', 'redYoutubeMusic', 'redTwitch', 'redLinktree', 'correoContacto', 'mapsUrl', 'enlacesExtra', 'proaudixWeb', 'proaudixInstagram', 'proaudixFacebook', 'proaudixYoutube', 'proaudixEnlaces'].forEach(function (k) { c[k] = aTexto(raw[k], d[k]); });
@@ -309,6 +309,11 @@ var Reglas = (function () {
     for (var h = +inicio; h < +inicio + (+horas || 0); h++) if (h >= cfg.convenienteDesde && h < cfg.convenienteHasta) res.horas++;
     return res;
   }
+
+  /** Temas visuales (todos oscuros sobre negro): amarillo (Rockerío), rojo, azul, verde, naranjo y púrpura. Los nombres antiguos se convierten solos. */
+  var TEMAS = ['rockerio', 'rojo', 'azul', 'verde', 'naranjo', 'purpura'];
+  var TEMA_ANTIGUO = { medianoche: 'azul', vino: 'rojo', bosque: 'verde', abismo: 'verde', cobre: 'naranjo', ciruela: 'purpura', grafito: 'rockerio', azufre: 'rockerio', carbon: 'rockerio' };
+  function canonTema(t) { t = String(t || '').toLowerCase(); return TEMAS.indexOf(t) >= 0 ? t : (TEMA_ANTIGUO[t] || 'rockerio'); }
 
   /** ¿La fecha cae en uno de los días de Rockerío en vivo configurados? */
   function vivoDiaValido(cfg, fecha) {
@@ -608,7 +613,7 @@ var Reglas = (function () {
 
   var CLAUSULA_DATOS = "## 🔒 Datos personales\n- Usamos tus datos solo para gestionar tu reserva y no los vendemos ni cedemos a terceros.\n- El detalle completo (qué guardamos, por cuánto tiempo y tus derechos) está en la sección Privacidad de este sitio.";
   return {
-    CLAUSULA_DATOS: CLAUSULA_DATOS, TZ: TZ, SERVICIOS: SERVICIOS, VIVO_DIAS: VIVO_DIAS, vivoDiaValido: vivoDiaValido, horasLibresVivo: horasLibresVivo, DIAS: DIAS, CONFIG_POR_DEFECTO: CONFIG_POR_DEFECTO, datosTransf: datosTransf,
+    CLAUSULA_DATOS: CLAUSULA_DATOS, TZ: TZ, SERVICIOS: SERVICIOS, VIVO_DIAS: VIVO_DIAS, vivoDiaValido: vivoDiaValido, TEMAS: TEMAS, canonTema: canonTema, horasLibresVivo: horasLibresVivo, DIAS: DIAS, CONFIG_POR_DEFECTO: CONFIG_POR_DEFECTO, datosTransf: datosTransf,
     aNumero: aNumero, aBool: aBool, clp: clp, horaTxt: horaTxt, fechaValida: fechaValida, diaSemana: diaSemana,
     diasEntre: diasEntre, sumarDias: sumarDias, fechaLarga: fechaLarga, parseBloque: parseBloque, parseEscala: parseEscala,
     normalizarConfig: normalizarConfig, limitesHoras: limitesHoras, addonsPermitidos: addonsPermitidos, videoPermitido: videoPermitido,

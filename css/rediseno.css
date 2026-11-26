@@ -18,7 +18,6 @@ html.rd[data-tema="azufre"]{--oro:#d9f20f;--rojo:#ff4a2e}
 html.rd[data-tema="abismo"]{--oro:#2de2d0;--rojo:#ff6b6b}
 html.rd[data-tema="cobre"]{--oro:#ff9f43;--rojo:#e63946}
 html.rd[data-tema="ciruela"]{--oro:#c68bff;--rojo:#ff4f8b}
-html.rd[data-tema="carbon"]{--oro:#E39A2D;--rojo:#ff3b30}
 
 html.rd body{font-family:var(--f-b);background:radial-gradient(1000px 460px at 50% -180px,color-mix(in srgb,var(--oro) 11%,transparent),transparent 70%),#000;background-attachment:fixed}
 html.rd body::before{background:none}

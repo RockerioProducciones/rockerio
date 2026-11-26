@@ -36,7 +36,7 @@
 .dp-d{position:relative;min-height:62px;border-radius:14px;border:1px solid var(--dp-l);background:var(--dp-p2);color:#fff;font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;padding:0}
 .dp-d .n{font:700 1.25rem Oswald,sans-serif;line-height:1}.dp-d .m{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:#d6cfc6}
 .dp-d.libre{background:linear-gradient(180deg,rgba(61,220,132,.46),rgba(61,220,132,.2)),var(--dp-p2);border-color:rgba(61,220,132,.8)}
-.dp-d.poco{background:linear-gradient(180deg,rgba(252,198,49,.4),rgba(252,198,49,.14)),var(--dp-p2);border-color:rgba(252,198,49,.8)}
+.dp-d.poco{background:linear-gradient(180deg,color-mix(in srgb,var(--oro) 40%,transparent),color-mix(in srgb,var(--oro) 14%,transparent)),var(--dp-p2);border-color:color-mix(in srgb,var(--oro) 80%,transparent)}
 .dp-d.lleno,.dp-d.cerrado{opacity:.32;cursor:default}
 .dp-d.libre:hover,.dp-d.poco:hover{transform:translateY(-2px)}
 .dp-d.sel{box-shadow:0 0 0 3px var(--oro);transform:translateY(-2px)}
@@ -46,7 +46,7 @@
 .dp-nota{text-align:center;color:#bdb5ab;font-size:.8rem;margin-top:1.4rem}
 @media(max-width:480px){.dp-fila-d{flex-wrap:wrap}.dp-fd{flex-basis:100%}.dp-chips{width:100%;justify-content:space-between}.dp-chip{padding:.5rem .35rem;font-size:.8rem;flex:1 1 auto;white-space:nowrap}.dp-d{min-height:54px}.dp-cab b{font-size:1.6rem}}
 @media(prefers-reduced-motion:reduce){.dp-b,.dp-d{transition:none}}
-.dp-inc{margin:.5rem 0 0;font-weight:700;color:#e39a2d;font-size:.95rem}
+.dp-inc{margin:.5rem 0 0;font-weight:700;color:var(--oro);font-size:.95rem}
 .dp-share{display:block;margin:.9rem auto 0;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);color:#f3ead7;border-radius:999px;padding:.55rem 1.1rem;font:600 .9rem Inter,system-ui,sans-serif;cursor:pointer;min-height:40px}
 
 /* Bloques horarios: mismo estilo que el paso «Elige día y horario» de Reservar */

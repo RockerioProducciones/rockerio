@@ -132,7 +132,7 @@ const { sembrar } = require('./demo.js');
   }
   // temas
   await p.goto('http://localhost:8099/'); await p.waitForTimeout(500);
-  const sel = p.locator('.selector-tema'); if (await sel.count()) { for (const t of ['vino', 'bosque', 'abismo']) { await sel.selectOption(t); await p.waitForTimeout(150); await p.screenshot({ path: 'tema-' + t + '.png' }); } ok(true, 'cambio de temas'); } else ok(false, 'selector de temas');
+  const sel = p.locator('.selector-tema'); if (await sel.count()) { for (const t of ['rojo', 'azul', 'verde', 'naranjo', 'purpura']) { await p.locator('.tema-dot[data-t=' + t + ']').click(); await p.waitForTimeout(150); ok(await p.evaluate(() => document.documentElement.dataset.tema) === t, 'tema ' + t); } ok((await p.locator('.tema-dot').count()) === 6, 'seis colores para elegir'); } else ok(false, 'selector de temas');
   console.log('errores de consola:', errs.filter(e => !/favicon|fonts\.g/.test(e)));
   await b.close(); srv.close();
 })().catch((e) => { console.error(e); process.exit(1); });

@@ -130,8 +130,11 @@ t('repartos que no suman 100 son rechazados y no se guardan', () => {
   assert.throws(() => g.admin('adminGuardarAjustes', Object.assign({}, vals, { repartoSalaJC: 90, repartoSalaJaime: 90 })), /100/);
 });
 t('cambiar el tema queda guardado y llega al sitio público', () => {
-  const r = g.admin('adminResumen'); g.admin('adminConfigurar', r.reservasActivas, r.avisoBanner, r.pagoOnline, r.pagoTransferencia, 'vino', r.sitioUrl, r.contabilidadFormal, r.regimen);
-  assert.strictEqual(g.get({ accion: 'config' }).config.tema, 'vino');
+  const r = g.admin('adminResumen'); g.admin('adminConfigurar', r.reservasActivas, r.avisoBanner, r.pagoOnline, r.pagoTransferencia, 'azul', r.sitioUrl, r.contabilidadFormal, r.regimen);
+  assert.strictEqual(g.get({ accion: 'config' }).config.tema, 'azul');
+  g.admin('adminConfigurar', r.reservasActivas, r.avisoBanner, r.pagoOnline, r.pagoTransferencia, 'vino', r.sitioUrl, r.contabilidadFormal, r.regimen);
+  assert.strictEqual(g.get({ accion: 'config' }).config.tema, 'rojo', 'un tema antiguo se convierte en su color nuevo');
+  g.admin('adminConfigurar', r.reservasActivas, r.avisoBanner, r.pagoOnline, r.pagoTransferencia, 'rockerio', r.sitioUrl, r.contabilidadFormal, r.regimen);
 });
 
 console.log('\n== 6. Día de la sesión: recordatorio, finalización y reseña ==');

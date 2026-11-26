@@ -204,7 +204,7 @@ t('métodos de pago y anulación tardía se leen de la hoja', () => {
 t('sitioUrl y tema se leen de la hoja', () => {
   assert.strictEqual(R.normalizarConfig({ sitioUrl: 'https://rockerioproducciones.cl/' }).sitioUrl, 'https://rockerioproducciones.cl');
   assert.strictEqual(cfg.tema, 'rockerio');
-  assert.strictEqual(R.normalizarConfig({ tema: 'vino' }).tema, 'vino');
+  assert.strictEqual(R.normalizarConfig({ tema: 'vino' }).tema, 'rojo'); assert.strictEqual(R.normalizarConfig({ tema: 'purpura' }).tema, 'purpura'); assert.strictEqual(R.normalizarConfig({ tema: 'xyz' }).tema, 'rockerio');
 });
 t('contabilidad formal apagada por defecto y régimen 14D3 salvo 14D8', () => {
   assert.strictEqual(cfg.contabilidadFormal, false); assert.strictEqual(cfg.regimen, '14D3');

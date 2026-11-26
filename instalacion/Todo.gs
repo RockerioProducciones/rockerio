@@ -231,7 +231,7 @@ var Reglas = (function () {
     c.contabilidadFormal = aBool(raw.contabilidadFormal, d.contabilidadFormal);
     c.regimen = String(aTexto(raw.regimen, d.regimen)).toUpperCase().replace(/[^A-Z0-9]/g, '') === '14D8' ? '14D8' : '14D3';
     c.sitioUrl = aTexto(raw.sitioUrl, d.sitioUrl).replace(/\/+$/, '');
-    c.tema = aTexto(raw.tema, d.tema) || d.tema;
+    c.tema = canonTema(aTexto(raw.tema, d.tema) || d.tema);
     c.presentacionTitulo = aTexto(raw.presentacionTitulo, d.presentacionTitulo) || d.presentacionTitulo;
     c.presentacion = aTexto(raw.presentacion, d.presentacion);
     ['sitioWeb', 'redInstagram', 'redFacebook', 'redYoutube', 'redTiktok', 'redSpotify', 'redYoutubeMusic', 'redTwitch', 'redLinktree', 'correoContacto', 'mapsUrl', 'enlacesExtra', 'proaudixWeb', 'proaudixInstagram', 'proaudixFacebook', 'proaudixYoutube', 'proaudixEnlaces'].forEach(function (k) { c[k] = aTexto(raw[k], d[k]); });
@@ -312,6 +312,11 @@ var Reglas = (function () {
     for (var h = +inicio; h < +inicio + (+horas || 0); h++) if (h >= cfg.convenienteDesde && h < cfg.convenienteHasta) res.horas++;
     return res;
   }
+
+  /** Temas visuales (todos oscuros sobre negro): amarillo (Rockerío), rojo, azul, verde, naranjo y púrpura. Los nombres antiguos se convierten solos. */
+  var TEMAS = ['rockerio', 'rojo', 'azul', 'verde', 'naranjo', 'purpura'];
+  var TEMA_ANTIGUO = { medianoche: 'azul', vino: 'rojo', bosque: 'verde', abismo: 'verde', cobre: 'naranjo', ciruela: 'purpura', grafito: 'rockerio', azufre: 'rockerio', carbon: 'rockerio' };
+  function canonTema(t) { t = String(t || '').toLowerCase(); return TEMAS.indexOf(t) >= 0 ? t : (TEMA_ANTIGUO[t] || 'rockerio'); }
 
   /** ¿La fecha cae en uno de los días de Rockerío en vivo configurados? */
   function vivoDiaValido(cfg, fecha) {
@@ -611,7 +616,7 @@ var Reglas = (function () {
 
   var CLAUSULA_DATOS = "## 🔒 Datos personales\n- Usamos tus datos solo para gestionar tu reserva y no los vendemos ni cedemos a terceros.\n- El detalle completo (qué guardamos, por cuánto tiempo y tus derechos) está en la sección Privacidad de este sitio.";
   return {
-    CLAUSULA_DATOS: CLAUSULA_DATOS, TZ: TZ, SERVICIOS: SERVICIOS, VIVO_DIAS: VIVO_DIAS, vivoDiaValido: vivoDiaValido, horasLibresVivo: horasLibresVivo, DIAS: DIAS, CONFIG_POR_DEFECTO: CONFIG_POR_DEFECTO, datosTransf: datosTransf,
+    CLAUSULA_DATOS: CLAUSULA_DATOS, TZ: TZ, SERVICIOS: SERVICIOS, VIVO_DIAS: VIVO_DIAS, vivoDiaValido: vivoDiaValido, TEMAS: TEMAS, canonTema: canonTema, horasLibresVivo: horasLibresVivo, DIAS: DIAS, CONFIG_POR_DEFECTO: CONFIG_POR_DEFECTO, datosTransf: datosTransf,
     aNumero: aNumero, aBool: aBool, clp: clp, horaTxt: horaTxt, fechaValida: fechaValida, diaSemana: diaSemana,
     diasEntre: diasEntre, sumarDias: sumarDias, fechaLarga: fechaLarga, parseBloque: parseBloque, parseEscala: parseEscala,
     normalizarConfig: normalizarConfig, limitesHoras: limitesHoras, addonsPermitidos: addonsPermitidos, videoPermitido: videoPermitido,
@@ -1566,7 +1571,7 @@ function prepararConfig_(ss) {
     ['contabilidadFormal', 'NO', 'SI o NO. SI activa la contabilidad formal mensual: IVA, PPM, impuesto simulado y registro de compras (hoja Tributario). Actívala cuando inicies actividades en el SII.'],
     ['regimen', '14D3', '14D3 = Pro Pyme general (la empresa paga Primera Categoría) o 14D8 = Pro Pyme transparente (tributan los dueños). Confírmalo con tu contador.'],
     ['sitioUrl', '', 'Dirección pública del sitio, sin barra final. Ejemplo: https://rockerioproducciones.cl (sirve para armar los enlaces que compartes).'],
-    ['tema', 'rockerio', 'Tema visual por defecto: rockerio, medianoche, vino, bosque, grafito, azufre, abismo, cobre, ciruela o carbon.'],
+    ['tema', 'rockerio', 'Tema visual por defecto: rockerio (amarillo), rojo, azul, verde, naranjo o purpura.'],
     ['temaAdmin', 'rockerio', 'Tema visual del portal de administración (mismas opciones que «tema»).'],
     ['presentacionTitulo', 'Mi enfoque', 'Título de la sección de presentación personal.'],
     ['presentacion', '', 'Tu presentación: visión y enfoque técnico y artístico. Separa párrafos con una línea en blanco. Vacío = la sección no se muestra. Se edita también desde el portal.'],
@@ -1998,7 +2003,7 @@ function adminConfigurar(reservasActivas, avisoBanner, pagoOnline, pagoTransfere
   poner('reservasActivas', reservasActivas ? 'SI' : 'NO');
   poner('pagoOnline', pagoOnline ? 'SI' : 'NO');
   poner('pagoTransferencia', pagoTransferencia ? 'SI' : 'NO');
-  if (tema !== undefined && /^[a-z]{3,20}$/.test(String(tema))) poner('tema', String(tema));
+  if (tema !== undefined && /^[a-z]{3,20}$/.test(String(tema))) poner('tema', Reglas.canonTema(String(tema)));
   if (sitioUrl !== undefined) { sitioUrl = String(sitioUrl).trim().replace(/\/+$/, ''); if (sitioUrl === '' || /^https:\/\/[^\s"'<>]{4,150}$/.test(sitioUrl)) poner('sitioUrl', sitioUrl); else throw new Error('La dirección del sitio debe empezar con https://'); }
   if (contabilidadFormal !== undefined) poner('contabilidadFormal', contabilidadFormal ? 'SI' : 'NO');
   if (regimen !== undefined) poner('regimen', String(regimen) === '14D8' ? '14D8' : '14D3');
@@ -4712,8 +4717,8 @@ var ESQUEMA = [
   ['visitasActivo', 'Contar visitas al sitio', 'sino', 'Funciones', 'Guarda solo ciudad y región aproximadas, sección vista, tipo de dispositivo y de dónde llegó. Sin IP, sin nombres y sin cookies. El reporte está al final del portal («Visitas»).'],
   ['correoCliente', 'Enviar correo de confirmación al cliente', 'sino', 'Funciones', 'Gmail permite 100 correos al día.'],
   ['avisoBanner', 'Aviso en el sitio', 'texto', 'Funciones', 'Franja roja arriba del sitio (vacío = sin aviso).', 200],
-  ['tema', 'Tema visual por defecto', 'lista', 'Funciones', 'Estética completa del sitio (colores, letras y formas).', ['rockerio', 'medianoche', 'vino', 'bosque', 'grafito', 'azufre', 'abismo', 'cobre', 'ciruela', 'carbon']],
-  ['temaAdmin', 'Tema del portal de administración', 'lista', 'Funciones', 'Estética completa de este portal, independiente del sitio.', ['rockerio', 'medianoche', 'vino', 'bosque', 'grafito', 'azufre', 'abismo', 'cobre', 'ciruela', 'carbon']],
+  ['tema', 'Tema visual por defecto', 'lista', 'Funciones', 'Color del sitio: amarillo (Rockerío), rojo, azul, verde, naranjo o púrpura. Los clientes pueden elegir el suyo.', ['rockerio', 'rojo', 'azul', 'verde', 'naranjo', 'purpura']],
+  ['temaAdmin', 'Tema del portal de administración', 'lista', 'Funciones', 'Estética completa de este portal, independiente del sitio.', ['rockerio', 'rojo', 'azul', 'verde', 'naranjo', 'purpura']],
   ['sitioUrl', 'Dirección del sitio', 'url', 'Funciones', 'Sirve para armar los enlaces de socios y agenda.'],
 
   ['heroTitulo', 'Portada: título', 'texto', 'Portada y secciones', 'Frase grande de la portada.', 60],

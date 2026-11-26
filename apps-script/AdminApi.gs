@@ -221,7 +221,7 @@ function adminConfigurar(reservasActivas, avisoBanner, pagoOnline, pagoTransfere
   poner('reservasActivas', reservasActivas ? 'SI' : 'NO');
   poner('pagoOnline', pagoOnline ? 'SI' : 'NO');
   poner('pagoTransferencia', pagoTransferencia ? 'SI' : 'NO');
-  if (tema !== undefined && /^[a-z]{3,20}$/.test(String(tema))) poner('tema', String(tema));
+  if (tema !== undefined && /^[a-z]{3,20}$/.test(String(tema))) poner('tema', Reglas.canonTema(String(tema)));
   if (sitioUrl !== undefined) { sitioUrl = String(sitioUrl).trim().replace(/\/+$/, ''); if (sitioUrl === '' || /^https:\/\/[^\s"'<>]{4,150}$/.test(sitioUrl)) poner('sitioUrl', sitioUrl); else throw new Error('La dirección del sitio debe empezar con https://'); }
   if (contabilidadFormal !== undefined) poner('contabilidadFormal', contabilidadFormal ? 'SI' : 'NO');
   if (regimen !== undefined) poner('regimen', String(regimen) === '14D8' ? '14D8' : '14D3');

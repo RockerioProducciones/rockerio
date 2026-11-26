@@ -14,28 +14,32 @@ body.con-vistas[data-vista]:not([data-vista="inicio"]) .menu .tarjeta::before{wi
 .ficha-tabs{top:105px!important;padding-top:.5rem!important}
 }
 
-/* Código de colores por servicio en el portal de reservas: sala de ensayo = amarillo, estudio de grabación = rojo (como en el calendario del portal) */
-.wizard{--srv:#f5b400;--srv-t:#1a1204}
-.wizard:has(input[name=servicio][value=grabacion]:checked){--srv:#ef4444;--srv-t:#fff}
+.wizard{--srv:var(--sv-e,#f5b400);--srv-t:var(--sv-t-e,#1a1204)}
+.wizard:has(input[name=servicio][value=grabacion]:checked){--srv:var(--sv-g,#ef4444);--srv-t:var(--sv-t-g,#fff)}
+.wizard:has(input[name=servicio][value=vivo]:checked){--srv:var(--sv-v,#a855f7);--srv-t:var(--sv-t-v,#fff)}
 .wizard{--oro:var(--srv)}
 .wizard .btn,.wizard #enviar{background:linear-gradient(180deg,color-mix(in srgb,var(--srv) 86%,#fff),var(--srv))!important;color:var(--srv-t)!important;box-shadow:0 4px 18px color-mix(in srgb,var(--srv) 35%,transparent)!important}
-.wizard #servicios .opcion:has(input[value=ensayo]){border-left:5px solid #f5b400}
-.wizard #servicios .opcion:has(input[value=grabacion]){border-left:5px solid #ef4444}
-.wizard #servicios .opcion:has(input[value=ensayo]) b,.wizard #servicios .opcion:has(input[value=ensayo]) small{color:#f5b400}
-.wizard #servicios .opcion:has(input[value=grabacion]) b,.wizard #servicios .opcion:has(input[value=grabacion]) small{color:#ef4444}
-.wizard #servicios .opcion:has(input[value=ensayo]:checked){border-color:#f5b400;background:rgba(245,180,0,.10);box-shadow:0 0 0 1px #f5b400 inset}
-.wizard #servicios .opcion:has(input[value=grabacion]:checked){border-color:#ef4444;background:rgba(239,68,68,.10);box-shadow:0 0 0 1px #ef4444 inset}
-
+.wizard #servicios .opcion:has(input[value=ensayo]){border-left:5px solid var(--sv-e,#f5b400)}
+.wizard #servicios .opcion:has(input[value=grabacion]){border-left:5px solid var(--sv-g,#ef4444)}
+.wizard #servicios .opcion:has(input[value=vivo]){border-left:5px solid var(--sv-v,#a855f7)}
+.wizard #servicios .opcion:has(input[value=ensayo]) b,.wizard #servicios .opcion:has(input[value=ensayo]) small{color:var(--sv-e,#f5b400)}
+.wizard #servicios .opcion:has(input[value=grabacion]) b,.wizard #servicios .opcion:has(input[value=grabacion]) small{color:var(--sv-g,#ef4444)}
+.wizard #servicios .opcion:has(input[value=vivo]) b,.wizard #servicios .opcion:has(input[value=vivo]) small{color:var(--sv-v,#a855f7)}
+.wizard #servicios .opcion:has(input[value=ensayo]:checked){border-color:var(--sv-e,#f5b400);background:color-mix(in srgb,var(--sv-e,#f5b400) 11%,transparent);box-shadow:0 0 0 1px var(--sv-e,#f5b400) inset}
+.wizard #servicios .opcion:has(input[value=grabacion]:checked){border-color:var(--sv-g,#ef4444);background:color-mix(in srgb,var(--sv-g,#ef4444) 11%,transparent);box-shadow:0 0 0 1px var(--sv-g,#ef4444) inset}
+.wizard #servicios .opcion:has(input[value=vivo]:checked){border-color:var(--sv-v,#a855f7);background:color-mix(in srgb,var(--sv-v,#a855f7) 11%,transparent);box-shadow:0 0 0 1px var(--sv-v,#a855f7) inset}
 /* Rockerío en vivo: títulos en el amarillo del sitio */
 #vivo .vv-fase b,#vivo .vv-show b,#vivo .vv-grid .caja b{color:var(--oro,#FCC631)}
 .wizard button.on,.wizard .segm button.on{color:var(--srv-t)!important}
 
 /* Efecto «holograma» de los planes mensuales en las tarjetas de servicio (solo estética) */
 .wizard #servicios .opcion{border-width:2px!important;border-style:solid!important;overflow:hidden}
-.wizard #servicios .opcion:has(input[value=ensayo]){border-color:#f5b400!important;background:linear-gradient(150deg,rgba(245,180,0,.17),rgba(255,120,40,.07) 62%,rgba(20,19,18,.9))!important}
-.wizard #servicios .opcion:has(input[value=grabacion]){border-color:#ef4444!important;background:linear-gradient(150deg,rgba(239,68,68,.18),rgba(190,40,120,.08) 62%,rgba(20,19,18,.9))!important}
-.wizard #servicios .opcion:has(input[value=ensayo]:checked){box-shadow:0 0 26px rgba(245,180,0,.35)!important}
-.wizard #servicios .opcion:has(input[value=grabacion]:checked){box-shadow:0 0 26px rgba(239,68,68,.38)!important}
+.wizard #servicios .opcion:has(input[value=ensayo]){border-color:var(--oro)!important;background:linear-gradient(150deg,color-mix(in srgb,var(--oro) 17%,transparent),rgba(255,120,40,.07) 62%,rgba(20,19,18,.9))!important}
+.wizard #servicios .opcion:has(input[value=grabacion]){border-color:var(--sv-g,#ef4444)!important;background:linear-gradient(150deg,color-mix(in srgb,var(--sv-g,#ef4444) 18%,transparent),rgba(190,40,120,.08) 62%,rgba(20,19,18,.9))!important}
+.wizard #servicios .opcion:has(input[value=vivo]){border-color:var(--sv-v,#a855f7)!important;background:linear-gradient(150deg,color-mix(in srgb,var(--sv-v,#a855f7) 16%,transparent),rgba(20,19,18,.9))!important}
+.wizard #servicios .opcion:has(input[value=ensayo]:checked){box-shadow:0 0 26px color-mix(in srgb,var(--oro) 35%,transparent)!important}
+.wizard #servicios .opcion:has(input[value=grabacion]:checked){box-shadow:0 0 26px color-mix(in srgb,var(--sv-g,#ef4444) 38%,transparent)!important}
+.wizard #servicios .opcion:has(input[value=vivo]:checked){box-shadow:0 0 26px color-mix(in srgb,var(--sv-v,#a855f7) 38%,transparent)!important}
 .wizard #servicios .opcion:not(:has(input:checked)){opacity:.82}
 .wizard .hbtn[aria-pressed=true]{color:var(--srv-t)!important}
 
@@ -124,7 +128,7 @@ html .hero p{text-shadow:0 2px 12px #000!important;color:#f1ece0!important}
 @media(max-width:699px){html .hero,html.rd .hero{min-height:clamp(300px,52vh,420px)!important;padding:18px 12px 16px!important}
   html .hero-logo,html.rd .hero-logo{width:min(560px,94%)!important}.hero-vu{width:86%}}
 html .hero-logo,html.rd .hero-logo,html[data-tema] .hero-logo{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;mix-blend-mode:normal!important;opacity:1!important;outline:0!important}
-html .hero h1,html.rd .hero h1,html[data-tema="rockerio"][lang] .hero h1{background:none!important;-webkit-text-fill-color:#fff!important;color:#fff!important;font-size:clamp(2rem,7vw,3.8rem)!important}
+html .hero h1,html.rd .hero h1,html[data-tema][lang] .hero h1{background:none!important;-webkit-text-fill-color:#fff!important;color:#fff!important;font-size:clamp(2rem,7vw,3.8rem)!important}
 
 /* Cabecera: solo la calavera (sin el texto), del mismo color que el logo de cada tema */
 html .top .marca img{content:url(../assets/marca/calavera-dorado.png)!important;height:50px!important;width:auto!important}

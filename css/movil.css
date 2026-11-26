@@ -61,7 +61,7 @@ body.con-vistas .hero{padding-bottom:12px}
 .hora.ocupado{background:repeating-linear-gradient(135deg,transparent 0 6px,rgba(255,255,255,.05) 6px 12px);border-style:dashed;color:var(--mut);opacity:.6}
 .hora.ocupado small{font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;text-decoration:none;display:block}
 .wizard .horarios .nota{grid-column:1/-1}
-.cal-dia:not(:disabled):not([aria-pressed=true]){border-color:rgba(252,198,49,.5)}
+.cal-dia:not(:disabled):not([aria-pressed=true]){border-color:color-mix(in srgb,var(--oro) 50%,transparent)}
 .cal-dia:disabled{background:repeating-linear-gradient(135deg,transparent 0 5px,rgba(255,255,255,.05) 5px 10px);opacity:.4}
 .leyenda{display:flex;gap:1rem;font-size:.8rem;color:var(--mut);margin:.2rem 0 .6rem}
 .ley::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:.35rem;vertical-align:-1px;border:1px solid var(--oro)}
