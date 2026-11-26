@@ -69,7 +69,7 @@ var Reglas = (function () {
     heroTitulo: 'Tu banda suena aquí', heroTexto: 'Sala de ensayo y estudio de grabación en Quinta Normal, Santiago.',
     verProduccion: true, verFicha: true, verPlanes: true, verGaleria: true, verEvaluaciones: true, visitasActivo: true, verProaudix: true, verContacto: true, verTienda: true, verHonor: true, verCotizar: true, verReglamento: true, verVivo: false,
     // Rockerío en vivo: presentaciones de bloque fijo (días y horario configurables) con cobro fijo
-    vivoPrecio: 90000, vivoDias: 'Viernes y sábado', vivoDesde: 19, vivoHasta: 23,
+    vivoPrecio: 100000, vivoDias: 'Viernes y sábado', vivoDesde: 19, vivoHasta: 23,
     // Colores de los servicios en el calendario del portal
     colorEnsayo: '#f5b400', colorEstudio: '#ef4444', colorPlan8: '#3b82f6', colorPlan12: '#a855f7', colorVivo: '#06b6d4', colorBloqueo: '#8a8581',
     // Contacto y redes (enlaces https://; vacío = no se muestra)
@@ -99,6 +99,7 @@ var Reglas = (function () {
     anticipacionMaxDias: 21,      // se puede reservar desde hoy hasta 21 días después
     planMaxDias: 35,              // los planes mensuales pueden agendar sus 4 sesiones hasta 35 días adelante
     permitirExtranjeros: false,   // NO: solo celulares de Chile (+569). SI: también se aceptan números de otros países
+    usarCalendario: false,        // false = la agenda vive solo en la hoja de Reservas (sin eventos en Google Calendar)
     liberarSolo: false,           // NO: el horario sin abono queda guardado hasta que lo confirmes o anules; SI: se libera solo tras minutosReserva
     minutosReserva: 20,           // minutos que el horario queda tomado esperando el abono; luego se libera solo (5 a 180)
     horasAnulacion: 24,
@@ -238,6 +239,7 @@ var Reglas = (function () {
     ['verProduccion', 'verFicha', 'verPlanes', 'verGaleria', 'verEvaluaciones', 'verProaudix', 'verContacto', 'verTienda', 'verHonor', 'verCotizar', 'verReglamento', 'verVivo'].forEach(function (k) { c[k] = aBool(raw[k], d[k]); });
     c.visitasActivo = aBool(raw.visitasActivo, d.visitasActivo);
     c.liberarSolo = aBool(raw.liberarSolo, d.liberarSolo);
+    c.usarCalendario = aBool(raw.usarCalendario, d.usarCalendario);
     c.permitirExtranjeros = aBool(raw.permitirExtranjeros, d.permitirExtranjeros);
     ['colorEnsayo', 'colorEstudio', 'colorPlan8', 'colorPlan12', 'colorVivo', 'colorBloqueo'].forEach(function (k) { var t = String(raw[k] === undefined || raw[k] === null ? '' : raw[k]).trim().toLowerCase(); c[k] = /^#[0-9a-f]{6}$/.test(t) ? t : d[k]; });
     c.vivoDias = VIVO_DIAS[aTexto(raw.vivoDias, d.vivoDias)] ? aTexto(raw.vivoDias, d.vivoDias) : d.vivoDias;
@@ -281,6 +283,7 @@ var Reglas = (function () {
   /* ---------- precios ---------- */
 
   function limitesHoras(cfg, servicio) {
+    if (servicio === 'vivo') { var bv = Math.max(1, cfg.vivoHasta - cfg.vivoDesde); return { min: bv, max: bv }; }
     return servicio === 'grabacion'
       ? { min: cfg.grabacionMinHoras, max: cfg.grabacionMaxHoras }
       : { min: cfg.ensayoMinHoras, max: cfg.ensayoMaxHoras };
@@ -385,6 +388,18 @@ var Reglas = (function () {
     return { abiertas: abiertas, libres: libres };
   }
 
+  /**
+   * Rockerío en vivo: un solo bloque fijo (vivoDesde a vivoHasta) en los días configurados.
+   * Devuelve lo mismo que horasLibres: el bloque entero queda libre solo si ninguna de sus horas está ocupada.
+   */
+  function horasLibresVivo(cfg, iso, ocupadas, ahora) {
+    if (!cfg.verVivo || !vivoDiaValido(cfg, iso) || cfg.diasInhabiles.indexOf(iso) >= 0) return { abiertas: [], libres: [] };
+    var cv = {}; Object.keys(cfg).forEach(function (k) { cv[k] = cfg[k]; });
+    cv.horarios = {}; cv.horarios[diaSemana(iso)] = [[cfg.vivoDesde, cfg.vivoHasta]];
+    var r = horasLibres(cv, iso, ocupadas, ahora);
+    return { abiertas: r.abiertas, libres: inicios(r.libres, cfg.vivoHasta - cfg.vivoDesde).length ? r.libres : [] };
+  }
+
   /** Horas de inicio posibles para un bloque continuo de `horas` horas. */
   function inicios(libres, horas) {
     var set = {};
@@ -477,7 +492,7 @@ var Reglas = (function () {
   /** Devuelve { ok, error, datos } con los datos ya limpios. */
   function validarDatos(sol) {
     var d = {
-      servicio: sol.servicio === 'grabacion' ? 'grabacion' : (sol.servicio === 'ensayo' ? 'ensayo' : ''),
+      servicio: sol.servicio === 'grabacion' ? 'grabacion' : (sol.servicio === 'ensayo' ? 'ensayo' : (sol.servicio === 'vivo' ? 'vivo' : '')),
       fecha: limpiar(sol.fecha, 10),
       inicio: Number(sol.inicio),
       horas: Number(sol.horas),
@@ -517,6 +532,14 @@ var Reglas = (function () {
     var v = validarDatos(sol);
     if (!v.ok) return { ok: false, codigo: 'DATOS', error: v.error };
     var d = v.datos;
+    if (d.servicio === 'vivo') { // bloque fijo: la hora y la duración las pone el servidor, no el navegador
+      if (!cfg.verVivo) return { ok: false, codigo: 'DATOS', error: 'Rockerío en vivo no está disponible por ahora.' };
+      d.inicio = cfg.vivoDesde; d.horas = cfg.vivoHasta - cfg.vivoDesde; d.extras = 0; d.video = false; d.raw = false;
+      var rv = horasLibresVivo(cfg, d.fecha, ocupadas || [], ahora);
+      if (!rv.abiertas.length) return { ok: false, codigo: 'CERRADO', error: 'Rockerío en vivo solo se agenda en: ' + cfg.vivoDias.toLowerCase() + '.' };
+      if (inicios(rv.libres, d.horas).indexOf(d.inicio) < 0) return { ok: false, codigo: 'OCUPADO', error: 'Ese horario ya no está disponible. Elige otro.' };
+      return { ok: true, datos: d, calculo: calcularPrecio(cfg, d), fin: d.inicio + d.horas, grabacionMin: 0 };
+    }
     var lim = limitesHoras(cfg, d.servicio);
     if (d.horas < lim.min || d.horas > lim.max) {
       return { ok: false, codigo: 'DURACION', error: 'Este servicio se reserva entre ' + lim.min + ' y ' + lim.max + ' horas.' };
@@ -588,7 +611,7 @@ var Reglas = (function () {
 
   var CLAUSULA_DATOS = "## 🔒 Datos personales\n- Usamos tus datos solo para gestionar tu reserva y no los vendemos ni cedemos a terceros.\n- El detalle completo (qué guardamos, por cuánto tiempo y tus derechos) está en la sección Privacidad de este sitio.";
   return {
-    CLAUSULA_DATOS: CLAUSULA_DATOS, TZ: TZ, SERVICIOS: SERVICIOS, VIVO_DIAS: VIVO_DIAS, vivoDiaValido: vivoDiaValido, DIAS: DIAS, CONFIG_POR_DEFECTO: CONFIG_POR_DEFECTO, datosTransf: datosTransf,
+    CLAUSULA_DATOS: CLAUSULA_DATOS, TZ: TZ, SERVICIOS: SERVICIOS, VIVO_DIAS: VIVO_DIAS, vivoDiaValido: vivoDiaValido, horasLibresVivo: horasLibresVivo, DIAS: DIAS, CONFIG_POR_DEFECTO: CONFIG_POR_DEFECTO, datosTransf: datosTransf,
     aNumero: aNumero, aBool: aBool, clp: clp, horaTxt: horaTxt, fechaValida: fechaValida, diaSemana: diaSemana,
     diasEntre: diasEntre, sumarDias: sumarDias, fechaLarga: fechaLarga, parseBloque: parseBloque, parseEscala: parseEscala,
     normalizarConfig: normalizarConfig, limitesHoras: limitesHoras, addonsPermitidos: addonsPermitidos, videoPermitido: videoPermitido,
@@ -826,8 +849,10 @@ function tiendaPublica_() {
 function disponibilidad_(fecha) {
   if (!Reglas.fechaValida(fecha)) return { ok: false, error: 'Fecha inválida.' };
   var cfg = getCfg_();
-  var r = Reglas.horasLibres(cfg, fecha, horasOcupadas_(fecha, cfg), ahoraChile_());
-  return { ok: true, fecha: fecha, abiertas: r.abiertas, libres: r.libres };
+  var oc1 = horasOcupadas_(fecha, cfg), r = Reglas.horasLibres(cfg, fecha, oc1, ahoraChile_());
+  var o1 = { ok: true, fecha: fecha, abiertas: r.abiertas, libres: r.libres };
+  if (cfg.verVivo) { var v1 = Reglas.horasLibresVivo(cfg, fecha, oc1, ahoraChile_()); o1.vivo = v1.libres.length > 0; }
+  return o1;
 }
 
 /** Disponibilidad de los próximos días en una sola consulta (hoy y los 'dias' siguientes). plan = true usa el plazo de los planes. */
@@ -839,6 +864,7 @@ function agenda_(dias, plan) {
   for (var i = 0; i < n; i++) {
     var f = Reglas.sumarDias(ahora.fecha, i), r = Reglas.horasLibres(cfg, f, oc[f] || [], ahora);
     out[f] = { abiertas: r.abiertas, libres: r.libres };
+    if (cfg.verVivo) out[f].vivo = Reglas.horasLibresVivo(cfg, f, oc[f] || [], ahora).libres.length > 0; // bloque fijo de Rockerío en vivo libre ese día
   }
   return { ok: true, hoy: ahora.fecha, dias: out };
 }
@@ -1356,7 +1382,17 @@ function asegurarEsquema_(ss) {
   } catch (e) { /* si falla, se reintenta en la próxima solicitud */ }
 }
 
+/** Calendario «vacío» para cuando no se usa Google Calendar: no lee ni escribe eventos. La hoja de Reservas es la agenda. */
+function calendarioNulo_() {
+  var ev = { getId: function () { return ''; }, setColor: function () { return ev; }, setTitle: function () { return ev; }, setTime: function () { return ev; }, deleteEvent: function () {} };
+  return {
+    getEvents: function () { return []; }, createEvent: function () { return ev; }, getEventById: function () { return null; },
+    getName: function () { return 'Sin Google Calendar (se usa la hoja de Reservas)'; }, getTimeZone: function () { return Reglas.TZ; }, getId: function () { return ''; }
+  };
+}
+
 function getCalendar_() {
+  if (!getCfg_().usarCalendario) return calendarioNulo_();
   var id = PropertiesService.getScriptProperties().getProperty('CALENDAR_ID');
   return (id && CalendarApp.getCalendarById(id)) || CalendarApp.getDefaultCalendar();
 }
@@ -1413,7 +1449,7 @@ function instalar() {
   prepararTributario_(ss); // al final: sus fórmulas leen Balance, CostosMes, Compras, HistorialBalance y Configuracion
   ordenarHojas_(ss);
 
-  if (!props.getProperty('CALENDAR_ID')) {
+  if (!props.getProperty('CALENDAR_ID') && getCfg_().usarCalendario) {
     var cal = CalendarApp.createCalendar('Rockerío · Agenda', { summary: 'Reservas y bloqueos de Rockerío Producciones', timeZone: Reglas.TZ });
     props.setProperty('CALENDAR_ID', cal.getId());
   }
@@ -1430,7 +1466,7 @@ function instalar() {
   prepararSocios_();
 
   var msg = 'Instalación lista.\nHoja de datos: ' + ss.getUrl() +
-    '\nCalendario: "Rockerío · Agenda" (aparece en tu Google Calendar, en "Otros calendarios").' +
+    (getCfg_().usarCalendario ? '\nCalendario: "Rockerío · Agenda" (aparece en tu Google Calendar, en "Otros calendarios").' : '\nGoogle Calendar: no se usa (la agenda es la hoja de Reservas).') +
     '\nAdministrador: ' + props.getProperty('ADMIN_EMAIL') +
     '\nSiguiente paso: Implementar > Nueva implementación > Aplicación web (README, pasos 6 y 7).';
   console.log(msg);
@@ -1830,7 +1866,8 @@ function adminCambiarEstado(codigo, estado) {
   var sh = abrirBd_().getSheetByName(HOJAS.reservas);
   var celda = sh.getLastRow() > 1 ? sh.createTextFinder(String(codigo)).matchEntireCell(true).findNext() : null;
   if (!celda || celda.getColumn() !== RES.codigo) throw new Error('No se encontró la reserva.');
-  if (ESTADOS_QUE_OCUPAN.indexOf(estado) >= 0) { // reactivar una anulada: el horario no debe haberse ocupado mientras tanto
+  var estadoAntes = estadoNorm_(sh.getRange(celda.getRow(), RES.estado).getValue()); // si ya ocupaba el horario (p. ej. pasar a «con abono»), no hay nada que revisar
+  if (ESTADOS_QUE_OCUPAN.indexOf(estado) >= 0 && ESTADOS_QUE_OCUPAN.indexOf(estadoAntes) < 0) { // reactivar una anulada: el horario no debe haberse ocupado mientras tanto
     var rr = sh.getRange(celda.getRow(), 1, 1, ENCABEZADO_RESERVAS.length).getValues()[0];
     if (!eventoVivo_(getCalendar_(), rr[RES.evento - 1], rr)) {
       var fch = aFechaIso_(rr[RES.fecha - 1]), h0 = aHora_(rr[RES.inicio - 1]), nh = Number(rr[RES.horas - 1]);
@@ -4649,6 +4686,7 @@ var ESQUEMA = [
   ['planMaxDias', 'Sesiones de plan hasta (días)', 'num', 'Reglas de reserva', 'Hasta cuántos días hacia adelante se pueden agendar las 4 sesiones de un plan.', 180],
   ['permitirExtranjeros', 'Aceptar teléfonos de otros países', 'sino', 'Reglas de reserva', 'NO = solo celulares de Chile (+569), así no entran números mal escritos (recomendado). SI = también se aceptan números extranjeros.'],
   ['liberarSolo', 'Liberar sola la reserva sin abono', 'sino', 'Reglas de reserva', 'NO = el horario queda guardado hasta que tú lo confirmes o lo anules: nadie más puede tomarlo (recomendado). SI = se libera solo pasados los minutos de abajo.'],
+  ['usarCalendario', 'Usar Google Calendar', 'sino', 'Reglas de reserva', 'NO = la agenda vive solo en la hoja de Reservas y en el sitio (recomendado). SI = además se crea un evento en Google Calendar por cada reserva y bloqueo.'],
   ['minutosReserva', 'Minutos que se guarda el horario', 'num', 'Reglas de reserva', 'Tiempo que el horario queda tomado esperando el abono (5 a 180). Luego se libera solo.', 180],
   ['horasAnulacion', 'Horas mínimas para anular', 'num', 'Reglas de reserva', 'Anular con al menos estas horas devuelve el abono (menos la retención).', 168],
   ['noAsisteCobroPorHora', 'Cobro por «No asiste» (por hora reservada)', 'pesos', 'Reglas de reserva', 'Si el cliente no asiste, esta retención por cada hora reservada se da por cobrada y la reserva queda cerrada (entra al balance). Es por la seriedad de la agenda.'],
@@ -4692,7 +4730,7 @@ var ESQUEMA = [
   ['verCotizar', 'Mostrar «Cotizar»', 'sino', 'Portada y secciones', 'Formulario de cotización.'],
   ['verReglamento', 'Mostrar «Reglamento»', 'sino', 'Portada y secciones', 'Reglamento interno.'],
   ['verVivo', 'Mostrar «Rockerío en vivo»', 'sino', 'Rockerío en vivo', 'Pestaña pública con las presentaciones en vivo. Apagada hasta que la actives.'],
-  ['vivoPrecio', 'Rockerío en vivo: precio de la presentación', 'pesos', 'Rockerío en vivo', 'Cobro fijo por presentación (entre $80.000 y $100.000 según lo acordado).'],
+  ['vivoPrecio', 'Rockerío en vivo: precio de la presentación', 'pesos', 'Rockerío en vivo', 'Cobro fijo por presentación. Parte en $100.000 y lo puedes subir o bajar.'],
   ['vivoDias', 'Rockerío en vivo: días', 'lista', 'Rockerío en vivo', 'Días en que se pueden agendar presentaciones.', ['Viernes y sábado', 'Solo viernes', 'Solo sábado', 'Jueves a sábado', 'Viernes a domingo']],
   ['vivoDesde', 'Rockerío en vivo: hora de inicio', 'num', 'Rockerío en vivo', 'Por ejemplo 19.', 22],
   ['vivoHasta', 'Rockerío en vivo: hora de término', 'num', 'Rockerío en vivo', 'Por ejemplo 23. Debe ser posterior al inicio.', 24],

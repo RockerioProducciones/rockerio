@@ -25,7 +25,7 @@
   function chip() {
     var S = RK.estado(), l = lista(), i = indice(), c = $('wiz-chip');
     if (i === 0 || i === l.length - 1) { c.hidden = true; return; }
-    var partes = [S.servicio === 'ensayo' ? 'Ensayo' : 'Estudio', S.horas + (S.horas === 1 ? ' h' : ' h')];
+    var partes = [S.servicio === 'ensayo' ? 'Ensayo' : (S.servicio === 'vivo' ? 'En vivo' : 'Estudio'), S.horas + (S.horas === 1 ? ' h' : ' h')];
     if (S.fecha) partes.push(R.fechaLarga(S.fecha));
     if (S.inicio !== null) partes.push(R.horaTxt(S.inicio) + '–' + R.horaTxt(S.inicio + S.horas));
     var m = document.querySelector('#tr-total .tr-monto');

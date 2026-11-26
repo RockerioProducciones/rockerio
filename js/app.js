@@ -135,6 +135,7 @@
     if (!chipC.hidden) txt(chipC, 'Lun–Vie ' + R.horaTxt(cfg.convenienteDesde) + ' a ' + R.horaTxt(cfg.convenienteHasta) + (tcE.horas ? ': ensayo ' + R.clp(tcE.precio) + ' / hora' : '') + (tcG.horas ? (tcE.horas ? ' · ' : ': ') + 'estudio ' + R.clp(tcG.precio) + ' / hora' : ''));
     txt($('p-ensayo'), R.clp(cfg.precioEnsayoHora) + ' por hora');
     txt($('p-grab'), R.clp(cfg.precioGrabacionHora) + ' por hora');
+    if ($('op-vivo')) { $('op-vivo').hidden = !cfg.verVivo; txt($('p-vivo'), R.clp(cfg.vivoPrecio) + ' · bloque de ' + R.horaTxt(cfg.vivoDesde) + ' a ' + R.horaTxt(cfg.vivoHasta)); }
     txt($('p-video'), '+' + R.clp(cfg.precioVideo)); txt($('p-extra'), R.clp(cfg.precioExtraEquipo) + (cfg.extraModo === 'hora' ? ' por hora' : ' por sesión'));
     txt($('p-raw'), '+' + R.clp(cfg.precioRaw));
     txt($('dir'), cfg.direccion); txt($('dir2'), String(cfg.direccion || '').replace(/[\s·]+$/, '').toUpperCase()); $('franja-dir').hidden = !cfg.direccion;
@@ -444,6 +445,11 @@
       for (var hh = 2; hh <= 5; hh++) { var gg = R.grabacionIncluidaMin(cfg, 'ensayo', hh), ce = el('span', hh === S.horas ? 'on' : ''); ce.appendChild(el('i', '', hh + ' h')); ce.appendChild(el('em', '', R.minutosTxt(hh * 60 - gg) + ' + 🎙️ ' + R.minutosTxt(gg))); tb.appendChild(ce); }
       ai.appendChild(tb);
     }
+    else if (S.servicio === 'vivo') {
+      ai.hidden = false; ai.classList.add('eg-aviso');
+      ai.appendChild(el('b', '', '🎤 Bloque exclusivo para tu banda: ' + R.horaTxt(cfg.vivoDesde) + ' a ' + R.horaTxt(cfg.vivoHasta) + '.'));
+      ai.appendChild(el('span', '', ' Cobro fijo de ' + R.clp(cfg.vivoPrecio) + '. Se agenda ' + String(cfg.vivoDias).toLowerCase() + '.'));
+    }
     else ai.hidden = true;
     pintarArriendos();
     var ens = S.servicio === 'ensayo', addOk = R.addonsPermitidos(cfg, S.servicio, S.horas);
@@ -455,23 +461,33 @@
     renumerar();
   }
 
+  /** Agenda que ve la persona: para Rockerío en vivo, cada día es libre solo si el bloque fijo completo lo está. */
+  function agendaVista() {
+    if (!agenda || S.servicio !== 'vivo') return agenda;
+    var out = {}, blq = [];
+    for (var h = cfg.vivoDesde; h < cfg.vivoHasta; h++) blq.push(h);
+    Object.keys(agenda).forEach(function (f) { out[f] = agenda[f].vivo ? { abiertas: blq, libres: blq } : { abiertas: [], libres: [] }; });
+    return out;
+  }
   function refrescarAgenda() {
-    traerAgenda(cfg.anticipacionMaxDias + 1, false).then(function (d) { agenda = d.dias; if (d.hoy) ahora.fecha = d.hoy; if (S.fecha && S.inicio !== null && agenda[S.fecha] && R.inicios(agenda[S.fecha].libres, S.horas).indexOf(S.inicio) < 0) S.inicio = null; pintarCalendario(); estado(); });
+    traerAgenda(cfg.anticipacionMaxDias + 1, false).then(function (d) { agenda = d.dias; if (d.hoy) ahora.fecha = d.hoy; if (S.fecha && S.inicio !== null && agenda[S.fecha] && R.inicios(agendaVista()[S.fecha].libres, S.horas).indexOf(S.inicio) < 0) S.inicio = null; pintarCalendario(); estado(); });
   }
   function pintarCalendario() {
     if (!agenda) return;
-    calendario({ cont: $('cal'), hoy: ahora.fecha, dias: agenda, horas: function () { return S.horas; }, elegida: function () { return S.fecha; }, alElegir: elegirFecha });
+    calendario({ cont: $('cal'), hoy: ahora.fecha, dias: agendaVista(), horas: function () { return S.horas; }, elegida: function () { return S.fecha; }, alElegir: elegirFecha });
     pintarHorarios();
   }
   function elegirFecha(f) { S.fecha = f; S.inicio = null; pintarCalendario(); estado(); }
   function pintarHorarios() {
     var c = $('horarios');
-    if (!S.fecha || !agenda || !agenda[S.fecha]) { c.textContent = ''; c.appendChild(el('p', 'nota', 'Primero elige un día.')); return; }
-    bloques(c, agenda[S.fecha].libres, S.horas, function (h) { S.inicio = h; pintarHorarios(); estado(); }, S.inicio, agenda[S.fecha].abiertas);
+    var av = agendaVista();
+    if (!S.fecha || !av || !av[S.fecha]) { c.textContent = ''; c.appendChild(el('p', 'nota', 'Primero elige un día.')); return; }
+    bloques(c, av[S.fecha].libres, S.horas, function (h) { S.inicio = h; pintarHorarios(); estado(); }, S.inicio, av[S.fecha].abiertas);
   }
   function alCambiarDuracion() {
-    if (S.fecha && agenda && !R.inicios(agenda[S.fecha].libres, S.horas).length) S.fecha = null;
-    if (S.inicio !== null && S.fecha && R.inicios(agenda[S.fecha].libres, S.horas).indexOf(S.inicio) < 0) S.inicio = null;
+    var av = agendaVista();
+    if (S.fecha && av && av[S.fecha] && !R.inicios(av[S.fecha].libres, S.horas).length) S.fecha = null;
+    if (S.inicio !== null && S.fecha && av && av[S.fecha] && R.inicios(av[S.fecha].libres, S.horas).indexOf(S.inicio) < 0) S.inicio = null;
     pintarCalendario(); estado();
   }
 
@@ -526,7 +542,7 @@
     dl.textContent = ''; tot.textContent = ''; its.textContent = '';
     var ens = S.servicio === 'ensayo', hrs = S.horas + (S.horas === 1 ? ' hr' : ' hrs');
     if ($('ro-fee')) txt($('ro-fee'), R.clp(Number(cfg.noAsisteCobroPorHora) || 5000));
-    $('ro-titulo').textContent = (ens ? '🎸 Sala de ensayo' : '🎛️ Estudio de grabación') + ' · ' + hrs;
+    $('ro-titulo').textContent = (ens ? '🎸 Sala de ensayo' : (S.servicio === 'vivo' ? '🎤 Rockerío en vivo' : '🎛️ Estudio de grabación')) + ' · ' + hrs;
     if (S.fecha) fila(dl, '📅 Día', R.fechaLarga(S.fecha)); else falta.push('el día');
     if (S.inicio !== null) fila(dl, '🕒 Horario', R.horaTxt(S.inicio) + ' a ' + R.horaTxt(S.inicio + S.horas)); else if (S.fecha) falta.push('tu horario');
     var s = solicitud();
@@ -536,7 +552,7 @@
       var ok = R.addonsPermitidos(cfg, S.servicio, S.horas), p = R.calcularPrecio(cfg, s), g = R.grabacionIncluidaMin(cfg, S.servicio, S.horas);
       if (ens) fila(dl, '🥁 Batería', s.zurdo ? 'Zurdo' : 'Diestro');
       if (ens && Number($('voces').value) > 0) fila(dl, '🎤 Micrófonos vocales', $('voces').value);
-      linea((ens ? 'Sala de ensayo' : 'Estudio de grabación') + ' (' + hrs + ')', p.base);
+      linea((ens ? 'Sala de ensayo' : (S.servicio === 'vivo' ? 'Rockerío en vivo' : 'Estudio de grabación')) + ' (' + hrs + ')', p.base);
       if (p.extras) {
         var arr = arriendosElegidos(), unit = arr.length ? Math.round(p.extras / arr.length) : p.extras;
         arr.forEach(function (n) { linea('🎸 ' + n.split(':')[0] + (cfg.extraModo === 'hora' ? ' (' + S.horas + (S.horas === 1 ? ' hr' : ' hrs') + ')' : ''), unit); });
@@ -700,7 +716,7 @@
      Se valida contra la agenda real; si el horario ya no está libre, se abre el asistente normal en «Elige día y horario». */
   function aplicarSolicitud() {
     var q = new URLSearchParams(location.search), f = q.get('f'), h = parseInt(q.get('h'), 10), d = parseInt(q.get('d'), 10), sv = q.get('s');
-    sv = sv === 'ensayo' || sv === 'grabacion' ? sv : '';
+    sv = sv === 'ensayo' || sv === 'grabacion' || (sv === 'vivo' && cfg.verVivo) ? sv : '';
     if (!f || !/^\d{4}-\d{2}-\d{2}$/.test(f) || isNaN(h)) return;
     try { history.replaceState(null, '', location.pathname + (location.hash || '#reservar')); } catch (e) { /* sin historial */ }
     var intentos = 0;
@@ -709,7 +725,7 @@
       if (sv) { S.servicio = sv; var rb = document.querySelector('input[name=servicio][value=' + sv + ']'); if (rb) rb.checked = true; }
       if (!isNaN(d)) { S.horas = d; }
       pintarHoras();
-      var ok = agenda && agenda[f] && R.inicios(agenda[f].libres, S.horas).indexOf(h) >= 0 && f >= ahora.fecha;
+      var av0 = agendaVista(), ok = av0 && av0[f] && R.inicios(av0[f].libres, S.horas).indexOf(h) >= 0 && f >= ahora.fecha;
       if (ok) { S.fecha = f; S.inicio = h; } else { S.fecha = null; S.inicio = null; }
       pintarCalendario(); estado();
       /* con servicio elegido en Disponibilidad vamos directo a los datos; si no, primero se pregunta el servicio y después se salta a los datos */

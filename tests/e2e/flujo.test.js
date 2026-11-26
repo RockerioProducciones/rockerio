@@ -29,6 +29,7 @@ t('instalar dos veces no duplica hojas ni disparadores ni borra datos', () => {
   g.instalar(); assert.strictEqual(Object.keys(g.estado.hojas).length, antes); assert.strictEqual(g.estado.triggers.length, tr);
 });
 
+t('Google Calendar viene apagado; las pruebas siguientes lo encienden para revisar los eventos', () => { assert.strictEqual(g.get({ accion: 'config' }).config.usarCalendario, false); g.admin('adminGuardarAjustes', { usarCalendario: 'SI' }); });
 console.log('\n== 2. Visitante: lectura pública ==');
 let cfgPub;
 t('config pública responde y NO expone correo admin ni claves de WhatsApp', () => {
@@ -476,7 +477,7 @@ t('Rockerío en vivo: bloque fijo 19–23 en viernes/sábado, cobro fijo y bloqu
   const r = g.admin('adminReservaManual', { servicio: 'vivo', fecha: vie, inicio: 3, horas: 1, banda: 'Show Band', nombre: 'Ana', telefono: '+56 9 4444 0001', pago: 'ninguno' });
   assert.ok(r.ok && r.codigo);
   const x = g.admin('adminJornadas').reservas.find((y) => y.codigo === r.codigo);
-  assert.strictEqual(x.inicio, '19:00'); assert.strictEqual(x.fin, '23:00'); assert.strictEqual(x.total, 90000); assert.ok(/en vivo/i.test(x.servicio));
+  assert.strictEqual(x.inicio, '19:00'); assert.strictEqual(x.fin, '23:00'); assert.strictEqual(x.total, 100000); assert.ok(/en vivo/i.test(x.servicio));
   assert.throws(() => g.admin('adminReservaManual', { servicio: 'ensayo', fecha: vie, inicio: 20, horas: 1, banda: 'Choque', nombre: 'Beto', telefono: '+56 9 4444 0002' }), /CHOQUE/);
   const J = g.admin('adminJornadas'); assert.strictEqual(J.vivo.desde, 19); assert.strictEqual(J.vivo.hasta, 23);
 });
@@ -487,20 +488,47 @@ t('Rockerío en vivo finalizado se contabiliza en la sala (no en el estudio) y c
   g.admin('adminCambiarEstado', r.codigo, 'Reservado (con abono)');
   g.admin('adminAjustarReserva', r.codigo, { finalizar: true });
   const c = g.admin('adminResumenContable', 'mes', mes), d = c.detalle.find((q) => q.codigo === r.codigo);
-  assert.ok(d && /en vivo/i.test(d.servicio) && d.total === 90000, JSON.stringify(d));
-  assert.strictEqual(c.sala.total - antes.sala.total, 90000, 'suma a la sala');
+  assert.ok(d && /en vivo/i.test(d.servicio) && d.total === 100000, JSON.stringify(d));
+  assert.strictEqual(c.sala.total - antes.sala.total, 100000, 'suma a la sala');
   assert.strictEqual(c.estudio.total, antes.estudio.total, 'no toca el estudio');
   assert.ok(!c.descuadres.some((q) => q.codigo === r.codigo), 'sin descuadres');
+});
+t('Rockerío en vivo en la web pública: solo con la opción activa, bloque fijo, cobro fijo y sin doble reserva', () => {
+  const dow = (f) => new Date(f + 'T12:00:00Z').getUTCDay();
+  let vie = sumar(hoy, 14); while (dow(vie) !== 5) vie = sumar(vie, 1);
+  let lun = sumar(hoy, 14); while (dow(lun) !== 1) lun = sumar(lun, 1);
+  const pedir = (fecha, tel) => g.post(sol({ servicio: 'vivo', fecha, inicio: 3, horas: 1, extras: 4, video: true, banda: 'Show Web', telefono: tel }));
+  assert.strictEqual(pedir(vie, '56977770001').ok, false, 'apagado: no se puede reservar');
+  assert.strictEqual(g.get({ accion: 'agenda', dias: 22 }).dias[vie].vivo, undefined, 'apagado: la agenda no lo menciona');
+  g.admin('adminGuardarAjustes', { verVivo: 'SI' });
+  assert.strictEqual(g.get({ accion: 'agenda', dias: 22 }).dias[vie].vivo, true);
+  assert.strictEqual(g.get({ accion: 'agenda', dias: 22 }).dias[lun].vivo, false, 'lunes no es día de shows');
+  assert.strictEqual(pedir(lun, '56977770002').ok, false);
+  const r = pedir(vie, '56977770003'); assert.ok(r.ok, JSON.stringify(r));
+  const fila = g.hoja('Reservas').find((x) => x[0] === r.codigo);
+  assert.ok(/en vivo/i.test(String(fila[3])), 'servicio: ' + fila[3]);
+  assert.strictEqual(g.get({ accion: 'agenda', dias: 22 }).dias[vie].vivo, false, 'ya ocupado');
+  assert.strictEqual(pedir(vie, '56977770004').ok, false, 'no se puede reservar dos veces el mismo bloque');
+  g.admin('adminGuardarAjustes', { verVivo: 'NO' });
+});
+t('sin Google Calendar: la reserva se guarda, ocupa el horario y no crea eventos', () => {
+  g.admin('adminGuardarAjustes', { usarCalendario: 'NO' });
+  const dia = diaLibre(18, 2, 20), r = g.post(sol({ fecha: dia, inicio: 18, horas: 2, telefono: '56977770009', banda: 'Sin Cal' })); assert.ok(r.ok, JSON.stringify(r));
+  assert.ok(!g.get({ accion: 'disponibilidad', fecha: dia }).libres.includes(18), 'el horario queda ocupado por la hoja');
+  assert.strictEqual(g.post(sol({ fecha: dia, inicio: 18, horas: 2, telefono: '56977770010', banda: 'Otra' })).ok, false);
+  g.admin('adminCambiarEstado', r.codigo, 'Anulada');
+  assert.ok(g.get({ accion: 'disponibilidad', fecha: dia }).libres.includes(18), 'al anular se libera');
+  g.admin('adminGuardarAjustes', { usarCalendario: 'SI' });
 });
 t('Configuración: valida horarios cruzados y guardar un ajuste no toca los demás', () => {
   assert.throws(() => g.admin('adminGuardarAjustes', { vivoDesde: '21', vivoHasta: '20' }), /posterior/i);
   assert.throws(() => g.admin('adminGuardarAjustes', { convenienteDesde: '15', convenienteHasta: '10' }), /franja conveniente/i);
-  g.admin('adminGuardarAjustes', { verVivo: 'SI', vivoPrecio: '95000' });
+  g.admin('adminGuardarAjustes', { verVivo: 'SI', vivoPrecio: '105000' });
   const a0 = g.admin('adminResumen').ajustes, v = (k) => a0.find((x) => x.clave === k).valor;
   g.admin('adminGuardarAjustes', { minutosReserva: '45' });
   const a1 = g.admin('adminResumen').ajustes, w = (k) => a1.find((x) => x.clave === k).valor;
-  assert.strictEqual(String(w('minutosReserva')), '45'); assert.strictEqual(w('verVivo'), v('verVivo')); assert.strictEqual(String(w('vivoPrecio')), '95000');
-  g.admin('adminGuardarAjustes', { verVivo: 'NO', vivoPrecio: '90000', minutosReserva: String(v('minutosReserva')) });
+  assert.strictEqual(String(w('minutosReserva')), '45'); assert.strictEqual(w('verVivo'), v('verVivo')); assert.strictEqual(String(w('vivoPrecio')), '105000');
+  g.admin('adminGuardarAjustes', { verVivo: 'NO', vivoPrecio: '100000', minutosReserva: String(v('minutosReserva')) });
 });
 t('una reserva ingresada por ti sin pago NO se libera sola; las de clientes sí', () => {
   let dia = sumar(dom, 49); while (new Date(dia + 'T12:00:00Z').getUTCDay() === 0) dia = sumar(dia, 1);

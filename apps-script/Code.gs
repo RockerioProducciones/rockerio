@@ -222,8 +222,10 @@ function tiendaPublica_() {
 function disponibilidad_(fecha) {
   if (!Reglas.fechaValida(fecha)) return { ok: false, error: 'Fecha inválida.' };
   var cfg = getCfg_();
-  var r = Reglas.horasLibres(cfg, fecha, horasOcupadas_(fecha, cfg), ahoraChile_());
-  return { ok: true, fecha: fecha, abiertas: r.abiertas, libres: r.libres };
+  var oc1 = horasOcupadas_(fecha, cfg), r = Reglas.horasLibres(cfg, fecha, oc1, ahoraChile_());
+  var o1 = { ok: true, fecha: fecha, abiertas: r.abiertas, libres: r.libres };
+  if (cfg.verVivo) { var v1 = Reglas.horasLibresVivo(cfg, fecha, oc1, ahoraChile_()); o1.vivo = v1.libres.length > 0; }
+  return o1;
 }
 
 /** Disponibilidad de los próximos días en una sola consulta (hoy y los 'dias' siguientes). plan = true usa el plazo de los planes. */
@@ -235,6 +237,7 @@ function agenda_(dias, plan) {
   for (var i = 0; i < n; i++) {
     var f = Reglas.sumarDias(ahora.fecha, i), r = Reglas.horasLibres(cfg, f, oc[f] || [], ahora);
     out[f] = { abiertas: r.abiertas, libres: r.libres };
+    if (cfg.verVivo) out[f].vivo = Reglas.horasLibresVivo(cfg, f, oc[f] || [], ahora).libres.length > 0; // bloque fijo de Rockerío en vivo libre ese día
   }
   return { ok: true, hoy: ahora.fecha, dias: out };
 }
@@ -752,7 +755,17 @@ function asegurarEsquema_(ss) {
   } catch (e) { /* si falla, se reintenta en la próxima solicitud */ }
 }
 
+/** Calendario «vacío» para cuando no se usa Google Calendar: no lee ni escribe eventos. La hoja de Reservas es la agenda. */
+function calendarioNulo_() {
+  var ev = { getId: function () { return ''; }, setColor: function () { return ev; }, setTitle: function () { return ev; }, setTime: function () { return ev; }, deleteEvent: function () {} };
+  return {
+    getEvents: function () { return []; }, createEvent: function () { return ev; }, getEventById: function () { return null; },
+    getName: function () { return 'Sin Google Calendar (se usa la hoja de Reservas)'; }, getTimeZone: function () { return Reglas.TZ; }, getId: function () { return ''; }
+  };
+}
+
 function getCalendar_() {
+  if (!getCfg_().usarCalendario) return calendarioNulo_();
   var id = PropertiesService.getScriptProperties().getProperty('CALENDAR_ID');
   return (id && CalendarApp.getCalendarById(id)) || CalendarApp.getDefaultCalendar();
 }
@@ -809,7 +822,7 @@ function instalar() {
   prepararTributario_(ss); // al final: sus fórmulas leen Balance, CostosMes, Compras, HistorialBalance y Configuracion
   ordenarHojas_(ss);
 
-  if (!props.getProperty('CALENDAR_ID')) {
+  if (!props.getProperty('CALENDAR_ID') && getCfg_().usarCalendario) {
     var cal = CalendarApp.createCalendar('Rockerío · Agenda', { summary: 'Reservas y bloqueos de Rockerío Producciones', timeZone: Reglas.TZ });
     props.setProperty('CALENDAR_ID', cal.getId());
   }
@@ -826,7 +839,7 @@ function instalar() {
   prepararSocios_();
 
   var msg = 'Instalación lista.\nHoja de datos: ' + ss.getUrl() +
-    '\nCalendario: "Rockerío · Agenda" (aparece en tu Google Calendar, en "Otros calendarios").' +
+    (getCfg_().usarCalendario ? '\nCalendario: "Rockerío · Agenda" (aparece en tu Google Calendar, en "Otros calendarios").' : '\nGoogle Calendar: no se usa (la agenda es la hoja de Reservas).') +
     '\nAdministrador: ' + props.getProperty('ADMIN_EMAIL') +
     '\nSiguiente paso: Implementar > Nueva implementación > Aplicación web (README, pasos 6 y 7).';
   console.log(msg);

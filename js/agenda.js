@@ -18,7 +18,13 @@
     var lunes = R.sumarDias(hoy, -((R.diaSemana(hoy) + 6) % 7)), domingo = R.sumarDias(lunes, 6), sigLunes = R.sumarDias(lunes, 7), finCal = R.sumarDias(sigLunes, 27);
     function dmy(f) { return f.slice(8) + '/' + f.slice(5, 7) + '/' + f.slice(0, 4); }
     function dTxt(f) { return R.fechaLarga(f); }
-    function inicios(f) { var x = d.dias[f]; return x ? R.inicios(x.libres, horas).sort(function (a, b) { return a - b; }) : []; }
+    /** Día tal como lo ve la persona: Rockerío en vivo es un bloque fijo que solo está libre si el servidor lo marca libre. */
+    function D(f) {
+      var x = d.dias[f]; if (servicio !== 'vivo' || !cfgP || !x) return x;
+      var blq = []; for (var h = cfgP.vivoDesde; h < cfgP.vivoHasta; h++) blq.push(h);
+      return x.vivo ? { abiertas: blq, libres: blq } : { abiertas: [], libres: [] };
+    }
+    function inicios(f) { var x = D(f); return x ? R.inicios(x.libres, horas).sort(function (a, b) { return a - b; }) : []; }
     function liga(f, h) { var a = el('a', 'dp-b'); a.appendChild(el('b', '', R.horaTxt(h) + ' a ' + R.horaTxt(h + horas))); var sm = el('small', '', '✔ Disponible'); sm.appendChild(el('span', 'dp-el', ' · Elegir')); sm.appendChild(document.createTextNode(' →')); a.appendChild(sm); a.href = 'index.html?f=' + f + '&h=' + h + '&d=' + horas + '&s=' + servicio + '#reservar'; a.setAttribute('aria-label', 'Reservar ' + R.fechaLarga(f) + ' de ' + R.horaTxt(h) + ' a ' + R.horaTxt(h + horas)); return a; }
     /* todas las horas de inicio posibles para la duración elegida (17–19, 18–20, 19–21…) */
     function bloques(bs, f, ini) { ini.forEach(function (h) { bs.appendChild(liga(f, h)); }); }
@@ -29,28 +35,28 @@
     var dur = el('div', 'dp-dur');
     /* primero el servicio: el horario es el mismo, pero las horas y lo que incluye cambian */
     dur.appendChild(el('span', 'dp-q', '¿Qué necesitas?')); var svc = el('div', 'dp-svc'); dur.appendChild(svc);
-    function pintarSvc() { svc.textContent = ''; [['ensayo', '🎸 Sala de ensayo'], ['grabacion', '🎛️ Estudio de grabación']].forEach(function (x) { var b = el('button', 'dp-chip dp-sv' + (servicio === x[0] ? ' on' : ''), x[1]); b.type = 'button'; b.setAttribute('aria-pressed', servicio === x[0] ? 'true' : 'false'); b.onclick = function () { servicio = x[0]; lim = limDe(servicio); horas = Math.min(Math.max(horas, lim.min), lim.max); pintarTodo(); }; svc.appendChild(b); }); }
+    function pintarSvc() { svc.textContent = ''; [['ensayo', '🎸 Sala de ensayo'], ['grabacion', '🎛️ Estudio de grabación']].concat(cfgP && cfgP.verVivo ? [['vivo', '🎤 Rockerío en vivo']] : []).forEach(function (x) { var b = el('button', 'dp-chip dp-sv' + (servicio === x[0] ? ' on' : ''), x[1]); b.type = 'button'; b.setAttribute('aria-pressed', servicio === x[0] ? 'true' : 'false'); b.onclick = function () { servicio = x[0]; lim = limDe(servicio); horas = Math.min(Math.max(horas, lim.min), lim.max); pintarTodo(); }; svc.appendChild(b); }); }
     dur.appendChild(el('span', 'dp-q', '¿Cuántas horas necesitas?')); var chips = el('div', 'dp-chips'); dur.appendChild(chips);
     function pintarDur() { pintarSvc(); pintarInc(); chips.textContent = ''; for (var h = lim.min; h <= lim.max; h++) (function (h) { var b = el('button', 'dp-chip' + (h === horas ? ' on' : ''), h + (h === 1 ? ' hora' : ' horas')); b.type = 'button'; b.setAttribute('aria-pressed', h === horas ? 'true' : 'false'); b.onclick = function () { horas = h; pintarTodo(); }; chips.appendChild(b); })(h); }
 
     /* ---- HOY ---- */
     var boxHoy = el('section', 'dp-hoy'), boxSem = el('section', 'dp-sem'), boxCal = el('section', 'dp-calbox');
     function pintarHoy() {
-      boxHoy.textContent = ''; var x = d.dias[hoy], ini = inicios(hoy);
+      boxHoy.textContent = ''; var x = D(hoy), ini = inicios(hoy);
       var c = el('div', 'dp-card dp-grande' + (ini.length ? ' ok' : '')); var cab = el('div', 'dp-cab'); cab.appendChild(el('b', '', 'Hoy')); cab.appendChild(el('span', '', R.fechaLarga(hoy))); c.appendChild(cab);
-      if (!x || !x.abiertas.length) c.appendChild(el('p', 'dp-vacio', 'Hoy estamos cerrados.'));
+      if (!x || !x.abiertas.length) c.appendChild(el('p', 'dp-vacio', (servicio === 'vivo' ? 'Hoy no hay shows.' : 'Hoy estamos cerrados.')));
       else if (!ini.length) c.appendChild(el('p', 'dp-vacio', x.libres.length ? 'No quedan bloques de ' + horasTxt() + ' hoy. Prueba con menos horas.' : 'Hoy ya no quedan horarios.'));
       else { var bs = el('div', 'dp-bs'); c.appendChild(bs); bloques(bs, hoy, ini); }
       boxHoy.appendChild(c);
     }
     /* ---- ESTA SEMANA (los días que faltan hasta el domingo) ---- */
     function pintarSem() {
-      boxSem.textContent = ''; var dias = []; for (var f = R.sumarDias(hoy, 1); f <= domingo; f = R.sumarDias(f, 1)) if (d.dias[f]) dias.push(f);
+      boxSem.textContent = ''; var dias = []; for (var f = R.sumarDias(hoy, 1); f <= domingo; f = R.sumarDias(f, 1)) if (D(f)) dias.push(f);
       if (!dias.length) return; boxSem.appendChild(el('h2', 'dp-h2', 'Esta semana'));
       dias.forEach(function (f) {
-        var ini = inicios(f), x = d.dias[f], r = el('div', 'dp-fila-d' + (ini.length ? ' ok' : ''));
+        var ini = inicios(f), x = D(f), r = el('div', 'dp-fila-d' + (ini.length ? ' ok' : ''));
         r.appendChild(el('span', 'dp-fd', dTxt(f)));
-        if (!x.abiertas.length) r.appendChild(el('span', 'dp-nada', 'Cerrado'));
+        if (!x.abiertas.length) r.appendChild(el('span', 'dp-nada', servicio === 'vivo' ? 'Sin shows' : 'Cerrado'));
         else if (!ini.length) r.appendChild(el('span', 'dp-nada', x.libres.length ? 'Sin bloques de ' + horasTxt() : 'Sin cupo'));
         else { var bs = el('div', 'dp-bs'); r.appendChild(bs); bloques(bs, f, ini); }
         boxSem.appendChild(r);
@@ -63,7 +69,7 @@
       var cal = el('div', 'dp-cal'), sem = el('div', 'dp-sm'); DOW.forEach(function (n) { sem.appendChild(el('b', '', n)); }); cal.appendChild(sem);
       var fila; for (var f = sigLunes; f <= finCal; f = R.sumarDias(f, 1)) {
         if (R.diaSemana(f) === 1) { fila = el('div', 'dp-fl'); cal.appendChild(fila); }
-        var x = d.dias[f], n = x ? inicios(f).length : 0, ab = x && x.abiertas.length, est = !x || !ab ? 'cerrado' : !n ? 'lleno' : (n <= 2 ? 'poco' : 'libre');
+        var x = D(f), n = x ? inicios(f).length : 0, ab = x && x.abiertas.length, est = !x || !ab ? 'cerrado' : !n ? 'lleno' : (n <= 2 ? 'poco' : 'libre');
         var b = el('button', 'dp-d ' + est + (f === selec ? ' sel' : '')); b.type = 'button'; b.appendChild(el('span', 'n', String(+f.slice(8))));
         if (+f.slice(8) === 1 || f === sigLunes) b.appendChild(el('span', 'm', MESL[+f.slice(5, 7) - 1].slice(0, 3)));
         b.setAttribute('aria-label', R.fechaLarga(f) + ': ' + (n ? n + (n === 1 ? ' horario' : ' horarios') : 'sin horarios')); b.setAttribute('aria-pressed', f === selec ? 'true' : 'false');

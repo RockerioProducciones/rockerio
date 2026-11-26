@@ -54,7 +54,7 @@ const { sembrar } = require('./demo.js');
   await p.screenshot({ path: '8b-transferencia.png', fullPage: true });
   const fila = g.hoja('Reservas').find((r) => r[10] === '56977771234' || String(r[C()]) === '56977771234'); function C() { return g.ctx.RES.telefono - 1; }
   ok(!!g.hoja('Reservas').find((r) => String(r[C()]) === '56977771234'), 'la reserva quedó en la hoja');
-  ok(g.estado.eventos.some((e) => /Banda E2E/.test(e.titulo)), 'y en el calendario');
+  ok(!g.estado.eventos.some((e) => /Banda E2E/.test(e.titulo)), 'sin evento en Google Calendar (viene apagado: la agenda es la hoja)');
   // volver al inicio
   await p.click('.volver'); await p.waitForTimeout(300); ok(await p.evaluate(() => document.body.getAttribute('data-vista') === 'inicio') && await p.locator('#barra-app').isVisible(), 'botón Inicio vuelve al inicio (con la barra inferior)');
   // otras vistas
@@ -84,7 +84,7 @@ const { sembrar } = require('./demo.js');
   ok(await p.locator('#aviso-incl').isVisible(), 'recuadro de grabación incluida visible en ensayo');
   await p.locator('#horas-btns .hbtn', { hasText: /^3$/ }).click(); await p.waitForTimeout(200);
   ok(/1 hora/.test(await p.textContent('#aviso-incl')), 'con 3 horas incluye 1 hora de grabación');
-  ok(await p.locator('.opcion .desc').count() === 2, 'descripciones de sala y estudio');
+  ok(await p.locator('.opcion:not([hidden]) .desc').count() === 2, 'descripciones de sala y estudio');
   await p.goto('http://localhost:8099/#nosotros'); await p.waitForTimeout(600);
   ok(await p.locator('#nosotros [data-playlist] iframe').count() === 1, 'reproductor de playlist en Producción');
   await p.goto('http://localhost:8099/#galeria'); await p.waitForTimeout(600);

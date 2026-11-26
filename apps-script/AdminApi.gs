@@ -89,7 +89,8 @@ function adminCambiarEstado(codigo, estado) {
   var sh = abrirBd_().getSheetByName(HOJAS.reservas);
   var celda = sh.getLastRow() > 1 ? sh.createTextFinder(String(codigo)).matchEntireCell(true).findNext() : null;
   if (!celda || celda.getColumn() !== RES.codigo) throw new Error('No se encontró la reserva.');
-  if (ESTADOS_QUE_OCUPAN.indexOf(estado) >= 0) { // reactivar una anulada: el horario no debe haberse ocupado mientras tanto
+  var estadoAntes = estadoNorm_(sh.getRange(celda.getRow(), RES.estado).getValue()); // si ya ocupaba el horario (p. ej. pasar a «con abono»), no hay nada que revisar
+  if (ESTADOS_QUE_OCUPAN.indexOf(estado) >= 0 && ESTADOS_QUE_OCUPAN.indexOf(estadoAntes) < 0) { // reactivar una anulada: el horario no debe haberse ocupado mientras tanto
     var rr = sh.getRange(celda.getRow(), 1, 1, ENCABEZADO_RESERVAS.length).getValues()[0];
     if (!eventoVivo_(getCalendar_(), rr[RES.evento - 1], rr)) {
       var fch = aFechaIso_(rr[RES.fecha - 1]), h0 = aHora_(rr[RES.inicio - 1]), nh = Number(rr[RES.horas - 1]);
