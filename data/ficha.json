@@ -99,13 +99,12 @@
           ]
         },
         {
-          "titulo": "Tarifas y condiciones",
+          "titulo": "Tarifas",
           "items": [
             "Hora de sala de ensayo: {precioEnsayoHora}",
             "Plan 8 horas (4 ensayos de 2 h): {plan8}",
             "Plan 12 horas (4 ensayos de 3 h): {plan12}",
-            "Abono de {abonoPorHora} por hora para asegurar tu cupo; el saldo se paga al finalizar la sesión",
-            "Cambios de agenda con al menos {horasAnulacion} horas de anticipación"
+            "Abono, cambios y anulaciones: ver el Reglamento"
           ]
         }
       ]
@@ -175,8 +174,7 @@
           "items": [
             "Sesiones desde 1 hora: el valor se ajusta a las horas que necesites",
             "Asistencia técnica e ingeniería durante toda la sesión: microfonía, ruteo y toma de sonido",
-            "Abono por cada hora reservada para asegurar tu cupo; el saldo se paga al finalizar",
-            "Cambios de fecha u hora con al menos {horasAnulacion} horas de anticipación"
+            "Abono, cambios y anulaciones: ver el Reglamento"
           ]
         }
       ]
