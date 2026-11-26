@@ -5048,7 +5048,7 @@ function limpiarTextosSitio_(o) {
   var out = {}, n = 0;
   Object.keys(o && typeof o === 'object' ? o : {}).forEach(function (k) {
     var c = clave_(k), v = textoLargo_(o[k], 1500);
-    if (c && v && n < 120) { out[c] = v; n++; }
+    if (c && v && n < 250) { out[c] = v; n++; }
   });
   return out;
 }
