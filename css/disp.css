@@ -61,3 +61,4 @@ a.dp-b:hover b,a.dp-b:focus-visible b,a.dp-b:active b{color:#1c1b1a}a.dp-b:hover
 a.dp-b small{white-space:nowrap}@media(max-width:480px){a.dp-b .dp-el{display:none}}
 .dp-fila-d .dp-bs,.dp-card .dp-bs{flex:1 1 0;min-width:0;width:100%}
 .dp-fila-d{flex-direction:column;align-items:stretch}.dp-fila-d .dp-fd{flex:none;padding-top:0}
+.dp-svc{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:.1rem 0 .8rem}.dp-dur .dp-q+.dp-svc+.dp-q{margin-top:.2rem}

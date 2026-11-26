@@ -44,9 +44,9 @@
     [].forEach.call(document.querySelectorAll('.wiz-volver'), function (b) { b.hidden = i === 0; });
     var ultimo = i === l.length - 1, s = $('wiz-sig');
     $('wiz-acc').hidden = ultimo; s.disabled = !listo(actual);
-    s.textContent = actual === 'paso-servicio' ? 'Elegir el día ›' : actual === 'paso-datos' ? 'Revisar mi reserva ›' : 'Siguiente ›';
+    s.textContent = actual === 'paso-servicio' ? (RK.saltoDatos ? 'Seguir a mis datos ›' : 'Elegir el día ›') : actual === 'paso-datos' ? 'Revisar mi reserva ›' : 'Siguiente ›';
     var av = $('wiz-aviso'); if (!av) { av = document.createElement('div'); av.id = 'wiz-aviso'; av.className = 'wiz-aviso'; $('wiz-barra').appendChild(av); }
-    av.hidden = !aviso; av.textContent = aviso;
+    var msg = aviso || (actual === 'paso-servicio' && RK.saltoDatos ? 'Ya elegiste día y hora. Elige qué necesitas y seguimos con tus datos.' : ''); av.hidden = !msg; av.textContent = msg;
     chip();
   }
 
@@ -92,7 +92,13 @@
   /* ---- eventos ---- */
   $('wiz-sig').addEventListener('click', function () {
     if (actual === 'paso-datos' && !validarDatos()) return;
-    aviso = ''; sig();
+    aviso = '';
+    if (actual === 'paso-servicio' && RK.saltoDatos) { /* viene de Disponibilidad con día y hora ya elegidos */
+      RK.saltoDatos = false; var S0 = RK.estado();
+      if (S0.fecha && S0.inicio !== null) { ir('paso-datos', true); return; }
+      aviso = 'Ese horario no calza con el servicio elegido. Elige otro día u hora.'; ir('paso-fecha', true); return;
+    }
+    sig();
   });
   $('wiz-atras').addEventListener('click', atras);
   [].forEach.call(document.querySelectorAll('.wiz-volver'), function (b) { b.addEventListener('click', atras); });

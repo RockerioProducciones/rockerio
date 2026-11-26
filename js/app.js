@@ -699,17 +699,22 @@
   /* Enlace desde «Disponibilidad»: index.html?f=AAAA-MM-DD&h=18&d=2#reservar deja día, hora y duración ya elegidos.
      Se valida contra la agenda real; si el horario ya no está libre, se abre el asistente normal en «Elige día y horario». */
   function aplicarSolicitud() {
-    var q = new URLSearchParams(location.search), f = q.get('f'), h = parseInt(q.get('h'), 10), d = parseInt(q.get('d'), 10);
+    var q = new URLSearchParams(location.search), f = q.get('f'), h = parseInt(q.get('h'), 10), d = parseInt(q.get('d'), 10), sv = q.get('s');
+    sv = sv === 'ensayo' || sv === 'grabacion' ? sv : '';
     if (!f || !/^\d{4}-\d{2}-\d{2}$/.test(f) || isNaN(h)) return;
     try { history.replaceState(null, '', location.pathname + (location.hash || '#reservar')); } catch (e) { /* sin historial */ }
     var intentos = 0;
     (function esperar() {
       if (!agenda && intentos++ < 25) return setTimeout(esperar, 300);
-      if (!isNaN(d)) { S.horas = d; pintarHoras(); }
+      if (sv) { S.servicio = sv; var rb = document.querySelector('input[name=servicio][value=' + sv + ']'); if (rb) rb.checked = true; }
+      if (!isNaN(d)) { S.horas = d; }
+      pintarHoras();
       var ok = agenda && agenda[f] && R.inicios(agenda[f].libres, S.horas).indexOf(h) >= 0 && f >= ahora.fecha;
       if (ok) { S.fecha = f; S.inicio = h; } else { S.fecha = null; S.inicio = null; }
       pintarCalendario(); estado();
-      if (window.RK.irPaso) window.RK.irPaso(ok ? 'paso-datos' : 'paso-fecha');
+      /* con servicio elegido en Disponibilidad vamos directo a los datos; si no, primero se pregunta el servicio y después se salta a los datos */
+      window.RK.saltoDatos = !!(ok && !sv);
+      if (window.RK.irPaso) window.RK.irPaso(ok ? (sv ? 'paso-datos' : 'paso-servicio') : 'paso-fecha');
     })();
   }
 

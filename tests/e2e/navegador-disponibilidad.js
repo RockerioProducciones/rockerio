@@ -19,9 +19,17 @@ const { sembrar } = require('./demo.js');
     await p.locator('.dp-chip', { hasText: '2 horas' }).click();
     chk(await p.locator('.dp-ver').count() === 0, nom + ': sin enlaces extra, todas las horas a la vista');
     chk(await p.locator('.dp-share').count() === 1, nom + ': botón compartir disponibilidad');
+    await p.locator('.dp-sv', { hasText: 'Estudio' }).click(); chk(/s=grabacion/.test(await p.locator('.dp-b').first().getAttribute('href')), nom + ': el servicio elegido viaja en el enlace (estudio)');
+    await p.locator('.dp-sv', { hasText: 'Sala de ensayo' }).click(); chk(/s=ensayo/.test(await p.locator('.dp-b').first().getAttribute('href')), nom + ': el servicio elegido viaja en el enlace (ensayo)');
     const lk = p.locator('.dp-b').first(); const hr = await lk.getAttribute('href'); await lk.click(); await p.waitForSelector('#wiz-chip', { timeout: 15000 }); await p.waitForTimeout(1500);
     const f = /f=([\d-]+)&h=(\d+)/.exec(hr); chk(/17|18|19|20|21|09|1\d:00|:00/.test(await p.locator('#wiz-chip').innerText()) && (await p.locator('#wiz-chip').innerText()).includes(String(+f[1].slice(8))), nom + ': al tocar un horario abre reservar con día y hora ya elegidos');
     chk(await p.locator('#paso-datos').isVisible(), nom + ': y salta directo a «Tus datos»');
+    /* enlace sin servicio: primero pregunta el servicio y después salta a los datos */
+    await p.goto('http://localhost:8097/index.html?f=' + f[1] + '&h=' + f[2] + '&d=2#reservar'); await p.waitForSelector('#paso-servicio', { timeout: 15000 }); await p.waitForTimeout(2500);
+    chk(await p.locator('#paso-servicio').isVisible() && !(await p.locator('#paso-datos').isVisible()), nom + ': sin servicio en el enlace, primero pregunta qué necesitas');
+    chk(/Seguir a mis datos/.test(await p.locator('#wiz-sig').innerText()), nom + ': el botón dice «Seguir a mis datos»');
+    await p.locator('input[name=servicio][value=grabacion]').check({ force: true }); await p.locator('#wiz-sig').click(); await p.waitForTimeout(600);
+    chk(await p.locator('#paso-datos').isVisible() && /Estudio/.test(await p.locator('#wiz-chip').innerText()), nom + ': tras elegir el servicio salta a «Tus datos» con el horario ya puesto');
   }
   await b.close(); srv.close(); process.exit(fallas ? 1 : 0);
 })();
