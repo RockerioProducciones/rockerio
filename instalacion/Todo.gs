@@ -76,7 +76,7 @@ var Reglas = (function () {
     sitioWeb: '', redInstagram: 'https://instagram.com/rockerio_producciones', redFacebook: '', redYoutube: '', redTiktok: '', redSpotify: '', redYoutubeMusic: 'https://music.youtube.com/playlist?list=PLVvxu7INRfmo', redTwitch: '', redLinktree: '', correoContacto: 'rockerioestudio@gmail.com', mapsUrl: '',
     enlacesExtra: '',             // una línea por enlace: «Texto | https://…»
     // Apartado ProAudix (colega audiovisual)
-    proaudixTexto: 'ProAudix es el espacio matriz de Rockerío Producciones SpA: la infraestructura donde operamos. La tienda de insumos y los bebestibles del estudio los atiende ProAudix.',
+    proaudixTexto: 'ProAudix es el espacio matriz de Rockerío Producciones: la infraestructura donde operamos. La tienda de insumos y los bebestibles del estudio los atiende ProAudix.',
     proaudixWeb: '', proaudixInstagram: '', proaudixFacebook: '', proaudixYoutube: '', proaudixWhatsapp: '', proaudixEnlaces: '',
 
     precioEnsayoHora: 15000,
@@ -586,7 +586,7 @@ var Reglas = (function () {
     };
   }
 
-  var CLAUSULA_DATOS = "## 🔒 Protección de datos personales\n- Qué datos pedimos: nombre, nombre de la banda, teléfono o WhatsApp, correo electrónico y, si quieres, un comentario. Los usamos solo para gestionar tu reserva, avisarte de cambios, recordarte tu sesión, cobrar o devolver abonos y, si lo pides, entregarte tu material.\n- Qué no hacemos: no vendemos ni cedemos tus datos a terceros, ni los usamos para publicidad. Tampoco te escribimos con ofertas que no pediste.\n- Con quién se comparten: solo con los servicios que hacen posible la reserva (por ejemplo almacenamiento y correo de Google, WhatsApp y, si usas el pago en línea, Mercado Pago), que los tratan únicamente para ese fin. El pago con tarjeta lo procesa Mercado Pago: nosotros nunca vemos ni guardamos los datos de tu tarjeta.\n- Quién puede verlos: solo el equipo de {negocio}. Tu teléfono y correo no se muestran en el sitio ni a otras bandas.\n- Cuánto tiempo: los conservamos mientras sean necesarios para atender tu reserva y cumplir obligaciones administrativas y tributarias; después los eliminamos o anonimizamos.\n- Publicaciones: reseñas, Cuadro de Honor, fotos, videos o audios de tu sesión se publican solo con tu autorización y puedes pedir que los retiremos cuando quieras.\n- Tus derechos: puedes pedir acceso, corrección, eliminación u oposición al uso de tus datos, o retirar tu consentimiento, escribiéndonos por WhatsApp o al correo de contacto de este sitio. Respondemos a la brevedad.\n- Seguridad: usamos cuentas protegidas, acceso restringido al administrador y conexiones cifradas. Si ocurriera un incidente que afecte tus datos, te informaremos.\n- Este sitio no usa cookies de publicidad ni de seguimiento. Actuamos conforme a la normativa chilena de protección de datos personales (Ley N° 19.628 y su actualización, Ley N° 21.719).";
+  var CLAUSULA_DATOS = "## 🔒 Datos personales\n- Usamos tus datos solo para gestionar tu reserva y no los vendemos ni cedemos a terceros.\n- El detalle completo (qué guardamos, por cuánto tiempo y tus derechos) está en la sección Privacidad de este sitio.";
   return {
     CLAUSULA_DATOS: CLAUSULA_DATOS, TZ: TZ, SERVICIOS: SERVICIOS, VIVO_DIAS: VIVO_DIAS, vivoDiaValido: vivoDiaValido, DIAS: DIAS, CONFIG_POR_DEFECTO: CONFIG_POR_DEFECTO, datosTransf: datosTransf,
     aNumero: aNumero, aBool: aBool, clp: clp, horaTxt: horaTxt, fechaValida: fechaValida, diaSemana: diaSemana,
