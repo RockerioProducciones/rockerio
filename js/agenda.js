@@ -18,7 +18,7 @@
     function dmy(f) { return f.slice(8) + '/' + f.slice(5, 7) + '/' + f.slice(0, 4); }
     function dTxt(f) { return R.fechaLarga(f); }
     function inicios(f) { var x = d.dias[f]; return x ? R.inicios(x.libres, horas).sort(function (a, b) { return a - b; }) : []; }
-    function liga(f, h) { var a = el('a', 'dp-b', R.horaTxt(h) + ' – ' + R.horaTxt(h + horas)); a.href = 'index.html?f=' + f + '&h=' + h + '&d=' + horas + '#reservar'; a.setAttribute('aria-label', 'Reservar ' + R.fechaLarga(f) + ' de ' + R.horaTxt(h) + ' a ' + R.horaTxt(h + horas)); return a; }
+    function liga(f, h) { var a = el('a', 'dp-b'); a.appendChild(el('b', '', R.horaTxt(h) + ' a ' + R.horaTxt(h + horas))); var sm = el('small', '', '✔ Disponible'); sm.appendChild(el('span', 'dp-el', ' · Elegir')); sm.appendChild(document.createTextNode(' →')); a.appendChild(sm); a.href = 'index.html?f=' + f + '&h=' + h + '&d=' + horas + '#reservar'; a.setAttribute('aria-label', 'Reservar ' + R.fechaLarga(f) + ' de ' + R.horaTxt(h) + ' a ' + R.horaTxt(h + horas)); return a; }
     /* todas las horas de inicio posibles para la duración elegida (17–19, 18–20, 19–21…) */
     function bloques(bs, f, ini) { ini.forEach(function (h) { bs.appendChild(liga(f, h)); }); }
     function mas(n, f) { var m = el('button', 'dp-mas', '+' + n + ' más'); m.type = 'button'; m.onclick = function () { selec = f; pintarDetalle(); var e = document.getElementById('dp-det'); if (e) e.scrollIntoView({ behavior: 'smooth', block: 'center' }); }; return m; }

@@ -25,7 +25,6 @@
 .dp-fd{flex:0 0 7.4rem;white-space:nowrap;font:700 1rem Oswald,sans-serif;text-transform:uppercase;letter-spacing:.04em;color:#fff}
 .dp-fila-d:not(.ok){opacity:.5}.dp-nada,.dp-vacio{color:#bdb5ab;font-size:.9rem;margin:0}
 /* horarios */
-.dp-bs{display:flex;flex-wrap:wrap;gap:7px}
 .dp-b,.dp-mas{display:inline-flex;align-items:center;justify-content:center;min-width:68px;min-height:44px;padding:0 .85rem;box-sizing:border-box;border-radius:12px;font:800 1rem Inter,sans-serif;text-decoration:none;cursor:pointer}
 .dp-b{border:0;background:var(--dp-v);color:#07331a;box-shadow:0 3px 0 rgba(0,0,0,.25);transition:transform .15s,background .15s}
 .dp-b:hover,.dp-b:focus-visible{background:var(--oro);color:#1c1b1a;transform:translateY(-1px);outline:none}
@@ -49,3 +48,16 @@
 @media(prefers-reduced-motion:reduce){.dp-b,.dp-d{transition:none}}
 .dp-inc{margin:.5rem 0 0;font-weight:700;color:#e39a2d;font-size:.95rem}
 .dp-share{display:block;margin:.9rem auto 0;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);color:#f3ead7;border-radius:999px;padding:.55rem 1.1rem;font:600 .9rem Inter,system-ui,sans-serif;cursor:pointer;min-height:40px}
+
+/* Bloques horarios: mismo estilo que el paso «Elige día y horario» de Reservar */
+.dp-bs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media(min-width:760px){.dp-bs{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}}
+a.dp-b{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:.25rem;min-width:0;min-height:0;padding:.85rem 1rem;border-radius:20px;border:1.5px solid #2e8f5a;background:#121212;color:#fff;box-shadow:none;text-decoration:none;text-align:left;transition:transform .15s,background .15s,border-color .15s}
+a.dp-b b{font:500 1.35rem/1.1 Oswald,Impact,sans-serif;letter-spacing:.02em;color:#fff;white-space:nowrap}
+a.dp-b small{font:700 .66rem/1.2 Inter,system-ui,sans-serif;text-transform:uppercase;letter-spacing:.05em;color:#4ade80}
+a.dp-b:hover,a.dp-b:focus-visible,a.dp-b:active{background:#e2ae35;border-color:#e2ae35;transform:translateY(-1px);outline:none}
+a.dp-b:hover b,a.dp-b:focus-visible b,a.dp-b:active b{color:#1c1b1a}a.dp-b:hover small,a.dp-b:focus-visible small,a.dp-b:active small{color:#1c1b1a}
+@media(max-width:380px){a.dp-b b{font-size:1.15rem}a.dp-b small{font-size:.6rem}}
+a.dp-b small{white-space:nowrap}@media(max-width:480px){a.dp-b .dp-el{display:none}}
+.dp-fila-d .dp-bs,.dp-card .dp-bs{flex:1 1 0;min-width:0;width:100%}
+.dp-fila-d{flex-direction:column;align-items:stretch}.dp-fila-d .dp-fd{flex:none;padding-top:0}
