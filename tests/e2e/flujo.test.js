@@ -460,6 +460,17 @@ t('cliente sin teléfono recibe clave interna y se puede editar y eliminar', () 
   g.admin('adminEliminarCliente', '56955554444'); assert.ok(g.admin('adminEliminarCliente', '56955554444').ok, 'eliminar dos veces no da error');
   assert.ok(!g.admin('adminJornadas').clientes.find((x) => x.banda === 'Sin Telefono'));
 });
+t('eliminar un cliente con reservas: deja de aparecer; «con reservas» las borra', () => {
+  const tel = '+56 9 3131 4141', dig = '56931314141';
+  const r = g.post(sol({ banda: 'Prueba Borrar', nombre: 'Pru', telefono: tel, correo: 'pru@correo.cl', inicio: 17, horas: 1, fecha: sumar(f3, 14) })); assert.ok(r.ok, JSON.stringify(r));
+  assert.ok(g.admin('adminJornadas').clientes.find((x) => x.banda === 'Prueba Borrar'));
+  g.admin('adminEliminarCliente', dig);
+  assert.ok(!g.admin('adminJornadas').clientes.find((x) => x.banda === 'Prueba Borrar'), 'no reaparece desde sus reservas');
+  const r2 = g.post(sol({ banda: 'Prueba Borrar', nombre: 'Pru', telefono: tel, correo: 'pru@correo.cl', inicio: 19, horas: 1, fecha: sumar(f3, 14) })); assert.ok(r2.ok, JSON.stringify(r2));
+  assert.ok(g.admin('adminJornadas').clientes.find((x) => x.banda === 'Prueba Borrar'), 'vuelve si reserva de nuevo');
+  const q = g.admin('adminEliminarCliente', dig, true); assert.ok(q.ok && q.reservasBorradas >= 1, JSON.stringify(q));
+  const j = g.admin('adminJornadas'); assert.ok(!j.clientes.find((x) => x.banda === 'Prueba Borrar')); assert.ok(!j.reservas.find((x) => x.banda === 'Prueba Borrar'));
+});
 t('el cliente manual aparece enlazado cuando reserva con su teléfono', () => {
   const r = g.post(sol({ banda: 'Los Manuales', nombre: 'Luis', telefono: '+56 9 7777 6666', correo: 'luis@correo.cl', inicio: 10, fecha: sumar(f3, 14) }));
   assert.ok(r.ok, JSON.stringify(r));

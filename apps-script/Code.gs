@@ -442,6 +442,7 @@ function pendientesDe_(tel) {
 }
 
 function registrarCliente_(d) {
+  try { var pr = PropertiesService.getScriptProperties(), oc = JSON.parse(pr.getProperty('CLIENTES_OCULTOS') || '[]'), dg = String(d.telefono || '').replace(/\D/g, ''); if (oc.indexOf(dg) >= 0) pr.setProperty('CLIENTES_OCULTOS', JSON.stringify(oc.filter(function (x) { return x !== dg; }))); } catch (e) { /* sin lista de ocultos */ }
   var sh = abrirBd_().getSheetByName(HOJAS.clientes);
   var hoy = new Date();
   var hallado = sh.getLastRow() > 1 ? sh.createTextFinder(d.telefono).matchEntireCell(true).findNext() : null;

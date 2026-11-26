@@ -616,14 +616,34 @@ function adminFusionarClientes(destino, origenes) {
   });
 }
 
-function adminEliminarCliente(clave) {
+function soloDigitos_(v) { return String(v == null ? '' : v).replace(/\D/g, ''); }
+
+/**
+ * Elimina un cliente de la base. Todas las filas con el mismo teléfono (aunque esté escrito distinto) salen de «Clientes».
+ * Si tiene reservas, el cliente seguiría apareciendo (la lista también se arma con las reservas): por eso queda en una lista
+ * de ocultos hasta que vuelva a reservar. Con conReservas=true se borran además sus reservas (para clientes de prueba).
+ */
+function adminEliminarCliente(clave, conReservas) {
   exigirAdmin_();
   return conBloqueo_(function () {
-    var sh = abrirBd_().getSheetByName(HOJAS.clientes), n = sh.getLastRow(), fila = -1;
-    if (n > 1) sh.getRange(2, 1, n - 1, 1).getValues().forEach(function (r, i) { if (String(r[0]) === String(clave)) fila = i + 2; });
-    if (fila < 0) return { ok: true, yaNoExistia: true }; // ya estaba eliminado (p. ej. un reintento automático tras un corte): no es un error
-    sh.deleteRow(fila);
-    return { ok: true };
+    var ss = abrirBd_(), sh = ss.getSheetByName(HOJAS.clientes), n = sh.getLastRow(), d = soloDigitos_(clave), filas = [], borradas = 0;
+    if (!d) return { ok: true, yaNoExistia: true };
+    if (n > 1) sh.getRange(2, 1, n - 1, 1).getValues().forEach(function (r, i) { if (String(r[0]) === String(clave) || soloDigitos_(r[0]) === d) filas.push(i + 2); });
+    filas.sort(function (a, b) { return b - a; }).forEach(function (f) { sh.deleteRow(f); });
+    var sr = ss.getSheetByName(HOJAS.reservas), nr = sr.getLastRow(), quedan = 0;
+    if (nr > 1) {
+      var tel = sr.getRange(2, RES.telefono, nr - 1, 1).getValues(), borrar = [];
+      tel.forEach(function (r, i) { if (soloDigitos_(r[0]) === d) borrar.push(i + 2); });
+      if (conReservas === true) { borrar.sort(function (a, b) { return b - a; }).forEach(function (f) { sr.deleteRow(f); }); borradas = borrar.length; }
+      else quedan = borrar.length;
+    }
+    var pr = PropertiesService.getScriptProperties(), oc = [];
+    try { oc = JSON.parse(pr.getProperty('CLIENTES_OCULTOS') || '[]'); } catch (e) { oc = []; }
+    oc = oc.filter(function (x) { return x !== d; });
+    if (quedan > 0) oc.push(d);
+    pr.setProperty('CLIENTES_OCULTOS', JSON.stringify(oc));
+    registrarCambio_('Cliente eliminado', String(clave), '', borradas ? 'con ' + borradas + ' reservas' : (filas.length ? 'quitado de la base' : 'solo oculto'));
+    return { ok: true, filas: filas.length, reservasBorradas: borradas, oculto: quedan > 0 };
   });
 }
 
@@ -897,7 +917,8 @@ function adminJornadas() {
     if (r.fecha && r.fecha < hoy && r.estado !== EST.SIN_ABONO && (!c.ultima || r.fecha > c.ultima)) c.ultima = r.fecha;
     if (r.fecha && r.fecha >= hoy && (!c.proxima || r.fecha < c.proxima)) c.proxima = r.fecha;
   });
-  var clientes = Object.keys(porTel).map(function (t) { return porTel[t]; }).sort(function (a, b) { return b.jornadas - a.jornadas || (a.banda < b.banda ? -1 : 1); });
+  var ocultos = []; try { ocultos = JSON.parse(PropertiesService.getScriptProperties().getProperty('CLIENTES_OCULTOS') || '[]'); } catch (eO) { ocultos = []; }
+  var clientes = Object.keys(porTel).filter(function (t) { return ocultos.indexOf(soloDigitos_(t)) < 0; }).map(function (t) { return porTel[t]; }).sort(function (a, b) { return b.jornadas - a.jornadas || (a.banda < b.banda ? -1 : 1); });
   var abiertas = {}; try { var cfgA = getCfg_(); for (var dA = 0; dA < 150; dA++) { var fA = Reglas.sumarDias ? Reglas.sumarDias(hoy, dA) : null; if (fA) abiertas[fA] = Reglas.horasAbiertas(cfgA, fA); } } catch (eA) { abiertas = {}; }
   return { hoy: hoy, abiertas: abiertas, reservas: reservas, bloqueos: bloqueos, inhabiles: inhabiles, clientes: clientes, similares: agruparSimilares_(cl), estados: ESTADOS, wa: waDatos_(), maxReag: getCfg_().reagendoCambios, vivo: { dias: (Reglas.VIVO_DIAS[getCfg_().vivoDias] || [5, 6]), diasTxt: getCfg_().vivoDias, desde: getCfg_().vivoDesde, hasta: getCfg_().vivoHasta, precio: getCfg_().vivoPrecio }, precios: { raw: getCfg_().precioRaw, video: getCfg_().precioVideo, equipo: getCfg_().precioExtraEquipo, equipoModo: getCfg_().extraModo } };
 }
