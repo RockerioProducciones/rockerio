@@ -2049,6 +2049,7 @@ function respaldar() {
     archivos = archivos.filter(function (a) { return /^Respaldo /.test(a.getName()); }); // «Instantánea…» y «Previo…» no se borran solas
     archivos.slice(RESPALDOS_A_CONSERVAR).forEach(function (a) { a.setTrashed(true); });
     props.setProperty('ULTIMO_RESPALDO', hoy);
+    olvidarListaRespaldos_();
     return 'Respaldo creado: ' + copia.getName() + ' (se conservan ' + RESPALDOS_A_CONSERVAR + ').';
   } catch (err) {
     console.error(err && err.stack || err);
@@ -2067,6 +2068,7 @@ function adminRespaldar() {
 
 /** Instantánea con nombre (la pones tú, antes de un cambio grande). No se borra sola. */
 function adminInstantanea(nombre) {
+  olvidarListaRespaldos_();
   exigirAdmin_();
   var n = String(nombre || '').replace(/[^\w\sáéíóúñÁÉÍÓÚÑ\-.,()]/g, '').trim().slice(0, 50) || 'sin nombre';
   var copia = DriveApp.getFileById(PropertiesService.getScriptProperties().getProperty('SHEET_ID'))
@@ -2121,15 +2123,20 @@ function carpetaRespaldos_() {
 }
 
 /** Lista las copias disponibles (más nuevas primero). */
+function olvidarListaRespaldos_() { try { CacheService.getScriptCache().remove('RESP_LISTA'); } catch (e) { /* sin caché */ } }
+
 function adminListarRespaldos() {
   exigirAdmin_();
+  try { var c = CacheService.getScriptCache().get('RESP_LISTA'); if (c) return JSON.parse(c); } catch (e0) { /* sin caché */ }
   var out = [], f = carpetaRespaldos_().getFiles();
   while (f.hasNext()) {
     var a = f.next();
     out.push({ id: a.getId(), nombre: a.getName(), creado: Utilities.formatDate(a.getDateCreated(), 'America/Santiago', 'yyyy-MM-dd HH:mm'), t: a.getDateCreated().getTime() });
   }
   out.sort(function (a, b) { return b.t - a.t; });
-  return out.slice(0, 60).map(function (x) { delete x.t; return x; });
+  var lista = out.slice(0, 60).map(function (x) { delete x.t; return x; });
+  try { CacheService.getScriptCache().put('RESP_LISTA', JSON.stringify(lista), 600); } catch (e1) { /* sin caché */ }
+  return lista;
 }
 
 /**
@@ -2140,6 +2147,7 @@ function adminListarRespaldos() {
  */
 function adminRestaurar(id) {
   exigirAdmin_();
+  olvidarListaRespaldos_();
   return conBloqueo_(function () {
     var carpeta = carpetaRespaldos_(), ok = false, f = carpeta.getFiles();
     while (f.hasNext()) if (f.next().getId() === String(id)) ok = true;
