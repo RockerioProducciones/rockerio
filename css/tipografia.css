@@ -7,3 +7,15 @@ html .btn,html button.btn{font-family:Oswald,Impact,sans-serif!important}
 /* Calaverita al pie de los portales */
 .pie-marca{display:flex;align-items:center;justify-content:center;gap:.6rem;margin:2rem auto 5rem;opacity:.75;font:700 .85rem Oswald,Impact,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--oro,#FCC631)}
 .pie-marca img{height:38px;width:auto}
+
+/* ANCHO TOTAL: todas las vistas usan el mismo ancho del navegador (con margen lateral cómodo) */
+:root{--gut:clamp(12px,2.2vw,40px)}
+.hero,.franja-dir,.menu,footer,.sec,.vista-barra,.pg,.pg.disp,
+.wizard,.wizard fieldset.activo,.wiz-barra,#form,.wizard form{
+  max-width:none!important;width:auto!important;
+  margin-left:var(--gut)!important;margin-right:var(--gut)!important;box-sizing:border-box}
+.sec{padding-left:0!important;padding-right:0!important}
+.pg,.pg.disp{padding-left:0!important;padding-right:0!important}
+.dp-dur{max-width:none!important}
+.wizard fieldset.activo,.wiz-barra{margin-left:0!important;margin-right:0!important}
+.sec .wizard{margin-left:0!important;margin-right:0!important}
