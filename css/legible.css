@@ -16,18 +16,18 @@ body.con-vistas[data-vista]:not([data-vista="inicio"]) .menu .tarjeta::before{wi
 
 .wizard{--srv:var(--sv-e,#f5b400);--srv-t:var(--sv-t-e,#1a1204)}
 .wizard:has(input[name=servicio][value=grabacion]:checked){--srv:var(--sv-g,#ef4444);--srv-t:var(--sv-t-g,#fff)}
-.wizard:has(input[name=servicio][value=vivo]:checked){--srv:var(--sv-v,#a855f7);--srv-t:var(--sv-t-v,#fff)}
+.wizard:has(input[name=servicio][value=vivo]:checked){--srv:var(--sv-v,#06b6d4);--srv-t:var(--sv-t-v,#04161b)}
 .wizard{--oro:var(--srv)}
 .wizard .btn,.wizard #enviar{background:linear-gradient(180deg,color-mix(in srgb,var(--srv) 86%,#fff),var(--srv))!important;color:var(--srv-t)!important;box-shadow:0 4px 18px color-mix(in srgb,var(--srv) 35%,transparent)!important}
 .wizard #servicios .opcion:has(input[value=ensayo]){border-left:5px solid var(--sv-e,#f5b400)}
 .wizard #servicios .opcion:has(input[value=grabacion]){border-left:5px solid var(--sv-g,#ef4444)}
-.wizard #servicios .opcion:has(input[value=vivo]){border-left:5px solid var(--sv-v,#a855f7)}
+.wizard #servicios .opcion:has(input[value=vivo]){border-left:5px solid var(--sv-v,#06b6d4)}
 .wizard #servicios .opcion:has(input[value=ensayo]) b,.wizard #servicios .opcion:has(input[value=ensayo]) small{color:var(--sv-e,#f5b400)}
 .wizard #servicios .opcion:has(input[value=grabacion]) b,.wizard #servicios .opcion:has(input[value=grabacion]) small{color:var(--sv-g,#ef4444)}
-.wizard #servicios .opcion:has(input[value=vivo]) b,.wizard #servicios .opcion:has(input[value=vivo]) small{color:var(--sv-v,#a855f7)}
+.wizard #servicios .opcion:has(input[value=vivo]) b,.wizard #servicios .opcion:has(input[value=vivo]) small{color:var(--sv-v,#06b6d4)}
 .wizard #servicios .opcion:has(input[value=ensayo]:checked){border-color:var(--sv-e,#f5b400);background:color-mix(in srgb,var(--sv-e,#f5b400) 11%,transparent);box-shadow:0 0 0 1px var(--sv-e,#f5b400) inset}
 .wizard #servicios .opcion:has(input[value=grabacion]:checked){border-color:var(--sv-g,#ef4444);background:color-mix(in srgb,var(--sv-g,#ef4444) 11%,transparent);box-shadow:0 0 0 1px var(--sv-g,#ef4444) inset}
-.wizard #servicios .opcion:has(input[value=vivo]:checked){border-color:var(--sv-v,#a855f7);background:color-mix(in srgb,var(--sv-v,#a855f7) 11%,transparent);box-shadow:0 0 0 1px var(--sv-v,#a855f7) inset}
+.wizard #servicios .opcion:has(input[value=vivo]:checked){border-color:var(--sv-v,#06b6d4);background:color-mix(in srgb,var(--sv-v,#06b6d4) 11%,transparent);box-shadow:0 0 0 1px var(--sv-v,#06b6d4) inset}
 /* Rockerío en vivo: títulos en el amarillo del sitio */
 #vivo .vv-fase b,#vivo .vv-show b,#vivo .vv-grid .caja b{color:var(--oro,#FCC631)}
 .wizard button.on,.wizard .segm button.on{color:var(--srv-t)!important}
@@ -36,10 +36,10 @@ body.con-vistas[data-vista]:not([data-vista="inicio"]) .menu .tarjeta::before{wi
 .wizard #servicios .opcion{border-width:2px!important;border-style:solid!important;overflow:hidden}
 .wizard #servicios .opcion:has(input[value=ensayo]){border-color:var(--oro)!important;background:linear-gradient(150deg,color-mix(in srgb,var(--oro) 17%,transparent),rgba(255,120,40,.07) 62%,rgba(20,19,18,.9))!important}
 .wizard #servicios .opcion:has(input[value=grabacion]){border-color:var(--sv-g,#ef4444)!important;background:linear-gradient(150deg,color-mix(in srgb,var(--sv-g,#ef4444) 18%,transparent),rgba(190,40,120,.08) 62%,rgba(20,19,18,.9))!important}
-.wizard #servicios .opcion:has(input[value=vivo]){border-color:var(--sv-v,#a855f7)!important;background:linear-gradient(150deg,color-mix(in srgb,var(--sv-v,#a855f7) 16%,transparent),rgba(20,19,18,.9))!important}
+.wizard #servicios .opcion:has(input[value=vivo]){border-color:var(--sv-v,#06b6d4)!important;background:linear-gradient(150deg,color-mix(in srgb,var(--sv-v,#06b6d4) 16%,transparent),rgba(20,19,18,.9))!important}
 .wizard #servicios .opcion:has(input[value=ensayo]:checked){box-shadow:0 0 26px color-mix(in srgb,var(--oro) 35%,transparent)!important}
 .wizard #servicios .opcion:has(input[value=grabacion]:checked){box-shadow:0 0 26px color-mix(in srgb,var(--sv-g,#ef4444) 38%,transparent)!important}
-.wizard #servicios .opcion:has(input[value=vivo]:checked){box-shadow:0 0 26px color-mix(in srgb,var(--sv-v,#a855f7) 38%,transparent)!important}
+.wizard #servicios .opcion:has(input[value=vivo]:checked){box-shadow:0 0 26px color-mix(in srgb,var(--sv-v,#06b6d4) 38%,transparent)!important}
 .wizard #servicios .opcion:not(:has(input:checked)){opacity:.82}
 .wizard .hbtn[aria-pressed=true]{color:var(--srv-t)!important}
 

@@ -141,6 +141,8 @@
     if (!chipC.hidden) txt(chipC, 'Lun–Vie ' + R.horaTxt(cfg.convenienteDesde) + ' a ' + R.horaTxt(cfg.convenienteHasta) + (tcE.horas ? ': ensayo ' + R.clp(tcE.precio) + ' / hora' : '') + (tcG.horas ? (tcE.horas ? ' · ' : ': ') + 'estudio ' + R.clp(tcG.precio) + ' / hora' : ''));
     txt($('p-ensayo'), R.clp(cfg.precioEnsayoHora) + ' por hora');
     txt($('p-grab'), R.clp(cfg.precioGrabacionHora) + ' por hora');
+    (function () { var ok = function (c, d) { return /^#[0-9a-f]{6}$/i.test(c || '') ? c : d; }, st = document.documentElement.style;
+      st.setProperty('--sv-e', ok(cfg.colorEnsayo, '#f5b400')); st.setProperty('--sv-g', ok(cfg.colorEstudio, '#ef4444')); st.setProperty('--sv-v', ok(cfg.colorVivo, '#06b6d4')); })();
     if ($('op-vivo')) { $('op-vivo').hidden = !cfg.verVivo; txt($('p-vivo'), R.clp(cfg.vivoPrecio) + ' · bloque de ' + R.horaTxt(cfg.vivoDesde) + ' a ' + R.horaTxt(cfg.vivoHasta)); }
     txt($('p-video'), '+' + R.clp(cfg.precioVideo)); txt($('p-extra'), R.clp(cfg.precioExtraEquipo) + (cfg.extraModo === 'hora' ? ' por hora' : ' por sesión'));
     txt($('p-raw'), '+' + R.clp(cfg.precioRaw));
