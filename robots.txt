@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /socios.html
+Disallow: /agenda/
+Sitemap: https://rockerioproducciones.cl/sitemap.xml

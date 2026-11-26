@@ -27,3 +27,7 @@ html .btn,html button.btn{font-family:Oswald,Impact,sans-serif!important}
   .selector-tema .tema-rot{display:none!important}
   .tema-dot{width:20px!important;height:20px!important}
 }
+
+/* Horas: los botones caben en una sola fila en el móvil */
+#horas-btns{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(52px,1fr));gap:8px}
+#horas-btns button{min-width:0!important;width:100%}

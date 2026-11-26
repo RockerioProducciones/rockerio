@@ -3,3 +3,6 @@ node_modules/
 *.zip
 .clasp.json
 8b-transferencia.png
+
+# capturas que generan las pruebas (no se publican)
+/*.png
