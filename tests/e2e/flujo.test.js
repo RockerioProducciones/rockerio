@@ -478,6 +478,13 @@ t('el historial parte con el stock inicial y las reposiciones del 19 y 24 de nov
   assert.strictEqual(l.filter((x) => x.fecha === '2026-11-19' && /BEBIDA/.test(x.producto)).map((x) => x.cantidad).sort().join(), '12,48');
   assert.strictEqual(g.admin('adminResumen').ventas.ingresosStock.bebestible.filter((x) => /2026-11-(01|19|24)/.test(x.fecha)).length, 9, 'no se repite');
 });
+t('tienda de música: el historial parte con el stock inicial del 1 nov (una sola vez)', () => {
+  g.admin('adminGuardarProducto', { tipo: 'musica', categoria: 'Uñetas', nombre: 'Uñetas Fender', detalle: 'Uñetas Fender Variedades', precio: 500, stock: 42, visible: true, foto: '' });
+  C.PropertiesService.getScriptProperties().deleteProperty('ING_HIST_V2');
+  const f = () => g.admin('adminResumen').ventas.ingresosStock.musica.filter((x) => x.fecha === '2026-11-01');
+  const n0 = f().length; assert.ok(n0 >= 1 && f().some((x) => x.cantidad === 42 && /Fender/.test(x.producto)), JSON.stringify(f()));
+  g.admin('adminResumen'); assert.strictEqual(f().length, n0, 'no se repite');
+});
 t('la versión de datos sube cuando alguien guarda algo (para que los portales se actualicen solos)', () => {
   const v0 = g.get({ accion: 'version' }); assert.ok(v0.ok && typeof v0.v === 'string');
   g.admin('adminGuardarAjustes', { avisoSincro: 'x' });

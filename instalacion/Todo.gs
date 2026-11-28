@@ -3829,10 +3829,41 @@ function migrarIngresosIniciales_() {
   } catch (e) { console.error('migrarIngresosIniciales_: ' + e); pr.deleteProperty('ING_HIST_V1'); }
 }
 
+/**
+ * Una sola vez: stock inicial (1 nov) de la tienda de música = stock de hoy + lo vendido desde que se registran ventas.
+ * Solo productos que existen y tienen más de 0 unidades iniciales; no se repite.
+ */
+function migrarIngresosMusica_() {
+  var pr = PropertiesService.getScriptProperties();
+  if (pr.getProperty('ING_HIST_V2')) return;
+  pr.setProperty('ING_HIST_V2', '1');
+  try {
+    var prods = leerProductos_('musica');
+    var base = [
+      ['Cuerdas guitarra eléctrica Ernie Ball 9-42', 2], ['Cuerdas guitarra eléctrica Ernie Ball 9-46', 2], ['Cuerdas guitarra eléctrica Ernie Ball 11-48', 1],
+      ['Cuerdas guitarra eléctrica Black Smith 11/49', 2], ['Uñetas Fender', 42], ['Uñetas Alice', 47], ['Uñetas Gibson', 18],
+      ['Straplocks de Goma (x2)', 23], ['Correa para Guitarra o Bajo', 5], ['Batería alcalina 9V', 18],
+      ['Baquetas de Madera 5A Drumstick', 4], ['Baquetas de Plástico (Fluorescentes) 5A', 2], ['Audífonos in-ear KZ', 1],
+      ['Cuerda Guitarra Electrica (Unidad) (1st)', 9], ['Cuerda Guitarra Electrica (Unidad) (2da)', 10], ['Cuerda Guitarra Electrica (Unidad) (3ra)', 10],
+      ['Cuerda Guitarra Electrica (Unidad) (4ta)', 10], ['Cuerda Guitarra Electrica (Unidad) (5ta)', 10], ['Cuerda Guitarra Electrica (Unidad) (6ta)', 7]
+    ];
+    var ss = abrirBd_(), sh = ss.getSheetByName('StockIngresos'), hechos = {};
+    if (sh && sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 7).getValues().forEach(function (r) { if (r[1] === 'musica' && /Stock inicial/.test(String(r[6]))) hechos[String(r[2]).toLowerCase()] = true; });
+    base.forEach(function (b) {
+      var p = prods.filter(function (x) { return String(x.nombre).toLowerCase() === b[0].toLowerCase(); })[0];
+      if (!p) return;
+      var nom = nombreProd_(p.nombre, p.detalle);
+      if (hechos[nom.toLowerCase()]) return;
+      registrarIngresoStock_('musica', nom, b[1], null, null, 'Stock inicial (1 nov)', '2026-11-01');
+    });
+  } catch (e) { console.error('migrarIngresosMusica_: ' + e); pr.deleteProperty('ING_HIST_V2'); }
+}
+
 /** Últimos ingresos de stock por tipo (más nuevos primero). */
 function leerIngresosStock_() {
   var out = { musica: [], bebestible: [] };
   migrarIngresosIniciales_();
+  migrarIngresosMusica_();
   try {
     var sh = abrirBd_().getSheetByName('StockIngresos'), n = sh ? sh.getLastRow() : 0;
     if (n < 2) return out;
