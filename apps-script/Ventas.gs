@@ -448,6 +448,16 @@ function adminEliminarVenta(id) {
   });
 }
 
+/** Datos para que los clientes transfieran lo de tienda y líquidos. Se guardan solo en el script (no van al sitio ni al repositorio). */
+function transfTienda_() { return String(PropertiesService.getScriptProperties().getProperty('TRANSF_TIENDA') || ''); }
+function adminGuardarTransfTienda(texto) {
+  exigirAdmin_();
+  var t = String(texto === null || texto === undefined ? '' : texto).replace(/\r/g, '').replace(/[\u0000-\u0009\u000B-\u001F]/g, '').split('\n').map(function (l) { return l.trim(); }).join('\n').trim();
+  if (t.length > 600) throw new Error('El texto es muy largo (máximo 600 letras).');
+  PropertiesService.getScriptProperties().setProperty('TRANSF_TIENDA', t);
+  return { ok: true, transfTienda: t };
+}
+
 /* ---------- costos mensuales (luz, caja chica…) ---------- */
 
 function leerCostos_() {

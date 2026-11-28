@@ -388,6 +388,13 @@ t('el mismo cliente (teléfono con otro formato, nombre en minúsculas, otra ban
   C.registrarCliente_({ telefono: norm('9 5555 1212'), correo: 'ANA@correo.cl', banda: 'los repetidos', nombre: 'ana pérez gómez' });
   assert.strictEqual(g.hoja('Clientes').length, n0 + 1, 'un solo cliente nuevo');
 });
+t('datos de transferencia de la tienda: se guardan en privado, salen en el resumen del admin y nunca en la config pública', () => {
+  const txt = 'DATOS DE TRANSFERENCIA TIENDA Y LIQUIDOS\nJaime Prueba\nRUT: 1-9\nCuenta Vista';
+  const r = g.admin('adminGuardarTransfTienda', txt); assert.strictEqual(r.transfTienda, txt);
+  assert.strictEqual(g.admin('adminResumen').transfTienda, txt);
+  assert.ok(!/Jaime Prueba/.test(JSON.stringify(g.get({ accion: 'config' }))), 'no sale en la config pública');
+  assert.throws(() => g.admin('adminGuardarTransfTienda', 'x'.repeat(700)), /largo/);
+});
 t('claves fijas de /proaudix y /agenda: se crean, entran, se cambian y no se repiten', () => {
   let r = g.admin('adminGuardarClaveEnlace', 'proaudix', 'Gaby-Jaime26');
   assert.ok(r.socios.some((x) => x.rol === 'proaudix'));

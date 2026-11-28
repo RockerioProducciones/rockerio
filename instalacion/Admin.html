@@ -1688,6 +1688,24 @@ function editarDe(r){abrirRM({equipos:equiposDe(r),codigo:r.codigo,servicio:/gra
 function confirmaAd(r,delta,ok){
   if(r.estado==='Finalizada'&&delta){var pagada=!r.cobro;confirmarSN('Esta reserva ya está finalizada'+(pagada?' y cobrada':'')+'. El total '+(delta>0?'subirá':'bajará')+' '+clp(Math.abs(delta))+(delta>0?(pagada?' y esa diferencia quedará por cobrar.':'.'):'. Si ya cobraste, devuelve la diferencia al cliente.')+' ¿Continuar?',ok,'Sí, cambiar');return}
   ok()}
+/* Detalle de bebestibles y tienda de una jornada + datos de transferencia de la tienda (cuenta aparte del balance) */
+function textoConsumosWa(r,cons,pend,transf){
+  var por={'Bebestibles':[],'Música':[]};cons.forEach(function(v){(por[v.tipo]||(por[v.tipo]=[])).push(v)});
+  var L=['Hola '+(r.contacto||r.banda)+' 🎧 Este es el detalle de lo consumido en la jornada del '+fechaCorta(r.fecha)+' ('+r.banda+'):',''];
+  [['Bebestibles','🥤 Bebestibles'],['Música','🎸 Tienda de música']].forEach(function(g){var a=por[g[0]]||[];if(!a.length)return;L.push(g[1]);a.forEach(function(v){L.push('• '+v.cantidad+' × '+v.producto+' — '+clp(v.total)+(v.pago==='Entregado en sesión (pago pendiente)'?'':' (pagado)'))});L.push('')});
+  var tt=0;cons.forEach(function(v){tt+=v.total});L.push('Total consumos: '+clp(tt));
+  if(pend>0){L.push('*Por pagar: '+clp(pend)+'*','');L.push(transf?transf:'(faltan los datos de transferencia)')}else L.push('Todo pagado ✔ ¡Gracias!');
+  return L.join('\n')}
+function enviarConsumosWa(r,cons,pend){
+  var tr=(ultimo&&ultimo.transfTienda)||'';
+  if(pend>0&&!tr){aviso('Primero guarda los datos de transferencia (botón «Datos de transferencia»).');formTransfTienda(r);return}
+  window.open('https://wa.me/'+telWa(r.telefono)+'?text='+encodeURIComponent(textoConsumosWa(r,cons,pend,tr)),'_blank')}
+function formTransfTienda(r){
+  var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);var f=el_('div','ficha-j');
+  f.appendChild(el_('h3','','Datos de transferencia · tienda y líquidos'));f.appendChild(el_('div','sub','Se envían junto al detalle de consumos. Solo los ve el administrador; quedan aparte del balance de sala y estudio.'));
+  var ta=document.createElement('textarea');ta.rows=9;ta.maxLength=600;ta.style.cssText='width:100%;box-sizing:border-box';ta.value=(ultimo&&ultimo.transfTienda)||'DATOS DE TRANSFERENCIA TIENDA Y LIQUIDOS\n';f.appendChild(ta);
+  var acc=el_('div','fila');acc.appendChild(btn('Guardar',function(){RUN.withSuccessHandler(function(x){if(ultimo)ultimo.transfTienda=x.transfTienda;aviso('Datos guardados ✔');if(r)fichaJor(r);else d.hidden=true}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminGuardarTransfTienda(ta.value)}));
+  acc.appendChild(btn('Cancelar',function(){if(r)fichaJor(r);else d.hidden=true},'sec'));f.appendChild(acc);d.appendChild(f)}
 function jrunFicha(codigo,fn,args,msg){RUN.withSuccessHandler(function(J){JOR=J;if(!jmes)jmes=J.hoy.slice(0,7);pintarJor();RES_VIEJO=true;clearTimeout(RES_T);RES_T=setTimeout(refrescarResumen,12000);var n=(J.reservas||[]).filter(function(x){return x.codigo===codigo})[0];if(n)fichaJor(n);if(msg)aviso(typeof msg==='function'?msg(n):msg)}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminRapido(fn,args)}
 function fichaJor(r){
   var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);
@@ -1730,7 +1748,12 @@ function fichaJor(r){
   acc.appendChild(btn('Cerrar',function(){d.hidden=true},'sec'));f.appendChild(acc);
   // 4) Lo menos usado, plegado
   var cons=((ultimo&&ultimo.ventas&&ultimo.ventas.ventas)||[]).filter(function(v){return v.reserva===r.codigo&&v.pago!=='Anulada'});
-  if(cons.length){var cb=el_('div','mat');cb.appendChild(el_('h5','','🛍️ Consumos de esta reserva (cuenta aparte, no suman a la reserva)'));var tt=0;cons.forEach(function(v){tt+=v.total;var l=el_('div','');l.style.cssText='display:flex;justify-content:space-between;gap:8px;font-size:.88rem';l.appendChild(el_('span','',v.producto+' ×'+v.cantidad+' · '+(v.pago==='Entregado en sesión (pago pendiente)'?'por cobrar':v.pago.replace('Venta ','')))); l.appendChild(el_('b','',clp(v.total)));cb.appendChild(l)});cb.appendChild(par('Total consumos: '+clp(tt),'font-weight:700;margin:.3rem 0 0'));f.appendChild(cb)}
+  var consT={};((ultimo&&ultimo.ventas&&ultimo.ventas.ventas)||[]).concat((ultimo&&ultimo.ventas&&ultimo.ventas.pendientes)||[]).forEach(function(v){if(v.reserva===r.codigo&&v.pago!=='Anulada')consT[v.id]=v});
+  var cons=Object.keys(consT).map(function(k){return consT[k]});
+  if(cons.length){var cb=el_('div','mat');cb.appendChild(el_('h5','','🛍️ Consumos de esta reserva (cuenta aparte, no suman a la reserva)'));var tt=0,pp2=0;cons.forEach(function(v){tt+=v.total;if(v.pago==='Entregado en sesión (pago pendiente)')pp2+=v.total;var l=el_('div','');l.style.cssText='display:flex;justify-content:space-between;gap:8px;font-size:.88rem';l.appendChild(el_('span','',v.producto+' ×'+v.cantidad+' · '+(v.pago==='Entregado en sesión (pago pendiente)'?'por cobrar':v.pago.replace('Venta ','')))); l.appendChild(el_('b','',clp(v.total)));cb.appendChild(l)});cb.appendChild(par('Total consumos: '+clp(tt)+(pp2?' · por cobrar '+clp(pp2):''),'font-weight:700;margin:.3rem 0 0'));
+    var fw=el_('div','fila');fw.style.marginTop='.5rem';
+    fw.appendChild(btn('📲 Enviar detalle por WhatsApp',function(){enviarConsumosWa(r,cons,pp2)}));
+    fw.appendChild(btn('✎ Datos de transferencia',function(){formTransfTienda(r)},'sec'));cb.appendChild(fw);f.appendChild(cb)}
   var wa=el_('details','mas-op');wa.appendChild(el_('summary','','Enviar por WhatsApp'));wa.appendChild(waBotones(r));f.appendChild(wa);
   var mas=el_('details','mas-op');mas.appendChild(el_('summary','','Más opciones'));
   if(!cerrada){var ml=el_('div','fila');ml.appendChild(btn('Cambiar valor / comentario',function(){formAjuste(r,false)},'sec'));mas.appendChild(ml)}
