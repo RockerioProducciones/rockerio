@@ -43,6 +43,7 @@
       $('login').hidden = true; datos = d; mes = d.resumen ? d.resumen.mes : ''; pintar();
     }).catch(function () { aviso('No pudimos cargar los datos. Revisa tu conexión.'); });
   }
+  if (window.RKSync) window.RKSync.alCambiar(function () { if (token && datos) cargar(); });
   function pedirClave(msg) {
     $('hola').textContent = MODO === 'social' ? 'Agenda del estudio' : MODO === 'colega' ? 'Portal ProAudix' : 'Portal de socios';
     var f = $('login'); f.hidden = false; if (msg) aviso(msg);

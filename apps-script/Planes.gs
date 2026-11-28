@@ -40,6 +40,7 @@ function reservarPlan_(sol) {
     });
     registrarCliente_(v.datos);
   } finally {
+    subirVersion_();
     lock.releaseLock();
   }
 

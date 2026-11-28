@@ -93,6 +93,8 @@ function doGet(e) {
         return json_({ ok: true, contenido: contenidoPublico_() });
       case 'audiomix':
         return json_(audioMezclador_(p.id));
+      case 'version':
+        return json_({ ok: true, v: versionDatos_() });
       case 'agenda':
         return json_(agenda_(p.dias, p.plan === '1'));
       case 'disponibilidad':
@@ -385,6 +387,7 @@ function reservar_(sol) {
       pago: { mp: mpDisponible_(cfg), instrucciones: cfg.instruccionesPago, transferencia: (cfg.pagoTransferencia && cfg.datosTransferencia) ? cfg.datosTransferencia : '', link: (cfg.pagoOnline && cfg.linkPago) ? cfg.linkPago : '', minutosReserva: cfg.minutosReserva, segundos: cfg.minutosReserva * 60 }
     };
   } finally {
+    subirVersion_();
     lock.releaseLock();
   }
 

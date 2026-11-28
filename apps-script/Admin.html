@@ -513,7 +513,7 @@ var $=function(i){return document.getElementById(i)};
 var RUN=(function(){var real=google.script.run,n=0,errs=0,tmr=null,t0=0,pill=null;
   function ui(txt,cls){if(!pill){pill=document.createElement('div');pill.id='guarda';pill.setAttribute('role','status');document.body.appendChild(pill)}pill.className=cls;pill.textContent=txt;pill.style.display='block'}
   function begin(){if(!n){t0=Date.now();errs=0}n++;clearTimeout(tmr);ui('⏳ Guardando…','g-ocu')}
-  function end(err){n=Math.max(0,n-1);if(err)errs++;if(n)return;var s=((Date.now()-t0)/1000).toFixed(1).replace('.',',');
+  function end(err){n=Math.max(0,n-1);if(err)errs++;else try{if(window.SYNC_PROPIO)window.SYNC_PROPIO()}catch(x){}if(n)return;var s=((Date.now()-t0)/1000).toFixed(1).replace('.',',');
     if(errs)ui('⚠ No se pudo guardar — revisa el aviso','g-err');else ui('✔ Guardado ('+s+' s)','g-ok');
     clearTimeout(tmr);tmr=setTimeout(function(){if(pill&&!n)pill.style.display='none'},errs?7000:2200)}
   /* deja constancia (hoja «ErroresPortal» del Sheet) de lo que falló, para poder encontrar la causa */
@@ -1136,6 +1136,20 @@ c.appendChild(btn('Agregar al cuadro de honor',function(){var o={};Object.keys(F
   function enviar(){RUN.withSuccessHandler(function(r){Object.keys(F).forEach(function(k){F[k].value=''});fl.value='';pintar(r);aviso('Banda agregada ✔')}).withFailureHandler(function(e){aviso(e.message||'Error')}).adminAgregarHonor(o)}
   if(fl.files[0]){redimLogo(fl.files[0]).then(function(b){o.logoB64=b.b64||b;enviar()}).catch(function(er){aviso(er.message)})}else enviar()}))})();
 ejecutar('adminResumen');
+/* Sincronía: si alguien cambia algo (otro celular, el Mac del estudio, una reserva desde la web), este panel se actualiza solo.
+   Consulta una «versión» liviana cada 25 s con la pantalla a la vista y al volver a ella; no actualiza mientras estás escribiendo o tocando algo. */
+(function(){var ver=null,ocup=false,ultAct=0;
+  ['input','keydown','pointerdown','touchstart'].forEach(function(e){document.addEventListener(e,function(){ultAct=Date.now()},true)});
+  window.SYNC_PROPIO=function(){ver=null};
+  function escribiendo(){var a=document.activeElement;if(a&&/^(input|textarea|select)$/i.test(a.tagName)&&!/^(checkbox|radio|button|submit)$/i.test(a.type||''))return true;return Date.now()-ultAct<15000}
+  function refrescar(){var k=document.body.getAttribute('data-panel'),g=google.script.run;
+    if(k==='jornadas')cargarJor();else if(k==='conta')cargarRC();
+    else g.withSuccessHandler(function(r){pintar(r)}).withFailureHandler(function(){}).adminResumen(ultimo&&ultimo.mes);
+    aviso('Actualizado con cambios recientes ✔')}
+  function revisar(){if(document.hidden||ocup)return;ocup=true;
+    google.script.run.withSuccessHandler(function(v){ocup=false;if(ver===null){ver=v;return}if(v===ver)return;if(escribiendo())return;ver=v;refrescar()}).withFailureHandler(function(){ocup=false}).adminVersion()}
+  setTimeout(revisar,3000);setInterval(revisar,25000);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)revisar()});window.addEventListener('focus',revisar)})();
 
 /* ---------- Editor del sitio web: tarjetas de secciones → editar → un solo botón «Guardar cambios» ---------- */
 var ST={datos:null,sec:'',doc:null,cargando:false,tareas:[],vista:'lista'};

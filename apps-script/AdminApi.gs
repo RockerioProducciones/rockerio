@@ -235,8 +235,17 @@ function adminConfigurar(reservasActivas, avisoBanner, pagoOnline, pagoTransfere
 function conBloqueo_(fn) {
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(20000)) throw new Error('El sistema está ocupado. Intenta de nuevo.');
-  try { return fn(); } finally { lock.releaseLock(); }
+  try { var r = fn(); subirVersion_(); return r; } finally { lock.releaseLock(); }
 }
+
+/** «Versión de los datos»: sube cada vez que alguien guarda algo. Los portales la consultan para actualizarse solos. */
+function subirVersion_() {
+  try { PropertiesService.getScriptProperties().setProperty('VER_DATOS', String(Date.now())); } catch (e) { /* sin versión: igual se guarda */ }
+}
+function versionDatos_() { return String(PropertiesService.getScriptProperties().getProperty('VER_DATOS') || '0'); }
+/** Para el admin: consulta liviana de la versión. */
+function adminVersion() { exigirAdmin_(); return versionDatos_(); }
+
 
 function filaProducto_(sh, fila) {
   fila = Number(fila);

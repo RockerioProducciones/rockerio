@@ -101,5 +101,6 @@
     cont.appendChild(dur); izq.appendChild(boxHoy); izq.appendChild(boxSem); der.appendChild(boxCal); cols.appendChild(izq); cols.appendChild(der); cont.appendChild(cols);
     cont.appendChild(el('p', 'dp-nota', 'Se actualiza al instante con cada reserva.'));
     pintarTodo();
+    if (window.RKSync) window.RKSync.alCambiar(function () { pedir(API + '?accion=agenda').then(function (n) { if (n && n.ok) { d = n; pintarTodo(); } }).catch(function () { /* sin red: queda lo que había */ }); });
   }).catch(function () { msg('No pudimos cargar la agenda. Intenta de nuevo.'); });
 })();

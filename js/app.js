@@ -480,6 +480,7 @@
   function refrescarAgenda() {
     traerAgenda(cfg.anticipacionMaxDias + 1, false).then(function (d) { agenda = d.dias; if (d.hoy) ahora.fecha = d.hoy; if (S.fecha && S.inicio !== null && agenda[S.fecha] && R.inicios(agendaVista()[S.fecha].libres, S.horas).indexOf(S.inicio) < 0) S.inicio = null; pintarCalendario(); estado(); });
   }
+  if (window.RKSync) window.RKSync.alCambiar(function () { if (conexion) refrescarAgenda(); });
   function pintarCalendario() {
     if (!agenda) return;
     calendario({ cont: $('cal'), hoy: ahora.fecha, dias: agendaVista(), horas: function () { return S.horas; }, elegida: function () { return S.fecha; }, alElegir: elegirFecha });
