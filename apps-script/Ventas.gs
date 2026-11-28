@@ -66,8 +66,8 @@ function adminGuardarProducto(p) {
     registrarCambio_('Producto', nombre, ant ? ant.join(' | ') : '', fila.join(' | '));
     if (stock !== '') {
       var antesSt = ant && ant[4] !== '' ? Number(ant[4]) : 0, nuevoSt = Number(stock);
-      if (!ant && nuevoSt > 0) registrarIngresoStock_(p.tipo, nombre + (fila[2] ? ' · ' + fila[2] : ''), nuevoSt, 0, nuevoSt, 'Producto nuevo');
-      else if (ant && nuevoSt > antesSt) registrarIngresoStock_(p.tipo, nombre + (fila[2] ? ' · ' + fila[2] : ''), nuevoSt - antesSt, antesSt, nuevoSt, 'Ajuste de stock');
+      if (!ant && nuevoSt > 0) registrarIngresoStock_(p.tipo, nombreProd_(nombre, fila[2]), nuevoSt, 0, nuevoSt, 'Producto nuevo');
+      else if (ant && nuevoSt > antesSt) registrarIngresoStock_(p.tipo, nombreProd_(nombre, fila[2]), nuevoSt - antesSt, antesSt, nuevoSt, 'Ajuste de stock');
     }
     return adminResumen();
   });
@@ -82,7 +82,7 @@ function adminCargarBase(tipo) {
     base.forEach(function (b) {
       var i = -1;
       datos.forEach(function (r, k) { if (String(r[1]).toLowerCase() === b[1].toLowerCase() && String(r[2]).toLowerCase() === b[2].toLowerCase()) i = k; });
-      if (i < 0) { sh.appendRow(b); datos.push(b.slice()); if (Number(b[4]) > 0) registrarIngresoStock_(tipo, b[1] + (b[2] ? ' · ' + b[2] : ''), Number(b[4]), 0, Number(b[4]), 'Producto base'); }
+      if (i < 0) { sh.appendRow(b); datos.push(b.slice()); if (Number(b[4]) > 0) registrarIngresoStock_(tipo, nombreProd_(b[1], b[2]), Number(b[4]), 0, Number(b[4]), 'Producto base'); }
       else if (!datos[i][6]) sh.getRange(i + 2, 7).setValue(b[6]);
     });
     return adminResumen();
@@ -99,26 +99,57 @@ function adminEliminarProducto(fila, tipo) {
   });
 }
 
+function nombreProd_(nombre, detalle) { nombre = String(nombre || ''); detalle = String(detalle || ''); return detalle && detalle.toLowerCase() !== nombre.toLowerCase() ? nombre + ' · ' + detalle : nombre; }
+
 /** Historial de ingresos de stock (hoja «StockIngresos»): cuándo se agregaron unidades, cuántas y con qué origen. */
-function registrarIngresoStock_(tipo, producto, cantidad, antes, despues, origen) {
+function registrarIngresoStock_(tipo, producto, cantidad, antes, despues, origen, fecha) {
   try {
     if (!(Number(cantidad) > 0)) return;
     var ss = abrirBd_(), sh = ss.getSheetByName('StockIngresos');
     if (!sh) { sh = ss.insertSheet('StockIngresos'); sh.getRange(1, 1, 1, 7).setValues([['Fecha y hora', 'Tipo', 'Producto', 'Cantidad agregada', 'Stock antes', 'Stock después', 'Origen']]).setFontWeight('bold'); sh.setFrozenRows(1); }
-    sh.appendRow([Utilities.formatDate(new Date(), 'America/Santiago', 'yyyy-MM-dd HH:mm'), tipoCatalogo_(tipo), textoSeguro_(String(producto || '').slice(0, 150)), Number(cantidad), antes === '' ? 0 : Number(antes), Number(despues), String(origen || '')]);
+    var fnum = sh.getLastRow() + 1; try { sh.getRange(fnum, 1).setNumberFormat('@'); } catch (eF) { /* el texto igual se entiende */ }
+    sh.appendRow([fecha || Utilities.formatDate(new Date(), 'America/Santiago', 'yyyy-MM-dd HH:mm'), tipoCatalogo_(tipo), textoSeguro_(String(producto || '').slice(0, 150)), Number(cantidad), antes === null ? '' : (antes === '' ? 0 : Number(antes)), despues === null ? '' : Number(despues), String(origen || '')]);
     var n = sh.getLastRow(); if (n > 1501) sh.deleteRows(2, n - 1501);
   } catch (e) { console.error('registrarIngresoStock_: ' + e); }
+}
+
+/**
+ * Una sola vez: anota en el historial el stock inicial del 1 de noviembre y las reposiciones del 19 y 24 de noviembre
+ * (informadas por la administración), para que el historial parta completo. Solo escribe si el producto existe y no se repite.
+ */
+function migrarIngresosIniciales_() {
+  var pr = PropertiesService.getScriptProperties();
+  if (pr.getProperty('ING_HIST_V1')) return;
+  pr.setProperty('ING_HIST_V1', '1');
+  try {
+    var prods = leerProductos_('bebestible'), esta = function (n) { return prods.some(function (p) { return String(p.nombre).toLowerCase() === n.toLowerCase(); }); };
+    var base = [
+      ['2026-11-01', 'AGUA MINERAL BOTELLA 600 CC', 11, 'Stock inicial (1 nov)'], ['2026-11-01', 'JUGO BOTELLA 470CC', 7, 'Stock inicial (1 nov)'],
+      ['2026-11-01', 'BEBIDA LATA 330 CC', 47, 'Stock inicial (1 nov)'], ['2026-11-01', 'CERVEZA LATA 330CC', 76, 'Stock inicial (1 nov)'],
+      ['2026-11-19', 'AGUA MINERAL BOTELLA 600 CC', 36, 'Reposición'], ['2026-11-19', 'JUGO BOTELLA 470CC', 18, 'Reposición'],
+      ['2026-11-19', 'BEBIDA LATA 330 CC', 48, 'Reposición'], ['2026-11-19', 'BEBIDA LATA 330 CC', 12, 'Reposición'],
+      ['2026-11-24', 'CERVEZA LATA 330CC', 72, 'Reposición']
+    ];
+    var ss = abrirBd_(), sh = ss.getSheetByName('StockIngresos');
+    var hechos = {}; if (sh && sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 7).getValues().forEach(function (r) { hechos[(r[0] instanceof Date ? Utilities.formatDate(r[0], 'America/Santiago', 'yyyy-MM-dd') : String(r[0]).slice(0, 10)) + '|' + r[2] + '|' + r[3]] = true; });
+    var nuevas = base.filter(function (b) { return esta(b[1]) && !hechos[b[0] + '|' + b[1] + '|' + b[2]]; });
+    if (!nuevas.length) return;
+    nuevas.forEach(function (b) { registrarIngresoStock_('bebestible', b[1], b[2], null, null, b[3], b[0]); });
+  } catch (e) { console.error('migrarIngresosIniciales_: ' + e); pr.deleteProperty('ING_HIST_V1'); }
 }
 
 /** Últimos ingresos de stock por tipo (más nuevos primero). */
 function leerIngresosStock_() {
   var out = { musica: [], bebestible: [] };
+  migrarIngresosIniciales_();
   try {
     var sh = abrirBd_().getSheetByName('StockIngresos'), n = sh ? sh.getLastRow() : 0;
     if (n < 2) return out;
-    sh.getRange(Math.max(2, n - 399), 1, Math.min(400, n - 1), 7).getValues().reverse().forEach(function (r) {
+    var filas = sh.getRange(Math.max(2, n - 399), 1, Math.min(400, n - 1), 7).getValues().map(function (r) { r[0] = r[0] instanceof Date ? Utilities.formatDate(r[0], 'America/Santiago', (r[0].getHours() + r[0].getMinutes() === 0) ? 'yyyy-MM-dd' : 'yyyy-MM-dd HH:mm') : String(r[0]); return r; });
+    filas.sort(function (a, b) { return a[0] < b[0] ? 1 : a[0] > b[0] ? -1 : 0; }); // más nuevos primero (las cargas históricas se anotan después)
+    filas.forEach(function (r) {
       var t = r[1] === 'bebestible' ? 'bebestible' : 'musica';
-      if (out[t].length < 100) out[t].push({ fecha: String(r[0]), producto: String(r[2]), cantidad: Number(r[3]) || 0, antes: Number(r[4]) || 0, despues: Number(r[5]) || 0, origen: String(r[6]) });
+      if (out[t].length < 100) out[t].push({ fecha: r[0], producto: String(r[2]), cantidad: Number(r[3]) || 0, antes: r[4] === '' ? null : Number(r[4]), despues: r[5] === '' ? null : Number(r[5]), origen: String(r[6]) });
     });
   } catch (e) { /* sin historial */ }
   return out;
@@ -131,7 +162,7 @@ function adminReponer(fila, cantidad, tipo) {
   return conBloqueo_(function () {
     var sh = hojaCatalogo_(tipo), f = filaProducto_(sh, fila), actual = sh.getRange(f, 5).getValue(), antes = actual === '' ? 0 : Number(actual);
     sh.getRange(f, 5).setValue(antes + cantidad);
-    registrarIngresoStock_(tipo, sh.getRange(f, 2).getValue() + (sh.getRange(f, 3).getValue() ? ' · ' + sh.getRange(f, 3).getValue() : ''), cantidad, antes, antes + cantidad, 'Reposición');
+    registrarIngresoStock_(tipo, nombreProd_(sh.getRange(f, 2).getValue(), sh.getRange(f, 3).getValue()), cantidad, antes, antes + cantidad, 'Reposición');
     return adminResumen();
   });
 }

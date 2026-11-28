@@ -470,6 +470,14 @@ t('historial de ingresos de stock: reposición, producto nuevo y ajuste quedan c
   assert.deepStrictEqual(lista.map((x) => x.origen + ':' + x.cantidad).sort(), ['Ajuste de stock:5', 'Producto nuevo:6', 'Reposición:4']);
   assert.ok(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(lista[0].fecha));
 });
+t('el historial parte con el stock inicial y las reposiciones del 19 y 24 de noviembre (una sola vez)', () => {
+  ['AGUA MINERAL BOTELLA 600 CC', 'JUGO BOTELLA 470CC', 'BEBIDA LATA 330 CC', 'CERVEZA LATA 330CC'].forEach((n) => g.admin('adminGuardarProducto', { tipo: 'bebestible', categoria: 'Bebestibles', nombre: n, detalle: n, precio: 1000, stock: '', visible: true, foto: '' }));
+  C.PropertiesService.getScriptProperties().deleteProperty('ING_HIST_V1');
+  const l = g.admin('adminResumen').ventas.ingresosStock.bebestible.filter((x) => /2026-11-(01|19|24)/.test(x.fecha));
+  assert.strictEqual(l.length, 9, JSON.stringify(l));
+  assert.strictEqual(l.filter((x) => x.fecha === '2026-11-19' && /BEBIDA/.test(x.producto)).map((x) => x.cantidad).sort().join(), '12,48');
+  assert.strictEqual(g.admin('adminResumen').ventas.ingresosStock.bebestible.filter((x) => /2026-11-(01|19|24)/.test(x.fecha)).length, 9, 'no se repite');
+});
 t('la versión de datos sube cuando alguien guarda algo (para que los portales se actualicen solos)', () => {
   const v0 = g.get({ accion: 'version' }); assert.ok(v0.ok && typeof v0.v === 'string');
   g.admin('adminGuardarAjustes', { avisoSincro: 'x' });
