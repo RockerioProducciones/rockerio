@@ -482,6 +482,7 @@ section.tab-off{display:none!important}
 <section data-tab="res"><h2>Costos del mes y cierre</h2>
 <p style="color:#b5afa6;margin:0 0 .5em">Escribe aquí la boleta de la luz de cada mes: queda guardada para ese mes y alimenta su Balance. Al cambiar de mes el Balance parte de cero solo; los meses anteriores no se pierden.</p>
 <div class="fila"><input id="cm" placeholder="Mes AAAA-MM" maxlength="7" style="width:110px"><input id="cl" type="number" min="0" placeholder="Luz total (boleta)" style="width:150px"><input id="ca" type="number" min="0" placeholder="Aporte ProAudix (10000)" style="width:170px"><input id="cc" type="number" min="0" placeholder="Caja chica (20000)" style="width:150px"><input id="co" type="number" min="0" placeholder="Otros gastos" style="width:120px"><input id="cn" maxlength="200" placeholder="Notas" style="flex:1;min-width:120px"><label title="Marca SI si la boleta de luz es una factura a nombre del negocio: permite recuperar el IVA y deducir el gasto"><input type="checkbox" id="cfa"> Luz con factura</label><button id="cg">Guardar mes</button></div>
+<div id="cestado" style="margin:.4rem 0;font-size:.85rem"></div>
 <table><tbody id="ctab"></tbody></table>
 <h3 style="margin:.8em 0 .2em;font-size:15px">Historial de balances</h3>
 <div class="fila"><button id="cierre" class="sec">Cerrar el mes seleccionado arriba</button><span style="color:#b5afa6">Se cierra solo el día 1 de cada mes (guarda una copia fija del balance).</span></div>
@@ -981,15 +982,23 @@ function cabImp_(p,t){var h=el_('div','imp-cab');var i=document.createElement('i
 /* imprime cuando el logo ya está listo (si no, el PDF sale sin él) */
 function imprimirListo_(p){var i=p.querySelector('.imp-cab img'),ir=function(){window.print()};if(i&&i.decode)i.decode().then(ir,ir);else ir()}
 $('rc-pdf').onclick=function(){var d=RC.data;if(!d)return;var p=$('imprimir');if(!p){p=el_('div');p.id='imprimir';document.body.appendChild(p)}p.textContent='';cabImp_(p,'Resumen contable · '+(d.periodo==='mes'?mesTxt(d.ref):fechaCorta(d.desde)+' al '+fechaCorta(d.hasta)));p.appendChild($('rc-box').cloneNode(true));[].forEach.call(p.querySelectorAll('details'),function(x){x.open=true});imprimirListo_(p)};
+var COSTOS_ULT=[];
+function costoMesSel(){var m=$('cm').value.trim(),c=null;COSTOS_ULT.forEach(function(x){if(x.mes===m)c=x});return c}
+function cargarCostoMes(){var c=costoMesSel(),e=$('cestado');
+  if(c){$('cl').value=c.luz;$('ca').value=c.aporte;$('cc').value=c.caja;$('co').value=c.otros;$('cn').value=c.notas;$('cfa').checked=!!c.luzFactura;e.textContent='✔ Guardado para '+c.mes+': boleta de luz '+clp(c.luz)+' · ProAudix '+clp(c.aporte)+' · caja chica '+clp(c.caja)+(c.otros?' · otros '+clp(c.otros):'');e.style.color='#3ddc97'}
+  else{['cl','ca','cc','co','cn'].forEach(function(i){$(i).value=''});$('cfa').checked=false;e.textContent=/^\d{4}-\d{2}$/.test($('cm').value.trim())?'Sin costos guardados para este mes: el balance usa luz $0, ProAudix $10.000 y caja chica $20.000 hasta que los guardes.':'Escribe el mes como AAAA-MM (ejemplo 2026-11).';e.style.color='#ffb454'}}
+$('cm').oninput=cargarCostoMes;
 function pintarCostos(d){
+  COSTOS_ULT=d.costos||[];
   if(!$('cm').value)$('cm').value=d.mesActual;
+  if(document.activeElement!==$('cm')&&!['cl','ca','cc','co','cn'].some(function(i){return document.activeElement===$(i)}))cargarCostoMes();
   var t=$('ctab');t.textContent='';
   (d.costos||[]).forEach(function(c){var tr=document.createElement('tr');tr.appendChild(td(c.mes));tr.appendChild(td('Luz '+clp(c.luz)));tr.appendChild(td('ProAudix '+clp(c.aporte)));tr.appendChild(td('Caja '+clp(c.caja)));tr.appendChild(td('Otros '+clp(c.otros)));tr.appendChild(td(c.notas));
     var k=document.createElement('td');k.appendChild(btn('Editar',function(){$('cm').value=c.mes;$('cl').value=c.luz;$('ca').value=c.aporte;$('cc').value=c.caja;$('co').value=c.otros;$('cn').value=c.notas;$('cfa').checked=!!c.luzFactura},'sec'));tr.appendChild(k);t.appendChild(tr)});
   var h=$('htab');h.textContent='';
   (d.historial||[]).forEach(function(x){var tr=document.createElement('tr');tr.appendChild(td(x.mes));tr.appendChild(td('Bruto '+clp(x.brutos)));tr.appendChild(td('Juan Carlos '+clp(x.jc)));tr.appendChild(td('Jaime '+clp(x.jaime)));tr.appendChild(td('Estudio '+clp(x.est)));h.appendChild(tr)});
 }
-$('cg').onclick=function(){ejecutar('adminGuardarCostos',{mes:$('cm').value,luz:$('cl').value,aporte:$('ca').value,caja:$('cc').value,otros:$('co').value,notas:$('cn').value,luzFactura:$('cfa').checked});aviso('Costos guardados')};
+$('cg').onclick=function(){if(!/^\d{4}-\d{2}$/.test($('cm').value.trim())){aviso('El mes debe ser AAAA-MM, por ejemplo 2026-11.');return}ejecutar('adminGuardarCostos',{mes:$('cm').value,luz:$('cl').value,aporte:$('ca').value,caja:$('cc').value,otros:$('co').value,notas:$('cn').value,luzFactura:$('cfa').checked});aviso('Costos guardados ✔')};
 $('cierre').onclick=function(){ejecutar('adminCerrarMes',$('vmes').value);aviso('Mes cerrado en el historial')};
 function enlaceCopiable(cont,url){
   var f=document.createElement('div');f.className='fila';var i=document.createElement('input');i.readOnly=true;i.value=url;i.style.cssText='flex:1;min-width:220px';i.onfocus=function(){i.select()};f.appendChild(i);

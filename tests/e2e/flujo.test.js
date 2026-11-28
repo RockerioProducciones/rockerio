@@ -370,6 +370,24 @@ t('vender por error y eliminar la venta devuelve el stock (bebestibles y música
     g.admin('adminVentaRapida', 'adminEliminarVenta', [v2.id]); assert.strictEqual(lee(), 10, 'eliminar una anulada no suma dos veces');
   });
 });
+t('costos del mes: si Google convirtió «2026-11» en fecha, se recupera como texto y se puede editar sin duplicar', () => {
+  g.admin('adminGuardarCostos', { mes: '2031-05', luz: 42610, aporte: 10000, caja: 20000, otros: 0, luzFactura: false });
+  const sh = C.abrirBd_().getSheetByName('CostosMes'); let fila = 0;
+  for (let i = 2; i <= sh.getLastRow(); i++) if (String(sh.getRange(i, 1).getValue()) === '2031-05') fila = i;
+  assert.ok(fila, 'fila guardada'); sh.getRange(fila, 1).setValue(new Date(2031, 4, 1, 0, 0)); // como la dejó Google
+  const l = g.admin('adminResumen').costos.filter((c) => c.mes === '2031-05'); assert.strictEqual(l.length, 1, JSON.stringify(g.admin('adminResumen').costos));
+  assert.strictEqual(String(sh.getRange(fila, 1).getValue()), '2031-05', 'quedó como texto');
+  g.admin('adminGuardarCostos', { mes: '2031-05', luz: 50000, aporte: 10000, caja: 20000, otros: 0, luzFactura: false });
+  const l2 = g.admin('adminResumen').costos.filter((c) => c.mes === '2031-05'); assert.strictEqual(l2.length, 1, 'no se duplica'); assert.strictEqual(l2[0].luz, 50000);
+});
+t('el mismo cliente (teléfono con otro formato, nombre en minúsculas, otra banda) no se duplica', () => {
+  const norm = (v) => R.normalizarTelefono(v);
+  assert.strictEqual(norm('+56 9 5555 1212'), norm('9 5555 1212')); assert.strictEqual(norm('955551212'), '56955551212');
+  const n0 = g.hoja('Clientes').length;
+  C.registrarCliente_({ telefono: norm('+56 9 5555 1212'), correo: 'ana@correo.cl', banda: 'Los Repetidos', nombre: 'Ana Pérez' });
+  C.registrarCliente_({ telefono: norm('9 5555 1212'), correo: 'ANA@correo.cl', banda: 'los repetidos', nombre: 'ana pérez gómez' });
+  assert.strictEqual(g.hoja('Clientes').length, n0 + 1, 'un solo cliente nuevo');
+});
 t('claves fijas de /proaudix y /agenda: se crean, entran, se cambian y no se repiten', () => {
   let r = g.admin('adminGuardarClaveEnlace', 'proaudix', 'Gaby-Jaime26');
   assert.ok(r.socios.some((x) => x.rol === 'proaudix'));

@@ -4144,7 +4144,12 @@ function adminEliminarVenta(id) {
 function leerCostos_() {
   var sh = abrirBd_().getSheetByName(HOJAS.costos), n = sh.getLastRow(), out = [];
   if (n < 2) return out;
-  sh.getRange(2, 1, n - 1, 7).getValues().forEach(function (r) {
+  var rg = sh.getRange(2, 1, n - 1, 7), vals = rg.getValues(), arreglar = false;
+  vals.forEach(function (r, i) { // Google convierte «2026-11» en fecha: lo devolvemos a texto para que el Balance lo encuentre
+    if (Object.prototype.toString.call(r[0]) === '[object Date]') { r[0] = Utilities.formatDate(r[0], 'America/Santiago', 'yyyy-MM'); arreglar = true; }
+  });
+  if (arreglar) { try { sh.getRange(2, 1, n - 1, 1).setNumberFormat('@'); sh.getRange(2, 1, n - 1, 1).setValues(vals.map(function (r) { return [r[0]]; })); } catch (eF) { /* se reintenta en la próxima lectura */ } }
+  vals.forEach(function (r) {
     if (!r[0]) return;
     out.push({ luzFactura: String(r[6]) === 'SI', mes: String(r[0]), luz: Number(r[1]) || 0, aporte: r[2] === '' ? '' : Number(r[2]), caja: r[3] === '' ? '' : Number(r[3]), otros: Number(r[4]) || 0, notas: String(r[5] || '') });
   });
@@ -4158,8 +4163,9 @@ function adminGuardarCostos(c) {
   var num = function (v, def) { v = String(v === null || v === undefined ? '' : v).trim(); if (v === '') return def; if (!(Number(v) >= 0)) throw new Error('Los montos deben ser números.'); return Number(v); };
   var fila = [String(c.mes), num(c.luz, 0), num(c.aporte, 10000), num(c.caja, 20000), num(c.otros, 0), textoSeguro_(limpiar_(c.notas, 200)), c.luzFactura ? 'SI' : 'NO'];
   return conBloqueo_(function () {
-    var sh = abrirBd_().getSheetByName(HOJAS.costos), f = filaPorTexto_(sh, c.mes, 1);
-    if (f) sh.getRange(f, 1, 1, 7).setValues([fila]); else sh.appendRow(fila);
+    var sh = abrirBd_().getSheetByName(HOJAS.costos); leerCostos_(); // deja los meses antiguos como texto
+    var f = filaPorTexto_(sh, c.mes, 1);
+    if (f) sh.getRange(f, 1, 1, 7).setValues([fila]); else { var nf = sh.getLastRow() + 1; try { sh.getRange(nf, 1).setNumberFormat('@'); } catch (eF) { /* sigue */ } sh.getRange(nf, 1, 1, 7).setValues([fila]); }
     SpreadsheetApp.flush();
     return adminResumen();
   });
@@ -4185,7 +4191,8 @@ function cerrarMes_(mes) {
     SpreadsheetApp.flush();
   }
   var h = ss.getSheetByName(HOJAS.historial), f = filaPorTexto_(h, mes, 1);
-  if (f) h.getRange(f, 1, 1, fila.length).setValues([fila]); else h.appendRow(fila);
+  var fh = f || h.getLastRow() + 1; try { h.getRange(fh, 1).setNumberFormat('@'); } catch (eF) { /* sigue */ }
+  h.getRange(fh, 1, 1, fila.length).setValues([fila]);
 }
 
 /** Disparador del día 1 de cada mes: guarda el balance del mes que terminó. */
@@ -4197,7 +4204,7 @@ function leerHistorial_() {
   var sh = abrirBd_().getSheetByName(HOJAS.historial), n = sh.getLastRow(), out = [];
   if (n < 2) return out;
   sh.getRange(2, 1, n - 1, 17).getValues().forEach(function (r) {
-    if (r[0]) out.push({ ivaPagar: Number(r[12]) || 0, remanente: Number(r[13]) || 0, ppm: Number(r[14]) || 0, utilidad: Number(r[15]) || 0, provision: Number(r[16]) || 0, mes: String(r[0]), brutos: Number(r[2]) || 0, sala: Number(r[3]) || 0, estudio: Number(r[4]) || 0, bruto: Number(r[5]) || 0, tienda: Number(r[6]) || 0, jc: Number(r[9]) || 0, jaime: Number(r[10]) || 0, est: Number(r[11]) || 0 });
+    if (r[0]) out.push({ ivaPagar: Number(r[12]) || 0, remanente: Number(r[13]) || 0, ppm: Number(r[14]) || 0, utilidad: Number(r[15]) || 0, provision: Number(r[16]) || 0, mes: Object.prototype.toString.call(r[0]) === '[object Date]' ? Utilities.formatDate(r[0], 'America/Santiago', 'yyyy-MM') : String(r[0]), brutos: Number(r[2]) || 0, sala: Number(r[3]) || 0, estudio: Number(r[4]) || 0, bruto: Number(r[5]) || 0, tienda: Number(r[6]) || 0, jc: Number(r[9]) || 0, jaime: Number(r[10]) || 0, est: Number(r[11]) || 0 });
   });
   return out.sort(function (a, b) { return a.mes < b.mes ? 1 : -1; }).slice(0, 24);
 }
