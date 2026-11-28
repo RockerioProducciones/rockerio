@@ -64,6 +64,11 @@ function adminGuardarProducto(p) {
     var sh = hojaCatalogo_(p.tipo), ant = p.fila ? sh.getRange(filaProducto_(sh, p.fila), 1, 1, 7).getValues()[0] : null;
     if (p.fila) sh.getRange(filaProducto_(sh, p.fila), 1, 1, 7).setValues([fila]); else sh.appendRow(fila);
     registrarCambio_('Producto', nombre, ant ? ant.join(' | ') : '', fila.join(' | '));
+    if (stock !== '') {
+      var antesSt = ant && ant[4] !== '' ? Number(ant[4]) : 0, nuevoSt = Number(stock);
+      if (!ant && nuevoSt > 0) registrarIngresoStock_(p.tipo, nombre + (fila[2] ? ' · ' + fila[2] : ''), nuevoSt, 0, nuevoSt, 'Producto nuevo');
+      else if (ant && nuevoSt > antesSt) registrarIngresoStock_(p.tipo, nombre + (fila[2] ? ' · ' + fila[2] : ''), nuevoSt - antesSt, antesSt, nuevoSt, 'Ajuste de stock');
+    }
     return adminResumen();
   });
 }
@@ -77,7 +82,7 @@ function adminCargarBase(tipo) {
     base.forEach(function (b) {
       var i = -1;
       datos.forEach(function (r, k) { if (String(r[1]).toLowerCase() === b[1].toLowerCase() && String(r[2]).toLowerCase() === b[2].toLowerCase()) i = k; });
-      if (i < 0) { sh.appendRow(b); datos.push(b.slice()); }
+      if (i < 0) { sh.appendRow(b); datos.push(b.slice()); if (Number(b[4]) > 0) registrarIngresoStock_(tipo, b[1] + (b[2] ? ' · ' + b[2] : ''), Number(b[4]), 0, Number(b[4]), 'Producto base'); }
       else if (!datos[i][6]) sh.getRange(i + 2, 7).setValue(b[6]);
     });
     return adminResumen();
@@ -94,13 +99,39 @@ function adminEliminarProducto(fila, tipo) {
   });
 }
 
+/** Historial de ingresos de stock (hoja «StockIngresos»): cuándo se agregaron unidades, cuántas y con qué origen. */
+function registrarIngresoStock_(tipo, producto, cantidad, antes, despues, origen) {
+  try {
+    if (!(Number(cantidad) > 0)) return;
+    var ss = abrirBd_(), sh = ss.getSheetByName('StockIngresos');
+    if (!sh) { sh = ss.insertSheet('StockIngresos'); sh.getRange(1, 1, 1, 7).setValues([['Fecha y hora', 'Tipo', 'Producto', 'Cantidad agregada', 'Stock antes', 'Stock después', 'Origen']]).setFontWeight('bold'); sh.setFrozenRows(1); }
+    sh.appendRow([Utilities.formatDate(new Date(), 'America/Santiago', 'yyyy-MM-dd HH:mm'), tipoCatalogo_(tipo), textoSeguro_(String(producto || '').slice(0, 150)), Number(cantidad), antes === '' ? 0 : Number(antes), Number(despues), String(origen || '')]);
+    var n = sh.getLastRow(); if (n > 1501) sh.deleteRows(2, n - 1501);
+  } catch (e) { console.error('registrarIngresoStock_: ' + e); }
+}
+
+/** Últimos ingresos de stock por tipo (más nuevos primero). */
+function leerIngresosStock_() {
+  var out = { musica: [], bebestible: [] };
+  try {
+    var sh = abrirBd_().getSheetByName('StockIngresos'), n = sh ? sh.getLastRow() : 0;
+    if (n < 2) return out;
+    sh.getRange(Math.max(2, n - 399), 1, Math.min(400, n - 1), 7).getValues().reverse().forEach(function (r) {
+      var t = r[1] === 'bebestible' ? 'bebestible' : 'musica';
+      if (out[t].length < 100) out[t].push({ fecha: String(r[0]), producto: String(r[2]), cantidad: Number(r[3]) || 0, antes: Number(r[4]) || 0, despues: Number(r[5]) || 0, origen: String(r[6]) });
+    });
+  } catch (e) { /* sin historial */ }
+  return out;
+}
+
 function adminReponer(fila, cantidad, tipo) {
   exigirAdmin_();
   cantidad = Number(cantidad);
   if (!(cantidad >= 1 && cantidad % 1 === 0)) throw new Error('Cantidad inválida.');
   return conBloqueo_(function () {
-    var sh = hojaCatalogo_(tipo), f = filaProducto_(sh, fila), actual = sh.getRange(f, 5).getValue();
-    sh.getRange(f, 5).setValue((actual === '' ? 0 : Number(actual)) + cantidad);
+    var sh = hojaCatalogo_(tipo), f = filaProducto_(sh, fila), actual = sh.getRange(f, 5).getValue(), antes = actual === '' ? 0 : Number(actual);
+    sh.getRange(f, 5).setValue(antes + cantidad);
+    registrarIngresoStock_(tipo, sh.getRange(f, 2).getValue() + (sh.getRange(f, 3).getValue() ? ' · ' + sh.getRange(f, 3).getValue() : ''), cantidad, antes, antes + cantidad, 'Reposición');
     return adminResumen();
   });
 }
@@ -257,7 +288,8 @@ function datosVentas_(mes) {
     resumen: resumen,
     ventas: todas.filter(function (v) { return (v.cobro || v.fecha).slice(0, 7) === mes || v.fecha.slice(0, 7) === mes; }).slice(0, 300),
     pendientes: todas.filter(function (v) { return v.pago === PAGO.PENDIENTE; }),
-    sesiones: sesionesVenta_()
+    sesiones: sesionesVenta_(),
+    ingresosStock: leerIngresosStock_()
   };
 }
 

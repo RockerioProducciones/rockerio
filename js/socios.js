@@ -156,6 +156,26 @@
     if (HIST_VER[k]) { var h = el('div', 'vt-hist'); if (!lista.length) h.appendChild(el('p', 'sub', 'Sin ventas este mes.')); else h.appendChild(tablaVentas(lista)); box.appendChild(h); }
     return box;
   }
+  function fechaHoraTxt(f) { var m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}:\d{2})/.exec(String(f || '')); return m ? m[3] + '/' + m[2] + '/' + m[1] + ' ' + m[4] : String(f || ''); }
+  function histStock(tipo) {
+    var k = 'stk' + tipo, lista = ((datos.ingresosStock || {})[tipo === 'musica' ? 'musica' : 'bebestible']) || [], box = el('div', 'vt-hist-box');
+    var cab = el('div', 'vt-hist-cab'); cab.appendChild(el('b', '', 'Historial de ingresos de stock (' + lista.length + ')'));
+    var bt = el('button', 'pb sec', HIST_VER[k] ? 'Ocultar historial' : 'Mostrar historial'); bt.type = 'button';
+    bt.onclick = function () { HIST_VER[k] = !HIST_VER[k]; pintar(); }; cab.appendChild(bt); box.appendChild(cab);
+    if (HIST_VER[k]) {
+      var h = el('div', 'vt-hist');
+      if (!lista.length) h.appendChild(el('p', 'sub', 'Aún no hay ingresos de stock registrados.'));
+      else {
+        lista.forEach(function (x) {
+          var f = el('div', 'fila-stk'); f.style.cssText = 'padding:9px 4px;border-bottom:1px solid rgba(255,255,255,.1)';
+          var a = el('div'); a.appendChild(el('b', '', x.producto)); f.appendChild(a);
+          var b2 = el('small', 'sub', fechaHoraTxt(x.fecha) + ' · +' + x.cantidad + ' un. (' + x.antes + ' → ' + x.despues + ') · ' + x.origen); b2.style.display = 'block'; f.appendChild(b2); h.appendChild(f);
+        });
+      }
+      box.appendChild(h);
+    }
+    return box;
+  }
   function pintarCatalogo(tipo) {
     var s = $('v-' + tipo); s.textContent = '';
     var lista = (tipo === 'musica' ? datos.musica : datos.bebestibles), cart = CART[tipo], ico = tipo === 'musica' ? '🎸' : '🥤', txt = tipo === 'musica' ? 'Música' : 'Bebestibles';
@@ -220,6 +240,7 @@
     }
     carro();
     s.appendChild(histVentas(tipo === 'musica' ? 'Música' : 'Bebestibles', tipo));
+    s.appendChild(histStock(tipo));
   }
   function pintarHistorial() {
     var s = $('v-historial'); s.textContent = ''; var r = datos.resumen;

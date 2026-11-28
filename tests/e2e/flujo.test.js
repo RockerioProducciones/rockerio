@@ -460,6 +460,16 @@ t('cliente sin teléfono recibe clave interna y se puede editar y eliminar', () 
   g.admin('adminEliminarCliente', '56955554444'); assert.ok(g.admin('adminEliminarCliente', '56955554444').ok, 'eliminar dos veces no da error');
   assert.ok(!g.admin('adminJornadas').clientes.find((x) => x.banda === 'Sin Telefono'));
 });
+t('historial de ingresos de stock: reposición, producto nuevo y ajuste quedan con fecha y hora', () => {
+  g.admin('adminGuardarProducto', { tipo: 'bebestible', categoria: 'Bebestibles', nombre: 'Agua Stock Prueba', detalle: '500 ml', precio: 1000, stock: 6, visible: true, foto: '' });
+  let bb = g.admin('adminResumen').bebestibles, pr = bb.find((x) => x.nombre === 'Agua Stock Prueba');
+  g.admin('adminReponer', pr.fila, 4, 'bebestible');
+  g.admin('adminGuardarProducto', { tipo: 'bebestible', fila: pr.fila, categoria: 'Bebestibles', nombre: 'Agua Stock Prueba', detalle: '500 ml', precio: 1000, stock: 15, visible: true, foto: '' });
+  g.admin('adminGuardarProducto', { tipo: 'bebestible', fila: pr.fila, categoria: 'Bebestibles', nombre: 'Agua Stock Prueba', detalle: '500 ml', precio: 1000, stock: 3, visible: true, foto: '' }); // bajar no cuenta
+  const lista = g.admin('adminResumen').ventas.ingresosStock.bebestible.filter((x) => /Agua Stock Prueba/.test(x.producto));
+  assert.deepStrictEqual(lista.map((x) => x.origen + ':' + x.cantidad).sort(), ['Ajuste de stock:5', 'Producto nuevo:6', 'Reposición:4']);
+  assert.ok(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(lista[0].fecha));
+});
 t('la versión de datos sube cuando alguien guarda algo (para que los portales se actualicen solos)', () => {
   const v0 = g.get({ accion: 'version' }); assert.ok(v0.ok && typeof v0.v === 'string');
   g.admin('adminGuardarAjustes', { avisoSincro: 'x' });

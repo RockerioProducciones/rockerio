@@ -781,7 +781,18 @@ function pos(id,tipo,titulo,ico,prods,d){
         var cc=document.createElement('td');cc.className='vt-acc';if(!an)cc.appendChild(btn('✎ Editar',function(){formVenta(x)},'sec'));cc.appendChild(btnDel('🗑','¿Eliminar esta venta? Se devolverán las unidades al stock y no se puede deshacer.',function(){vr('adminEliminarVenta',[x.id],function(){aviso('Venta eliminada')})}));tr.appendChild(cc);tbd.appendChild(tr)});
       tb.appendChild(tbd);var wr=el_('div','vt-tabla-w');wr.appendChild(tb);hb.appendChild(wr)}
     caja.appendChild(hb)}
+  /* historial de ingresos de stock: cuándo se agregaron unidades */
+  var ing=((v.ingresosStock||{})[tipo])||[],hs=el_('div','vt-hist-cab');hs.appendChild(el_('b','','Historial de ingresos de stock ('+ing.length+')'));
+  hs.appendChild(btn(HIST_VER['stk'+tipo]?'Ocultar historial':'Mostrar historial',function(){HIST_VER['stk'+tipo]=!HIST_VER['stk'+tipo];pintarCatalogos(ultimo)},'sec'));caja.appendChild(hs);
+  if(HIST_VER['stk'+tipo]){var hb2=el_('div','vt-hist');
+    if(!ing.length)hb2.appendChild(par('Aún no hay ingresos de stock registrados. Quedan anotados desde ahora cada vez que agregues unidades con «+ Stock» o subas el stock de un producto.','color:#b5afa6;text-align:center;padding:14px'));
+    else{var tb2=document.createElement('table');tb2.className='vt-tabla';var th2=document.createElement('thead'),tr2=document.createElement('tr');['Fecha y hora','Producto','Agregado','Stock','Origen'].forEach(function(h){tr2.appendChild(el_('th','',h))});th2.appendChild(tr2);tb2.appendChild(th2);var td2=document.createElement('tbody');
+      ing.forEach(function(x){var tr=document.createElement('tr');tr.appendChild(td(fechaHoraTxt(x.fecha)));var cp=td(x.producto);cp.className='vt-prod';tr.appendChild(cp);tr.appendChild(td('+'+x.cantidad+' un.'));tr.appendChild(td(x.antes+' → '+x.despues));tr.appendChild(td(x.origen));td2.appendChild(tr)});
+      tb2.appendChild(td2);var w2=el_('div','vt-tabla-w');w2.appendChild(tb2);hb2.appendChild(w2)}
+    caja.appendChild(hb2)}
 }
+/* «2026-11-27 22:15» → «27/11/2026 22:15» */
+function fechaHoraTxt(f){var m=/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}:\d{2})/.exec(String(f||''));return m?m[3]+'/'+m[2]+'/'+m[1]+' '+m[4]:String(f||'')}
 function formVenta(x){
   var d=$('jdet');d.textContent='';d.hidden=false;cierraFuera(d);
   var f=el_('div','ficha-j');f.appendChild(el_('h3','','Corregir venta '+x.id));f.appendChild(el_('div','sub',x.fecha+' · '+x.producto+' · '+clp(x.precio)+' c/u'));
