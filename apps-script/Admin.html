@@ -786,8 +786,9 @@ function pos(id,tipo,titulo,ico,prods,d){
   hs.appendChild(btn(HIST_VER['stk'+tipo]?'Ocultar historial':'Mostrar historial',function(){HIST_VER['stk'+tipo]=!HIST_VER['stk'+tipo];pintarCatalogos(ultimo)},'sec'));caja.appendChild(hs);
   if(HIST_VER['stk'+tipo]){var hb2=el_('div','vt-hist');
     if(!ing.length)hb2.appendChild(par('Aún no hay ingresos de stock registrados. Quedan anotados desde ahora cada vez que agregues unidades con «+ Stock» o subas el stock de un producto.','color:#b5afa6;text-align:center;padding:14px'));
-    else{var tb2=document.createElement('table');tb2.className='vt-tabla';var th2=document.createElement('thead'),tr2=document.createElement('tr');['Fecha y hora','Producto','Agregado','Stock','Origen'].forEach(function(h){tr2.appendChild(el_('th','',h))});th2.appendChild(tr2);tb2.appendChild(th2);var td2=document.createElement('tbody');
-      ing.forEach(function(x){var tr=document.createElement('tr');tr.appendChild(td(fechaHoraTxt(x.fecha)));var cp=td(x.producto);cp.className='vt-prod';tr.appendChild(cp);tr.appendChild(td('+'+x.cantidad+' un.'));tr.appendChild(td(x.antes===null?'—':x.antes+' → '+x.despues));tr.appendChild(td(x.origen));td2.appendChild(tr)});
+    else{var tb2=document.createElement('table');tb2.className='vt-tabla';var th2=document.createElement('thead'),tr2=document.createElement('tr');['Fecha y hora','Producto','Stock','Agregado','Origen'].forEach(function(h){tr2.appendChild(el_('th','',h))});th2.appendChild(tr2);tb2.appendChild(th2);var td2=document.createElement('tbody');
+      ing.forEach(function(x){var tr=document.createElement('tr');tr.appendChild(td(fechaHoraTxt(x.fecha)));var cp=td(x.producto);cp.className='vt-prod';tr.appendChild(cp);tr.appendChild(td(x.antes===null?'—':x.antes+' → '+x.despues));
+        var ca=document.createElement('td');ca.appendChild(el_('span','vt-est ok','+'+x.cantidad+' un.'));tr.appendChild(ca);var co=document.createElement('td');co.appendChild(el_('span','vt-medio',x.origen));tr.appendChild(co);td2.appendChild(tr)});
       tb2.appendChild(td2);var w2=el_('div','vt-tabla-w');w2.appendChild(tb2);hb2.appendChild(w2)}
     caja.appendChild(hb2)}
 }

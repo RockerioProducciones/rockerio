@@ -166,11 +166,16 @@
       var h = el('div', 'vt-hist');
       if (!lista.length) h.appendChild(el('p', 'sub', 'Aún no hay ingresos de stock registrados.'));
       else {
+        var w = el('div', 'vt-tabla-w'), tb = el('table', 'vt-tabla'), th = el('thead'), trh = el('tr');
+        ['Fecha y hora', 'Producto', 'Stock', 'Agregado', 'Origen'].forEach(function (t) { trh.appendChild(el('th', '', t)); });
+        th.appendChild(trh); tb.appendChild(th); var bd = el('tbody');
         lista.forEach(function (x) {
-          var f = el('div', 'fila-stk'); f.style.cssText = 'padding:9px 4px;border-bottom:1px solid rgba(255,255,255,.1)';
-          var a = el('div'); a.appendChild(el('b', '', x.producto)); f.appendChild(a);
-          var b2 = el('small', 'sub', fechaHoraTxt(x.fecha) + ' · +' + x.cantidad + ' un.' + (x.antes === null ? '' : ' (' + x.antes + ' → ' + x.despues + ')') + ' · ' + x.origen); b2.style.display = 'block'; f.appendChild(b2); h.appendChild(f);
+          var tr = el('tr'); tr.appendChild(el('td', '', fechaHoraTxt(x.fecha))); tr.appendChild(el('td', 'vt-prod', x.producto));
+          tr.appendChild(el('td', '', x.antes === null ? '—' : x.antes + ' → ' + x.despues));
+          var ca = el('td'); ca.appendChild(el('span', 'vt-est pg', '+' + x.cantidad + ' un.')); tr.appendChild(ca);
+          var co = el('td'); co.appendChild(el('span', 'vt-medio', x.origen)); tr.appendChild(co); bd.appendChild(tr);
         });
+        tb.appendChild(bd); w.appendChild(tb); h.appendChild(w);
       }
       box.appendChild(h);
     }

@@ -353,6 +353,23 @@ t('anular una venta repone el stock y la saca de los totales', () => {
   const rs = g.admin('adminResumen'); const antes = rs.productos.find((p) => /Prueba/.test(p.nombre)).stock, venta = rs.ventas.ventas.find((x) => x.pago === 'Venta efectivo' && /Prueba/.test(x.producto));
   g.admin('adminAnularVenta', venta.id); const desp = g.admin('adminResumen').productos.find((p) => /Prueba/.test(p.nombre)).stock; assert.strictEqual(desp, antes + venta.cantidad, 'antes ' + antes + ' desp ' + desp + ' cant ' + venta.cantidad + ' ' + venta.producto);
 });
+t('vender por error y eliminar la venta devuelve el stock (bebestibles y música; sola y en carrito)', () => {
+  ['bebestible', 'musica'].forEach((tipo) => {
+    g.admin('adminGuardarProducto', { tipo, categoria: 'X', nombre: 'Prod Devuelve ' + tipo, detalle: '', precio: 1000, stock: 10, visible: true, foto: '' });
+    const lista = () => { const r = g.admin('adminResumen'); return (tipo === 'musica' ? r.productos : r.bebestibles); };
+    const lee = () => lista().find((p) => p.nombre === 'Prod Devuelve ' + tipo).stock;
+    const fila = lista().find((p) => p.nombre === 'Prod Devuelve ' + tipo).fila;
+    assert.strictEqual(lee(), 10);
+    const r = g.admin('adminVentaRapida', 'adminVenderCarrito', [tipo, [{ fila, cantidad: 3 }], 'Venta efectivo', 'error', '', '']);
+    assert.strictEqual(lee(), 7);
+    const v = r.ventas.ventas.find((q) => q.producto.indexOf('Prod Devuelve') === 0 && q.cantidad === 3); assert.ok(v, 'venta registrada');
+    g.admin('adminVentaRapida', 'adminEliminarVenta', [v.id]); assert.strictEqual(lee(), 10, 'stock restaurado al eliminar');
+    const r2 = g.admin('adminVentaRapida', 'adminVenderCarrito', [tipo, [{ fila, cantidad: 2 }], 'Venta efectivo', '', '', '']);
+    const v2 = r2.ventas.ventas.find((q) => q.producto.indexOf('Prod Devuelve') === 0 && q.cantidad === 2);
+    g.admin('adminAnularVenta', v2.id); assert.strictEqual(lee(), 10, 'stock restaurado al anular');
+    g.admin('adminVentaRapida', 'adminEliminarVenta', [v2.id]); assert.strictEqual(lee(), 10, 'eliminar una anulada no suma dos veces');
+  });
+});
 t('claves fijas de /proaudix y /agenda: se crean, entran, se cambian y no se repiten', () => {
   let r = g.admin('adminGuardarClaveEnlace', 'proaudix', 'Gaby-Jaime26');
   assert.ok(r.socios.some((x) => x.rol === 'proaudix'));
